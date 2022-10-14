@@ -1,0 +1,32 @@
+{
+	"config": {
+		"base_url": "./img/terrain.png"
+	},
+	"grass": {
+		"texture": ":3:0"
+	},
+	"stone": {
+		"texture": ":1:0"
+	},
+	"dirt": {
+		"texture": ":2:0"
+	},
+	"bedrock": {
+		"texture": ":1:1"
+	},
+	"oak_log": {
+		"texture": ":4:1"
+	},
+	"oak_planks": {
+		"texture": ":4:0"
+	},
+	"sand": {
+		"texture": ":2:1"
+	},
+	"water": {
+		"texture": ":13:12"
+	},
+	"sandstone": {
+		"texture": ":0:12"
+	}
+}

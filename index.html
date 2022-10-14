@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html spellcheck="false" autocomplete="off" autocapitalize="off" lang="en" ontouchend="getSelection().removeAllRanges();event.preventDefault();if('value' in event.target)event.target.focus();event.target.dispatchEvent(new MouseEvent('click', event.changedTouches[0]))" oncontextmenu="event.preventDefault();" onwheel="if(event.ctrlKey)event.preventDefault()">
+<head>
+	<meta property="og:description" content="">
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+	<link href="style.css" rel="stylesheet">
+	<link href="ui/ui.css" rel="stylesheet">
+	<link rel="apple-touch-icon" href="./img/icon.png">
+	<link rel="shortcut icon" href="./img/grassicon.png">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<script>fetch('manifest.json').then(a => a.json()).then(d => {d.icons=[{src:"./img/icon.png",type:"image/png",sizes: "512x512"}];document.head.insertAdjacentHTML('afterEnd', `<link rel="manifest" href="d:application/json;base64,${btoa(JSON.stringify(d))}"><meta name="apple-mobile-web-app-title" content="${d.short_name}"><meta property="og:title" content="${d.name}"><meta property="og:image" content="icon.png"><link rel="shortcut icon" href="icon.png" type="image/x-icon"><meta name="theme-color" content="${d.theme_color}">`);document.title=d.name;document.documentElement.style.backgroundColor=d.background_color})</script>
+</head>
+	<body>
+		<div id="f3"></div>
+		<script src="index.js" type="module"></script>
+		<div id="chunks"></div>
+		<div id="pointer"></div>
+		<div id="pointer2"></div>
+		<div id="dirtbg">
+			<div id="dirtbgmsg"></div>
+			<div id="dirtbgbuttons"></div>
+		</div>
+		<item id="draggingNode"></item>
+		<div id="hotbar">
+			<item></item><item></item><item></item>
+			<item></item><item></item><item></item>
+			<item></item><item></item><item></item>
+			<div id="slot"></div>
+		</div>
+		<div id="chat"></div>
+		<div id="ui" style="display:none">
+		</div>
+	</body>
+</html>

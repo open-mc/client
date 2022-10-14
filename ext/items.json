@@ -1,0 +1,20 @@
+{
+	"config": {
+		"base_url": "./img/"
+	},
+	"bedrock": {
+		"texture": "terrain.png:0:0"
+	},
+	"stone": {
+		"texture": "terrain.png:1:0",
+		"places": "stone"
+	},
+	"oak_log": {
+		"texture": "terrain.png:4:1",
+		"places": "oak_log"
+	},
+	"sandstone": {
+		"texture": "terrain.png:0:12",
+		"places": "sandstone"
+	}
+}
