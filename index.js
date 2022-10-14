@@ -12,7 +12,7 @@ import { connection } from "./lib/connectme.js"
 import "./expose.js"
 import { render } from "./lib/entity.js"
 import { EntityIDs } from "./lib/definitions.js"
-globalThis.ws = connection('192.168.1.91:27277')
+globalThis.ws = connection('localhost:27277')
 
 const update = 1000 / 20
 let last = performance.now(), rendertime = 5, count = 1.1, l2 = performance.now()
