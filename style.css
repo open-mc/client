@@ -45,6 +45,10 @@ in{
 	position: relative;
 	z-index: 0;
 	--padding: 3rem;
+	width: 200rem;
+}
+in.tall{
+	height: 5em;
 }
 in div{
 	position: absolute;
@@ -171,18 +175,18 @@ canvas{
 }
 #dirtbgmsg{ margin: 10vh }
 #dirtbgbuttons{
-	width: 100%;
+	width: calc(100% - 10vh);
 	height: 2em;
 	display: flex;
 	gap: 10rem;
 	justify-content: center;
 	flex-wrap: wrap;
+	margin: 5vh;
 }
 label{
 	display: block;
 	text-align: center;
 	height: 20rem;
-	flex-grow: 1;
 	line-height: 18rem;
 	flex-shrink: 0;
 }
@@ -196,7 +200,7 @@ btn{
 	cursor: pointer;
 	flex-shrink: 0;
 }
-btn.small{
+row > btn{
 	width: 96rem;
 	background: url('./img/button.png') -28rem center/324rem;
 }
@@ -284,6 +288,7 @@ item[count]::after{
 }
 
 #ui{
+	display: flex;
 	position: absolute;
 	flex-direction: column;
 	justify-content: center;
@@ -297,6 +302,9 @@ item[count]::after{
 }
 #ui.noshade{
 	background-color: #0000;
+}
+#ui.dirtbg{
+	background: url('./img/bg32.png') center/48px;
 }
 #inventory{
 	background: url('./img/inv.png') center/176rem no-repeat;

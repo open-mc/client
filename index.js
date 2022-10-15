@@ -1,19 +1,17 @@
 const VERSION = 'alpha 1'
 import "./lib/prototype.js"
 import "./me.js"
-import { codes, onstring, types } from "./lib/incomingPacket.js"
+import "./lib/incomingPacket.js"
 import { send } from "./lib/send.js"
 import { TEX_SIZE } from "./textures.js"
-import { mv, position, REACH, x, y } from "./ui/pointer.js"
+import { position, REACH, x, y } from "./ui/pointer.js"
 import { updateKeys } from "./ui/events.js"
 import "./controls.js"
-import "./ui/pause.js"
-import { connection } from "./lib/connectme.js"
 import "./expose.js"
 import { render } from "./lib/entity.js"
 import { EntityIDs } from "./lib/definitions.js"
-globalThis.ws = connection('localhost:27277')
-
+import { serverlist } from "./uis/serverlist.js"
+serverlist()
 const update = 1000 / 20
 let last = performance.now(), rendertime = 5, count = 1.1, l2 = performance.now()
 globalThis.t = Date.now()/1000%86400
@@ -75,7 +73,7 @@ msgchannel.port2.onmessage = function(){
 	elu += now - l2
 }
 export let zoom_correction = 0
-let camMoving = false
+let camMovingX = false, camMovingY = false
 const {abs, min, max, round} = Math
 const puppet = EntityIDs[0]._.textures.cloneNode(true)
 inventory.append(puppet)
@@ -95,12 +93,12 @@ requestAnimationFrame(function frame(){
 	me.y = Math.ifloat(me.y)
 	msgchannel.port1.postMessage(undefined)
 	const dx = Math.ifloat(me.x + x/2 - cam.x), dy = Math.ifloat(me.y + y/2 + me.head - cam.y)
-	if(!camMoving && max(abs(dx), abs(dy)) > REACH / 2)camMoving = true
-	else if(camMoving && max(abs(dx), abs(dy)) < REACH / 4)camMoving = false
-	if(camMoving){
-		cam.x = Math.ifloat(cam.x + (dx - Math.sign(dx)*(REACH/4+0.125)) * dt * 5)
-		cam.y = Math.ifloat(cam.y + (dy - Math.sign(dy)*(REACH/4+0.125)) * dt * 5)
-	}
+	if(!camMovingX && abs(dx) > REACH / 2)camMovingX = true
+	else if(camMovingX && abs(dx) < REACH / 4)camMovingX = false
+	if(!camMovingY && abs(dy) > REACH / 2)camMovingY = true
+	else if(camMovingY && abs(dy) < REACH / 4)camMovingY = false
+	if(camMovingX)cam.x = Math.ifloat(cam.x + (dx - Math.sign(dx)*(REACH/4+0.125)) * dt * 5)
+	if(camMovingY)cam.y = Math.ifloat(cam.y + (dy - Math.sign(dy)*(REACH/4+0.125)) * dt * 5)
 	W2 = innerWidth / TEX_SIZE / cam.z / 2 + 1
 	H2 = innerHeight / TEX_SIZE / cam.z / 2 + 1
 	zoom_correction = round(physical_chunk_pixels * cam.z) / physical_chunk_pixels

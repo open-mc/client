@@ -1,6 +1,7 @@
 import { bind, ctrl, key } from "./ui/events.js";
 import { setselected, getselected } from "./me.js";
-import { hideUI, toggleUI } from "./ui/ui.js";
+import { hideUI } from "./ui/ui.js";
+import { showInventory } from "./uis/inventory.js";
 
 bind(['arrowright', 'd'], function(){
 	me.dx = 5
@@ -26,7 +27,7 @@ key('tab', toggleF3)
 key('f1', toggleGUI)
 ctrl('dypsfgl,[]-='.split(""), () => {})
 key('123456789'.split(""), e => setselected(e.key - 1))
-key('e', () => {toggleUI('inv')})
+key('e', () => {showInventory()})
 key('escape', () => {hideUI()}, true)
 chunks.onwheel = e => {
 	if(e.wheelDeltaY === (e.deltaY * -3) || e.deltaMode == 0){

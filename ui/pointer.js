@@ -2,7 +2,8 @@ import { getblock, getselected, setblock } from "../me.js"
 import { SetBlock } from "../lib/packet.js"
 import { BlockIDs } from "../lib/definitions.js"
 import { TEX_SIZE } from "../textures.js"
-import { currentUI, showUI } from "./ui.js"
+import { ui, showUI } from "./ui.js"
+import { pause } from "../uis/pauseui.js"
 
 export let x = 2, y = 0
 export function mv(dx, dy){
@@ -46,10 +47,10 @@ document.onpointerlockchange = function(e){
 		if(wasFullscreen)document.documentElement.requestFullscreen()
 		pointer.style.display = pointer2.style.display = 'block'
 	}else{
-		wasFullscreen = !!(currentUI == '' && document.fullscreenElement)
+		wasFullscreen = !!(!ui && document.fullscreenElement)
 		if(wasFullscreen)document.exitFullscreen ? document.exitFullscreen().catch(Function.prototype) : document.webkitExitFullscreen()
 		pointer.style.display = pointer2.style.display = 'none'
-		if(!currentUI)showUI('pauseui')
+		if(!ui)pause()
 	}
 }
 chunks.onmousemove = function({movementX, movementY}){

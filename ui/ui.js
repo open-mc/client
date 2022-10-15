@@ -1,57 +1,18 @@
-import { reconnect } from "../lib/connectme.js"
-
-export function dirtDcreenMessage(text, style = 15, buttons = {}){
-	hideUI(false)
+import sounds from "./sounds.js"
+const NONE = document.createComment('')
+document.body.append(NONE)
+export let ui = null
+export async function hideUI(){
+	if(!ui)return
+	await chunks.requestPointerLock()
+	ui.replaceWith(NONE)
+	;(ui.finish||Function.prototype)()
+	ui = null
+}
+export function showUI(a = this){
 	document.exitPointerLock()
-	dirtbg.style.display = 'block'
-	dirtbgmsg.innerText = text
-	dirtbgmsg.classList = `c${style&15} s${style>>4}`
-	dirtbgbuttons.innerHTML=''
-	for(const name in buttons){
-		const btn = document.createElement('btn')
-		btn.innerText = name
-		btn.onclick = buttons[name]
-		dirtbgbuttons.appendChild(btn)
-	}
-}
-export function clearDirtScreenMessage(){
-	dirtbg.style.display = 'none'
-}
-export const btns = [
-	{ 'Reconnect': reconnect }
-]
-
-let uis = {}
-export let currentUI = ''
-await fetch('./ui/ui.html').then(a=>a.text()).then(a=>{
-	ui.insertAdjacentHTML('afterbegin', a)
-	for(const c of ui.children){
-		if(!c.id)continue
-		c.style.display = 'none'
-		c.classes = c.getAttribute('classes') || ""
-		uis[c.id] = c
-	}
-})
-export async function hideUI(pl = true){
-	if(pl)await chunks.requestPointerLock()
-	ui.style.display = 'none'
-	if(currentUI)uis[currentUI].style.display = 'none', (uis[currentUI].finish||Function.prototype)()
-	currentUI = ''
-}
-export function showUI(id){
-	if(dirtbg.style.display != 'none')return
-	if(!uis[id])return
-	document.exitPointerLock()
-	if(currentUI)uis[currentUI].style.display = 'none', (uis[currentUI].finish||Function.prototype)()
-	uis[id].style.display = ''
-	ui.className = uis[id].classes
-	ui.style.display = 'flex'
-	currentUI = id
-}
-
-export function toggleUI(id){
-	if(currentUI)hideUI()
-	else showUI(id)
+	;(ui&&ui.finish||Function.prototype)()
+	;(ui || NONE).replaceWith(ui = a)
 }
 
 const selchange = new Set
@@ -80,26 +41,34 @@ function clear(){
 	this.firstChild.os = this.firstChild.oe = 0
 	this.lastChild.innerHTML = '<f class="__cursor">_</f>'
 }
-function value(a){if(a != undefined)this.firstChild.value=a,this.firstChild.onselchange();return this.firstChild.value}
-export function bindInput(el, r){
-	for(const k in r)if(r[k].flags!='y')r[k] = new RegExp(r[k].source, 'y')
-	const t = document.createElement(el.getAttribute('type') == 'textarea' ? 'textarea' : 'input'), v = document.createElement('div')
+const {prototype: InputPrototype} = class extends HTMLElement{
+	get value(){return this.t.value}
+	set value(a){this.t.value = a;this.t.onselchange()}
+	focus(){this.t.focus()}
+	blur(){this.t.blur()}
+	clear(){this.t.value='',this.t.os = this.t.oe = 0;this.v.innerHTML = '<f class="__cursor">_</f>'}
+	set disabled(a){this.t.disabled = a}
+	get disabled(){return this.t.disabled}
+}
+const {prototype: BtnPrototype} = class extends HTMLElement{
+	set disabled(a){if(a)this.classList.add('disabled');else this.classList.remove('disabled')}
+	get disabled(){return this.classList.contains('disabled')}
+	get text(){return super.textContent}
+	set text(a){super.textContent = a}
+}
+export const Input = (type, placeholder, tokenizers = {txt:/[^]*/y}) => {
+	const el = document.createElement('in')
+	for(const k in tokenizers)if(tokenizers[k].flags!='y')tokenizers[k] = new RegExp(tokenizers[k].source, 'y')
+	const t = document.createElement(type == 'long' ? 'textarea' : 'input'), v = document.createElement('div')
 	newnode(v, '__cursor', '_')
-	t.os = 0
-	t.oe = 0
-	v.vi = 0
+	el.os = el.oe = 0
+	el.t = t
 	el.clear = clear
-	el.val = value
-	el.focus = () => t.focus()
-	el.blur = () => t.blur()
-	for(const k of el.getAttributeNames()){
-		if(k == 'id')continue
-		t.setAttribute(k, el.getAttribute(k))
-		el.removeAttribute(k)
-	}
-	t.placeholder = el.textContent
+	t.placeholder = placeholder
 	el.innerHTML = ''
+	el.v = v
 	el.append(t, v)
+	Object.setPrototypeOf(el, InputPrototype)
 	t.onscroll = () => v.scrollTo(t.scrollLeft, t.scrollTop)
 	t.onkeydown = e=>{if(el.key)el.key(e.key,e.shiftKey)}
 	t.onselchange = t.oninput = () => {
@@ -112,8 +81,8 @@ export function bindInput(el, r){
 		const cur = s == e ? s : -1
 		while(i < value.length){
 			let k, length = 0
-			for(k in r){
-				const reg = r[k]
+			for(k in tokenizers){
+				const reg = tokenizers[k]
 				reg.lastIndex = i
 				;[{length}] = value.match(reg) || earr
 				if(length)break
@@ -129,14 +98,16 @@ export function bindInput(el, r){
 		let c; while(c = v.children[v.i])c.remove()
 	}
 	selchange.add(t)
+	return el
 }
 let thumbx = -1, curtrack = null
 function pointermove(e){
-		if(curtrack){
-			curtrack.value = Math.fclamp((e.clientX - curtrack.offsetLeft - thumbx) / (curtrack.offsetWidth - curtrack.lastChild.offsetWidth))
-			let v = +curtrack.change(curtrack.value)
-			curtrack.lastChild.style.setProperty('--value', v == v ? v : curtrack.value)
-		}
+	if(curtrack){
+		curtrack.value = Math.fclamp((e.clientX - curtrack.offsetLeft - thumbx) / (curtrack.offsetWidth - curtrack.lastChild.offsetWidth))
+		let [t, v] = curtrack.change(curtrack.value)
+		curtrack.lastChild.style.setProperty('--value', v)
+		curtrack.firstChild.textContent = t
+	}
 }
 addEventListener('pointermove', pointermove)
 addEventListener('pointerup', () => {
@@ -144,19 +115,68 @@ addEventListener('pointerup', () => {
 	curtrack = null
 	thumbx = -1
 })
-export function bindThumb(el, change, value = 0){
+function _scale(c, change){
+	let el = document.createElement('btn')
+	el.className = c
+	el.style.position = 'relative'
 	let txt = document.createElement('span')
 	txt.style = 'z-index:1;position:relative;pointer-events:none'
-	for(const c of el.childNodes)txt.append(c)
 	let thumb = document.createElement('btn')
 	thumb.className = 'thumb'
 	el.append(txt)
 	el.append(thumb)
 	el.change = change
-	value = change(value)
+	let [t, value] = change()
+	txt.textContent = t
 	el.value = value
 	thumb.style.setProperty('--value', value)
 	el.onpointerdown = e => (curtrack = el, thumb.classList.add('highlighted'), pointermove(e))
 	el.style.position = 'relative'
-	
+	return el
+}
+export const ScaleSmall = _scale.bind(undefined, 'disabled small')
+export const Scale = _scale.bind(undefined, 'disabled')
+
+export const Btn = (text, onclick, classes = '') => {
+	let btn = document.createElement('btn')
+	if(classes)btn.className = classes
+	btn.append(text)
+	btn.onclick = () => {
+		sounds.click()
+		onclick()
+	}
+	Object.setPrototypeOf(btn, BtnPrototype)
+	return btn
+}
+export const Row = (a, b) => {
+	let row = document.createElement('row')
+	row.append(a); row.append(b)
+	return row
+}
+export const Label = (txt) => {
+	let label = document.createElement('label')
+	label.append(txt)
+	return label
+}
+
+export const UI = (cl, ...els) => {
+	let ui = document.createElement('div')
+	ui.id = 'ui'
+	ui.className = cl
+	for(const el of els)ui.append(el)
+	ui.show = showUI.bind(undefined, ui)
+	return ui
+}
+
+export const Spacer = (a) => {
+	let space = document.createElement('div')
+	space.style.flexBasis = a + 'rem'
+	return space
+}
+
+export const Div = (id, ...a) => {
+	const div = document.createElement('div')
+	div.id = id
+	for(const el of a)div.append(el)
+	return div
 }
