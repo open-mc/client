@@ -1,4 +1,4 @@
-export const servers = (localStorage.servers || 'ws://localhost:27277').split('\0')
+export const servers = (localStorage.servers || 'localhost:27277').split('\0')
 const fns = []
 export const onServer = fn => {
 	fns.push(fn)
@@ -7,6 +7,9 @@ export const onServer = fn => {
 export function addServer(ip){
 	servers.push(ip)
 	for(const fn of fns)fn(ip)
+	saveServers()
+}
+export function saveServers(){
 	localStorage.servers = servers.join('\0')
 }
 export const options = {}

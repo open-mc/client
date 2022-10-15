@@ -56,14 +56,23 @@ row{
 	background: #0004;
 	padding: 5rem;
 	width: 100%;
+	height: 50%;
+	overflow-y: auto;
 }
-#serverlist label{
+#serverlist row{
 	padding: 1rem;
 	margin: 5rem;
 	height: 22rem;
 }
-#serverlist label:hover{
+#serverlist label{
+	flex-grow: 1;
+}
+#serverlist row:hover{
 	border: 1rem #fff8 solid;
 	cursor: pointer;
 	padding: 0;
+}
+
+::placeholder{
+	color: #8888;
 }

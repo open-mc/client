@@ -1,11 +1,12 @@
 import { reconnect } from "../lib/connectme.js"
-import { Btn, Label, showUI, Spacer, UI } from "../ui/ui.js"
+import { Btn, Label, Row, showUI, Spacer, UI } from "../ui/ui.js"
+import { serverlist } from "./serverlist.js"
 
 let label, reconnectBtn
 const message = UI('dirtbg',
 	label = Label(''),
 	Spacer(100),
-	reconnectBtn = Btn('Reconnect', reconnect),
+	reconnectBtn = Row(Btn('Back', serverlist), Btn('Reconnect', reconnect)),
 	Spacer(100)
 )
 

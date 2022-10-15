@@ -141,8 +141,10 @@ export const Btn = (text, onclick, classes = '') => {
 	let btn = document.createElement('btn')
 	if(classes)btn.className = classes
 	btn.append(text)
-	btn.onclick = () => {
+	btn.onclick = (e) => {
+		if(btn.disabled)return
 		sounds.click()
+		e.stopPropagation()
 		onclick()
 	}
 	Object.setPrototypeOf(btn, BtnPrototype)
