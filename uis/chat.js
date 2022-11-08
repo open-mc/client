@@ -7,12 +7,13 @@ const chat = UI('noshade',
 key('t', () => {
 	showUI(chat)
 	input.focus()
+	input.value = ''
 	chat.classList.add('focus')
 })
 key('/', () => {
 	showUI(chat)
 	input.focus()
-	input.val('/')
+	input.value = '/'
 	chat.classList.add('focus')
 })
 chat.finish = () => {

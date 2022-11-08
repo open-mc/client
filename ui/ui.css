@@ -31,7 +31,7 @@ row{
 	padding: 0 3rem;
 	background: #0004;
 	white-space: pre-wrap;
-	animation: fade 2s linear 4s both;
+	animation: fade 1s linear 9s both;
 }
 #chat.focus > div{
 	opacity: 1 !important;

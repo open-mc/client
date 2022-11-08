@@ -58,7 +58,7 @@ function next(){
 	if(current == (current = choose(currentTheme)))current = choose(currentTheme)
 	if(current){
 		current.onended = next
-		current.volume = musicVolume
+		current.volume = musicVolume * musicVolume
 		current.play().catch(() => {
 			//interaction required
 			console.debug('Failed to play audio node: interaction required')
@@ -69,7 +69,7 @@ function next(){
 
 export function musicVol(a){
 	musicVolume = a
-	if(current)current.volume = musicVolume
+	if(current)current.volume = musicVolume * musicVolume
 }
 export function soundVol(a){
 	soundVolume = a

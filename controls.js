@@ -1,7 +1,8 @@
 import { bind, ctrl, key } from "./ui/events.js";
 import { setselected, getselected } from "./me.js";
-import { hideUI } from "./ui/ui.js";
+import { ui, showUI, hideUI } from "./ui/ui.js";
 import { showInventory } from "./uis/inventory.js";
+import { pause } from "./uis/pauseui.js";
 
 bind(['arrowright', 'd'], function(){
 	me.dx = 5

@@ -1,7 +1,7 @@
 import { BlockIDs, EntityIDs } from "./lib/definitions.js";
 import { TEX_SIZE } from "./textures.js";
 globalThis.map = new Map()
-globalThis.entities = new Set()
+globalThis.entities = new Map()
 
 globalThis.me = null
 globalThis.cam = {x: 0, y: 0, z: 2}

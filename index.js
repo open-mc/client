@@ -50,8 +50,8 @@ function tick(){ //20 times a second
 Paper Minecraft ${VERSION}
 FPS: ${Math.round(1/dt)} (${rendertime < 5 ? rendertime < 1/10 ? '9999+' : (1000/rendertime).toFixed(0) : (1000/rendertime).toFixed(1)})
 ELU: ${Math.min(99.9,elusmooth/update*100).toFixed(1).padStart(4,"0")}% Ch: ${map.size}
-XY: ${me.x.toFixed(5)} / ${me.y.toFixed(5)}
-Point: ${Math.floor(x + me.x)} / ${Math.floor(y + me.y + me.head)}
+XY: ${me.x.toFixed(3)} / ${me.y.toFixed(3)}
+Looking at: ${Math.floor(x + me.x)|0} ${Math.floor(y + me.y + me.head)|0}
 `.trim().split('\n').map((a,i)=>[a,i]))(debugs[i] || (debugs[i] = debug()))(t)
 	ticknumber++
 	updateKeys()
@@ -112,7 +112,7 @@ requestAnimationFrame(function frame(){
 		chunk.position()
 		chunk.updaterender()
 	}
-	for(const entity of entities){
+	for(const entity of entities.values()){
 		if(!entity.node){
 			entity.node = entity.textures.cloneNode(true)
 			chunks.append(entity.node)

@@ -18,7 +18,7 @@ const serverList = UI('dirtbg',
 	Spacer(60),
 	list = Div('serverlist'),
 	Spacer(20),
-	Row(input = Input('text', 'server ip'), addBtn = Btn('Add server', () => {addServer(input.value);input.value='';addBtn.disabled=true}, 'small disabled'))
+	Row(input = Input('text', 'server ip'), addBtn = Btn('Add server', () => {if(input.value=='server ip')return input.value = 'very funny';else if(input.value=='very funny')return;addServer(input.value);input.value='';addBtn.disabled=true}, 'small disabled'))
 )
 input.oninput = () => {addBtn.disabled = !input.value}
 

@@ -6,24 +6,6 @@ import { ui, showUI } from "./ui.js"
 import { pause } from "../uis/pauseui.js"
 
 export let x = 2, y = 0
-export function mv(dx, dy){
-	return
-	x += dx; y += dy
-	const oldx = x, oldy = y
-	const reach = Math.min(REACH, (Math.min(W2, H2) - 1) * 1.5)
-	const ns = Math.sqrt(x * x + y * y)
-	const s = Math.min(reach, ns)
-	if(!ns)return x = y = 0
-	if(ns > s){
-		x /= ns
-		y /= ns
-		const vec = s + (Math.min(ns, reach) - s) * (1 - (s / reach) ** 4)
-		x *= vec
-		y *= vec
-	}
-	cam.x += (x - oldx) / 3
-	cam.y += (y - oldy) / 3
-}
 export const REACH = 10
 export function position(){
 	pointer.style.transform = `translate(${((Math.ifloat(x+me.x-cam.x)*ZPX)+innerWidth/2) - 10}px, ${-(Math.ifloat(y+me.head+me.y-cam.y)*ZPX) - innerHeight/2 + 1}px)`
