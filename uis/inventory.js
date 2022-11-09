@@ -10,7 +10,7 @@ inventoryui.onclick = function(e){
 	if(e.target.nodeName == 'ITEM'){
 		if(slotid !== undefined){
 			const i = getslot(slotid)
-			const d = me.dragging
+			const d = dragging
 			if(i && d && i.name == d.name && !i.savedata){
 				i.count += d.count
 				if(i.count > 64)d.count = i.count - 64, i.count=64, render_slot(41)
@@ -29,25 +29,25 @@ inventoryui.oncontextmenu = function(e){
 	if(e.target.nodeName == 'ITEM'){
 		if(slotid !== undefined){
 			const i = getslot(slotid)
-			if(!me.dragging){
+			if(!dragging){
 				if(!i)return
-				setslot(41,  Items[i.name](i.count - (i.count = Math.floor(i.count / 2))))
+				setslot(41,  Items[i.name](i.count - (i.count >>= 1)))
 				if(!i.count)setslot(slotid, null)
 				else render_slot(slotid)
 			}else if(!i){
-				if(me.dragging.count==1){
-					setslot(slotid, me.dragging)
+				if(dragging.count==1){
+					setslot(slotid, dragging)
 					setslot(41, null)
 				}else{
-					me.dragging.count--
+					dragging.count--
 					render_slot(41)
-					setslot(slotid, Items[me.dragging.name](1))
+					setslot(slotid, Items[dragging.name](1))
 				}
-			}else if(me.dragging.name == i.name && !i.savedata && i.count < 64){
+			}else if(dragging.name == i.name && !i.savedata && i.count < 64){
 				i.count++
 				render_slot(slotid)
-				if(me.dragging.count > 1){
-					me.dragging.count--
+				if(dragging.count != 1){
+					dragging.count--
 					render_slot(41)
 				}else setslot(41, null)
 			}

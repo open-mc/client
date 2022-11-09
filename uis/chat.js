@@ -1,22 +1,22 @@
 import { key } from "../ui/events.js";
 import { hideUI, Input, showUI, UI } from "../ui/ui.js";
 let input
-const chat = UI('noshade',
+const chatui = UI('noshade',
 	input = Input('text', '', { txt:/^[^/][^]*/y, c14:/\/\w*/y, c10:/\S+/y}).attr('id', 'chatbox')
 )
 key('t', () => {
-	showUI(chat)
+	showUI(chatui)
 	input.focus()
 	input.value = ''
 	chat.classList.add('focus')
 })
 key('/', () => {
-	showUI(chat)
+	showUI(chatui)
 	input.focus()
 	input.value = '/'
 	chat.classList.add('focus')
 })
-chat.finish = () => {
+chatui.finish = () => {
 	input.blur()
 	chat.classList.remove('focus')
 }

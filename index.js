@@ -34,7 +34,7 @@ const debug = () => {
 	f3.appendChild(el)
 	return a => el.innerText = a
 }, debugs = []
-const sendDelay = 4 //send packet every 4 ticks
+const sendDelay = 1 //send packet every 4 ticks
 let ticknumber = 0
 function tick(){ //20 times a second
 	countElu()

@@ -4,6 +4,7 @@ import { BlockIDs } from "../lib/definitions.js"
 import { TEX_SIZE } from "../textures.js"
 import { ui, showUI } from "./ui.js"
 import { pause } from "../uis/pauseui.js"
+import { DataWriter } from "../lib/data.js"
 
 export let x = 2, y = 0
 export const REACH = 10
@@ -19,7 +20,12 @@ chunks.onmousedown = function(e){
 	b = Blocks[e.button == 2 ? 'air' : b && b.places]
 	if(b && (b = b())){
 		setblock(px, py, b)
-		SetBlock({x: px, y: py, id: b.id})
+		let buf = new DataWriter()
+		buf.byte(8)
+		buf.int(px)
+		buf.int(py)
+		buf.short(b.id)
+		buf.pipe(ws)
 	}
 }
 let wasFullscreen = false

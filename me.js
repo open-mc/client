@@ -1,9 +1,10 @@
-import { BlockIDs, EntityIDs } from "./lib/definitions.js";
+import { BlockIDs, Entities } from "./lib/definitions.js";
 import { TEX_SIZE } from "./textures.js";
 globalThis.map = new Map()
-globalThis.entities = new Map()
-
-globalThis.me = null
+globalThis.meid = -1
+globalThis.me = Entities.player({x:0,y:0,_id:-1,dx:0,dy:0,f:0})
+globalThis.r = 0
+globalThis.dragging = null
 globalThis.cam = {x: 0, y: 0, z: 2}
 globalThis.running = false
 export function setblock(x, y, b){
@@ -32,7 +33,7 @@ export function setselected(_id){
 let item, s
 const renderitem = (node) => {
 	node.style.background = item && item.texture ? `url(${item.texture.src}) top/16rem` : ''
-	if(item)node.setAttribute('count', item.count == 1 ? '' : item.count)
+	if(item)node.setAttribute('count', item.count == 1 ? '' : item.count), node.style.color = item.count < 0 ? 'red' : ''
 	else node.removeAttribute('count')
 	node.slotid = s
 }
@@ -48,10 +49,10 @@ export function render_slot(id){
 }
 export function setslot(id, a){
 	if(id < 36)me.inv[id] = a
-	else if(id == 41)me.dragging = a
+	else if(id == 41)dragging = a
 	render_slot(id)
 }
 export function getslot(id){
 	if(id < 36)return me.inv[id]
-	else if(id == 41)return me.dragging
+	else if(id == 41)return dragging
 }
