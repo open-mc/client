@@ -1,5 +1,4 @@
 import { getblock, getselected, setblock } from "../me.js"
-import { SetBlock } from "../lib/packet.js"
 import { BlockIDs } from "../lib/definitions.js"
 import { TEX_SIZE } from "../textures.js"
 import { ui, showUI } from "./ui.js"
