@@ -1,4 +1,4 @@
-import { BlockIDs, Entities } from "./lib/definitions.js";
+import { Blocks, Entities } from "./lib/definitions.js";
 import { TEX_SIZE } from "./textures.js";
 globalThis.map = new Map()
 globalThis.meid = -1
@@ -20,7 +20,7 @@ export function setblock(x, y, b){
 export function getblock(x, y){
 	const k = (x>>>6)+(y>>>6)*67108864
 	const ch = map.get(k)
-	return ch ? ch.tiles[(x & 63) + ((y & 63) << 6)] : BlockIDs.air()
+	return ch ? ch.tiles[(x & 63) + ((y & 63) << 6)] : Blocks.air()
 }
 let selected = 0
 export const getselected = () => selected

@@ -11,6 +11,8 @@ import "./expose.js"
 import { render } from "./lib/entity.js"
 import { EntityIDs } from "./lib/definitions.js"
 import { serverlist } from "./uis/serverlist.js"
+import { fire } from "./lib/prototype.js"
+import { ui } from "./ui/ui.js"
 serverlist()
 const update = 1000 / 20
 let last = performance.now(), rendertime = 5, count = 1.1, l2 = performance.now()
@@ -52,6 +54,7 @@ FPS: ${Math.round(1/dt)} (${rendertime < 5 ? rendertime < 1/10 ? '9999+' : (1000
 ELU: ${Math.min(99.9,elusmooth/update*100).toFixed(1).padStart(4,"0")}% Ch: ${map.size}
 XY: ${me.x.toFixed(3)} / ${me.y.toFixed(3)}
 Looking at: ${Math.floor(x + me.x)|0} ${Math.floor(y + me.y + me.head)|0}
+Facing: ${(me.f >= 0 ? 'RIGHT ' : ' LEFT ') + (90 - Math.abs(me.f / PI2 * 360)).toFixed(1).padStart(5, '\u2007')} (${(me.f / PI2 * 360).toFixed(1)})
 `.trim().split('\n').map((a,i)=>[a,i]))(debugs[i] || (debugs[i] = debug()))(t)
 	ticknumber++
 	updateKeys()
@@ -74,9 +77,8 @@ msgchannel.port2.onmessage = function(){
 }
 export let zoom_correction = 0
 let camMovingX = false, camMovingY = false
-const {abs, min, max, round} = Math
-const puppet = EntityIDs[0]._.textures.cloneNode(true)
-inventory.append(puppet)
+const {abs, min, round, PI} = Math
+const PI2 = PI * 2
 requestAnimationFrame(function frame(){
 	l2 = performance.now()
 	dt += ((performance.now() - l3) / 1000 - dt) / (count = min(count ** 1.03, 60))
@@ -85,12 +87,16 @@ requestAnimationFrame(function frame(){
 	l3 = performance.now()
 	requestAnimationFrame(frame)
 	if(!running)return
-	me.x += me.dx * dt
-	me.y += me.dy * dt
-	me.dx *= 0.01 ** dt
-	me.dy *= 0.01 ** dt
-	me.x = Math.ifloat(me.x)
-	me.y = Math.ifloat(me.y)
+	for(const e of entities.values()){
+		const {tx, ty, dx, dy} = e
+		e.x = Math.ifloat(e.x + dx * dt)
+		e.y = Math.ifloat(e.y + dy * dt)
+		e.dx = dx * 0.01 ** dt
+		e.dy = dy * 0.01 ** dt
+		if(tx == tx)e.x += (tx - e.x) * dt * 20
+		if(ty == ty)e.y += (ty - e.y) * dt * 20
+		//if(tf == tf)e.f = ((e.f+(((tf-e.f)%PI2+PI2+PI)%PI2-PI)*dt*20)%PI2+PI2+PI)%PI2-PI
+	}
 	msgchannel.port1.postMessage(undefined)
 	const dx = Math.ifloat(me.x + x/2 - cam.x), dy = Math.ifloat(me.y + y/2 + me.head - cam.y)
 	if(!camMovingX && abs(dx) > REACH / 2)camMovingX = true
@@ -119,6 +125,5 @@ requestAnimationFrame(function frame(){
 		}
 		render(entity, entity.node)
 	}
-	render(me, puppet)
-	
+	if(ui && ui.frame)ui.frame()
 })

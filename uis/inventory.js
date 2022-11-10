@@ -1,5 +1,7 @@
 import { Div, hideUI, showUI, ui, UI } from "../ui/ui.js"
 import { getslot, render_slot, setslot } from "../me.js"
+import { render } from "../lib/entity.js"
+import { on } from "../lib/prototype.js"
 
 export const inventoryui = UI('inv',
 	Div('inv')
@@ -58,8 +60,24 @@ inventoryui.oncontextmenu = function(e){
 inventoryui.onmousemove = function({clientX, clientY}){
 	draggingNode.style.top = clientY + 'px'
 	draggingNode.style.left = clientX + 'px'
+	if(puppet){
+		const {bottom, left, width, height} = puppet.getBoundingClientRect()
+		f = Math.atan2(clientX - left - width/2, ((bottom - height*me.head/me.height) - clientY))
+	}
 }
-
+let puppet = null, f = 0
+on('me', () => {
+	if(puppet)puppet.remove()
+	puppet = me.textures.cloneNode(true)
+	inventory.append(puppet)
+})
+inventoryui.frame = () => {
+	if(puppet){
+		f += me.f; me.f = f - me.f
+		render(me, puppet)
+		me.f = f - me.f; f -= me.f
+	}
+}
 export function showInventory(){
 	if(ui == inventoryui)return hideUI()
 	showUI(inventoryui)
