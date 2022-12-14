@@ -98,7 +98,7 @@ input[type=checkbox]:checked::after{
 	position: fixed;
 	top: 1px;
 	left: 1px;
-	display: flex;
+	display: none;
 	width: 0;
 	white-space: pre;
 	flex-direction: column;
@@ -107,7 +107,7 @@ input[type=checkbox]:checked::after{
 	align-items: flex-start;
 }
 #f3 txt{background: #7777; padding: 1.5rem;line-height: 0.8;text-shadow: none}
-
+.f3 > #f3{display: flex}
 canvas{
 	position: fixed;
 	bottom: 0;
@@ -128,7 +128,6 @@ canvas{
 	position: absolute;
 	bottom: 0;
 	left: 0;
-	display: none;
 	z-index: 2;
 }
 #pointer2{
@@ -138,7 +137,6 @@ canvas{
 	position: absolute;
 	bottom: 0;
 	left: 0;
-	display: none;
 	z-index: 1;
 }
 #pointer::before{
@@ -356,3 +354,5 @@ entity img{
 	transform: translate(97px, -55px) scale(4) !important;
 	bottom: 100%;
 }
+
+.f1 > #pointer, .f1 > #hotbar, .f1 > #pointer2, .f1 > #f3{display: none !important}

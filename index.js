@@ -2,17 +2,15 @@ const VERSION = 'alpha 1'
 import "./lib/prototype.js"
 import "./me.js"
 import "./lib/incomingPacket.js"
-import { send } from "./lib/send.js"
 import { TEX_SIZE } from "./textures.js"
 import { position, REACH, x, y } from "./ui/pointer.js"
 import { updateKeys } from "./ui/events.js"
 import "./controls.js"
 import "./expose.js"
-import { render } from "./lib/entity.js"
-import { EntityIDs } from "./lib/definitions.js"
+import { render, stepEntity } from "./lib/entity.js"
 import { serverlist } from "./uis/serverlist.js"
-import { fire } from "./lib/prototype.js"
 import { ui } from "./ui/ui.js"
+import { DataWriter } from "./lib/data.js"
 serverlist()
 const update = 1000 / 20
 let last = performance.now(), rendertime = 5, count = 1.1, l2 = performance.now()
@@ -45,7 +43,15 @@ function tick(){ //20 times a second
 	elusmooth += (elu - elusmooth) / count
 	elu = 0
 	if(ticknumber % sendDelay == 0){
-		send()
+		let buf = new DataWriter()
+		buf.byte(4)
+		buf.byte(r)
+		buf.double(me.x)
+		buf.double(me.y)
+		buf.float(me.dx)
+		buf.float(me.dy)
+		buf.float(me.f)
+		buf.pipe(ws)
 	}
 	for(const [t, i] of `
 
@@ -57,12 +63,11 @@ Looking at: ${Math.floor(x + me.x)|0} ${Math.floor(y + me.y + me.head)|0}
 Facing: ${(me.f >= 0 ? 'RIGHT ' : ' LEFT ') + (90 - Math.abs(me.f / PI2 * 360)).toFixed(1).padStart(5, '\u2007')} (${(me.f / PI2 * 360).toFixed(1)})
 `.trim().split('\n').map((a,i)=>[a,i]))(debugs[i] || (debugs[i] = debug()))(t)
 	ticknumber++
-	updateKeys()
 }
 const physical_chunk_pixels = TEX_SIZE * 64 * devicePixelRatio
 let dt = 1 / 60, l3 = performance.now(), elusmooth = 0
-globalThis.W2 = innerWidth / TEX_SIZE / cam.z / 2 + 1
-globalThis.H2 = innerHeight / TEX_SIZE / cam.z / 2 + 1
+globalThis.W2 = visualViewport.width / TEX_SIZE / cam.z / 2 + 1
+globalThis.H2 = visualViewport.height / TEX_SIZE / cam.z / 2 + 1
 globalThis.ZPX = cam.z * TEX_SIZE
 const msgchannel = new MessageChannel()
 let elu = 0
@@ -75,6 +80,7 @@ msgchannel.port2.onmessage = function(){
 	rendertime += (now - l2 - rendertime) / count
 	elu += now - l2
 }
+const SPEED = 5
 export let zoom_correction = 0
 let camMovingX = false, camMovingY = false
 const {abs, min, round, PI} = Math
@@ -83,30 +89,20 @@ requestAnimationFrame(function frame(){
 	l2 = performance.now()
 	dt += ((performance.now() - l3) / 1000 - dt) / (count = min(count ** 1.03, 60))
 	if(dt > .3)count = 1.1
-	globalThis.t += (performance.now() - l3) / 1000
+	globalThis.t += (performance.now() - l3) / 1000 * SPEED
 	l3 = performance.now()
 	requestAnimationFrame(frame)
 	if(!running)return
-	for(const e of entities.values()){
-		const {tx, ty, dx, dy} = e
-		e.x = Math.ifloat(e.x + dx * dt)
-		e.y = Math.ifloat(e.y + dy * dt)
-		e.dx = dx * 0.01 ** dt
-		e.dy = dy * 0.01 ** dt
-		if(tx == tx)e.x += (tx - e.x) * dt * 20
-		if(ty == ty)e.y += (ty - e.y) * dt * 20
-		//if(tf == tf)e.f = ((e.f+(((tf-e.f)%PI2+PI2+PI)%PI2-PI)*dt*20)%PI2+PI2+PI)%PI2-PI
-	}
 	msgchannel.port1.postMessage(undefined)
 	const dx = Math.ifloat(me.x + x/2 - cam.x), dy = Math.ifloat(me.y + y/2 + me.head - cam.y)
 	if(!camMovingX && abs(dx) > REACH / 2)camMovingX = true
 	else if(camMovingX && abs(dx) < REACH / 4)camMovingX = false
 	if(!camMovingY && abs(dy) > REACH / 2)camMovingY = true
 	else if(camMovingY && abs(dy) < REACH / 4)camMovingY = false
-	if(camMovingX)cam.x = Math.ifloat(cam.x + (dx - Math.sign(dx)*(REACH/4+0.125)) * dt * 5)
-	if(camMovingY)cam.y = Math.ifloat(cam.y + (dy - Math.sign(dy)*(REACH/4+0.125)) * dt * 5)
-	W2 = innerWidth / TEX_SIZE / cam.z / 2 + 1
-	H2 = innerHeight / TEX_SIZE / cam.z / 2 + 1
+	if(camMovingX)cam.x = Math.ifloat(cam.x + (dx - Math.sign(dx)*(REACH/4+0.25)) * dt * 4)
+	if(camMovingY)cam.y = Math.ifloat(cam.y + (dy - Math.sign(dy)*(REACH/4+0.25)) * dt * 7)
+	W2 = visualViewport.width / TEX_SIZE / cam.z / 2 + 1
+	H2 = visualViewport.height / TEX_SIZE / cam.z / 2 + 1
 	zoom_correction = round(physical_chunk_pixels * cam.z) / physical_chunk_pixels
 	ZPX = zoom_correction * TEX_SIZE
 	document.body.style.setProperty('--z', zoom_correction)
@@ -118,11 +114,13 @@ requestAnimationFrame(function frame(){
 		chunk.position()
 		chunk.updaterender()
 	}
+	updateKeys()
 	for(const entity of entities.values()){
 		if(!entity.node){
 			entity.node = entity.textures.cloneNode(true)
 			chunks.append(entity.node)
 		}
+		stepEntity(entity, dt * SPEED)
 		render(entity, entity.node)
 	}
 	if(ui && ui.frame)ui.frame()

@@ -48,8 +48,10 @@ feedbackui.finish = () => {
 	send.disabled = true
 }
 input.oninput = () => {
-	if(input.firstChild.value){
+	if(input.value){
 		send.disabled = false
+		if(/(trash|rubbish|dumb|stupid|useless) (game|app|clone|knockoff)|knockoff/i.test(input.value))input.value = 'no it isn\'t'
+		if(/(\W|^)(shit|fu?cki?n?g?|crappy|bullshi|asshol)(?!\w)/i.test(input.value))input.value = 'don\'t f' + String.fromCharCode(117) + 'cking swear'
 	}else send.disabled = true
 }
 

@@ -1,4 +1,4 @@
-import { connection } from "../lib/connectme.js"
+import { connection, finished } from "../lib/connectme.js"
 import { addServer, onServer, saveServers, servers } from "../save.js"
 import sounds from "../ui/sounds.js"
 import { Btn, Div, Input, Label, Row, showUI, Spacer, UI } from "../ui/ui.js"
@@ -27,5 +27,6 @@ onServer(ip => {
 })
 
 export function serverlist(){
+	finished()
 	showUI(serverList)
 }

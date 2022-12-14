@@ -7,7 +7,7 @@ import { musicVol, soundVol } from "../ui/sounds.js"
 
 function renderScale(){
 	guiNode.textContent = 'GUI scale: ' + options.guiScale
-	document.documentElement.style.fontSize = options.guiScale * 2 + 'px'
+	document.documentElement.style.fontSize = Math.round(devicePixelRatio) / devicePixelRatio * options.guiScale * 2 + 'px'
 }
 function guiChange(){
 	options.guiScale *= 2

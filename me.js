@@ -4,6 +4,7 @@ globalThis.map = new Map()
 globalThis.meid = -1
 globalThis.me = Entities.player({x:0,y:0,_id:-1,dx:0,dy:0,f:0})
 globalThis.r = 0
+globalThis.world = ''
 globalThis.dragging = null
 globalThis.cam = {x: 0, y: 0, z: 2}
 globalThis.running = false

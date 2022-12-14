@@ -3,30 +3,39 @@
 		"base_url": "./img/terrain.png"
 	},
 	"grass": {
-		"texture": ":3:0"
+		"texture": ":3:0",
+		"solid": true
 	},
 	"stone": {
-		"texture": ":1:0"
+		"texture": ":1:0",
+		"solid": true
 	},
 	"dirt": {
-		"texture": ":2:0"
+		"texture": ":2:0",
+		"solid": true
 	},
 	"bedrock": {
-		"texture": ":1:1"
+		"texture": ":1:1",
+		"solid": true
 	},
 	"oak_log": {
-		"texture": ":4:1"
+		"texture": ":4:1",
+		"solid": true
 	},
 	"oak_planks": {
-		"texture": ":4:0"
+		"texture": ":4:0",
+		"solid": true
 	},
 	"sand": {
-		"texture": ":2:1"
+		"texture": ":2:1",
+		"solid": true
 	},
 	"water": {
-		"texture": ":13:12"
+		"texture": ":13:12",
+		"solid": false
 	},
 	"sandstone": {
-		"texture": ":0:12"
+		"texture": ":0:12",
+		"solid": true
 	}
 }

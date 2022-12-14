@@ -23,3 +23,19 @@ export function reconn(txt, code = 15){
 	reconnectBtn.hidden = false
 	showUI(message)
 }
+
+
+
+let label2
+const message2 = UI('dirtbg',
+	label2 = Label(''),
+	Spacer(100),
+	Btn('Disconnect', serverlist),
+	Spacer(100)
+)
+
+export function pendingConnection(txt, code){
+	label2.textContent = txt
+	label2.className = `s${code >> 4} c${code & 15}`
+	showUI(message2)
+}

@@ -3,7 +3,7 @@ const NONE = document.createComment('')
 document.body.append(NONE)
 export let ui = null
 export async function hideUI(){
-	await chunks.requestPointerLock()
+	chunks.requestPointerLock()
 	if(!ui)return
 	ui.replaceWith(NONE)
 	;(ui.finish||Function.prototype)()
