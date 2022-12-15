@@ -1,6 +1,6 @@
 {
 	"config": {
-		"base_url": "./img/terrain.png"
+		"base_url": "./ext/terrain.png"
 	},
 	"grass": {
 		"texture": ":3:0",
@@ -36,6 +36,14 @@
 	},
 	"sandstone": {
 		"texture": ":0:12",
+		"solid": true
+	},
+	"snow_block": {
+		"texture": ":2:4",
+		"solid": true
+	},
+	"snowy_grass": {
+		"texture": ":4:4",
 		"solid": true
 	}
 }

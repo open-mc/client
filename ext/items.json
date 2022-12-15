@@ -1,6 +1,6 @@
 {
 	"config": {
-		"base_url": "./img/"
+		"base_url": "./ext/"
 	},
 	"bedrock": {
 		"texture": "terrain.png:0:0"

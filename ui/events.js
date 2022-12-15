@@ -17,10 +17,10 @@ onkeydown = e => {
 	const key = e.key.toLowerCase()
 	keysdown.add(key)
 	if(document.activeElement != document.body && e.key != 'Escape')return
-	if(e.repeat)return
 	const handlers = presses[key]
 	if(!handlers)return
 	e.preventDefault()
+	if(e.repeat)return
 	if(e.ctrlKey || (deviceSucks && e.metaKey)){
 		if(e.altKey)handlers[3](e)
 		else handlers[1](e)

@@ -26,8 +26,8 @@ bind(['arrowdown', 's'], function(){
 		return
 	}
 })
-key(['arrowup', 'a', ' '], () => {
-	if(lastPressUp > t - .5){
+key(['arrowup', 'w', ' '], () => {
+	if(lastPressUp > t - .3){
 		fly = !fly
 		lastPressUp = 0
 	}else lastPressUp = t

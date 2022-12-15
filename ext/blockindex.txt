@@ -43,3 +43,4 @@ oak_log
 dirt
 sand
 water
+snowy_grass

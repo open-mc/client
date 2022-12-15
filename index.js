@@ -42,7 +42,7 @@ function tick(){ //20 times a second
 	if(dt < 1/20000)dt = 1/20000
 	elusmooth += (elu - elusmooth) / count
 	elu = 0
-	if(ticknumber % sendDelay == 0){
+	if(ticknumber % sendDelay == 0 && me._id > -1){
 		let buf = new DataWriter()
 		buf.byte(4)
 		buf.byte(r)
@@ -80,7 +80,7 @@ msgchannel.port2.onmessage = function(){
 	rendertime += (now - l2 - rendertime) / count
 	elu += now - l2
 }
-const SPEED = 5
+const SPEED = 1
 export let zoom_correction = 0
 let camMovingX = false, camMovingY = false
 const {abs, min, round, PI} = Math
@@ -95,12 +95,18 @@ requestAnimationFrame(function frame(){
 	if(!running)return
 	msgchannel.port1.postMessage(undefined)
 	const dx = Math.ifloat(me.x + x/2 - cam.x), dy = Math.ifloat(me.y + y/2 + me.head - cam.y)
-	if(!camMovingX && abs(dx) > REACH / 2)camMovingX = true
-	else if(camMovingX && abs(dx) < REACH / 4)camMovingX = false
-	if(!camMovingY && abs(dy) > REACH / 2)camMovingY = true
-	else if(camMovingY && abs(dy) < REACH / 4)camMovingY = false
-	if(camMovingX)cam.x = Math.ifloat(cam.x + (dx - Math.sign(dx)*(REACH/4+0.25)) * dt * 4)
-	if(camMovingY)cam.y = Math.ifloat(cam.y + (dy - Math.sign(dy)*(REACH/4+0.25)) * dt * 7)
+	if(abs(dx) > 64)cam.x += dx
+	else{
+		if(!camMovingX && abs(dx) > REACH / 2)camMovingX = true
+		else if(camMovingX && abs(dx) < REACH / 4)camMovingX = false
+		if(camMovingX)cam.x = Math.ifloat(cam.x + (dx - Math.sign(dx)*(REACH/4+0.25)) * dt * 4)
+	}
+	if(abs(dy) > 64)cam.y += dy
+	else{
+		if(!camMovingY && abs(dy) > REACH / 2)camMovingY = true
+		else if(camMovingY && abs(dy) < REACH / 4)camMovingY = false
+		if(camMovingY)cam.y = Math.ifloat(cam.y + (dy - Math.sign(dy)*(REACH/4+0.25)) * dt * 7)
+	}
 	W2 = visualViewport.width / TEX_SIZE / cam.z / 2 + 1
 	H2 = visualViewport.height / TEX_SIZE / cam.z / 2 + 1
 	zoom_correction = round(physical_chunk_pixels * cam.z) / physical_chunk_pixels
