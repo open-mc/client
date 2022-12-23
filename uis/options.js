@@ -1,7 +1,7 @@
 import "../me.js"
 import { pause } from "./pauseui.js"
 import { options } from "../save.js"
-import { Btn, Label, Row, ScaleSmall, showUI, Spacer, UI } from "../ui/ui.js"
+import { Btn, Label, Row, Scale, ScaleSmall, showUI, Spacer, UI } from "../ui/ui.js"
 import { musicVol, soundVol } from "../ui/sounds.js"
 
 
@@ -30,11 +30,18 @@ function musicChange(a = options.music){
 	musicVol(a)
 	return [a >= 0.005 ? a < 0.995 ? 'Music: '+Math.round(a*100)+'%' : 'Music: LOUD' : 'Music: quiet', a]
 }
+
+function sensitivityChange(a = options.sensitivity){
+	options.sensitivity = a
+	return [a > 0.005 ? a < 0.995 ? 'Sensitivity: '+Math.floor(9 ** a * 10 / 3) / 10 +'x' : 'Sensitivity: HYPERSPEED!!!' : 'Sensitivity: *yawn*', a]
+}
+
 let guiNode
 const optionsui = UI('menu',
 	Label('Options'),
 	Row(ScaleSmall(zoomChange), guiNode = Btn('', guiChange, 'small')),
 	Row(ScaleSmall(soundChange), ScaleSmall(musicChange)),
+	Scale(sensitivityChange),
 	Spacer(20),
 	Row(Btn('Back', pause, 'small'), Btn('Advanced', Function.prototype, 'small disabled'))
 )

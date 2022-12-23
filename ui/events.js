@@ -8,7 +8,7 @@ export function updateKeys(){
 		alt: keysdown.has('shift'),
 		ctrl: keysdown.has('meta') || keysdown.has('control')
 	}
-	for(let key of keysdown) {
+	for(let key of keysdown){
 		if(key == 'meta' || key == 'control')key = 'ctrl'
 		try{binds[key] && binds[key](details)}catch(e){console.error(e)}
 	}

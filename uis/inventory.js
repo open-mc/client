@@ -1,12 +1,10 @@
 import { Div, hideUI, showUI, ui, UI } from "../ui/ui.js"
-import { getslot, render_slot, setslot } from "../me.js"
 import { render } from "../lib/entity.js"
 import { on } from "../lib/prototype.js"
-
 export const inventoryui = UI('inv',
 	Div('inv')
 )
-
+export const inventory = document.getElementById('inventory')
 inventoryui.onclick = function(e){
 	const {slotid} = e.target
 	if(e.target.nodeName == 'ITEM'){
@@ -78,8 +76,43 @@ inventoryui.frame = () => {
 		me.f = f - me.f; f -= me.f
 	}
 }
+export const dragging = null
 export function showInventory(){
 	if(ui == inventoryui)return hideUI()
 	showUI(inventoryui)
 	inventoryui.append(inventory)
+}
+let selected = 0
+export const getselected = () => selected
+export function setselected(_id){
+	const id = (_id % 9 + 9) % 9
+	slot.style.left = id * 40 - 2 + 'px'
+	selected = id
+}
+
+let item, s
+const renderitem = (node) => {
+	node.style.background = item && item.texture ? `url(${item.texture.src}) top/16rem` : ''
+	if(item)node.setAttribute('count', item.count == 1 ? '' : item.count), node.style.color = item.count < 0 ? 'red' : ''
+	else node.removeAttribute('count')
+	node.slotid = s
+}
+export function render_slot(id){
+	s = id; item = getslot(id)
+	if(id < 9){
+		renderitem(hotbar.children[id])
+		renderitem(inventory.children[28 + id])
+	}else if(id == 41)renderitem(draggingNode)
+	else if(id < 36){
+		renderitem(inventory.children[id - 9])
+	}
+}
+export function setslot(id, a){
+	if(id < 36)me.inv[id] = a
+	else if(id == 41)dragging = a
+	render_slot(id)
+}
+export function getslot(id){
+	if(id < 36)return me.inv[id]
+	else if(id == 41)return dragging
 }

@@ -1,9 +1,10 @@
-import { getblock, getselected, setblock } from "../me.js"
-import { BlockIDs } from "../lib/definitions.js"
+import { getblock, setblock } from "../me.js"
+import { getselected } from "../uis/inventory.js"
 import { TEX_SIZE } from "../textures.js"
-import { ui, showUI } from "./ui.js"
+import { ui } from "./ui.js"
 import { pause } from "../uis/pauseui.js"
 import { DataWriter } from "../lib/data.js"
+import { options } from "../save.js"
 
 export let x = 2, y = 0
 export let bx = 0, by = 0, bpx = 0, bpy = 0
@@ -75,27 +76,14 @@ chunks.onmousedown = function(e){
 		buf.pipe(ws)
 	}
 }
-let wasFullscreen = false
-HTMLElement.prototype.requestFullscreen = HTMLElement.prototype.requestFullscreen || Function.prototype //Safari fullscreen is broken
-document.onpointerlockerror = document.onpointerlockchange = function(e){
-	if(document.pointerLockElement){
-		if(wasFullscreen)document.documentElement.requestFullscreen()
-		pointer.hidden = pointer2.hidden = false
-	}else{
-		wasFullscreen = !!(!ui && document.fullscreenElement)
-		if(wasFullscreen)document.exitFullscreen ? document.exitFullscreen().catch(Function.prototype) : document.webkitExitFullscreen()
-		pointer.hidden = pointer2.hidden = true
-		if(!ui)pause()
-	}
-}
-
 chunks.onmousemove = function({movementX, movementY}){
 	if(!document.pointerLockElement)return
+	const movementScale = devicePixelRatio ** (globalThis.netscape ? 1 : /Opera|OPR\//.test(navigator.userAgent) ? -1 : 0)
 	const oldx = x, oldy = y
-	const reach = Math.min(REACH, (Math.min(W2, H2) - 1) * 1.5)
+	const reach = Math.min(10, (Math.min(W2, H2) - 1) * 1.5)
 	const s = Math.min(reach, Math.sqrt(x * x + y * y))
-	x += movementX / cam.z / TEX_SIZE
-	y += -movementY / cam.z / TEX_SIZE
+	x += movementX * movementScale * 9 ** options.sensitivity / 3 / cam.z / TEX_SIZE
+	y += -movementY * movementScale * 9 ** options.sensitivity / 3 / cam.z / TEX_SIZE
 	const ns = Math.sqrt(x * x + y * y)
 	if(!ns)return x = y = 0
 	if(ns > s){

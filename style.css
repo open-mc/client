@@ -94,7 +94,7 @@ input[type=checkbox]:checked::after{
 	text-align: center;
 }
 
-#f3{
+#f3, #f3r{
 	position: fixed;
 	top: 1rem;
 	left: 1rem;
@@ -106,18 +106,15 @@ input[type=checkbox]:checked::after{
 	z-index: 999;
 	align-items: flex-start;
 }
-#f3 txt{background: #7777; padding: 1.5rem;line-height: 0.8;text-shadow: none}
-.f3 > #f3{display: flex}
+#f3r{left: unset; right: 1rem; align-items: flex-end}
+#f3 div, #f3r div{background: #7777; padding: 1.5rem;line-height: 0.8;text-shadow: none}
+.f3 > #f3, .f3 > #f3r{display: flex}
 canvas{
-	position: fixed;
-	bottom: 0;
-	left: 0;
 	width: calc(var(--z) * var(--texsize) * 64); height: calc(var(--z) * var(--texsize) * 64);
-	display: block;
-	image-rendering: pixelated;
 	z-index: 2;
 }
 #chunks{
+	overflow: hidden;
 	width: 100%;
 	height: 100%;
 	z-index: -1;
@@ -332,13 +329,30 @@ item[count]::after{
 	margin: -8rem;
 }
 
-entity{
+#chunks > *{
 	position: absolute;
 	bottom: 0;
 	left: 0;
 	z-index: 1;
 	display: block;
+	image-rendering: pixelated;
 }
+
+#celestialBody{
+	mix-blend-mode: plus-lighter;
+	width: 128px;
+	height: 128px;
+	bottom: 50%;
+}
+
+#clouds{
+	width: 100%;
+	height: calc(var(--z) * 64px);
+	bottom: 50%;
+	background-size: calc(var(--z) * 32768px) 1px;
+	mix-blend-mode: soft-light;
+}
+
 entity img{
 	position: absolute;
 	bottom: 0;

@@ -8,12 +8,16 @@
 		<link rel="apple-touch-icon" href="./img/icon.png">
 		<link rel="shortcut icon" href="./img/grassicon.png">
 		<meta name="apple-mobile-web-app-capable" content="yes">
-		<script>fetch('manifest.json').then(a => a.json()).then(d=>{d.icons=[{src:"./img/icon.png",type:"image/png",sizes:"512x512"}];document.head.insertAdjacentHTML('beforeEnd', `<link rel="manifest" href="data:application/json;base64,${btoa(JSON.stringify(d))}"><meta name="apple-mobile-web-app-title" content="${d.short_name}"><meta property="og:title" content="${d.name}"><meta property="og:description" content="${d.description}"><meta property="og:image" content="icon.png"><link rel="shortcut icon" href="icon.png" type="image/x-icon"><meta name="theme-color" content="${d.theme_color}">`);document.title=d.name;document.documentElement.style.backgroundColor=d.background_color})</script>
+		<script>(d=>{d.display="fullscreen";d.icons=[{src:(d.scope=d.start_url=location.origin)+"/img/icon.png",type:"image/png",sizes:"512x512"}];document.head.insertAdjacentHTML('beforeEnd', `<link rel="manifest" href="data:application/json;base64,${btoa(JSON.stringify(d))}"><meta name="apple-mobile-web-app-title" content="${d.short_name}"><meta property="og:title" content="${d.name}"><meta property="og:description" content="${d.description}"><meta property="og:image" content="icon.png"><link rel="shortcut icon" href="icon.png" type="image/x-icon"><meta name="theme-color" content="${d.theme_color}">`);document.title=d.name;document.documentElement.style.backgroundColor=d.background_color})({name:"Paper Minecraft",short_name:"Minecraft",theme_color:"#000",background_color:"#000"})</script>
 	</head>
 	<body>
 		<div id="f3"></div>
+		<div id="f3r"></div>
 		<script src="index.js" type="module"></script>
-		<div id="chunks"></div>
+		<div id="chunks">
+			<img id="celestialBody"></img>
+			<div id="clouds"></div>
+		</div>
 		<div id="pointer" hidden></div>
 		<div id="pointer2" hidden></div>
 		<item id="draggingNode"></item>

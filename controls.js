@@ -1,6 +1,6 @@
 import { bind, ctrl, key } from "./ui/events.js";
-import { setselected, getselected } from "./me.js";
-import { hideUI } from "./ui/ui.js";
+import { setselected, getselected } from "./uis/inventory.js";
+import { hideUI, ui } from "./ui/ui.js";
 import { showInventory } from "./uis/inventory.js";
 import { movementFlags } from "./lib/entity.js";
 
@@ -58,7 +58,23 @@ key('f2', () => {
 ctrl('dypsfgl,[]-='.split(""), () => {})
 key('123456789'.split(""), e => setselected(e.key - 1))
 key('e', () => {showInventory()})
-key('escape', () => {hideUI()}, true)
+
+HTMLElement.prototype.requestFullscreen = HTMLElement.prototype.requestFullscreen || Function.prototype //Safari fullscreen is broken
+let wasFullscreen = false
+let ignoreEsc = false
+key('escape', () => {if(ignoreEsc){ignoreEsc = false; return}; hideUI()}, true)
+document.onpointerlockerror = document.onpointerlockchange = function(e){
+	if(document.pointerLockElement){
+		if(wasFullscreen)document.documentElement.requestFullscreen()
+		pointer.hidden = pointer2.hidden = false
+	}else{
+		wasFullscreen = !!(!ui && document.fullscreenElement)
+		if(wasFullscreen)document.exitFullscreen ? document.exitFullscreen().catch(Function.prototype) : document.webkitExitFullscreen()
+		pointer.hidden = pointer2.hidden = true
+		if(!ui)pause(), ignoreEsc = true
+	}
+}
+
 chunks.onwheel = e => {
 	if(e.wheelDeltaY === (e.deltaY * -3) || e.deltaMode == 0){
 	}else{

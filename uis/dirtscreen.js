@@ -24,8 +24,6 @@ export function reconn(txt, code = 15){
 	showUI(message)
 }
 
-
-
 let label2
 const message2 = UI('dirtbg',
 	label2 = Label(''),

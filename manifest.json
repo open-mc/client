@@ -1,9 +1,0 @@
-{
-  "name": "Paper Minecraft",
-  "short_name": "Minecraft",
-  "theme_color": "#000000",
-  "background_color": "#000000",
-  "display": "fullscreen",
-  "scope": "/",
-  "start_url": "/"
-}
