@@ -35,10 +35,19 @@ function sensitivityChange(a = options.sensitivity){
 	options.sensitivity = a
 	return [a > 0.005 ? a < 0.995 ? 'Sensitivity: '+Math.floor(9 ** a * 10 / 3) / 10 +'x' : 'Sensitivity: HYPERSPEED!!!' : 'Sensitivity: *yawn*', a]
 }
+const cameraOptions = ['Dynamic', 'Follow Pointer', 'Follow player', 'Page']
+function renderCamMode(){
+	camNode.textContent = 'Camera: ' + cameraOptions[options.camera]
+}
+function camChange(){
+	options.camera = (options.camera + 1) % 4
+	renderCamMode()
+}
 
-let guiNode
+let guiNode, camNode
 const optionsui = UI('menu',
 	Label('Options'),
+	camNode = Btn('', camChange, 'small'),
 	Row(ScaleSmall(zoomChange), guiNode = Btn('', guiChange, 'small')),
 	Row(ScaleSmall(soundChange), ScaleSmall(musicChange)),
 	Scale(sensitivityChange),
@@ -46,6 +55,7 @@ const optionsui = UI('menu',
 	Row(Btn('Back', pause, 'small'), Btn('Advanced', Function.prototype, 'small disabled'))
 )
 renderScale()
+renderCamMode()
 export function optionsScreen(){
 	showUI(optionsui)
 }

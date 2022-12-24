@@ -93,8 +93,10 @@ chunks.onmousemove = function({movementX, movementY}){
 		x *= vec
 		y *= vec
 	}
-	cam.x += (x - oldx) / 3
-	cam.y += (y - oldy) / 3
+	if(options.camera == 0){
+		cam.x += (x - oldx) / 3
+		cam.y += (y - oldy) / 3
+	}
 }
 export const resetPointer = (f) => {
 	let r = Math.min(4, REACH)

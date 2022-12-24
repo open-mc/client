@@ -18,7 +18,8 @@ const defaults = {
 	zoom: 0.4,
 	sound: 0.75,
 	music: 0.75,
-	sensitivity: 0.5
+	sensitivity: 0.5,
+	camera: 0
 }
 for(const k in defaults){
 	let v = defaults[k], s = localStorage[k]

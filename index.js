@@ -11,6 +11,7 @@ import { render, stepEntity } from "./lib/entity.js"
 import { serverlist } from "./uis/serverlist.js"
 import { ui } from "./ui/ui.js"
 import { DataWriter } from "./lib/data.js"
+import { options } from "./save.js"
 serverlist()
 let last = performance.now(), count = 1.1
 globalThis.t = Date.now()/1000%86400
@@ -49,12 +50,15 @@ function tick(){ //20 times a second
 		buf.pipe(ws)
 	}
 	let i = 0
+	const mex = Math.floor(me.x) >> 3 & 6, mexi = (me.x & 15) / 16
 	for(const t of `Paper Minecraft ${VERSION}
 FPS: ${round(1/dt)}, ELU: ${min(99.9,elusmooth/10*TPS).toFixed(1).padStart(4,"0")}%
-Ch: ${map.size}, E: ${entities.size}
+Ch: ${map.size}, E: ${entities.size}, N: ${document.all.length}
 XY: ${me.x.toFixed(3)} / ${me.y.toFixed(3)}
+${Math.floor(me.x) & 63} ${Math.floor(me.y) & 63} in ${Math.floor(me.x) >> 6} ${Math.floor(me.y) >> 6}
 Looking at: ${floor(x + me.x)|0} ${floor(y + me.y + me.head)|0}
-Facing: ${(me.f >= 0 ? 'RIGHT ' : ' LEFT ') + (90 - abs(me.f / PI2 * 360)).toFixed(1).padStart(5, '\u2007')} (${(me.f / PI2 * 360).toFixed(1)})
+Facing: ${(me.f >= 0 ? 'R ' : 'L ') + (90 - abs(me.f / PI2 * 360)).toFixed(1).padStart(5, '\u2007')} (${(me.f / PI2 * 360).toFixed(1)})
+Biome: ${Math.round(me.chunk.biomes[mex] * (1 - mexi) + me.chunk.biomes[mex+2] * mexi)}/${Math.round(me.chunk.biomes[mex+1] * (1 - mexi) + me.chunk.biomes[mex+3] * mexi)}
 `.slice(0, -1).split('\n')){
 		let node = f3.children[i++]
 		if(!node)f3.append(node = document.createElement('div'))
@@ -107,22 +111,36 @@ requestAnimationFrame(function frame(){
 	lastFrame = now
 	requestAnimationFrame(frame)
 	if(me._id < 0)return
+	for(const entity of entities.values())stepEntity(entity, dt * SPEED)
 	const reach = min(10, (min(W2, H2) - 1) * 1.5)
-	const dx = ifloat(me.x + x/2 - cam.x), dy = ifloat(me.y + y/2 + me.head - cam.y)
-	if(abs(dx) > 64)cam.x += dx
-	else{
-		if(!camMovingX && abs(dx) > reach / 2)camMovingX = true
-		else if(camMovingX && abs(dx) < reach / 4)camMovingX = false
-		if(camMovingX)cam.x = ifloat(cam.x + (dx - sign(dx)*(reach/4+0.25)) * dt * 4)
+	W2 = visualViewport.width / TEX_SIZE / cam.z / 2
+	H2 = visualViewport.height / TEX_SIZE / cam.z / 2
+	if(options.camera == 0){
+		const dx = ifloat(me.x + x/2 - cam.x), dy = ifloat(me.y + y/2 + me.head - cam.y)
+		if(abs(dx) > 64)cam.x += dx
+		else{
+			if(!camMovingX && abs(dx) > reach / 2)camMovingX = true
+			else if(camMovingX && abs(dx) < reach / 4)camMovingX = false
+			if(camMovingX)cam.x = ifloat(cam.x + (dx - sign(dx)*(reach/4+0.25)) * dt * 4)
+		}
+		if(abs(dy) > 64)cam.y += dy
+		else{
+			if(!camMovingY && abs(dy) > reach / 2)camMovingY = true
+			else if(camMovingY && abs(dy) < reach / 4)camMovingY = false
+			if(camMovingY)cam.y = ifloat(cam.y + (dy - sign(dy)*(reach/4+0.25)) * dt * 7)
+		}
+	}else if(options.camera == 1){
+		cam.x = me.x + x
+		cam.y = me.y + me.head + y
+	}else if(options.camera == 2){
+		cam.x = me.x
+		cam.y = me.y + me.head / 2
+	}else if(options.camera == 3){
+		if(me.x > cam.x + W2)cam.x += W2*2
+		if(me.x < cam.x - W2)cam.x -= W2*2
+		if(me.y > cam.y + H2)cam.y += H2*2
+		if(me.y < cam.y - H2)cam.y -= H2*2
 	}
-	if(abs(dy) > 64)cam.y += dy
-	else{
-		if(!camMovingY && abs(dy) > reach / 2)camMovingY = true
-		else if(camMovingY && abs(dy) < reach / 4)camMovingY = false
-		if(camMovingY)cam.y = ifloat(cam.y + (dy - sign(dy)*(reach/4+0.25)) * dt * 7)
-	}
-	W2 = visualViewport.width / TEX_SIZE / cam.z / 2 + 1
-	H2 = visualViewport.height / TEX_SIZE / cam.z / 2 + 1
 	zoom_correction = round(physical_chunk_pixels * cam.z) / physical_chunk_pixels
 	ZPX = zoom_correction * TEX_SIZE
 	document.body.style.setProperty('--z', zoom_correction)
@@ -157,7 +175,7 @@ requestAnimationFrame(function frame(){
 			entity.node = entity.textures.cloneNode(true)
 			chunks.append(entity.node)
 		}
-		stepEntity(entity, dt * SPEED)
+		
 		render(entity, entity.node)
 	}
 	if(ui && ui.frame)ui.frame()

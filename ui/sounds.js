@@ -49,12 +49,13 @@ function next(){
 	if(current){
 		current.onended = null
 		current.currentTime = 0
+		current.pause()
 	}
-	let wait = Math.random()
-	if(wait > 0.5){
-		setTimeout(next, wait * 120e3) //1-2 min
+	if(Math.random() > 0.5){
+		setTimeout(next, 120e3) //1 min
 		return
 	}
+	//try choosing twice
 	if(current == (current = choose(currentTheme)))current = choose(currentTheme)
 	if(current){
 		current.onended = next
