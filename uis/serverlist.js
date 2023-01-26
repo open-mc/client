@@ -1,6 +1,6 @@
 import { finished, play, preconnect } from "../lib/connectme.js"
 import { addServer, onServer, saveServers, servers, storage } from "../save.js"
-import { Btn, Div, Input, Label, Row, showUI, Spacer, ui, UI } from "../ui/ui.js"
+import { Btn, Div, hideUI, Input, Label, Row, showUI, Spacer, ui, UI } from "../ui/ui.js"
 
 let list, input, addBtn
 
@@ -25,6 +25,8 @@ onServer(ip => {
 
 export function serverlist(){
 	finished()
+	list.innerHTML = ''
+	hideUI()
 	for(const ip of servers){
 		list.append(preconnect(ip))
 	}
