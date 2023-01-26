@@ -30,10 +30,10 @@ export function position(){
 		}
 		if(dy > 0){
 			const ix = px + dx * (1 - py) / dy
-			if(ix > 0 && ix < 1){by++; d += (1 - py) / dy; py = 0; px = ix; continue}
+			if(ix >= 0 && ix <= 1){by++; d += (1 - py) / dy; py = 0; px = ix; continue}
 		}else if(dy < 0){
 			const ix = px + dx * -py / dy
-			if(ix > 0 && ix < 1){by--; d += -py / dy; py = 1; px = ix; continue}
+			if(ix >= 0 && ix <= 1){by--; d += -py / dy; py = 1; px = ix; continue}
 		}
 	}
 	pointer2.hidden = d > reach
