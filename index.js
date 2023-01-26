@@ -180,3 +180,5 @@ requestAnimationFrame(function frame(){
 	}
 	if(ui && ui.frame)ui.frame()
 })
+
+loading.remove()

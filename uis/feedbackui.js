@@ -52,7 +52,7 @@ input.oninput = () => {
 	if(input.value){
 		send.disabled = false
 		if(/(trash|rubbish|dumb|stupid|useless) (game|app|clone|knockoff)|knockoff/i.test(input.value))input.value = 'no it isn\'t'
-		if(/(\W|^)(shit|fu?cki?n?g?|crappy|bullshi|asshol)(?!\w)/i.test(input.value))input.value = 'don\'t f' + String.fromCharCode(117) + 'cking swear'
+		if(/(\W|^)(sh[i1]t|fu?ck\w*|crappy|bullshi|asshol)(?!\w)/i.test(input.value))input.value = 'don\'t f' + String.fromCharCode(117) + 'cking swear'
 	}else send.disabled = true
 }
 
