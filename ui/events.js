@@ -18,9 +18,9 @@ onkeydown = e => {
 	keysdown.add(key)
 	if(document.activeElement != document.body && e.key != 'Escape')return
 	const handlers = presses[key]
-	if(!handlers)return
+	if(!handlers) return
 	e.preventDefault()
-	if(e.repeat)return
+	if(e.repeat) return
 	if(e.ctrlKey || (deviceSucks && e.metaKey)){
 		if(e.altKey)handlers[3](e)
 		else handlers[1](e)
@@ -52,7 +52,7 @@ export function bind(key, handler){
 	binds[keyname] = handler
 }
 function attachHandler(i, key, handler, up = false){
-	if(Array.isArray(key)){for(const k of key)attachHandler(i,k,handler, up);return}
+	if(Array.isArray(key)){for(const k of key)attachHandler(i,k,handler,up);return}
 	let keyname = key.toLowerCase()
 	const d = up ? releases : presses
 	if(!d[keyname])d[keyname] = [Function.prototype, Function.prototype, Function.prototype, Function.prototype]

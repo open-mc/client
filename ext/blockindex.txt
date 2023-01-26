@@ -44,3 +44,5 @@ dirt
 sand
 water
 snowy_grass
+coal_ore
+iron_ore

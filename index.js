@@ -50,7 +50,7 @@ function tick(){ //20 times a second
 		buf.pipe(ws)
 	}
 	let i = 0
-	const mex = Math.floor(me.x) >> 3 & 6, mexi = (me.x & 15) / 16
+	const mex = Math.floor(me.x) >> 3 & 6, mexi = (floor(me.x) & 15) / 16
 	for(const t of `Paper Minecraft ${VERSION}
 FPS: ${round(1/dt)}, ELU: ${min(99.9,elusmooth/10*TPS).toFixed(1).padStart(4,"0")}%
 Ch: ${map.size}, E: ${entities.size}, N: ${document.all.length}
@@ -58,7 +58,6 @@ XY: ${me.x.toFixed(3)} / ${me.y.toFixed(3)}
 ${Math.floor(me.x) & 63} ${Math.floor(me.y) & 63} in ${Math.floor(me.x) >> 6} ${Math.floor(me.y) >> 6}
 Looking at: ${floor(x + me.x)|0} ${floor(y + me.y + me.head)|0}
 Facing: ${(me.f >= 0 ? 'R ' : 'L ') + (90 - abs(me.f / PI2 * 360)).toFixed(1).padStart(5, '\u2007')} (${(me.f / PI2 * 360).toFixed(1)})
-Biome: ${Math.round(me.chunk.biomes[mex] * (1 - mexi) + me.chunk.biomes[mex+2] * mexi)}/${Math.round(me.chunk.biomes[mex+1] * (1 - mexi) + me.chunk.biomes[mex+3] * mexi)}
 `.slice(0, -1).split('\n')){
 		let node = f3.children[i++]
 		if(!node)f3.append(node = document.createElement('div'))
@@ -68,6 +67,7 @@ Biome: ${Math.round(me.chunk.biomes[mex] * (1 - mexi) + me.chunk.biomes[mex+2] *
 	i = 0
 	for(const t of `Tick ${ticks}, Day ${floor((ticks+7000)/24000)}, Time ${Math.floor((ticks/1000+6)%24).toString().padStart(2,'0')}:${(Math.floor((ticks/250)%4)*15).toString().padStart(2,'0')}
 Dimension: ${world}
+Biome: ${me.chunk ? Math.round(me.chunk.biomes[mex] * (1 - mexi) + me.chunk.biomes[mex+2] * mexi) : 0}/${me.chunk ? Math.round(me.chunk.biomes[mex+1] * (1 - mexi) + me.chunk.biomes[mex+3] * mexi) : 0}
 `.slice(0, -1).split('\n')){
 		let node = f3r.children[i++]
 		if(!node)f3r.append(node = document.createElement('div'))
@@ -86,7 +86,6 @@ globalThis.requestIdleCallback = globalThis.requestIdleCallback || setTimeout
 let eluLast = 0
 const eluCb = () => (elu += performance.now() - eluLast, eluLast = 0)
 globalThis.countElu = () => eluLast ? 0 : (eluLast = performance.now(), requestIdleCallback(eluCb))
-const SPEED = 1
 export let zoom_correction = 0
 let camMovingX = false, camMovingY = false
 const {abs, min, round, floor, PI, ifloat, sign, sin} = Math
@@ -107,11 +106,11 @@ requestAnimationFrame(function frame(){
 	const now = performance.now()
 	dt += ((now - lastFrame) / 1000 - dt) / (count = min(count ** 1.03, 60))
 	if(dt > .3)count = 1.1
-	globalThis.t += (now - lastFrame) / 1000 * SPEED
+	globalThis.t += (now - lastFrame) / 1000 * options.speed
 	lastFrame = now
 	requestAnimationFrame(frame)
 	if(me._id < 0)return
-	for(const entity of entities.values())stepEntity(entity, dt * SPEED)
+	for(const entity of entities.values())stepEntity(entity, dt * options.speed)
 	const reach = min(10, (min(W2, H2) - 1) * 1.5)
 	W2 = visualViewport.width / TEX_SIZE / cam.z / 2
 	H2 = visualViewport.height / TEX_SIZE / cam.z / 2
@@ -150,20 +149,21 @@ requestAnimationFrame(function frame(){
 	let orangeness = 0
 	if(time < 1800)orangeness = 1 - abs(time - 900)/900
 	else if(time >= 13800 && time < 15600)orangeness = 1 - abs(time - 14700)/900
-	chunks.style.background = `linear-gradient(transparent 30%, rgba(197,86,59,${orangeness}) 70%), linear-gradient(rgba(120,167,255,${light}) 30%, rgba(195,210,360,${light}) 70%), url(/ext/stars.png) ${(innerWidth + 128) * ((time + 12600) % 24000 / 8400 - .5) - 32}px ${-160 - innerHeight / 4 * sin(((time + 12600) % 24000 / 8400 - .5) * PI)}px/512px, linear-gradient(rgb(4,6,9) 30%, rgb(10,12,20) 70%)`
+	const wspan = innerWidth + 128 + reach
+	chunks.style.background = `linear-gradient(transparent 30%, rgba(197,86,59,${orangeness}) 70%), linear-gradient(rgba(120,167,255,${light}) 30%, rgba(195,210,360,${light}) 70%), url(/ext/stars.png) ${wspan * ((time + 12600) % 24000 / 8400 - .5) - 32 - reach/2 - x/2}px ${-160 - innerHeight / 4 * sin(((time + 12600) % 24000 / 8400 - .5) * PI) + y/2}px/512px, linear-gradient(rgb(4,6,9) 30%, rgb(10,12,20) 70%)`
 	
 	if(time < 15600){
 		celestialBody.src = sun.src
 		const progress = time / 15600
-		celestialBody.style.transform = `translate(${(innerWidth + 128) * progress - 128}px, ${-64 - innerHeight / 4 * sin(progress * PI)}px)`
+		celestialBody.style.transform = `translate(${wspan * progress - 128 - reach/2 - x/2}px, ${-64 - innerHeight / 4 * sin(progress * PI) + y/2}px)`
 	}else{
 		celestialBody.src = moons[ticks / 24000 & 7].src
 		const progress = (time - 15600) / 8400
-		celestialBody.style.transform = `translate(${(innerWidth + 128) * progress - 128}px, ${-64 - innerHeight / 4 * sin(progress * PI)}px)`
+		celestialBody.style.transform = `translate(${wspan * progress - 128 - reach/2 - x/2}px, ${-64 - innerHeight / 4 * sin(progress * PI) + y/2}px)`
 	}
 	clouds.style.transform = `translateY(${(cam.y - 64) * ZPX * 0.7}px)`
 	clouds.style.backgroundImage = 'url("' + cloudMap.src + '")'
-	clouds.style.backgroundPositionX = (t-cam.x) * ZPX + 'px'
+	clouds.style.backgroundPositionX = (t-cam.x) % 2048 * ZPX + 'px'
 	if(document.pointerLockElement)position()
 	for(const chunk of map.values()){
 		chunk.position()

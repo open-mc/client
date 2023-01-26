@@ -3,11 +3,14 @@ import { pause } from "./pauseui.js"
 import { options } from "../save.js"
 import { Btn, Label, Row, Scale, ScaleSmall, showUI, Spacer, UI } from "../ui/ui.js"
 import { musicVol, soundVol } from "../ui/sounds.js"
+import { advancedOptionsScreen } from "./advanced.js"
 
 
 function renderScale(){
 	guiNode.textContent = 'GUI scale: ' + options.guiScale
-	document.documentElement.style.fontSize = Math.round(devicePixelRatio) / devicePixelRatio * options.guiScale * 2 + 'px'
+	const size = Math.round(devicePixelRatio) / devicePixelRatio * options.guiScale * 2
+	document.documentElement.style.fontSize = size + 'px'
+	document.documentElement.style.setProperty('--scale', size)
 }
 function guiChange(){
 	options.guiScale *= 2
@@ -52,7 +55,7 @@ const optionsui = UI('menu',
 	Row(ScaleSmall(soundChange), ScaleSmall(musicChange)),
 	Scale(sensitivityChange),
 	Spacer(20),
-	Row(Btn('Back', pause, 'small'), Btn('Advanced', Function.prototype, 'small disabled'))
+	Row(Btn('Back', pause, 'small'), Btn('Advanced', advancedOptionsScreen, 'small'))
 )
 renderScale()
 renderCamMode()

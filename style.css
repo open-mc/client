@@ -187,7 +187,6 @@ label{
 	text-align: center;
 	height: 20rem;
 	line-height: 18rem;
-	flex-shrink: 0;
 }
 btn{
 	display: block;
@@ -368,9 +367,13 @@ entity img{
 #chunks.f3b entity{
 	box-shadow: 0 0 0 calc(1rem / var(--z)) white;
 }
+#chunks.f3b canvas{
+	box-shadow: 0 0 0 calc(1rem / var(--z)) white;
+}
 #inventory entity{
-	transform: translate(48rem, -27rem) scale(4) !important;
+	transform: translate(39rem, -28rem) scale(calc(var(--scale) * 2)) !important;
 	bottom: 100%;
+	position: absolute;
 }
 
 .f1 > #pointer, .f1 > #hotbar, .f1 > #pointer2, .f1 > #f3{display: none !important}

@@ -45,5 +45,13 @@
 	"snowy_grass": {
 		"texture": ":4:4",
 		"solid": true
+	},
+	"coal_ore": {
+		"texture": ":2:2",
+		"solid": true
+	},
+	"iron_ore": {
+		"texture": ":1:2",
+		"solid": true
 	}
 }

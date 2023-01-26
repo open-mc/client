@@ -14,6 +14,12 @@ row{
 	gap: 8rem;
 }
 
+column{
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+}
+
 #chat{
 	position: fixed;
 	bottom: 42rem;
@@ -59,18 +65,26 @@ row{
 	height: 50%;
 	overflow-y: auto;
 }
-#serverlist row{
+#serverlist > row{
 	padding: 1rem;
-	margin: 5rem;
-	height: 22rem;
+	margin: 2rem;
+	height: 54rem;
 }
 #serverlist label{
 	flex-grow: 1;
+	text-align: left;
 }
-#serverlist row:hover{
+#serverlist > row > div{
+	height: 52rem;
+	flex-grow: 1;
+}
+#serverlist > row:hover{
 	border: 1rem #fff8 solid;
 	cursor: pointer;
 	padding: 0;
+}
+#serverlist img{
+	width: 48rem; height: 48rem; margin: 2rem;
 }
 
 ::placeholder{

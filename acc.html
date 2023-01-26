@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html spellcheck="false" autocomplete="off" autocapitalize="off" lang="en" ontouchend="getSelection().removeAllRanges();event.preventDefault();if('value' in event.target)event.target.focus();event.target.dispatchEvent(new MouseEvent('click', event.changedTouches[0]))" oncontextmenu="event.preventDefault();" onwheel="if(event.ctrlKey)event.preventDefault()">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=500, initial-scale=1, user-scalable=no">
+		<link href="style.css" rel="stylesheet">
+		<link href="ui/ui.css" rel="stylesheet">
+		<link rel="shortcut icon" href="./img/grassicon.png">
+		<script>(d=>{d.display="fullscreen";d.icons=[{src:(d.scope=d.start_url=location.origin)+"/img/icon.png",type:"image/png",sizes:"512x512"}];document.head.insertAdjacentHTML('beforeEnd', `<link rel="manifest" href="data:application/json;base64,${btoa(JSON.stringify(d))}"><meta name="apple-mobile-web-app-title" content="${d.short_name}"><meta property="og:title" content="${d.name}"><meta property="og:description" content="${d.description}"><meta property="og:image" content="icon.png"><link rel="shortcut icon" href="icon.png" type="image/x-icon"><meta name="theme-color" content="${d.theme_color}">`);document.title=d.name;document.documentElement.style.backgroundColor=d.background_color})({name:"Paper Minecraft",short_name:"Minecraft",theme_color:"#000",background_color:"#000"})</script>
+	</head>
+	<body>
+		<script>
+			history.replaceState({}, '', '/')
+			async function gotKey(key){
+				console.log(key)
+				if(!/[a-f0-9]{32}$/y.test(key))return false
+				//Random old server
+				const [name, pub, priv, sig] = (await fetch('https://server.canv.tk:1024/' + key).then(a => a.text())).split('\n')
+				if(!name || !pub || !priv || !sig)return false
+				localStorage.pubKey = pub
+				localStorage.privKey = priv
+				localStorage.authSig = sig
+				localStorage.name = name
+				return true
+			}
+		</script>
+		<div id="ui" class="dirtbg">
+			<label>This game is currently for testers only</label>
+			<label>Join our <a href="https://discord.gg/ufaHZXtnab" style="color: #5AE">Discord</a> to get an account key</label>
+			<label></label>
+			<label><input style="border: 2px #fff solid; background: #000; padding: 8px; color: white" placeholder="Account key" oninput="gotKey(this.value).then(a => {if(a)location.href = '/'; else this.style.color = 'red'})"></label>
+		</div>
+	</body>
+</html>

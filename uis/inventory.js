@@ -10,7 +10,7 @@ inventoryui.onclick = function(e){
 	if(e.target.nodeName == 'ITEM'){
 		if(slotid !== undefined){
 			const i = getslot(slotid)
-			const d = dragging
+			const d = me.dragging
 			if(i && d && i.name == d.name && !i.savedata){
 				i.count += d.count
 				if(i.count > 64)d.count = i.count - 64, i.count=64, render_slot(41)
@@ -29,25 +29,25 @@ inventoryui.oncontextmenu = function(e){
 	if(e.target.nodeName == 'ITEM'){
 		if(slotid !== undefined){
 			const i = getslot(slotid)
-			if(!dragging){
+			if(!me.dragging){
 				if(!i)return
 				setslot(41,  Items[i.name](i.count - (i.count >>= 1)))
 				if(!i.count)setslot(slotid, null)
 				else render_slot(slotid)
 			}else if(!i){
-				if(dragging.count==1){
-					setslot(slotid, dragging)
+				if(me.dragging.count==1){
+					setslot(slotid, me.dragging)
 					setslot(41, null)
 				}else{
-					dragging.count--
+					me.dragging.count--
 					render_slot(41)
-					setslot(slotid, Items[dragging.name](1))
+					setslot(slotid, Items[me.dragging.name](1))
 				}
-			}else if(dragging.name == i.name && !i.savedata && i.count < 64){
+			}else if(me.dragging.name == i.name && !i.savedata && i.count < 64){
 				i.count++
 				render_slot(slotid)
-				if(dragging.count != 1){
-					dragging.count--
+				if(me.dragging.count != 1){
+					me.dragging.count--
 					render_slot(41)
 				}else setslot(41, null)
 			}
@@ -76,7 +76,6 @@ inventoryui.frame = () => {
 		me.f = f - me.f; f -= me.f
 	}
 }
-export const dragging = null
 export function showInventory(){
 	if(ui == inventoryui)return hideUI()
 	showUI(inventoryui)
@@ -86,7 +85,7 @@ let selected = 0
 export const getselected = () => selected
 export function setselected(_id){
 	const id = (_id % 9 + 9) % 9
-	slot.style.left = id * 40 - 2 + 'px'
+	slot.style.left = id * 20 - 1 + 'rem'
 	selected = id
 }
 
@@ -109,10 +108,10 @@ export function render_slot(id){
 }
 export function setslot(id, a){
 	if(id < 36)me.inv[id] = a
-	else if(id == 41)dragging = a
+	else if(id == 41)me.dragging = a
 	render_slot(id)
 }
 export function getslot(id){
 	if(id < 36)return me.inv[id]
-	else if(id == 41)return dragging
+	else if(id == 41)return me.dragging
 }

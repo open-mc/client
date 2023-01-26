@@ -182,3 +182,15 @@ export const Div = (id, ...a) => {
 	for(const el of a)div.append(el)
 	return div
 }
+
+export const Img = (src) => {
+	const img = document.createElement('img')
+	img.src = src
+	return img
+}
+
+export const Column = (...a) => {
+	const el = document.createElement('column')
+	for(const c of a)el.append(c)
+	return el
+}

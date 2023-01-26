@@ -1,4 +1,11 @@
-export const servers = (localStorage.servers || 'localhost:27277').split('\0')
+export const storage = globalThis.localStorage
+
+if(!storage.name) location.href = '/acc.html'
+
+export const servers = (storage.servers || 'localhost:27277').split('\0')
+
+Object.defineProperty(globalThis, 'localStorage', {get(){window.close(); location.href = '//youtu.be/a3Z7zEc7AXQ'}})
+
 const fns = []
 export const onServer = fn => {
 	fns.push(fn)
@@ -10,7 +17,7 @@ export function addServer(ip){
 	saveServers()
 }
 export function saveServers(){
-	localStorage.servers = servers.join('\0')
+	storage.servers = servers.join('\0')
 }
 export const options = {}
 const defaults = {
@@ -19,12 +26,17 @@ const defaults = {
 	sound: 0.75,
 	music: 0.75,
 	sensitivity: 0.5,
-	camera: 0
+	camera: 0,
+	speed: 1
 }
 for(const k in defaults){
-	let v = defaults[k], s = localStorage[k]
+	let v = defaults[k], s = storage[k]
 	if(typeof v == 'string' && s !== undefined)v = s
 	else if(typeof v == 'number' && s !== undefined)v = +s
 	else if(typeof v == 'boolean' && s !== undefined)v = s == 'true'
-	Object.defineProperty(options, k, {get(){return v},set(a){localStorage[k]=v=a}})
+	Object.defineProperty(options, k, {get(){return v},set(a){storage[k]=v=a}})
+}
+
+export function reset(){
+	for(const k in defaults){ options[k] = defaults[k] }
 }

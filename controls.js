@@ -1,4 +1,4 @@
-import { bind, ctrl, key } from "./ui/events.js";
+import { alt, bind, ctrl, key } from "./ui/events.js";
 import { setselected, getselected } from "./uis/inventory.js";
 import { hideUI, ui } from "./ui/ui.js";
 import { showInventory } from "./uis/inventory.js";
@@ -32,8 +32,9 @@ key(['arrowup', 'w', ' '], () => {
 		lastPressUp = 0
 	}else lastPressUp = t
 })
-key('f3', () => document.body.classList.toggle('f3'))
-key('tab', () => document.body.classList.toggle('f3'))
+alt(['f3', 'tab'], () => chunks.classList.toggle('f3b'))
+
+key(['f3', 'tab'], () => document.body.classList.toggle('f3'))
 key('f1', () => document.body.classList.toggle('f1'))
 key('f11', e => {console.log('f11');e.preventDefault(); document.body.requestFullscreen()})
 key('f2', () => {
