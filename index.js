@@ -35,7 +35,7 @@ setInterval(function(){
 	last -= dt
 })
 
-const sendDelay = 4 //send packet every 4 ticks
+const sendDelay = 1 //send packet every 4 ticks
 function tick(){ //20 times a second
 	if(dt < 1/20000)dt = 1/20000
 	if(ticks % sendDelay == 0 && me._id > -1){
@@ -44,6 +44,7 @@ function tick(){ //20 times a second
 		buf.byte(r)
 		buf.double(me.x)
 		buf.double(me.y)
+		buf.short(me.state)
 		buf.float(me.dx)
 		buf.float(me.dy)
 		buf.float(me.f)

@@ -5,7 +5,6 @@ import { showInventory } from "./uis/inventory.js";
 import { movementFlags } from "./lib/entity.js";
 
 let lastPressUp = 0
-export let fly = false
 bind(['arrowright', 'd'], function(){
 	me.dx = 5
 })
@@ -13,7 +12,7 @@ bind(['arrowleft', 'a'], function(){
 	me.dx = -5
 })
 bind(['arrowup', 'w', ' '], function(){
-	if(fly){
+	if(me.state & 1){
 		me.dy = 5
 		return
 	}
@@ -21,14 +20,14 @@ bind(['arrowup', 'w', ' '], function(){
 })
 bind(['arrowdown', 's'], function(){
 	//crouch
-	if(fly){
+	if(me.state & 1){
 		me.dy = -5
 		return
 	}
 })
 key(['arrowup', 'w', ' '], () => {
 	if(lastPressUp > t - .3){
-		fly = !fly
+		me.state ^= 1
 		lastPressUp = 0
 	}else lastPressUp = t
 })

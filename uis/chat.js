@@ -20,19 +20,19 @@ chatui.finish = () => {
 	input.blur()
 	chat.classList.remove('focus')
 }
-let history = [], hi = 0, tx = ''
+let history = [], hi = 0, tg = ''
 input.key = (key) => {
 	a: if(key == 'ArrowUp'){
 		if(!hi)break a
-		if(hi == history.length)tx = input.value
+		if(hi == history.length)tg = input.value
 		input.value = history[--hi]
 	}else if(key == 'ArrowDown'){
 		if(hi >= history.length)break a
-		input.value = history[++hi] || tx
+		input.value = history[++hi] || tg
 	}else if(key == 'Enter'){
 		let v = input.value
 		hi = history.push(v)
-		input.value = tx = ''
+		input.value = tg = ''
 		hideUI()
 		ws.send(v)
 	}else return

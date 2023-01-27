@@ -16,8 +16,10 @@ export function setblock(x, y, b){
 	const lx = x & 63
 	const ly = y & 63
 	ch.tiles[lx + (ly << 6)] = b
-	ch.ctx.clearRect(lx * TEX_SIZE, (63 - ly) * TEX_SIZE, TEX_SIZE, TEX_SIZE)
-	if(b.texture)ch.ctx.drawImage(b.texture, lx * TEX_SIZE, (63 - ly) * TEX_SIZE)
+	if(ch.ctx){
+		ch.ctx.clearRect(lx * TEX_SIZE, (63 - ly) * TEX_SIZE, TEX_SIZE, TEX_SIZE)
+		if(b.texture)ch.ctx.drawImage(b.texture, lx * TEX_SIZE, (63 - ly) * TEX_SIZE)
+	}
 }
 export function getblock(x, y){
 	const k = (x>>>6)+(y>>>6)*67108864
