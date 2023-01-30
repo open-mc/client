@@ -1,4 +1,4 @@
-import { Btn, Label, showUI, Spacer, UI } from "../ui/ui.js"
+import { Btn, Label, showUI, Spacer, UI } from "../ui.js"
 
 let label, cb = Function.prototype
 export const message = UI('',

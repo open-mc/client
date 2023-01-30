@@ -1,8 +1,6 @@
-import "../me.js"
 import { pause } from "./pauseui.js"
 import { options } from "../save.js"
-import { Btn, Label, Row, Scale, ScaleSmall, showUI, Spacer, UI } from "../ui/ui.js"
-import { musicVol, soundVol } from "../ui/sounds.js"
+import { Btn, Label, Row, Scale, ScaleSmall, showUI, Spacer, UI } from "../ui.js"
 import { advancedOptionsScreen } from "./advanced.js"
 
 
@@ -18,19 +16,16 @@ function guiChange(){
 	renderScale()
 }
 function zoomChange(a = options.zoom){
-	let v = Math.round(a * 5)
-	cam.z = 2 ** (v-1)
-	return [cam.z<16?'Zoom: '+cam.z/2:'Zoom: SUPER', options.zoom = v / 5]
+	const z = 2 ** ((options.zoom = Math.round(a * 5) / 5) * 5 - 1)
+	return [z<16?'Zoom: '+z/2:'Zoom: SUPER', options.zoom]
 }
 
 function soundChange(a = options.sound){
 	options.sound = a
-	soundVol(a)
 	return [a >= 0.005 ? a < 0.995 ? 'Sound: '+Math.round(a*100)+'%' : 'Sound: LOUD' : 'Sound: quiet', a]
 }
 function musicChange(a = options.music){
 	options.music = a
-	musicVol(a)
 	return [a >= 0.005 ? a < 0.995 ? 'Music: '+Math.round(a*100)+'%' : 'Music: LOUD' : 'Music: quiet', a]
 }
 

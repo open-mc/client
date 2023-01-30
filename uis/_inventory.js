@@ -1,6 +1,4 @@
-import { Div, hideUI, showUI, ui, UI } from "../ui/ui.js"
-import { render } from "../lib/entity.js"
-import { on } from "../lib/prototype.js"
+import { Div, hideUI, showUI, ui, UI } from "../ui.js"
 export const inventoryui = UI('inv',
 	Div('inv')
 )
@@ -80,13 +78,6 @@ export function showInventory(){
 	if(ui == inventoryui)return hideUI()
 	showUI(inventoryui)
 	inventoryui.append(inventory)
-}
-let selected = 0
-export const getselected = () => selected
-export function setselected(_id){
-	const id = (_id % 9 + 9) % 9
-	slot.style.left = id * 20 - 1 + 'rem'
-	selected = id
 }
 
 let item, s

@@ -1,18 +1,36 @@
-import sounds from "./sounds.js"
+import { options } from "./save.js"
+
+const arr = [new Audio('./img/click.mp3')]
+export const click = () => {
+	let a = arr.length > 1 ? arr.pop() : arr[0].cloneNode(true)
+	a.volume = options.sound
+	a.onended = () => {
+		a.onended = null
+		if(arr.length<3)arr.push(a)
+	}
+	a.play().catch(a.onended)
+}
+
+HTMLElement.prototype.attr = function(a, b){this.setAttribute(a, b); return this}
+
+for(const n of [HTMLCollection, NodeList])Object.setPrototypeOf(n.prototype, Array.prototype)
+
 const NONE = document.createComment('')
 document.body.append(NONE)
 export let ui = null
 export async function hideUI(){
 	if(!ui)return
-	chunks.requestPointerLock()
+	//chunks.requestPointerLock()
+	await document.body.requestPointerLock()
 	ui.replaceWith(NONE)
-	;(ui.finish||Function.prototype)()
+	void (ui.finish||Function.prototype)()
 	ui = null
 }
+
 export function showUI(a = this){
 	document.exitPointerLock()
-	;(ui&&ui.finish||Function.prototype)()
-	;(ui || NONE).replaceWith(ui = a)
+	void (ui && ui.finish || Function.prototype)()
+	void (ui || NONE).replaceWith((ui = a) || NONE)
 }
 
 const selchange = new Set
@@ -103,7 +121,7 @@ export const Input = (type, placeholder, tokenizers = {txt:/[^]*/y}) => {
 let thumbx = -1, curtrack = null
 function pointermove(e){
 	if(curtrack){
-		curtrack.value = Math.fclamp((e.clientX - curtrack.offsetLeft - thumbx) / (curtrack.offsetWidth - curtrack.lastChild.offsetWidth))
+		curtrack.value = Math.max(0, Math.min(1, (e.clientX - curtrack.offsetLeft - thumbx) / (curtrack.offsetWidth - curtrack.lastChild.offsetWidth)))
 		let [t, v] = curtrack.change(curtrack.value)
 		curtrack.lastChild.style.setProperty('--value', v)
 		curtrack.firstChild.textContent = t
@@ -143,9 +161,9 @@ export const Btn = (text, onclick, classes = '') => {
 	btn.append(text)
 	btn.onclick = e => {
 		if(btn.disabled)return
-		sounds.click()
+		click()
 		e.stopPropagation()
-		onclick()
+		onclick(btn)
 	}
 	Object.setPrototypeOf(btn, BtnPrototype)
 	return btn

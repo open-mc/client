@@ -1,10 +1,5 @@
-import { getblock } from "../me.js"
-import { TEX_SIZE } from "../textures.js"
-import { resetPointer } from "../ui/pointer.js"
-import { render_slot } from "../uis/inventory.js"
-import { hideUI } from "../ui/ui.js"
-import { entityTextureProps } from "./definitions.js"
-import { fire } from "./prototype.js"
+import { getblock } from "./world.js"
+import { resetPointer } from "./pointer.js"
 
 globalThis.entities = new Map()
 export function addEntity(e){
@@ -14,26 +9,23 @@ export function addEntity(e){
 		cam.x = me.ix = me.x
 		cam.y = me.iy = me.y
 		resetPointer(me.f)
-		fire('me')
-		hideUI()
-		for(let i = 0; i < 36; i++)render_slot(i)
 	}
 }
 export function removeEntity(e){
 	if(e.node)e.node.remove()
 	entities.delete(e._id)
-	if(e == me)me._id = -1
+	if(e == me)me = null
 }
 export function moveEntity(e){
 	const ch = map.get((floor(e.ix) >>> 6) + (floor(e.iy) >>> 6) * 67108864) || null
 	if(ch != e.chunk)e.chunk&&e.chunk.entities.delete(e), e.chunk = ch, ch&&ch.entities.add(e)
 }
 export function render(entity, node){
-	node.style.transform = `translate(${(Math.ifloat(entity.x-cam.x) * cam.z - entity.width) * TEX_SIZE + visualViewport.width/2}px, ${-(Math.ifloat(entity.y-cam.y) * cam.z + entity.height/2 * (cam.z - 1)) * TEX_SIZE - visualViewport.height/2}px) scale(${cam.z})`
+	node.style.transform = `translate(${(ifloat(entity.x-cam.x) * cam.z - entity.width) * TEX_SIZE + visualViewport.width/2}px, ${-(ifloat(entity.y-cam.y) * cam.z + entity.height/2 * (cam.z - 1)) * TEX_SIZE - visualViewport.height/2}px) scale(${cam.z})`
 	let j = 0
 	for(const fns of entity.renderfns){
 		let n = node.children[j++], i = 0
-		for(let p of entityTextureProps){
+		for(let p of []){
 			let fn = fns[i++]
 			if(fn)n.style.setProperty('--'+p, fn(entity))
 		}
@@ -44,7 +36,6 @@ const airDrag = 0.667
 export let movementFlags = 0
 export function stepEntity(e, dt){
 	const flags = fastCollision(e, e.dx * dt, e.dy * dt)
-	
 	e.dx = e.dx * groundDrag ** dt
 	if(e.state & 1)e.dy = 0
 	else{
@@ -57,13 +48,12 @@ export function stepEntity(e, dt){
 		movementFlags = flags
 	}else{
 		//TODO: make interpolation entirely dx/dy based
-		e.ix += Math.ifloat(e.x - e.ix) * dt * 20
-		e.iy += Math.ifloat(e.y - e.iy) * dt * 20
+		e.ix += ifloat(e.x - e.ix) * dt * 20
+		e.iy += ifloat(e.y - e.iy) * dt * 20
 		//if(tf == tf)e.f = ((e.f+(((tf-e.f)%PI2+PI2+PI)%PI2-PI)*dt*20)%PI2+PI2+PI)%PI2-PI
 	}
 	moveEntity(e)
 }
-const {floor, ceil, min, max} = Math
 
 const EPSILON = .0001
 function fastCollision(e, dx, dy){
@@ -121,7 +111,7 @@ function fastCollision(e, dx, dy){
 		}
 		e.x += dx
 	}
-	e.x = Math.ifloat(e.x)
-	e.y = Math.ifloat(e.y)
+	e.x = ifloat(e.x)
+	e.y = ifloat(e.y)
 	return flags
 }

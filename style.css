@@ -119,6 +119,7 @@ canvas{
 	height: 100%;
 	z-index: -1;
 	position: absolute;
+	opacity: 0.4;
 }
 
 #pointer{
@@ -377,3 +378,13 @@ entity img{
 }
 
 .f1 > #pointer, .f1 > #hotbar, .f1 > #pointer2, .f1 > #f3{display: none !important}
+
+
+iframe{
+	position: absolute;
+	border: none;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 100%;
+}

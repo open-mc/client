@@ -1,7 +1,6 @@
-import { zoom_correction } from "../index.js";
-import { TEX_SIZE } from "../textures.js";
-import { BlockIDs } from "./definitions.js";
-import { addEntity } from "./entity.js";
+import { BlockIDs, EntityIDs } from "./ipc.js"
+import { addEntity } from "./entity.js"
+
 const canvasPool = []
 export class Chunk{
 	constructor(buf){
@@ -10,7 +9,7 @@ export class Chunk{
 		this.y = y << 6 >> 6
 		this.tiles = []
 		this.entities = new Set()
-		this.node = this.ctx = null
+		this.ctx = null
 		this.r1 = 0
 		this.r2 = 0
 		//read buffer palette
@@ -28,6 +27,7 @@ export class Chunk{
 			if(e.savedata)buf.read(e.savedata, e)
 			addEntity(e)
 			this.entities.add(e)
+			if(e.appeared)e.appeared()
 			id = buf.short()
 		}
 		this.biomes = [buf.byte(), buf.byte(), buf.byte(), buf.byte(), buf.byte(), buf.byte(), buf.byte(), buf.byte(), buf.byte(), buf.byte()]
@@ -90,54 +90,21 @@ export class Chunk{
 		return new Chunk(new DataReader(Uint8Array.of(16, x >> 24, x >> 16, x >> 8, x, y >> 24, y >> 16, y >> 8, y, 0, 0, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, block.id >> 8, block.id)))
 	}
 	hide(){
-		if(!this.node)return
-		this.node.remove()
-		canvasPool.push(this.node)
-		this.node = this.ctx = null
-		this.r1 = 0
-		this.r2 = 0
+		if(!this.ctx)return
+		canvasPool.push(this.ctx)
+		this.ctx.clearRect(0, 0, TEX_SIZE << 6, TEX_SIZE << 6)
+		this.ctx = null
 	}
-	updaterender(){
-		const x0 = Math.floor(Math.fclamp(Math.ifloat(cam.x - W2 - (this.x << 6)) / 8, 8))
-		const x1 = Math.ceil(Math.fclamp(Math.ifloat(cam.x + W2 - (this.x << 6)) / 8, 8))
-		const y0 = Math.floor(Math.fclamp(Math.ifloat(cam.y - H2 - (this.y << 6)) / 8, 8))
-		const y1 = Math.ceil(Math.fclamp(Math.ifloat(cam.y + H2 - (this.y << 6)) / 8, 8))
-		if(x0 == x1 || y0 == y1)return this.hide()
-		if(!this.node){
-			this.node = canvasPool.pop() || document.createElement('canvas')
-			this.ctx = this.node.getContext('2d')
-			this.node.width = this.node.height = 64 * TEX_SIZE //1024 = 64 * 16 //1024
-			this.position()
-			chunks.appendChild(this.node)
-		}
-		for(let x = x0; x < x1; x++){
-			for(let y = y0; y < y1; y++){
-				if(y < 4){
-					if(this.r1 >> (x + (y*8)) & 1)continue
-					this.draw(x, y)
-					this.r1 |= (1 << (x + (y*8)))
-				}else{
-					if(this.r2 >> (x + (y*8)) & 1)continue
-					this.draw(x, y)
-					this.r2 |= (1 << (x + (y*8)))
-				}
-			}
-		}
-	}
-	draw(ax, ay){
-		const xa = ax * 8 + 8
-		const ya = ay * 8 + 8
-		for(let x = xa - 8; x < xa; x++){
-			for(let y = ya - 8; y < ya; y++){
-				const t = this.tiles[x+y*64].texture
+	draw(){
+		if(this.ctx)return
+		this.ctx = canvasPool.pop()
+		if(!this.ctx)this.ctx = Can(TEX_SIZE << 6, TEX_SIZE << 6)
+		for(let x = 0; x < 64; x++){
+			for(let y = 0; y < 64; y++){
+				const t = this.tiles[x|(y<<6)].texture
 				if(!t)continue
-				this.ctx.drawImage(t,x*TEX_SIZE,(63-y)*TEX_SIZE,TEX_SIZE,TEX_SIZE)
+				this.ctx.image(t,x*TEX_SIZE,(63-y)*TEX_SIZE,TEX_SIZE,TEX_SIZE)
 			}
 		}
-	}
-	position(){
-		let x = Math.ifloat(this.x * 64 - cam.x)
-		let y = Math.ifloat(this.y * 64 - cam.y)
-		if(this.node)this.node.style.transform = `translate(${Math.floor(visualViewport.width / 2) + zoom_correction * x * TEX_SIZE}px, ${Math.ceil(visualViewport.height / -2) + zoom_correction * -y * TEX_SIZE}px)`
 	}
 }

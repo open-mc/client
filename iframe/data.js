@@ -23,6 +23,7 @@ export class DataReader extends DataView{
 			case Float32: return this.getFloat32((this.i += 4) - 4)
 			case Boolean: return this.getUint8(this.i++) != 0
 			case String: return this.string()
+			case Uint8Array: return this.uint8array()
 			case Item: return this.item(target)
 		}
 		if(Array.isArray(type)){
@@ -61,7 +62,16 @@ export class DataReader extends DataView{
 	float64(){ return this.getFloat64((this.i+=8)-8) }
 	bool(){return this.getUint8(this.i++) != 0}
 	boolean(){return this.getUint8(this.i++) != 0}
-	get left(){return this.byteLength - this.i}
+	uint8array(){
+		let i = this.i
+		let len = this.getUint8(i)
+		if(len >= 64){
+			if(len >= 128)len = this.getUint32(i) & 0x7FFFFFFF, i += 4
+			else len = this.getUint16(i) & 0x3FFF, i += 2
+		}else len &= 0x3F, i++
+		this.i = i + len
+		return new Uint8Array(this.buffer, i, len)
+	}
 	string(){
 		let i = this.i
 		let len = this.getUint8(i)
@@ -84,6 +94,7 @@ export class DataReader extends DataView{
 		if(item._.savedata)this.read(item._.savedata, target)
 		return target
 	}
+	get left(){return this.byteLength - this.i}
 	pipe(sock){
 		sock.send(this)
 	}
@@ -100,8 +111,8 @@ export class DataWriter extends Array{
 		this.i = 0
 	}
 	allocnew(){
-		super.push(new Uint8Array(buf.buffer, buf.byteOffset, this.i))
-		buf = this.cur = pool.pop() || new DataView(new ArrayBuffer(ALLOCSIZE))
+		super.push(new Uint8Array(this.cur.buffer, this.cur.byteOffset, this.i))
+		this.cur = pool.pop() || new DataView(new ArrayBuffer(ALLOCSIZE))
 		this.i = 0
 	}
 	write(type, v){
@@ -117,29 +128,8 @@ export class DataWriter extends Array{
 			case Float64: buf.setFloat64((this.i += 8) - 8, v); return
 			case Float32: buf.setFloat32((this.i += 4) - 4, v); return
 			case Boolean: buf.setUint8(this.i++, v); return
-			case String:
-				const len = v.length
-				if(len > 0x3FFF){
-					if(len <= 0x7FFFFFFF)throw new RangeError('Encoded strings may not have more than 2147483647 characters')
-					else buf.setUint32((this.i += 4) - 4, len + 0x80000000)
-				}else if(len > 0x3F)buf.setUint16((this.i += 2) - 2, len + 0x4000)
-				else buf.setUint8(this.i++, len)
-				const {read, written} = encoder.encodeInto(v, new Uint8Array(buf.buffer, buf.byteOffset + this.i))
-				if(read == v.length){
-					this.i += written
-					return
-				}
-				v = v.slice(read)
-				super.push(new Uint8Array(buf.buffer, buf.byteOffset, this.i))
-				if(v.length <= Math.floor(ALLOCSIZE / 3)){
-					buf = this.cur = pool.pop() || new DataView(new ArrayBuffer(ALLOCSIZE))
-					this.i = encoder.encodeInto(v, new Uint8Array(buf.buffer, buf.byteOffset)).written
-				}else{
-					super.push(encoder.encode(v))
-					this.cur = pool.pop() || new DataView(new ArrayBuffer(ALLOCSIZE))
-					this.i = 0
-				}
-				return
+			case String: this.string(v); return
+			case Uint8Array: this.uint8array(v); return
 			case Item:
 				if(!v){buf.setUint8(this.i++, 0); return}
 				buf.setUint8(this.i++, v.count)
@@ -180,30 +170,56 @@ export class DataWriter extends Array{
 	float64(n){ if(this.i > this.cur.byteLength - 8)this.allocnew(); this.cur.setFloat64((this.i+=8)-8, n) }
 	bool(n){ if(this.i == this.cur.byteLength)this.allocnew(); this.cur.setUint8(this.i++, n) }
 	boolean(n){ if(this.i == this.cur.byteLength)this.allocnew(); this.cur.setUint8(this.i++, n) }
-	string(v){
+	uint8array(v){
 		if(this.i > this.cur.byteLength - 4)this.allocnew()
 		const len = v.length
-		let buf = this.cur
+		const buf = this.cur
 		if(len > 0x3FFF){
 			if(len <= 0x7FFFFFFF)throw new RangeError('Encoded strings may not have more than 2147483647 characters')
 			else buf.setUint32((this.i += 4) - 4, len + 0x80000000)
 		}else if(len > 0x3F)buf.setUint16((this.i += 2) - 2, len + 0x4000)
 		else buf.setUint8(this.i++, len)
-		const {read, written} = encoder.encodeInto(v, new Uint8Array(buf.buffer, buf.byteOffset + this.i))
-		if(read == v.length){
-			this.i += written
+		const avail = buf.byteLength - this.i
+		if(len <= avail){
+			new Uint8Array(buf.buffer, buf.byteOffset).set(v, this.i)
+			this.i += len
 			return
 		}
-		v = v.slice(read)
-		super.push(new Uint8Array(buf.buffer, buf.byteOffset, this.i))
-		if(v.length <= Math.floor(ALLOCSIZE / 3)){
-			buf = this.cur = pool.pop() || new DataView(new ArrayBuffer(ALLOCSIZE))
-			this.i = encoder.encodeInto(v, new Uint8Array(buf.buffer, buf.byteOffset)).written
-		}else{
-			super.push(encoder.encode(v))
-			this.cur = pool.pop() || new DataView(new ArrayBuffer(ALLOCSIZE))
-			this.i = 0
+		new Uint8Array(buf.buffer, buf.byteOffset).set(v.subarray(0, avail), this.i)
+		this.allocnew()
+		const left = v.byteLength - avail
+		v.byteLength - avail
+		if(left < avail && left < (this.cur.byteLength >> 1)){
+			//Small enough to copy to next chunk
+			new Uint8Array(this.cur, buf.byteOffset).set(v.subarray(avail), 0)
+			this.i = left
+		}else super.push(v.subarray(avail))
+	}
+	string(v){
+		if(this.i > this.cur.byteLength - 4)this.allocnew()
+		const encoded = encoder.encode(v)
+		const len = encoded.length
+		const buf = this.cur
+		if(len > 0x3FFF){
+			if(len <= 0x7FFFFFFF)throw new RangeError('Encoded strings may not have more than 2147483647 characters')
+			else buf.setUint32((this.i += 4) - 4, len + 0x80000000)
+		}else if(len > 0x3F)buf.setUint16((this.i += 2) - 2, len + 0x4000)
+		else buf.setUint8(this.i++, len)
+		const avail = buf.byteLength - this.i
+		if(len <= avail){
+			new Uint8Array(buf.buffer, buf.byteOffset).set(encoded, this.i)
+			this.i += len
+			return
 		}
+		new Uint8Array(buf.buffer, buf.byteOffset).set(encoded.subarray(0, avail), this.i)
+		this.allocnew()
+		const left = encoded.byteLength - avail
+		encoded.byteLength - avail
+		if(left < avail && left <= this.cur.byteLength){
+			//Small enough to copy to next chunk, freeing encoded
+			new Uint8Array(this.cur, buf.byteOffset).set(encoded.subarray(avail), 0)
+			this.i = left
+		}else super.push(encoded.subarray(avail))
 	}
 	item(v){
 		if(this.i > this.cur.byteLength - 3)this.allocnew();
@@ -213,9 +229,7 @@ export class DataWriter extends Array{
 		this.string(v.name)
 		if(v._.savedata)this.write(v._.savedata, v)
 	}
-	pipe(sock){
-		sock.send(this.build())
-	}
+	pipe(sock){ sock.send(this.build()) }
 	build(paddingStart = 0, paddingEnd = 0){
 		let len = paddingStart + paddingEnd + this.i
 		for(const b of this)len += b.byteLength
@@ -248,8 +262,9 @@ globalThis.Uint32 = globalThis.UInt32 = a => a >>> 0
 globalThis.Int16 = a => a << 16 >> 16
 globalThis.Int8 = a => a << 24 >> 24
 globalThis.Bool = Boolean
-export const Entity = {}
+globalThis.DataReader = DataReader
+globalThis.DataWriter = DataWriter
 export const Item = {}
-const types = [Byte, Int8, Short, Int16, Uint32, Int32, Float, Double, Boolean, String, Item]
+const types = [Byte, Int8, Short, Int16, Uint32, Int32, Float, Double, Boolean, String, Item, Uint8Array]
 export const typeToJson = type => JSON.stringify(type, (k, v) => typeof v == 'object' ? v : typeof v == 'function' ? types.indexOf(v) : typeof v == 'number' && k == '1' ? v : undefined)
 export const jsonToType = json => JSON.parse(json, (k, v) => typeof v == 'object' ? v : typeof v == 'number' ? k == '1' ? v : types[v] : undefined)

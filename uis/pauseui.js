@@ -1,8 +1,8 @@
-import { finished } from "../lib/connectme.js"
-import { Btn, hideUI, Label, Row, showUI, UI } from "../ui/ui.js"
-import { feedback } from "./feedbackui.js";
-import { optionsScreen } from "./options.js";
-import { serverlist } from "./serverlist.js";
+import { Btn, hideUI, Label, Row, showUI, UI } from "../ui.js"
+import { feedback } from "./feedbackui.js"
+import { optionsScreen } from "./options.js"
+import { serverlist } from "./serverlist.js"
+
 
 const pauseui = UI('menu',
 	Label('Game menu'),

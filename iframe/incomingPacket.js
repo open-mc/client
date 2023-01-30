@@ -1,43 +1,17 @@
-import { finished } from "./connectme.js"
-import { setblock } from "../me.js"
+import { setblock } from "./world.js"
 import { Chunk } from "./chunk.js"
-import { BlockIDs, EntityIDs } from "./definitions.js"
-import { pendingConnection, reconn } from "../uis/dirtscreen.js"
 import { addEntity, moveEntity, removeEntity } from "./entity.js"
-import { queue } from "../ui/sounds.js"
-const onerror = function(str){
-	finished()
-	const code = parseInt(str.slice(0,2), 16)
-	reconn(str.slice(2), code)
-}
-const onpending = function(str){
-	const code = parseInt(str.slice(0,2), 16)
-	pendingConnection(str.slice(2), code)
-}
-
-export const onstring = function(str){
-	if(!str.length){
-		onbeforeunload = () => true
-		for(;;)location=''
-	}
-	const style = parseInt(str.slice(0,2), 16)
-	if(style == -1)return onerror(str.slice(2))
-	else if(style == -2)return onpending(str.slice(2))
-	if(style != style)return
-	const box = chat.children[9] || document.createElement('div')
-	box.textContent = str.slice(2)
-	chat.insertAdjacentElement('afterbegin', box)
-	box.classList = `c${style&15} s${style>>4}`
-}
+import { queue } from "./sounds.js"
+import { EntityIDs } from "./ipc.js"
 
 function rubberPacket(data){
 	meid = data.uint32() + data.uint16() * 4294967296
 	let e = entities.get(meid)
-	if(me._id > -1 && me._id != meid){
+	if(me && me._id != meid){
 		if(e){
 			addEntity(e)
-		}else me._id = -1
-	}else if(me._id == -1 && e)addEntity(e)
+		}else me = null
+	}else if(!me && e)addEntity(e)
 	r = data.byte()
 	TPS = data.float()
 }
@@ -66,6 +40,7 @@ function chunkPacket(data){
 		data.read(e.savedata, e)
 		addEntity(e)
 		chunk.entities.add(e)
+		if(e.appeared)e.appeared()
 	}
 }
 const trashtrap = new Set()
@@ -90,18 +65,21 @@ function entityPacket(buf){
 		if(!mv){removeEntity(entities.get(id));continue}
 		let e = entities.get(id)
 		
-		if(!e)
+		if(!e){
 			if(mv & 128)mv |= 256, e = EntityIDs[buf.short()]({x:0,y:0,_id: id,dx:0,dy:0,f:0,chunk:null})
-			else e = EntityIDs[0]({x:0,y:0,_id:id,dx:0,dy:0,f:0,chunk:null}) //ERROR
-		else if(mv & 128)Object.setPrototypeOf(e, EntityIDs[buf.short()]._)
-		if(mv & 1)if(Math.abs(e.x - (e.x = buf.double())) > 16 || e == me)e.ix = e.x
-		if(mv & 2)if(Math.abs(e.y - (e.y = buf.double())) > 16 || e == me)e.iy = e.y
+			else e = EntityIDs[0]({x:0,y:0,_id:id,dx:0,dy:0,f:0,chunk:null}) //PANIC safe-guard
+		}else if(mv & 128)Object.setPrototypeOf(e, EntityIDs[buf.short()]._)
+		if(mv & 1)if(abs(e.x - (e.x = buf.double())) > 16 || e == me)e.ix = e.x
+		if(mv & 2)if(abs(e.y - (e.y = buf.double())) > 16 || e == me)e.iy = e.y
 		if(mv & 4)e.state = buf.short()
 		if(mv & 8)e.dx = buf.float()
 		if(mv & 16)e.dy = buf.float()
 		if(mv & 32)e.f = buf.float()
 		if(mv & 64)buf.read(e.savedata, e)
-		if(mv & 256)addEntity(e)
+		if(mv & 256){
+			addEntity(e)
+			if(e.appeared)e.appeared()
+		}
 		moveEntity(e)
 	}
 }

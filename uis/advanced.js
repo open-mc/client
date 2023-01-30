@@ -1,6 +1,5 @@
-import "../me.js"
 import { options, reset } from "../save.js"
-import { Btn, Label, Row, Scale, showUI, Spacer, UI } from "../ui/ui.js"
+import { Btn, Label, Row, Scale, showUI, Spacer, UI } from "../ui.js"
 import { optionsScreen } from "./options.js"
 
 function speedChange(a = options.speed/2){

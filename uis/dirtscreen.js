@@ -1,5 +1,5 @@
-import { reconnect } from "../lib/connectme.js"
-import { Btn, Label, Row, showUI, Spacer, UI } from "../ui/ui.js"
+import { reconnect } from "../connectme.js"
+import { Btn, Label, Row, showUI, Spacer, UI } from "../ui.js"
 import { serverlist } from "./serverlist.js"
 
 let label, reconnectBtn

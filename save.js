@@ -1,3 +1,5 @@
+import { fwOption } from "./iframe.js";
+
 export const storage = globalThis.localStorage
 
 if(!storage.name) location.href = '/acc.html'
@@ -34,7 +36,9 @@ for(const k in defaults){
 	if(typeof v == 'string' && s !== undefined)v = s
 	else if(typeof v == 'number' && s !== undefined)v = +s
 	else if(typeof v == 'boolean' && s !== undefined)v = s == 'true'
-	Object.defineProperty(options, k, {get(){return v},set(a){storage[k]=v=a}})
+	Object.defineProperty(options, k, {enumerable:true,get(){return v},set(a){storage[k] = v = a;
+		fwOption(k,a)
+	}})
 }
 
 export function reset(){

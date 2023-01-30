@@ -1,9 +1,7 @@
-import { Blocks, Entities } from "./lib/definitions.js";
-import { TEX_SIZE } from "./textures.js";
 Object.assign(globalThis, {
 	map: new Map(),
 	meid: -1, r: 0,
-	me: Entities.player({x:0,y:0,_id:-1,dx:0,dy:0,f:0}),
+	me: null,
 	TPS: 20, ticks: 0,
 	world: '',
 	cam: {x: 0, y: 0, z: 2},
@@ -18,7 +16,7 @@ export function setblock(x, y, b){
 	ch.tiles[lx + (ly << 6)] = b
 	if(ch.ctx){
 		ch.ctx.clearRect(lx * TEX_SIZE, (63 - ly) * TEX_SIZE, TEX_SIZE, TEX_SIZE)
-		if(b.texture)ch.ctx.drawImage(b.texture, lx * TEX_SIZE, (63 - ly) * TEX_SIZE)
+		if(b.texture)ch.ctx.image(b.texture, lx * TEX_SIZE, (63 - ly) * TEX_SIZE)
 	}
 }
 export function getblock(x, y){

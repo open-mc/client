@@ -1,22 +1,26 @@
-import { getblock, setblock } from "../me.js"
-import { getselected } from "../uis/inventory.js"
-import { TEX_SIZE } from "../textures.js"
-import { ui } from "./ui.js"
-import { pause } from "../uis/pauseui.js"
-import { DataWriter } from "../lib/data.js"
-import { options } from "../save.js"
+import { getblock, setblock } from './world.js'
+import { DataWriter } from './data.js'
 
 export let x = 2, y = 0
 export let bx = 0, by = 0, bpx = 0, bpy = 0
 export const REACH = 10
-export function position(){
-	pointer.style.transform = `translate(${((Math.ifloat(x+me.x-cam.x)*ZPX)+visualViewport.width/2) - 10}px, ${-(Math.ifloat(y+me.head+me.y-cam.y)*ZPX) - visualViewport.height/2 + 1}px)`
-	bx = Math.floor(me.x)
-	by = Math.floor(me.y + me.head)
+
+export const effectiveReach = () => min(REACH, min(W2, H2) * 1.5 - 1.5)
+
+export function drawPointer(c){
+	c.beginPath()
+	c.rect(ifloat(x + me.x - cam.x) - .3, ifloat(y + me.head + me.y - cam.y) - .03125, .6, .0625)
+	c.rect(ifloat(x + me.x - cam.x) - .03125, ifloat(y + me.head + me.y - cam.y) - .3, .0625, .6)
+	c.globalCompositeOperation = 'difference'
+	c.fillStyle = '#fff'
+	c.fill()
+  c.globalCompositeOperation = 'source-over'
+	bx = floor(me.x)
+	by = floor(me.y + me.head)
 	bpx = NaN, bpy = NaN
-	const reach = Math.sqrt(x * x + y * y) + 1
+	const reach = sqrt(x * x + y * y) + 1
 	let d = 0, px = me.x - bx, py = me.y + me.head - by
-	const dx = Math.sin(me.f), dy = Math.cos(me.f)
+	const dx = sin(me.f), dy = cos(me.f)
 	while(d < reach + 1){
 		if(getblock(bx, by).solid)break
 		bpx = bx
@@ -36,9 +40,10 @@ export function position(){
 			if(ix >= 0 && ix <= 1){by--; d += -py / dy; py = 1; px = ix; continue}
 		}
 	}
-	pointer2.hidden = d > reach
-	if(d > reach)bx = bpx = by = bpy = NaN
-	else{
+
+	if(d > reach){
+		bx = bpx = by = bpy = NaN
+	}else{
 		let x = bpx - 32 >>> 6, y = bpy - 32 >>> 6, x1 = x + 1 & 67108863, y1 = y + 1 & 67108863
 		a: for(const ch of [map.get(x+y*67108864), map.get(x1+y*67108864), map.get(x+y1*67108864), map.get(x1+y1*67108864)])
 			if(ch)for(const e of ch.entities)
@@ -47,12 +52,16 @@ export function position(){
 					bpx = bpy = NaN
 					break a
 				}
+		c.lineWidth = 0.0625
+		c.stokeStyle = '#000'
+		c.globalAlpha = 0.5
+		c.strokeRect(ifloat(bx-cam.x), ifloat(by-cam.y), 1, 1)
+		c.globalAlpha = 1
 	}
-	pointer2.style.transform = `translate(${((Math.ifloat(bx+0.5-cam.x)*ZPX)+Math.floor(visualViewport.width/2) - ZPX/2)}px, ${(-Math.ifloat(by+0.5-cam.y)*ZPX + Math.ceil(visualViewport.height/-2) + ZPX/2)}px)`
-	me.f = Math.atan2(x, y)
+	me.f = atan2(x, y)
 }
-chunks.onmousedown = function(e){
-	if(e.button == 2){
+export function onmousedown(button){
+	if(button == 2){
 		if(bx != bx)return
 		setblock(bx, by, Blocks.air())
 		let buf = new DataWriter()
@@ -63,7 +72,7 @@ chunks.onmousedown = function(e){
 		buf.pipe(ws)
 	}else{
 		if(bpx != bpx)return
-		let b = me.inv[getselected()]
+		let b = me.inv[me.selected]
 		b && (b = Blocks[b.places])
 		b && (b = b())
 		if(!b)return
@@ -76,20 +85,18 @@ chunks.onmousedown = function(e){
 		buf.pipe(ws)
 	}
 }
-chunks.onmousemove = function({movementX, movementY}){
-	if(!document.pointerLockElement)return
-	const movementScale = devicePixelRatio ** (globalThis.netscape ? 1 : /Opera|OPR\//.test(navigator.userAgent) ? -1 : 0)
+export function onmousemove(mx, my){
 	const oldx = x, oldy = y
-	const reach = Math.min(10, (Math.min(W2, H2) - 1) * 1.5)
-	const s = Math.min(reach, Math.sqrt(x * x + y * y))
-	x += movementX * movementScale * 9 ** options.sensitivity / 3 / cam.z / TEX_SIZE
-	y += -movementY * movementScale * 9 ** options.sensitivity / 3 / cam.z / TEX_SIZE
-	const ns = Math.sqrt(x * x + y * y)
+	const reach = min(10, (min(W2, H2) - 1) * 1.5)
+	const s = min(reach, sqrt(x * x + y * y))
+	x += mx * 9 ** options.sensitivity / 3 / cam.z / TEX_SIZE
+	y += my * 9 ** options.sensitivity / 3 / cam.z / TEX_SIZE
+	const ns = sqrt(x * x + y * y)
 	if(!ns)return x = y = 0
 	if(ns > s){
 		x /= ns
 		y /= ns
-		const vec = s + (Math.min(ns, reach) - s) * (1 - (s / reach) ** 4)
+		const vec = s + (min(ns, reach) - s) * (1 - (s / reach) ** 4)
 		x *= vec
 		y *= vec
 	}
@@ -99,7 +106,7 @@ chunks.onmousemove = function({movementX, movementY}){
 	}
 }
 export const resetPointer = (f) => {
-	let r = Math.min(4, REACH)
-	x = Math.sin(f) * r
-	y = Math.cos(f) * r
+	let r = min(4, REACH)
+	x = sin(f) * r
+	y = cos(f) * r
 }
