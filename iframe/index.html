@@ -185,7 +185,7 @@
 		KEY_4 = 52, KEY_5 = 53, KEY_6 = 54, KEY_7 = 55, KEY_8 = 56, KEY_9 = 57,
 		KEY_SPACE = 32, KEY_SYMBOL = 192, KEY_TAB = 9, KEY_BACK = 8, KEY_SHIFT = 16,
 		KEY_CTRL = 17, KEY_ALT = 18, KEY_ESC = 27, KEY_META = 91, KEY_METARIGHT = 93,
-		KEY_CAPSLOCK = 20, KEY_UP = 38, KEY_RIGHT = 39, KEY_DOWN = 40, KEY_LEFT = 37, KEY_MOD = navigator.platform.startsWith('Mac') ? KEY_META : KEY_CONTROL,
+		KEY_CAPSLOCK = 20, KEY_UP = 38, KEY_RIGHT = 39, KEY_DOWN = 40, KEY_LEFT = 37, KEY_MOD = navigator.platform.startsWith('Mac') ? KEY_META : KEY_CTRL,
 		KEY_F1 = 112, KEY_F2 = 113, KEY_F3 = 114, KEY_F4 = 115, KEY_F5 = 116, KEY_F6 = 117, KEY_F7 = 118, KEY_F8 = 119, KEY_F9 = 120, KEY_F10 = 121, KEY_F11 = 122, KEY_F12 = 123
 
 	function renderLayer(_1, _2){}
@@ -199,9 +199,6 @@
 	let loading = 1, loaded = Function.prototype
 	let buttons, options, paused = false, pointer
 	const VERSION = 'alpha 3'
-	console.log(VERSION, globalThis.VERSION, window.VERSION)
-	console.log(eval('VERSION'))
-	console.log(new Function('return VERSION')())
 </script>
 <script type="module">
 	import "./bitfield.js"
