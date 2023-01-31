@@ -94,74 +94,6 @@ input[type=checkbox]:checked::after{
 	text-align: center;
 }
 
-#f3, #f3r{
-	position: fixed;
-	top: 1rem;
-	left: 1rem;
-	display: none;
-	width: 0;
-	white-space: pre;
-	flex-direction: column;
-	overflow: visible;
-	z-index: 999;
-	align-items: flex-start;
-}
-#f3r{left: unset; right: 1rem; align-items: flex-end}
-#f3 div, #f3r div{background: #7777; padding: 1.5rem;line-height: 0.8;text-shadow: none}
-.f3 > #f3, .f3 > #f3r{display: flex}
-canvas{
-	width: calc(var(--z) * var(--texsize) * 64); height: calc(var(--z) * var(--texsize) * 64);
-	z-index: 2;
-}
-#chunks{
-	overflow: hidden;
-	width: 100%;
-	height: 100%;
-	z-index: -1;
-	position: absolute;
-	opacity: 0.4;
-}
-
-#pointer{
-	width: 10rem;
-	height: 1rem;
-	mix-blend-mode: difference;
-	background: #ccc;
-	position: absolute;
-	bottom: 0;
-	left: 0;
-	z-index: 2;
-}
-#pointer2{
-	width: calc(var(--texsize) * var(--z));
-	height: calc(var(--texsize) * var(--z));
-	border: calc(var(--z) * .25rem) #0008 solid;
-	position: absolute;
-	bottom: 0;
-	left: 0;
-	z-index: 1;
-}
-#pointer::before{
-	content: "";
-	width: 1rem;
-	height: 4.5rem;
-	mix-blend-mode: difference;
-	background: #ccc;
-	position: absolute;
-	top: -4.5rem;
-	left: 4.5rem;
-}
-#pointer::after{
-	content: "";
-	width: 1rem;
-	height: 4.5rem;
-	mix-blend-mode: difference;
-	background: #ccc;
-	position: absolute;
-	top: 1rem;
-	left: 4.5rem;
-}
-
 #dirtbg{
 	position: absolute;
 	top: 0;
@@ -246,26 +178,6 @@ btn.disabled{
 .s8, .s9, .s10, .s11 { text-decoration: line-through; }
 .s12, .s13, .s14, .s15 { text-decoration: underline line-through; }
 
-#hotbar{
-	width: 182rem;
-	height: 22rem;
-	background: url('./img/hotbar.png') center/100%;
-	position: absolute;
-	bottom: 5rem;
-	left: calc(50% - 91rem);
-	opacity: 0.7;
-	padding: 3rem;
-	display: flex;
-	gap: 4rem;
-}
-#slot{
-	position: absolute;
-	top: -1rem;
-	left: -1rem;
-	width: 24rem;
-	height: 24rem;
-	background: url('./img/slot.png') center/100%;
-}
 item{
 	width: 16rem;
 	height: 16rem;
@@ -321,63 +233,12 @@ item[count]::after{
 .inv #inventory{
 	display: flex !important;
 }
-
 #draggingNode{
 	position: fixed;
 	pointer-events: none;
 	z-index: 1002;
 	margin: -8rem;
 }
-
-#chunks > *{
-	position: absolute;
-	bottom: 0;
-	left: 0;
-	z-index: 1;
-	display: block;
-	image-rendering: pixelated;
-}
-
-#celestialBody{
-	mix-blend-mode: plus-lighter;
-	width: 128px;
-	height: 128px;
-	bottom: 50%;
-}
-
-#clouds{
-	width: 100%;
-	height: calc(var(--z) * 64px);
-	bottom: 50%;
-	background-size: calc(var(--z) * 32768px) 1px;
-	mix-blend-mode: soft-light;
-}
-
-entity img{
-	position: absolute;
-	bottom: 0;
-	left: 50%;
-	--ax:0.5; --ay:0; --x:0; --y:0; --r:0; --w: 1; --h: 1;
-	width: var(--texsize);
-	height: var(--texsize);
-	transform-origin: calc(var(--ax) * 100%) calc(100% - 100% * var(--ay));
-	transform: translate(calc(var(--ax) * -100%), calc(var(--ay) * 100%)) translate(calc(var(--x) * var(--texsize)), calc(-1 * var(--y) * var(--texsize))) rotate(calc(var(--r) * 1rad)) scale(var(--w), var(--h));
-	will-change: transform;
-}
-
-#chunks.f3b entity{
-	box-shadow: 0 0 0 calc(1rem / var(--z)) white;
-}
-#chunks.f3b canvas{
-	box-shadow: 0 0 0 calc(1rem / var(--z)) white;
-}
-#inventory entity{
-	transform: translate(39rem, -28rem) scale(calc(var(--scale) * 2)) !important;
-	bottom: 100%;
-	position: absolute;
-}
-
-.f1 > #pointer, .f1 > #hotbar, .f1 > #pointer2, .f1 > #f3{display: none !important}
 
 
 iframe{

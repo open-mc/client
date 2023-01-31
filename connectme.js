@@ -1,4 +1,4 @@
-import { DataReader } from "./iframe/data.js"
+import { DataReader } from "./data.js"
 import "./uis/chat.js"
 import { msg, pendingConnection, reconn } from "./uis/dirtscreen.js"
 import { Btn, click, Div, Img, Label, Row } from "./ui.js"

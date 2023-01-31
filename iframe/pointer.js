@@ -1,5 +1,5 @@
 import { getblock, setblock } from './world.js'
-import { DataWriter } from './data.js'
+import { DataWriter } from '../data.js'
 
 export let x = 2, y = 0
 export let bx = 0, by = 0, bpx = 0, bpy = 0
@@ -55,7 +55,7 @@ export function drawPointer(c){
 		c.lineWidth = 0.0625
 		c.stokeStyle = '#000'
 		c.globalAlpha = 0.5
-		c.strokeRect(ifloat(bx-cam.x), ifloat(by-cam.y), 1, 1)
+		c.strokeRect(ifloat(bx-cam.x) + 0.03125, ifloat(by-cam.y) + 0.03125, 0.9375, 0.9375)
 		c.globalAlpha = 1
 	}
 	me.f = atan2(x, y)

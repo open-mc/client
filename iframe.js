@@ -3,28 +3,26 @@ import { hideUI, showUI } from './ui.js'
 
 export let iframe = document.createElement('iframe'), win = null
 iframe.sandbox = 'allow-scripts'
-iframe.src = location.origin + '/framelib.html'
-const queue = []
-export function gameIframe(files){
+iframe.src = location.origin + '/iframe/index.html'
+const queue = []; let files = null
+export function gameIframe(f){
+	files = f
 	destroyIframe()
 	document.body.append(iframe)
-	iframe.onload = () => {
-		const w = iframe.contentWindow
-		for(const k in options) w.postMessage([k, options[k]], '*')
-		w.postMessage(files, '*')
-	}
 }
 
 onmessage = ({data, source}) => {
 	if(source != iframe.contentWindow)return
-	if(data === null){
+	if(data === undefined){
+		const w = iframe.contentWindow
+		for(const k in options) w.postMessage([k, options[k]], '*')
+		w.postMessage(files, '*')
+	}else if(data === null){
 		//Loaded
 		win = iframe.contentWindow
 		while(queue.length)queue.pop()(queue.pop())
 		hideUI()
-		return
-	}
-	if(data === true)showUI(null)
+	}else if(data === true)showUI(null)
 	else if(data === false)hideUI()
 	else if(data instanceof ArrayBuffer && globalThis.ws) ws.send(data)
 	else if(data instanceof Blob){

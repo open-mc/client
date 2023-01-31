@@ -13,7 +13,7 @@ function playfn(url){
 	}
 }
 export const sounds = {
-	click: playfn('./img/click.mp3')
+	click: playfn('/img/click.mp3')
 }
 export default sounds
 
@@ -33,7 +33,7 @@ const music = {
 		"piano3.mp3"
 	]
 }
-for(const k in music)for(let i = music[k].length - 1; i >= 0; i--)music[k][i] = new Audio('./music/'+music[k][i])
+for(const k in music)for(let i = music[k].length - 1; i >= 0; i--)music[k][i] = new Audio('/music/'+music[k][i])
 function choose(theme){
 	if(!theme)return null
 	return music[theme][Math.floor(Math.random() * music[theme].length)]

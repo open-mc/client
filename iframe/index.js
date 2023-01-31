@@ -1,5 +1,5 @@
 import { playerControls, renderBoxes, renderF3 } from "./controls.js"
-import { DataWriter } from "./data.js"
+import { DataWriter } from "../data.js"
 import { stepEntity } from "./entity.js"
 import * as ptr from "./pointer.js"
 pointer = ptr
@@ -30,7 +30,7 @@ setInterval(function(){
 const sendDelay = 1 //send packet every 4 ticks
 function tick(){ //20 times a second
 	if(dt < 1/20000)dt = 1/20000
-	if(ticks % sendDelay == 0 && me){
+	if(ticks % sendDelay == 0 && meid >= 0){
 		let buf = new DataWriter()
 		buf.byte(4)
 		buf.byte(r)
@@ -152,10 +152,10 @@ drawPhase(0, (c, w, h) => {
 	c.setTransform(1,0,0,1,0,h)
 	c.vertexOrder = 'bottom-left'
 	for(const chunk of map.values()){
-		const x0 = round(((chunk.x << 6) - cam.x + W2) * SCALE)
-		const x1 = round(((chunk.x + 1 << 6) - cam.x + W2) * SCALE)
-		const y0 = round(((chunk.y << 6) - cam.y + H2) * SCALE)
-		const y1 = round(((chunk.y + 1 << 6) - cam.y + H2) * SCALE)
+		const x0 = round(ifloat((chunk.x << 6) - cam.x + W2) * SCALE)
+		const x1 = round(ifloat((chunk.x + 1 << 6) - cam.x + W2) * SCALE)
+		const y0 = round(ifloat((chunk.y << 6) - cam.y + H2) * SCALE)
+		const y1 = round(ifloat((chunk.y + 1 << 6) - cam.y + H2) * SCALE)
 		if(x1 <= 0 || y1 <= 0 || x0 >= w || y0 >= h){ chunk.hide(); continue }
 		else if(!chunk.ctx)chunk.draw()
 		//console.log('%d %d %d %d\n%c ', x0, x1, y0, y1, 'font-size:0;display: block; padding: 128px; background: url("'+chunk.ctx.canvas.toDataURL('png')+'") center/cover')

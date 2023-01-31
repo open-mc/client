@@ -1,8 +1,9 @@
 import { BitField } from './bitfield.js'
-import { DataReader, jsonToType } from './data.js'
+import { DataReader, jsonToType } from '../data.js'
 import { codes } from './incomingPacket.js'
 import { frame } from './index.js'
 import { onmousemove } from './pointer.js'
+import { cbs } from './controls.js'
 buttons = new BitField()
 const postMessage = parent.postMessage.bind(parent)
 export const BlockIDs = [], ItemIDs = [], EntityIDs = []
@@ -24,7 +25,8 @@ const onMsg = ({data}) => {
 			i = 0; for(const b of data[1].split('\n'))ItemIDs.push(funcify(b, i++, Items))
 			i = 0; for(const b of data[2].split('\n'))EntityIDs.push(funcify(b, i++, Entities))
 			me = Entities.player({x:0,y:0,_id:-1,dx:0,dy:0,f:0})
-			postMessage(null, '*')
+			loaded = () => postMessage(null, '*')
+			if(!--loading)loaded()
 			frame()
 		})
 		function funcify(e, i, dict){
@@ -73,10 +75,3 @@ onmessage = null
 pause = paused => postMessage(!!paused, '*')
 send = buf => postMessage(buf.build().buffer, '*')
 download = blob => postMessage(blob, '*')
-
-const cbs = []
-button = (...keys) => {
-	const cb = keys.pop()
-	for(const key of keys)
-		(cbs[key] || (cbs[key] = [])).push(cb)
-}

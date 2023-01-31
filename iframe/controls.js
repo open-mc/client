@@ -1,7 +1,13 @@
 import { movementFlags } from "./entity.js"
 import "./ipc.js"
 
-let lastPressUp = 0
+export const cbs = []
+button = (...keys) => {
+	const cb = keys.pop()
+	for(const key of keys)
+		(cbs[key] || (cbs[key] = [])).push(cb)
+}
+
 
 export function playerControls(){
 	const R = buttons.has(KEY_RIGHT) || buttons.has(KEY_D)
@@ -22,6 +28,7 @@ export function playerControls(){
 		}
 	}else me.state &= -3
 }
+let lastPressUp = 0
 button(KEY_UP, KEY_W, KEY_SPACE, () => {
 	if(lastPressUp > t - .3){
 		me.state ^= 1

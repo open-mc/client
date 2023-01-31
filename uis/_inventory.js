@@ -106,3 +106,21 @@ export function getslot(id){
 	if(id < 36)return me.inv[id]
 	else if(id == 41)return me.dragging
 }
+/*
+
+		<div id="inventory">
+			<item></item><item></item><item></item>
+			<item></item><item></item><item></item>
+			<item></item><item></item><item></item>
+			<item></item><item></item><item></item>
+			<item></item><item></item><item></item>
+			<item></item><item></item><item></item>
+			<item></item><item></item><item></item>
+			<item></item><item></item><item></item>
+			<item></item><item></item><item></item>
+			<div style="height:2rem;width:100%"></div>
+			<item></item><item></item><item></item>
+			<item></item><item></item><item></item>
+			<item></item><item></item><item></item>
+		</div>
+*/

@@ -1,58 +1,53 @@
 <style>
 	@font-face {
 		font-family: mc;
-		src: url('./font.ttf') format('truetype');
+		src: url('../font.ttf') format('truetype');
 		font-weight: normal;
 		font-style: normal;
 	}
 </style>
 <script>
+	document.fonts.forEach(font => font.load())
 	onmessage = ({data}) => onmessage.queue.push(data)
 	onmessage.queue = []
+	parent.postMessage(undefined, '*')
 	const _filecache = Object.create(null)
-	const Img = (src) => {
+	const _c = document.createElement('canvas')
+	const _texture = class Texture{
+		constructor(img, x, y, w, h){ this.img = img; this.x = x; this.y = y; this.w = w; this.h = h; this._pattern = null }
+		crop(x, y, w, h){ return new _texture(this.img, this.x + x, this.y + y, w, h) }
+		at(x, y){ return new _texture(this.img, this.x + x * TEX_SIZE, this.y + y * TEX_SIZE, TEX_SIZE, TEX_SIZE) }
+		pattern(rep = ''){
+			if(this._pattern)return this._pattern
+			const c = document.createElement('canvas')
+			const ctx = c.getContext('2d')
+			if(this.img.complete === false){
+				this.img.addEventListener('load', () => {
+					c.width = this.w; c.height = this.h
+					ctx.drawImage(this.img, this.x, this.y, this.w, this.h, 0, 0, this.w, this.h)
+					this._pattern = ctx.createPattern(c, rep)
+				})
+			}else{
+				c.width = this.w; c.height = this.h
+				ctx.drawImage(this.img, this.x, this.y, this.w, this.h, 0, 0, this.w, this.h)
+				this._pattern = ctx.createPattern(c, rep)
+			}
+			return this
+		}
+	}
+	const Texture = src => {
 		if(_filecache[src])return _filecache[src]
 		const i = new Image()
 		i.crossOrigin = 'anonymous'
 		i.src = src
-		return new Promise((r, c) => (i.onload = () => (i.onload=i.onerror=null,r(i)), i.onerror = e => (i.onload=i.onerror=null,c(e))))
+		loading++
+		const t = new _texture(i, 0, 0, 0, 0)
+		i.onload = i.onerror = () => (i.onload=i.onerror=null,t.w=i.width,t.h=i.height,--loading||loaded())
+		return t
 	}
 	const TEX_SIZE = 16
-	Image.prototype.at = function(x, y){
-		return {img: this, x: x*TEX_SIZE, y: y*TEX_SIZE, w: TEX_SIZE, h: TEX_SIZE}
-		/*const c = document.createElement('canvas')
-		c.width = TEX_SIZE
-		c.height = TEX_SIZE
-		const ctx = c.getContext('2d')
-		ctx.drawImage(this, x*TEX_SIZE, y*TEX_SIZE, TEX_SIZE, TEX_SIZE, 0, 0, TEX_SIZE, TEX_SIZE)
-		return c*/
-	}
-	CanvasRenderingContext2D.prototype.at = function(x, y){
-		return {img: this.canvas, x: x*TEX_SIZE, y: y*TEX_SIZE, w: TEX_SIZE, h: TEX_SIZE}
-	}
-	CanvasRenderingContext2D.prototype.crop = function(x = 0, y = 0, w = this.canvas.width, h = this.canvas.height){
-		return {img: this.canvas, x, y, w, h}
-	}
-	Image.prototype.crop = function(x = 0, y = 0, w = this.width, h = this.height){
-		return {img: this, x, y, w, h}
-		/*const c = document.createElement('canvas')
-		c.width = w
-		c.height = h
-		const ctx = c.getContext('2d')
-		ctx.drawImage(this, x, y, w, h, 0, 0, w, h)
-		return c*/
-	}
-	Object.defineProperty(Image.prototype, 'w', Object.getOwnPropertyDescriptor(Image.prototype, 'width'))
-	Object.defineProperty(Image.prototype, 'h', Object.getOwnPropertyDescriptor(Image.prototype, 'height'))
-	Object.defineProperty(Image.prototype, 'x', {value: 0})
-	Object.defineProperty(Image.prototype, 'y', {value: 0})
-	Image.prototype.pattern = function(x = 0, y = 0, w = this.width, h = this.height, rep = ''){
-		const c = document.createElement('canvas')
-		c.width = w
-		c.height = h
-		const ctx = c.getContext('2d')
-		ctx.drawImage(this, x, y, w, h, 0, 0, w, h)
-		return ctx.createPattern(c, rep)
+	CanvasRenderingContext2D.prototype.texture = function(x, y, w = this.width, h = this.height){
+		return new _texture(this.canvas, x, y, w, h)
 	}
 	;(C => {
 		/**
@@ -76,7 +71,9 @@
 		 * An alternative solution that I may implement later is for vertexOrder to modify the transformation matrix,
 		 * and coordinates be adjusted individually for each operation (including .rect(), .circle(), ...)
 		 */
-		const _fillTxt = C.fillText, _strokeTxt = C.strokeText
+		const _fillTxt = C.fillText, _strokeTxt = C.strokeText, {set: setFillStyle, get: getFillStyle} = Object.getOwnPropertyDescriptor(C, 'fillStyle'),{set: setStrokeStyle, get: getStrokeStyle} = Object.getOwnPropertyDescriptor(C, 'strokeStyle')
+		C.setFillStyle = setFillStyle; C.getFillStyle = getFillStyle
+		C.setStrokeStyle = setStrokeStyle; C.getStrokeStyle = getStrokeStyle
 		C.fillText = function(t, x, y, s, maxW = 2147483647){
 			s *= .001
 			const S = 1/s
@@ -153,6 +150,8 @@
 		C.restoreTransform = function(){
 			this.setTransform(this.savedTransform[0], this.savedTransform[1], this.savedTransform[2], this.savedTransform[3], this.savedTransform[4], this.savedTransform[5])
 		}
+		Object.defineProperty(C, 'fillStyle', {get: getFillStyle, set(a){this.setFillStyle(a._pattern||a)}})
+		Object.defineProperty(C, 'strokeStyle', {get: getStrokeStyle, set(a){this.setStrokeStyle(a._pattern||a)}})
 		const vertexOrders = ['top-left', 'bottom-left', 'top-right', 'bottom-right']
 		Object.defineProperty(C, 'vertexOrder', {get(){return vertexOrders[this._vOrder]}, set(a){const i=vertexOrders.indexOf(a);if(i>=0)this._vOrder=i}})
 	})(CanvasRenderingContext2D.prototype)
@@ -197,12 +196,23 @@
 	function pause(a){}
 	function send(a){}
 	function download(a){}
+	let loading = 1, loaded = Function.prototype
 	let buttons, options, paused = false, pointer
 	const VERSION = 'alpha 3'
 </script>
 <script type="module">
-	import "./iframe/index.js"
-	
+	import "./bitfield.js"
+	import "./chunk.js"
+	import "./controls.js"
+	import "./entity.js"
+	import "./incomingPacket.js"
+	import "./ipc.js"
+	import "./pointer.js"
+	import "./sounds.js"
+	import "./world.js"
+	import "./index.js"
+	import "../data.js"
+
 	const c = Can()
 	const { requestAnimationFrame } = globalThis
 	void function frame(){

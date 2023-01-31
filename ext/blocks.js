@@ -1,4 +1,4 @@
-const terrainPng = await Img("/ext/terrain.png")
+const terrainPng = Texture("/ext/terrain.png")
 Blocks.grass = { texture: terrainPng.at(3, 0), solid: true }
 Blocks.stone = { texture: terrainPng.at(1, 0), solid: true }
 Blocks.dirt = { texture: terrainPng.at(2, 0), solid: true }
@@ -54,12 +54,12 @@ Entities.player = {
 		}
 		can.putImageData(skinUnpacked, 0, 0)
 		this.textures = {
-			head: can.crop(20, 4, 8, 8),
-			body: can.crop(0, 0, 4, 12),
-			arm1: can.crop(4, 0, 4, 12),
-			arm2: can.crop(8, 0, 4, 12),
-			leg1: can.crop(12, 0, 4, 12),
-			leg2: can.crop(16, 0, 4, 12)
+			head: can.texture(20, 4, 8, 8),
+			body: can.texture(0, 0, 4, 12),
+			arm1: can.texture(4, 0, 4, 12),
+			arm2: can.texture(8, 0, 4, 12),
+			leg1: can.texture(12, 0, 4, 12),
+			leg2: can.texture(16, 0, 4, 12)
 		}
 	},
 	width: 0.3,
@@ -67,8 +67,8 @@ Entities.player = {
 	head: 1.6
 }
 
-const skyPng = await Img('/ext/sky.png')
-const stars = (await Img('/ext/stars.png')).pattern()
+const skyPng = Texture('/ext/sky.png')
+const stars = Texture('/ext/stars.png').pattern()
 const sun = skyPng.crop(128, 64, 32, 32), moons = [
 	skyPng.crop(128, 0, 32, 32),
 	skyPng.crop(160, 0, 32, 32),
@@ -78,7 +78,7 @@ const sun = skyPng.crop(128, 64, 32, 32), moons = [
 	skyPng.crop(160, 32, 32, 32),
 	skyPng.crop(192, 32, 32, 32),
 	skyPng.crop(224, 32, 32, 32)
-], cloudMap = skyPng.pattern(128, 127, 128, 1, 'repeat')
+], cloudMap = skyPng.crop(128, 127, 128, 1).pattern('repeat')
 uiLayer(-100, (c, w, h) => {
 	if(world != 'overworld')return
 	const reach = min(10, (min(W2, H2) - 1) * 1.5)
@@ -156,8 +156,8 @@ renderLayer(150, c => {
 	c.globalCompositeOperation = 'source-over'
 })
 
-const hotbar = (await Img('/ext/hotbar.png')).crop()
-const slot = (await Img('/ext/slot.png')).crop()
+const hotbar = Texture('/ext/hotbar.png')
+const slot = Texture('/ext/slot.png')
 
 uiLayer(1000, (c, w, h) => {
 	const hotBarLeft = w / 2 - hotbar.w/2, hotBarTop = h - hotbar.h - 5
