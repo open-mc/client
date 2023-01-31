@@ -199,6 +199,9 @@
 	let loading = 1, loaded = Function.prototype
 	let buttons, options, paused = false, pointer
 	const VERSION = 'alpha 3'
+	console.log(VERSION, globalThis.VERSION, window.VERSION)
+	console.log(eval('VERSION'))
+	console.log(new Function('return VERSION')())
 </script>
 <script type="module">
 	import "./bitfield.js"
