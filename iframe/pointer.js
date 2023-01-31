@@ -1,5 +1,6 @@
 import { getblock, setblock } from './world.js'
 import { DataWriter } from '../data.js'
+import './controls.js'
 
 export let x = 2, y = 0
 export let bx = 0, by = 0, bpx = 0, bpy = 0
@@ -60,31 +61,6 @@ export function drawPointer(c){
 	}
 	me.f = atan2(x, y)
 }
-export function onmousedown(button){
-	if(button == 2){
-		if(bx != bx)return
-		setblock(bx, by, Blocks.air())
-		let buf = new DataWriter()
-		buf.byte(8)
-		buf.int(bx)
-		buf.int(by)
-		buf.short(0)
-		buf.pipe(ws)
-	}else{
-		if(bpx != bpx)return
-		let b = me.inv[me.selected]
-		b && (b = Blocks[b.places])
-		b && (b = b())
-		if(!b)return
-		setblock(bpx, bpy, b)
-		let buf = new DataWriter()
-		buf.byte(8)
-		buf.int(bpx)
-		buf.int(bpy)
-		buf.short(b.id)
-		buf.pipe(ws)
-	}
-}
 export function onmousemove(mx, my){
 	const oldx = x, oldy = y
 	const reach = min(10, (min(W2, H2) - 1) * 1.5)
@@ -110,3 +86,27 @@ export const resetPointer = (f) => {
 	x = sin(f) * r
 	y = cos(f) * r
 }
+button(RBUTTON, () => {
+	if(bx != bx)return
+	setblock(bx, by, Blocks.air())
+	let buf = new DataWriter()
+	buf.byte(8)
+	buf.int(bx)
+	buf.int(by)
+	buf.short(0)
+	send(buf)
+})
+button(LBUTTON, () => {
+	if(bpx != bpx)return
+	let b = me.inv[me.selected]
+	if(!b || !b.places)return
+	b = b.places()
+	if(!b)return
+	setblock(bpx, bpy, b)
+	let buf = new DataWriter()
+	buf.byte(8)
+	buf.int(bpx)
+	buf.int(bpy)
+	buf.short(b.id)
+	send(buf)
+})

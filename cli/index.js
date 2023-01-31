@@ -164,3 +164,8 @@ uiLayer(1000, (c, w, h) => {
 	c.image(hotbar, hotBarLeft, hotBarTop, hotbar.w, hotbar.h)
 	c.image(slot, hotBarLeft - 1, hotBarTop - 1, slot.w, slot.h)
 })
+
+
+Items.oak_log = {
+	places(){return Blocks.oak_log()}
+}

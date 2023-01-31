@@ -2,7 +2,7 @@ import { setblock } from "./world.js"
 import { Chunk } from "./chunk.js"
 import { addEntity, moveEntity, removeEntity } from "./entity.js"
 import { queue } from "./sounds.js"
-import { EntityIDs } from "./ipc.js"
+import { BlockIDs, EntityIDs } from "./ipc.js"
 
 function rubberPacket(data){
 	meid = data.uint32() + data.uint16() * 4294967296

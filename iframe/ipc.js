@@ -62,7 +62,7 @@ const onMsg = ({data}) => {
 		if(!codes[code])return
 		codes[code](packet)
 	}else if(typeof data == 'number'){
-		if(data > 0){
+		if(data >= 0){
 			buttons.set(data)
 			if(cbs[data])for(const f of cbs[data])f()
 		}else buttons.unset(~data)
