@@ -1,8 +1,10 @@
 import { fwOption } from "./iframe.js";
 
 export const storage = globalThis.localStorage
-
-if(!storage.name) location.href = '/acc.html'
+if(!storage.name) {
+	location.href = '/acc.html'
+	throw 'No account'
+}
 
 export const servers = (storage.servers || 'localhost:27277').split('\0')
 

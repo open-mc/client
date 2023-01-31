@@ -93,28 +93,6 @@ input[type=checkbox]:checked::after{
 	width: inherit;
 	text-align: center;
 }
-
-#dirtbg{
-	position: absolute;
-	top: 0;
-	left: 0;
-	bottom: 0;
-	right: 0;
-	background: url('./img/bg32.png') center/48px;
-	text-align: center;
-	padding-top: 15vh;
-	z-index: 1000;
-}
-#dirtbgmsg{ margin: 10vh }
-#dirtbgbuttons{
-	width: calc(100% - 10vh);
-	height: 2em;
-	display: flex;
-	gap: 10rem;
-	justify-content: center;
-	flex-wrap: wrap;
-	margin: 5vh;
-}
 label{
 	display: block;
 	text-align: center;

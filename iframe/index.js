@@ -168,7 +168,7 @@ drawPhase(100, (c, w, h) => {
 	const hitboxes = buttons.has(KEY_TAB) ^ renderBoxes
 	for(const entity of entities.values()){
 		if(!entity.render)continue
-		c.saveTransform(SCALE, 0, 0, -SCALE, ifloat(entity.x - cam.x + W2) * SCALE, ifloat(cam.y - H2 - entity.y) * SCALE + h)
+		c.saveTransform(SCALE, 0, 0, -SCALE, ifloat(entity.ix - cam.x + W2) * SCALE, ifloat(cam.y - H2 - entity.iy) * SCALE + h)
 		if(hitboxes){
 			c.strokeStyle = '#fff'
 			c.lineWidth = 0.0625

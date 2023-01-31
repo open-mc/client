@@ -17,19 +17,8 @@ export function removeEntity(e){
 	if(e == me)me = null
 }
 export function moveEntity(e){
-	const ch = map.get((floor(e.ix) >>> 6) + (floor(e.iy) >>> 6) * 67108864) || null
+	const ch = map.get((floor(e.x) >>> 6) + (floor(e.y) >>> 6) * 67108864) || null
 	if(ch != e.chunk)e.chunk&&e.chunk.entities.delete(e), e.chunk = ch, ch&&ch.entities.add(e)
-}
-export function render(entity, node){
-	node.style.transform = `translate(${(ifloat(entity.x-cam.x) * cam.z - entity.width) * TEX_SIZE + visualViewport.width/2}px, ${-(ifloat(entity.y-cam.y) * cam.z + entity.height/2 * (cam.z - 1)) * TEX_SIZE - visualViewport.height/2}px) scale(${cam.z})`
-	let j = 0
-	for(const fns of entity.renderfns){
-		let n = node.children[j++], i = 0
-		for(let p of []){
-			let fn = fns[i++]
-			if(fn)n.style.setProperty('--'+p, fn(entity))
-		}
-	}
 }
 const groundDrag = .0000244
 const airDrag = 0.667

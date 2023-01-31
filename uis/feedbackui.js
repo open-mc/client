@@ -16,7 +16,7 @@ function selectSuggestion(){
 let input, send, bug, suggestion
 let feedbackui = UI('menu',
 	Label('Feedback'),
-	Label('Consider joining our discord!').attr('onclick', 'window.open("https://discord.gg/NUUwFNUHkf")').attr('style', 'cursor:pointer;text-decoration:underline'),
+	Label('Consider joining our discord!').attr('onclick', 'window.open("https://discord.gg/NUUwFNUHkf, "_blank")').attr('style', 'cursor:pointer;text-decoration:underline'),
 	input = Input('long', 'Write your feedback').attr('class', 'tall'),
 	Row(bug = Btn('Bug', selectBug, 'small disabled'), suggestion = Btn('Suggestion', selectSuggestion, 'small')),
 	Spacer(20),
