@@ -1,5 +1,8 @@
 import { options } from "./save.js"
 
+let defaultUI
+export function setDefaultUI(fn){defaultUI = fn}
+
 const arr = [new Audio('./img/click.mp3')]
 export const click = () => {
 	let a = arr.length > 1 ? arr.pop() : arr[0].cloneNode(true)
@@ -20,11 +23,12 @@ document.body.append(NONE)
 export let ui = null
 export async function hideUI(){
 	if(!ui)return
-	//chunks.requestPointerLock()
-	await document.body.requestPointerLock()
-	ui.replaceWith(NONE)
-	void (ui.finish||Function.prototype)()
-	ui = null
+	try{
+		await document.body.requestPointerLock()
+		ui.replaceWith(NONE)
+		void (ui.finish||Function.prototype)()
+		ui = null
+	}catch(e){ defaultUI() }
 }
 
 export function showUI(a = this){

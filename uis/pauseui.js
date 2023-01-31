@@ -1,4 +1,4 @@
-import { Btn, hideUI, Label, Row, showUI, UI } from "../ui.js"
+import { Btn, hideUI, Label, Row, setDefaultUI, showUI, UI } from "../ui.js"
 import { feedback } from "./feedbackui.js"
 import { optionsScreen } from "./options.js"
 import { serverlist } from "./serverlist.js"
@@ -14,3 +14,4 @@ const pauseui = UI('menu',
 export function pause(){
 	showUI(pauseui)
 }
+setDefaultUI(pause)

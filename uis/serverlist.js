@@ -71,7 +71,7 @@ const serverList = UI('dirtbg',
 input.oninput = () => {addBtn.disabled = !input.value}
 
 serverList.finish = () => {
-	for(const node of list.children) node.end()
+	for(const node of [...list.children]) node.end()
 }
 
 onServer(ip => {
