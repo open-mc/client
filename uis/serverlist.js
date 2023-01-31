@@ -22,8 +22,28 @@ async function getSkin(accept){
 		img.onerror = r
 		img.src = URL.createObjectURL(i.files[0])
 	})).type == 'error')return 'Not an image!'
-	if(img.width != 28 || img.height != 12)return 'Wrong size!'
-	ctx.drawImage(img, 0, 0)
+	if(img.width == 64 && img.height == 64){
+		//body
+		ctx.drawImage(img, 16, 20, 4, 12, 0, 0, 4, 12)
+		ctx.drawImage(img, 16, 36, 4, 12, 0, 0, 4, 12)
+		//left (front) arm
+		ctx.drawImage(img, 32, 52, 4, 12, 4, 0, 4, 12)
+		ctx.drawImage(img, 48, 52, 4, 12, 4, 0, 4, 12)
+		//right (back) arm
+		ctx.drawImage(img, 40, 20, 4, 12, 8, 0, 4, 12)
+		ctx.drawImage(img, 40, 36, 4, 12, 8, 0, 4, 12)
+		//left (front) leg
+		ctx.drawImage(img, 16, 52, 4, 12, 12, 0, 4, 12)
+		ctx.drawImage(img, 16, 52, 4, 12, 12, 0, 4, 12)
+		//right (back) leg
+		ctx.drawImage(img, 0, 52, 4, 12, 16, 0, 4, 12)
+		ctx.drawImage(img, 0, 52, 4, 12, 16, 0, 4, 12)
+		//head
+		ctx.drawImage(img, 0, 8, 8, 8, 20, 4, 8, 8)
+		ctx.drawImage(img, 32, 8, 8, 8, 20, 4, 8, 8)
+	}else if(img.width == 28 && img.height == 12){
+		ctx.drawImage(img, 0, 0)
+	}else return 'Wrong size!'
 	const {data} = ctx.getImageData(0, 0, 28, 12)
 	for(let i = 0; i < 336; i++){
 		skin[i * 3] = data[i << 2]
