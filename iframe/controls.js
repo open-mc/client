@@ -61,25 +61,6 @@ button(KEY_9, () => me.selected = 8)
 /*
 button('f1', () => document.body.classList.toggle('f1'))
 
-button('f2', () => {
-	const canvas = document.createElement('canvas')
-	canvas.width = visualViewport.width * devicePixelRatio, canvas.height = visualViewport.height * devicePixelRatio
-	canvas.getContext('2d').imageSmoothingEnabled = false
-	if(!globalThis.html2canvas){
-		//lazy load library
-		let args = []
-		globalThis.html2canvas = async (...a) => new Promise(r => args.push(r, a))
-		import("/ext/html2canvas.min.js").then(() => {let r,a;while(a=args.pop(),r=args.pop())html2canvas.apply(undefined, a).then(r)})
-	}
-	html2canvas(document.body, {canvas}).then(a=>a.toBlob(blob => {
-		let d = new Date()
-		const a = document.createElement("a")
-		a.href = URL.createObjectURL(blob)
-		a.download = `screenshot-${d.getYear()+1900}-${('0'+d.getMonth()).slice(-2)}-${('0'+d.getDay()).slice(-2)}-at-${('0'+d.getHours()).slice(-2)}-${('0'+d.getMinutes()).slice(-2)}-${('0'+d.getSeconds()).slice(-2)}`
-		a.click()
-		URL.revokeObjectURL(a.href)
-	}))
-})
 ctrl('dypsfgl,[]-='.split(""), () => {})
 button('123456789'.split(""), e => me.selected = e.key - 1)
 button('e', () => {showInventory()})

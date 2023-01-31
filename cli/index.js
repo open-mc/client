@@ -1,4 +1,4 @@
-const terrainPng = Texture("/ext/terrain.png")
+const terrainPng = Texture("/cli/terrain.png")
 Blocks.grass = { texture: terrainPng.at(3, 0), solid: true }
 Blocks.stone = { texture: terrainPng.at(1, 0), solid: true }
 Blocks.dirt = { texture: terrainPng.at(2, 0), solid: true }
@@ -67,8 +67,8 @@ Entities.player = {
 	head: 1.6
 }
 
-const skyPng = Texture('/ext/sky.png')
-const stars = Texture('/ext/stars.png').pattern()
+const skyPng = Texture('/cli/sky.png')
+const stars = Texture('/cli/stars.png').pattern()
 const sun = skyPng.crop(128, 64, 32, 32), moons = [
 	skyPng.crop(128, 0, 32, 32),
 	skyPng.crop(160, 0, 32, 32),
@@ -94,8 +94,8 @@ uiLayer(-100, (c, w, h) => {
 	c.fillStyle = gradient
 	c.fillRect(0, 0, w, h)
 	c.rect(0, 0, w, h)
-	const xo = wspan * ((time + 12600) % 24000 / 8400 - .5) - 20 - reach/4 - pointer.x*cam.z/4
-	const yo = h/2 - 70 - h/4 * sin(((time + 12600) % 24000 / 8400 - .5) * PI) + pointer.y*cam.z/4
+	const xo = wspan * ((time + 12600) % 24000 / 8400 - .5) - 20 - reach/4 - pointer.x*cam.z/16
+	const yo = h/2 - 70 - h/4 * sin(((time + 12600) % 24000 / 8400 - .5) * PI) + pointer.y*cam.z/16
 	c.translate(xo, yo)
 	c.fillStyle = stars
 	c.fill()
@@ -156,8 +156,8 @@ renderLayer(150, c => {
 	c.globalCompositeOperation = 'source-over'
 })
 
-const hotbar = Texture('/ext/hotbar.png')
-const slot = Texture('/ext/slot.png')
+const hotbar = Texture('/cli/hotbar.png')
+const slot = Texture('/cli/slot.png')
 
 uiLayer(1000, (c, w, h) => {
 	const hotBarLeft = w / 2 - hotbar.w/2, hotBarTop = h - hotbar.h - 5

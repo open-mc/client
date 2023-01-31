@@ -1,4 +1,4 @@
-import { DataReader } from "./data.js"
+import { DataReader, decoder } from "./data.js"
 import "./uis/chat.js"
 import { msg, pendingConnection, reconn } from "./uis/dirtscreen.js"
 import { Btn, click, Div, Img, Label, Row } from "./ui.js"
@@ -33,7 +33,7 @@ export function preconnect(ip, cb = Function.prototype){
 	let ws
 	try{
 		ws = new WebSocket(`${ip}/${storage.name}/${encodeURIComponent(storage.pubKey)}/${encodeURIComponent(storage.authSig)}`)
-	}catch(e){ws = {close(){}}}
+	}catch(e){ws = {close(){this.onclose&&this.onclose()}}}
 	ws.challenge = null
 	ws.binaryType = 'arraybuffer'
 	let timeout = setTimeout(ws.close.bind(ws), 5000)
@@ -43,7 +43,8 @@ export function preconnect(ip, cb = Function.prototype){
 			name.textContent = packet.string()
 			motd.textContent = packet.string()
 			icon.src = packet.string()
-			ws.challenge = new Uint8Array(packet.buffer, packet.byteLength - packet.left)
+			ws.packs = decoder.decode(pako.inflate(packet.uint8array())).split('\0')
+			ws.challenge = packet.uint8array()
 			cb(ws, ip)
 			return
 		}
@@ -75,12 +76,12 @@ export function preconnect(ip, cb = Function.prototype){
 		motd.style.color = '#d22'
 		name.textContent = displayIp
 	}
-	ws.onopen = (clearTimeout(timeout), timeout = -1)
+	ws.onopen = () => (clearTimeout(timeout), timeout = -1)
 	let name, motd, icon
 	const node = Row(
-		icon = Img('./img/no.png'),
+		icon = Img('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAJCAYAAADgkQYQAAAAAXNSR0IArs4c6QAAACZJREFUKFNjZCACMBKhhoEGijo6Ov5XVFQwotMg59DAOny+JMo6AMVLDArhBOpkAAAAAElFTkSuQmCC'),
 		Div('',
-			Row(name = Label(displayIp),Btn('x',() => {
+			Row(name = Label(displayIp),Btn('x', () => {
 				servers.splice(node.parentElement.children.indexOf(node), 1)
 				node.remove()
 				saveServers()
@@ -103,75 +104,7 @@ export async function play(ws, ip){
 	ws.send(packet)
 	globalThis.ws = ws
 	msg('Authenticating...')
-	const blockIndex = `air
-stone
-bedrock
-grass
-ice
-packed_ice
-chest {"items":[10,27],"name":9}
-lapis_block
-gold_block
-iron_block
-oak_planks
-birch_planks
-spruce_planks
-dark_oak_planks
-acacia_planks
-jungle_planks
-white_wool
-light_grey_wool
-grey_wool
-black_wool
-red_wool
-orange_wool
-yellow_wool
-lime_wool
-green_wool
-cyan_wool
-light_blue_wool
-blue_wool
-purle_wool
-magenta_wool
-pink_wool
-brown_wool
-snow_block
-sandstone
-cut_sandstone
-smooth_sandstone
-chiseled_sandstone
-red_sandstone
-cut_red_sandstone
-chiseled_red_sandstone
-smooth_red_sandstone
-oak_log
-dirt
-sand
-water
-snowy_grass
-coal_ore
-iron_ore`
-
-	const itemIndex = `stone
-lapis
-gold
-coal
-iron
-emerald
-diamond
-sandstone
-cut_sandstone
-smooth_sandstone
-chiseled_sandstone
-red_sandstone
-cut_red_sandstone
-chiseled_red_sandstone
-smooth_red_sandstone
-oak_log`
-
-	const entityIndex = `player {"health":0,"inv":[10,41],"selected":0,"skin":11}`
-
-	gameIframe([blockIndex, itemIndex, entityIndex, '/ext/blocks.js'])
+	gameIframe(ws.packs)
 }
 export function reconnect(){
 	if(!lastIp)return
