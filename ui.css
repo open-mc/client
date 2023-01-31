@@ -38,6 +38,7 @@ column{
 	background: #0004;
 	white-space: pre-wrap;
 	animation: fade 1s linear 9s both;
+	word-break: break-word;
 }
 #chat.focus > div{
 	opacity: 1 !important;

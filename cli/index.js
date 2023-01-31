@@ -61,6 +61,9 @@ Entities.player = {
 			leg1: can.texture(12, 0, 4, 12),
 			leg2: can.texture(16, 0, 4, 12)
 		}
+		this.inv[0] = Items.oak_log(1)
+		this.inv[1] = Items.stone(1)
+		this.inv[2] = Items.sandstone(1)
 	},
 	width: 0.3,
 	height: 1.8,
@@ -160,12 +163,28 @@ const hotbar = Texture('/cli/hotbar.png')
 const slot = Texture('/cli/slot.png')
 
 uiLayer(1000, (c, w, h) => {
-	const hotBarLeft = w / 2 - hotbar.w/2, hotBarTop = h - hotbar.h - 5
+	let hotBarLeft = w / 2 - hotbar.w/2
+	const hotBarTop = h - hotbar.h - 5
 	c.image(hotbar, hotBarLeft, hotBarTop, hotbar.w, hotbar.h)
-	c.image(slot, hotBarLeft - 1, hotBarTop - 1, slot.w, slot.h)
+	c.image(slot, hotBarLeft - 1 + me.selected * 20, hotBarTop - 1, slot.w, slot.h)
+	if(!me || !me.inv)return
+	for(let i = 0; i < 9; i++){
+		if(!me.inv[i])continue
+		c.image(me.inv[i].texture, hotBarLeft + 3, hotBarTop + 3, 16, 16)
+		hotBarLeft += 20
+	}
 })
 
 
 Items.oak_log = {
-	places(){return Blocks.oak_log()}
+	places(){return Blocks.oak_log()},
+	texture: Blocks.oak_log.texture
+}
+Items.sandstone = {
+	places(){return Blocks.sandstone()},
+	texture: Blocks.sandstone.texture
+}
+Items.stone = {
+	places(){return Blocks.stone()},
+	texture: Blocks.stone.texture
 }

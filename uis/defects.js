@@ -53,7 +53,9 @@ if (/Apple/.test(g) && !/Apple GPU/.test(g)) {
 }
 // L, safari cant even detect M1
 if(!('filter' in CanvasRenderingContext2D.prototype))defects.safari = true
-if(navigator.userAgent.toLowerCase().includes('firefox')) defects.firefox = true, defects.safari = false
+
+// Firefox has been redeemed, thanks zekiah for testing on linux (he uses arch btw)
+if(navigator.userAgent.toLowerCase().includes('firefox')) defects.firefox = false, defects.safari = false
 
 if(matchMedia("not (pointer: fine)").matches)defects.mobile = true
 
