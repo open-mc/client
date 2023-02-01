@@ -156,7 +156,7 @@ drawPhase(0, (c, w, h) => {
 		const y0 = round(ifloat((chunk.y << 6) - cam.y + H2) * SCALE)
 		const y1 = round(ifloat((chunk.y + 1 << 6) - cam.y + H2) * SCALE)
 		if(x1 <= 0 || y1 <= 0 || x0 >= w || y0 >= h){ chunk.hide(); continue }
-		else if(!chunk.ctx)chunk.draw()
+		if(!chunk.ctx)chunk.draw()
 		//console.log('%d %d %d %d\n%c ', x0, x1, y0, y1, 'font-size:0;display: block; padding: 128px; background: url("'+chunk.ctx.canvas.toDataURL('png')+'") center/cover')
 		c.drawImage(chunk.ctx.canvas, 0, TEX_SIZE << 6, TEX_SIZE << 6, -(TEX_SIZE << 6), x0, -y0, x1 - x0, y0 - y1)
 	}

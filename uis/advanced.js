@@ -1,5 +1,5 @@
-import { options, reset } from "../save.js"
-import { Btn, Label, Row, Scale, showUI, Spacer, UI } from "../ui.js"
+import { options } from "../save.js"
+import { Btn, Label, Scale, showUI, Spacer, UI } from "../ui.js"
 import { optionsScreen } from "./options.js"
 
 function speedChange(a = options.speed/2){
@@ -14,6 +14,7 @@ const ui = UI('menu',
 	Spacer(20),
 	Btn('Back', optionsScreen)
 )
+ui.esc = optionsScreen
 export function advancedOptionsScreen(){
 	showUI(ui)
 }

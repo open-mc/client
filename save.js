@@ -1,5 +1,3 @@
-import { fwOption } from "./iframe.js";
-
 export const storage = globalThis.localStorage
 if(!storage.name) {
 	location.href = '/acc.html'
@@ -33,16 +31,26 @@ const defaults = {
 	camera: 0,
 	speed: 1
 }
+const optionListeners = {}
 for(const k in defaults){
 	let v = defaults[k], s = storage[k]
 	if(typeof v == 'string' && s !== undefined)v = s
 	else if(typeof v == 'number' && s !== undefined)v = +s
 	else if(typeof v == 'boolean' && s !== undefined)v = s == 'true'
 	Object.defineProperty(options, k, {enumerable:true,get(){return v},set(a){storage[k] = v = a;
-		fwOption(k,a)
+		if(optionListeners[k])for(const f of optionListeners[k])f(k,a)
 	}})
 }
 
 export function reset(){
 	for(const k in defaults){ options[k] = defaults[k] }
+}
+
+export function listen(...keys){
+	const cb = keys.pop()
+	if(!keys.length)
+		for(const key in defaults)
+			(optionListeners[key] || (optionListeners[key] = [])).push(cb), cb(key, options[key])
+	else for(const key of keys)
+		(optionListeners[key] || (optionListeners[key] = [])).push(cb), cb(key, options[key])
 }

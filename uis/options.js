@@ -52,6 +52,8 @@ const optionsui = UI('menu',
 	Spacer(20),
 	Row(Btn('Back', pause, 'small'), Btn('Advanced', advancedOptionsScreen, 'small'))
 )
+optionsui.esc = pause
+
 renderScale()
 renderCamMode()
 export function optionsScreen(){

@@ -10,6 +10,7 @@ const pauseui = UI('menu',
 	Row(Btn('Options', optionsScreen), Btn('Feedback', feedback)),
 	Btn('Disconnect', serverlist)
 )
+pauseui.esc = hideUI
 
 export function pause(){
 	showUI(pauseui)

@@ -22,6 +22,9 @@ chatui.finish = () => {
 	input.blur()
 	chat.classList.remove('focus')
 }
+
+chatui.esc = hideUI
+
 let history = [], hi = 0, tg = ''
 input.key = (key) => {
 	a: if(key == 'ArrowUp'){

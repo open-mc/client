@@ -1,6 +1,6 @@
-import { Btn, Input, Label, Row, showUI, Spacer, UI } from "../ui.js";
-import { pause } from "./pauseui.js";
-import { popup } from "./popup.js";
+import { Btn, Input, Label, Row, showUI, Spacer, UI } from "../ui.js"
+import { pause } from "./pauseui.js"
+import { popup } from "./popup.js"
 
 function selectBug(){
 	if(bug.disabled)return
@@ -14,7 +14,7 @@ function selectSuggestion(){
 }
 
 let input, send, bug, suggestion
-let feedbackui = UI('menu',
+const feedbackui = UI('menu',
 	Label('Feedback'),
 	Label('Consider joining our discord!').attr('onclick', 'window.open("https://discord.gg/NUUwFNUHkf, "_blank")').attr('style', 'cursor:pointer;text-decoration:underline'),
 	input = Input('long', 'Write your feedback').attr('class', 'tall'),
@@ -22,6 +22,8 @@ let feedbackui = UI('menu',
 	Spacer(20),
 	Row(Btn('Back', pause, 'small'), send = Btn('Send', submit, 'small disabled'))
 )
+
+feedback.esc = pause
 
 async function submit(){
 	const feedback = input.value

@@ -3,10 +3,13 @@ import { DataReader, jsonToType } from '../data.js'
 import { codes } from './incomingPacket.js'
 import { frame } from './index.js'
 import { cbs, mouseMoveCb } from './controls.js'
-buttons = new BitField()
-const postMessage = parent.postMessage.bind(parent)
 
+buttons = new BitField()
 options = {}
+loaded = () => {
+	for(const data of msgQueue)onMsg({data})
+	msgQueue = null
+}
 
 const onMsg = ({data}) => {
 	if(Array.isArray(data)){
@@ -23,10 +26,7 @@ const onMsg = ({data}) => {
 			i = 0; for(const b of data[0].split('\n'))BlockIDs.push(funcify(b, i++, Blocks))
 			i = 0; for(const b of data[1].split('\n'))ItemIDs.push(funcify(b, i++, Items))
 			i = 0; for(const b of data[2].split('\n'))EntityIDs.push(funcify(b, i++, Entities))
-			loaded = () => postMessage(null, '*')
-			for(const m of msgQueue)onMsg({data: m})
 			if(!--loading)loaded()
-			msgQueue = null
 			frame()
 		})
 		function funcify(e, i, dict){
@@ -56,21 +56,24 @@ const onMsg = ({data}) => {
 			dict[name] = f
 			return f
 		}
-	}else if(!loaded) return void msgQueue.push(data)
-	if(data instanceof ArrayBuffer){
+	}else if(data instanceof ArrayBuffer){
+		if(loading) return void msgQueue.push(data)
 		const packet = new DataReader(data)
 		const code = packet.byte()
 		if(!codes[code])return
 		codes[code](packet)
 	}else if(typeof data == 'number'){
-		if(data >= 0){
+		if(data > 65535){
+			data -= 65536
+			const fn = _soundEndedCbs.get(data)
+			if(fn)fn(), _soundEndedCbs.delete(data)
+		}else if(data >= 0){
 			buttons.set(data)
 			if(cbs[data])for(const f of cbs[data])f()
 		}else buttons.unset(~data)
 	}else if(typeof data == 'boolean')paused = data
 }
-const m = msgQueue; msgQueue = []
-for(const data of m)onMsg({data})
+for(const data of [msgQueue, msgQueue = []][0])onMsg({data})
 addEventListener('message', onMsg)
 onmessage = null
 

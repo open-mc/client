@@ -9,6 +9,7 @@
 <script>
 	document.fonts.forEach(font => font.load())
 	onmessage = ({data}) => msgQueue.push(data)
+	const postMessage = parent.postMessage.bind(parent)
 	let msgQueue = []
 	parent.postMessage(undefined, '*')
 	const _filecache = Object.create(null)
@@ -44,6 +45,17 @@
 		const t = new _texture(i, 0, 0, 0, 0)
 		i.onload = i.onerror = () => (i.onload=i.onerror=null,t.w=i.width,t.h=i.height,--loading||loaded())
 		return t
+	}
+	let _i = 0, _soundEndedCbs = new Map
+	const Audio = (src, bg = false) => {
+		const aid = _i++
+		fetch(src).then(a => a.arrayBuffer()).then(a => postMessage([aid, a, bg], '*', [a]))
+		return (start = 0, end = NaN, ends = true) => {
+			const sid = _i++
+			postMessage([aid, sid, start, end, !ends], '*')
+			if(typeof ends == 'function')_soundEndedCbs.set(sid, ends)
+			return () => postMessage([aid, _i])
+		}
 	}
 	const TEX_SIZE = 16
 	CanvasRenderingContext2D.prototype.texture = function(x, y, w = this.width, h = this.height){
@@ -198,15 +210,13 @@
 	function pause(a){}
 	function send(a){}
 	function download(a){}
-	let loading = 2, loaded = null
+	let loading = 1, loaded = null
 	let buttons, options, paused = false, pointer
-	const VERSION = 'alpha 3'
-
 	let t = 0, TPS = 20, map = new Map(), entities = new Map()
 	let meid = -1, r = 0, me = null
 	let ticks = 0, world = '', gx = 0, gy = 0
 	let cam = {x: 0, y: 0, z: 2}
-	
+	const VERSION = 'alpha 3'
 </script>
 <script type="module">
 	import "./bitfield.js"

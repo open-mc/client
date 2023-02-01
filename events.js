@@ -14,13 +14,13 @@ onkeyup = e => {
 	if(document.activeElement != document.body && e.key != 'Escape')return
 	else if(e.key == 'Escape'){
 		if(ignoreEsc){ignoreEsc = false; return}
-		hideUI()
+		if(ui.esc) ui.esc()
 		return
 	}
 	if(win) keyMsg(~e.keyCode)
 	e.preventDefault()
 }
-onmousedown = e => win && keyMsg(e.button)
+onmousedown = e => win && !ui && keyMsg(e.button)
 onmouseup = e => win && keyMsg(~e.button)
 
 const cbs = {}

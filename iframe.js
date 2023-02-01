@@ -1,4 +1,4 @@
-import { options } from './save.js'
+import { listen, options } from './save.js'
 import { hideUI, showUI } from './ui.js'
 
 export let iframe = document.createElement('iframe'), win = null
@@ -10,9 +10,13 @@ export function gameIframe(f){
 	destroyIframe()
 	document.body.append(iframe)
 }
+const audios = new Map, actx = new AudioContext()
+const sfxGain = actx.createGain(), bgGain = actx.createGain()
+sfxGain.connect(actx.destination)
+bgGain.connect(actx.destination)
 
 onmessage = ({data, source}) => {
-	if(source != iframe.contentWindow)return
+	if(source && source != iframe.contentWindow)return
 	if(data === undefined){
 		const w = iframe.contentWindow
 		for(const k in options) w.postMessage([k, options[k]], '*')
@@ -32,6 +36,48 @@ onmessage = ({data, source}) => {
 		a.download = `screenshot-${d.getYear()+1900}-${('0'+d.getMonth()).slice(-2)}-${('0'+d.getDay()).slice(-2)}-at-${('0'+d.getHours()).slice(-2)}-${('0'+d.getMinutes()).slice(-2)}-${('0'+d.getSeconds()).slice(-2)}`
 		a.click()
 		URL.revokeObjectURL(a.href)
+	}else if(Array.isArray(data)){
+		const [aid, sid, start = NaN, end, loop] = data
+		if(sid instanceof ArrayBuffer){
+			audios.set(aid, new Map)
+			actx.decodeAudioData(sid, b => {
+				b.bg = start
+				const a = audios.get(aid)
+				audios.set(aid, b)
+				if(a instanceof Map)
+					for(const data of a.values())
+						onmessage({data})
+			})
+			return
+		}
+		if(start != start){
+			const a = audios.get(sid)
+			if(a){
+				a.onended = null
+				a.stop()
+				audios.delete(sid)
+				return
+			}
+			const buf = audios.get(aid)
+			if(buf instanceof Map) buf.delete(sid)
+			return
+		}
+		const buf = audios.get(aid)
+		if(buf instanceof Map)return void buf.set(sid, data)
+		if(!buf) return
+		const source = actx.createBufferSource()
+		source.buffer = buf
+		source.connect(buf.bg ? bgGain : sfxGain)
+		source.loop = loop
+		if(loop){
+			source.loopStart = start
+			if(end == end)source.loopEnd = end
+			source.start(0, start)
+		}else{
+			source.start(0, start, end == end ? end - start : buf.duration)
+			source.onended = () => (win && win.postMessage(sid + 65536, '*'), audios.delete(sid))
+		}
+		audios.set(sid, source)
 	}
 }
 
@@ -45,12 +91,17 @@ export function destroyIframe(){
 	if(win)win.close(), win = null
 	iframe.remove()
 	win = null; queue.length = 0
+	for(const sound of audios.values()) if(sound.stop)sound.stop()
+	audios.clear()
 }
 
 export const fwOption = (a, b) => {
 	if(!win)return void queue.push(a, fwOption)
 	win.postMessage([a, b], '*')
 }
+listen('sound', () => sfxGain.gain.value = options.sound * options.sound)
+listen('music', () => bgGain.gain.value = options.music * options.music)
+listen(fwOption)
 
 export function fwPacket(a){
 	if(!iframe.contentWindow)return

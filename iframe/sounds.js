@@ -1,7 +1,7 @@
 const dict = {}
 let soundVolume = 1
 function playfn(url){
-	const arr = dict[url] = [new Audio(url)]
+	const arr = dict[url] = [Audio(url)]
 	return () => {
 		let a = arr.length > 1 ? arr.pop() : arr[0].cloneNode(true)
 		a.volume = soundVolume
@@ -13,7 +13,7 @@ function playfn(url){
 	}
 }
 export const sounds = {
-	click: playfn('/img/click.mp3')
+	click: Audio('/img/click.mp3')
 }
 export default sounds
 
@@ -33,45 +33,25 @@ const music = {
 		"piano3.mp3"
 	]
 }
-for(const k in music)for(let i = music[k].length - 1; i >= 0; i--)music[k][i] = new Audio('/music/'+music[k][i])
+for(const k in music)for(let i = music[k].length - 1; i >= 0; i--)music[k][i] = Audio('/music/'+music[k][i], true)
 function choose(theme){
 	if(!theme)return null
 	return music[theme][Math.floor(Math.random() * music[theme].length)]
 }
 
-let currentTheme = '', current = null, musicVolume = 1
+let currentTheme = '', current = null, currentStop = null
 export function queue(theme, skip = false){
 	currentTheme = theme
-	if(skip && current)current.pause(), next()
+	if(skip && current)currentStop(), next()
 	else if(!current)next()
 }
 function next(){
-	if(current){
-		current.onended = null
-		current.currentTime = 0
-		current.pause()
-	}
-	if(Math.random() > 0.5){
+	if(current){ currentStop() }
+	if(Math.random() > 0.99){
 		setTimeout(next, 120e3) //1 min
 		return
 	}
 	//try choosing twice
 	if(current == (current = choose(currentTheme)))current = choose(currentTheme)
-	if(current){
-		current.onended = next
-		current.volume = musicVolume * musicVolume
-		current.play().catch(() => {
-			//interaction required
-			console.debug('Failed to play audio node: interaction required')
-			onclick = () => {onclick = null; current.play()}
-		})
-	}
-}
-
-export function musicVol(a){
-	musicVolume = a
-	if(current)current.volume = musicVolume * musicVolume
-}
-export function soundVol(a){
-	soundVolume = a
+	if(current) currentStop = current(0, undefined, next)
 }
