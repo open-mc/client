@@ -2,11 +2,9 @@ import { BitField } from './bitfield.js'
 import { DataReader, jsonToType } from '../data.js'
 import { codes } from './incomingPacket.js'
 import { frame } from './index.js'
-import { onmousemove } from './pointer.js'
-import { cbs } from './controls.js'
+import { cbs, mouseMoveCb } from './controls.js'
 buttons = new BitField()
 const postMessage = parent.postMessage.bind(parent)
-export const BlockIDs = [], ItemIDs = [], EntityIDs = []
 
 options = {}
 
@@ -14,19 +12,21 @@ const onMsg = ({data}) => {
 	if(Array.isArray(data)){
 		if(data.length == 2){
 			if(typeof data[0] == 'string') options[data[0]] = data[1]
-			else onmousemove(data[0], data[1])
+			else for(const cb of mouseMoveCb) cb(data[0], data[1])
 			return
 		}
 		// scripts
+		
 		Promise.all(data.slice(3).map(a => import(a))).then(() => {
 			// done importing
 			let i
 			i = 0; for(const b of data[0].split('\n'))BlockIDs.push(funcify(b, i++, Blocks))
 			i = 0; for(const b of data[1].split('\n'))ItemIDs.push(funcify(b, i++, Items))
 			i = 0; for(const b of data[2].split('\n'))EntityIDs.push(funcify(b, i++, Entities))
-			me = Entities.player({x:0,y:0,_id:-1,dx:0,dy:0,f:0})
 			loaded = () => postMessage(null, '*')
+			for(const m of msgQueue)onMsg({data: m})
 			if(!--loading)loaded()
+			msgQueue = null
 			frame()
 		})
 		function funcify(e, i, dict){
@@ -56,7 +56,8 @@ const onMsg = ({data}) => {
 			dict[name] = f
 			return f
 		}
-	}else if(data instanceof ArrayBuffer){
+	}else if(!loaded) return void msgQueue.push(data)
+	if(data instanceof ArrayBuffer){
 		const packet = new DataReader(data)
 		const code = packet.byte()
 		if(!codes[code])return
@@ -68,7 +69,8 @@ const onMsg = ({data}) => {
 		}else buttons.unset(~data)
 	}else if(typeof data == 'boolean')paused = data
 }
-for(const m of onmessage.queue)onMsg({data: m})
+const m = msgQueue; msgQueue = []
+for(const data of m)onMsg({data})
 addEventListener('message', onMsg)
 onmessage = null
 

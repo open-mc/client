@@ -1,4 +1,4 @@
-import { getblock, setblock } from './world.js'
+import { getblock, setblock, onPlayerLoad } from './world.js'
 import { DataWriter } from '../data.js'
 import './controls.js'
 
@@ -61,7 +61,7 @@ export function drawPointer(c){
 	}
 	me.f = atan2(x, y)
 }
-export function onmousemove(mx, my){
+onmousemove((mx, my) => {
 	const oldx = x, oldy = y
 	const reach = min(10, (min(W2, H2) - 1) * 1.5)
 	const s = min(reach, sqrt(x * x + y * y))
@@ -80,12 +80,15 @@ export function onmousemove(mx, my){
 		cam.x += (x - oldx) / 3
 		cam.y += (y - oldy) / 3
 	}
-}
+})
 export const resetPointer = (f) => {
 	let r = min(4, REACH)
 	x = sin(f) * r
 	y = cos(f) * r
 }
+
+onPlayerLoad(me => resetPointer(me.f))
+
 button(RBUTTON, () => {
 	if(bx != bx)return
 	setblock(bx, by, Blocks.air())
@@ -110,3 +113,7 @@ button(LBUTTON, () => {
 	buf.short(b.id)
 	send(buf)
 })
+
+// I am flabbergasted this is even possible
+import * as ptr from "./pointer.js"
+pointer = ptr

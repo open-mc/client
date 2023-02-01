@@ -1,5 +1,4 @@
-import { BlockIDs, EntityIDs } from "./ipc.js"
-import { addEntity } from "./entity.js"
+import { addEntity } from "./world.js"
 
 const canvasPool = []
 export class Chunk{

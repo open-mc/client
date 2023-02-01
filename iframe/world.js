@@ -1,12 +1,3 @@
-Object.assign(globalThis, {
-	map: new Map(),
-	meid: -1, r: 0,
-	me: null,
-	TPS: 20, ticks: 0,
-	world: '',
-	cam: {x: 0, y: 0, z: 2},
-	gx: 0, gy: 0
-})
 export function setblock(x, y, b){
 	const k = (x>>>6)+(y>>>6)*67108864
 	const ch = map.get(k)
@@ -24,3 +15,26 @@ export function getblock(x, y){
 	const ch = map.get(k)
 	return ch ? ch.tiles[(x & 63) + ((y & 63) << 6)] : Blocks.air()
 }
+
+export function addEntity(e){
+	entities.set(e._id, e)
+	if(meid === e._id){
+		if(!me && !--loading)loaded()
+		me = e
+		cam.x = me.ix = me.x
+		cam.y = me.iy = me.y
+		for(const cb of playerLoadCb) cb(me)
+	}
+}
+export function removeEntity(e){
+	if(e.node)e.node.remove()
+	entities.delete(e._id)
+	if(e == me)me._id = -1
+}
+export function moveEntity(e){
+	const ch = map.get((floor(e.x) >>> 6) + (floor(e.y) >>> 6) * 67108864) || null
+	if(ch != e.chunk)e.chunk&&e.chunk.entities.delete(e), e.chunk = ch, ch&&ch.entities.add(e)
+}
+
+const playerLoadCb = []
+export const onPlayerLoad = cb => playerLoadCb.push(cb)

@@ -2,6 +2,11 @@ import { movementFlags } from "./entity.js"
 import "./ipc.js"
 
 export const cbs = []
+
+export const mouseMoveCb = []
+
+onmousemove = cb => mouseMoveCb.push(cb)
+
 button = (...keys) => {
 	const cb = keys.pop()
 	for(const key of keys)

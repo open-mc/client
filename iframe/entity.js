@@ -1,25 +1,5 @@
-import { getblock } from "./world.js"
-import { resetPointer } from "./pointer.js"
+import { getblock, moveEntity } from "./world.js"
 
-globalThis.entities = new Map()
-export function addEntity(e){
-	entities.set(e._id, e)
-	if(meid === e._id){
-		me = e
-		cam.x = me.ix = me.x
-		cam.y = me.iy = me.y
-		resetPointer(me.f)
-	}
-}
-export function removeEntity(e){
-	if(e.node)e.node.remove()
-	entities.delete(e._id)
-	if(e == me)me = null
-}
-export function moveEntity(e){
-	const ch = map.get((floor(e.x) >>> 6) + (floor(e.y) >>> 6) * 67108864) || null
-	if(ch != e.chunk)e.chunk&&e.chunk.entities.delete(e), e.chunk = ch, ch&&ch.entities.add(e)
-}
 const groundDrag = .0000244
 const airDrag = 0.667
 export let movementFlags = 0

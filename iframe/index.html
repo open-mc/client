@@ -8,8 +8,8 @@
 </style>
 <script>
 	document.fonts.forEach(font => font.load())
-	onmessage = ({data}) => onmessage.queue.push(data)
-	onmessage.queue = []
+	onmessage = ({data}) => msgQueue.push(data)
+	let msgQueue = []
 	parent.postMessage(undefined, '*')
 	const _filecache = Object.create(null)
 	const _c = document.createElement('canvas')
@@ -174,7 +174,8 @@
 		return c
 	}
 	const Blocks = {}, Items = {}, Entities = {}
-	let W2 = 0, H2 = 0, SCALE = 1, t = 0
+	const BlockIDs = [], ItemIDs = [], EntityIDs = []
+	let W2 = 0, H2 = 0, SCALE = 1
 	const {abs, min, max, round, floor, ceil, ifloat, fclamp, sqrt, cbrt, atan2, sign, sin, cos, tan, PI, PI2 = PI * 2, } = Math
 	const LBUTTON = 0, RBUTTON = 2, MBUTTON = 1,
 		KEY_A = 65, KEY_B = 66, KEY_C = 67, KEY_D = 68, KEY_E = 69, KEY_F = 70,
@@ -193,12 +194,19 @@
 	function drawPhase(_1, _2){}
 	function tickPhase(_1, _2){}
 	function button(..._){}
+	function onmousemove(..._){}
 	function pause(a){}
 	function send(a){}
 	function download(a){}
-	let loading = 1, loaded = Function.prototype
+	let loading = 2, loaded = null
 	let buttons, options, paused = false, pointer
 	const VERSION = 'alpha 3'
+
+	let t = 0, TPS = 20, map = new Map(), entities = new Map()
+	let meid = -1, r = 0, me = null
+	let ticks = 0, world = '', gx = 0, gy = 0
+	let cam = {x: 0, y: 0, z: 2}
+	
 </script>
 <script type="module">
 	import "./bitfield.js"

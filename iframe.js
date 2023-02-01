@@ -53,9 +53,9 @@ export const fwOption = (a, b) => {
 }
 
 export function fwPacket(a){
-	if(!win)return void queue.push(a, fwPacket)
-	if(a.buffer)win.postMessage(a.buffer, '*', [a.buffer])
-	else win.postMessage(a, '*')
+	if(!iframe.contentWindow)return
+	if(a.buffer)iframe.contentWindow.postMessage(a.buffer, '*', [a.buffer])
+	else iframe.contentWindow.postMessage(a, '*')
 }
 
 export function keyMsg(a){

@@ -1,8 +1,6 @@
 import { playerControls, renderBoxes, renderF3 } from "./controls.js"
 import { DataWriter } from "../data.js"
 import { stepEntity } from "./entity.js"
-import * as ptr from "./pointer.js"
-pointer = ptr
 
 const VERSION = 'alpha 3'
 let last = performance.now(), count = 1.1
@@ -30,7 +28,7 @@ setInterval(function(){
 const sendDelay = 1 //send packet every 4 ticks
 function tick(){ //20 times a second
 	if(dt < 1/20000)dt = 1/20000
-	if(ticks % sendDelay == 0 && meid >= 0){
+	if(ticks % sendDelay == 0 && me){
 		let buf = new DataWriter()
 		buf.byte(4)
 		buf.byte(r)
@@ -110,6 +108,7 @@ export function frame(){
 	W2 = (c.canvas.width = round(visualViewport.width * visualViewport.scale * devicePixelRatio)) / TEX_SIZE / cam.z / 2
 	H2 = (c.canvas.height = round(visualViewport.height * visualViewport.scale * devicePixelRatio)) / TEX_SIZE / cam.z / 2
 	c.imageSmoothingEnabled = false
+	if(!me) return
 	const reach = pointer.effectiveReach()
 	if(options.camera == 0){
 		const dx = ifloat(me.x + pointer.x/2 - cam.x), dy = ifloat(me.y + pointer.y/2 + me.head - cam.y)
@@ -205,7 +204,7 @@ Facing: ${(me.f >= 0 ? 'R ' : 'L ') + (90 - abs(me.f / PI2 * 360)).toFixed(1).pa
 	const mex = floor(me.x) >> 3 & 6, mexi = (floor(me.x) & 15) / 16
 	y = 1
 	c.textAlign = 'right'
-	for(const t of `Tick ${ticks}, Day ${floor((ticks+7000)/24000)}, Time ${floor((ticks/1000+6)%24).toString().padStart(2,'0')}:${(floor((ticks/250)%4)*15).toString().padStart(2,'0')}
+	for(const t of `Tick ${ticks}, Day ${floor((ticks+6000)/24000)}, Time ${floor((ticks/1000+6)%24).toString().padStart(2,'0')}:${(floor((ticks/250)%4)*15).toString().padStart(2,'0')}
 Dimension: ${world}
 Biome: ${me.chunk ? round(me.chunk.biomes[mex] * (1 - mexi) + me.chunk.biomes[mex+2] * mexi) : 0}/${me.chunk ? round(me.chunk.biomes[mex+1] * (1 - mexi) + me.chunk.biomes[mex+3] * mexi) : 0}
 `.slice(0, -1).split('\n')){
