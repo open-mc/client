@@ -6,7 +6,6 @@ function rubberPacket(data){
 	meid = data.uint32() + data.uint16() * 4294967296
 	let e = entities.get(meid)
 	if(e && (e != me)) addEntity(e)
-	else if(me) me = Entities.player({x:0,y:0,_id:-1,state:0,dx:0,dy:0,f:0})
 	r = data.byte()
 	TPS = data.float()
 }

@@ -87,6 +87,12 @@ document.body.onmousemove = ({movementX, movementY}) => {
 	win.postMessage([movementX * movementScale, -movementY * movementScale], '*')
 }
 
+document.body.onwheel = ({deltaY}) => {
+	if(!document.pointerLockElement || !win)return
+	const movementScale = devicePixelRatio ** (globalThis.netscape ? 1 : /Opera|OPR\//.test(navigator.userAgent) ? -1 : 0)
+	win.postMessage([deltaY * movementScale], '*')
+}
+
 export function destroyIframe(){
 	if(win)win.close(), win = null
 	iframe.remove()

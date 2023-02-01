@@ -28,7 +28,7 @@ setInterval(function(){
 const sendDelay = 1 //send packet every 4 ticks
 function tick(){ //20 times a second
 	if(dt < 1/20000)dt = 1/20000
-	if(ticks % sendDelay == 0 && me){
+	if(ticks % sendDelay == 0 && me && me._id > -1){
 		let buf = new DataWriter()
 		buf.byte(4)
 		buf.byte(r)
@@ -58,7 +58,7 @@ document.body.append(c.canvas)
 
 const renderPhases = []
 
-renderLayer = (prio, fn, coordSpace = 'world') => {
+renderLayer = (prio, fn) => {
 	let i = renderPhases.push(null) - 2
 	while(i >= 0 && renderPhases[i].prio > prio){
 		renderPhases[i + 1] = renderPhases[i]
@@ -101,7 +101,7 @@ export function frame(){
 	t += (now - lastFrame) / 1000 * options.speed
 	lastFrame = now
 	requestAnimationFrame(frame)
-	if(!me)return
+	if(!me || me._id == -1)return
 	for(const entity of entities.values())stepEntity(entity, dt * options.speed)
 	cam.z = 2 ** round(options.zoom * 5 - 1) * devicePixelRatio
 	SCALE = cam.z * TEX_SIZE

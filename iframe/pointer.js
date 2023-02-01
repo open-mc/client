@@ -19,10 +19,10 @@ export function drawPointer(c){
 	bx = floor(me.x)
 	by = floor(me.y + me.head)
 	bpx = NaN, bpy = NaN
-	const reach = sqrt(x * x + y * y) + 1
+	const reach = sqrt(x * x + y * y)
 	let d = 0, px = me.x - bx, py = me.y + me.head - by
 	const dx = sin(me.f), dy = cos(me.f)
-	while(d < reach + 1){
+	while(d < reach){
 		if(getblock(bx, by).solid)break
 		bpx = bx
 		bpy = by
@@ -42,8 +42,9 @@ export function drawPointer(c){
 		}
 	}
 
-	if(d > reach){
-		bx = bpx = by = bpy = NaN
+	if(d >= reach) bx = by = NaN
+	if(!getblock(bpx + 1, bpy).solid && !getblock(bpx - 1, bpy).solid && !getblock(bpx, bpy + 1).solid && !getblock(bpx, bpy - 1).solid){
+		bpx = bpy = NaN
 	}else{
 		let x = bpx - 32 >>> 6, y = bpy - 32 >>> 6, x1 = x + 1 & 67108863, y1 = y + 1 & 67108863
 		a: for(const ch of [map.get(x+y*67108864), map.get(x1+y*67108864), map.get(x+y1*67108864), map.get(x1+y1*67108864)])
@@ -55,8 +56,24 @@ export function drawPointer(c){
 				}
 		c.lineWidth = 0.0625
 		c.stokeStyle = '#000'
+		c.fillStyle = '#000'
 		c.globalAlpha = 0.5
-		c.strokeRect(ifloat(bx-cam.x) + 0.03125, ifloat(by-cam.y) + 0.03125, 0.9375, 0.9375)
+		const xd = ifloat(bx-cam.x), yd = ifloat(by-cam.y)
+		c.strokeRect(xd + 0.03125, yd + 0.03125, 0.9375, 0.9375)
+		
+		if(bpx > bx){
+			c.fillRect(xd + 1, yd, 0.125, 0.0625)
+			c.fillRect(xd + 1, yd + 0.9375, 0.125, 0.0625)
+		}else if(bpx < bx){
+			c.fillRect(xd - 0.125, yd, 0.125, 0.0625)
+			c.fillRect(xd - 0.125, yd + 0.9375, 0.125, 0.0625)
+		}else if(bpy > by){
+			c.fillRect(xd, yd + 1, 0.0625, 0.125)
+			c.fillRect(xd + 0.9375, yd + 1, 0.0625, 0.125)
+		}else if(bpy < by){
+			c.fillRect(xd, yd - 0.125, 0.0625, 0.125)
+			c.fillRect(xd + 0.9375, yd - 0.125, 0.0625, 0.125)
+		}
 		c.globalAlpha = 1
 	}
 	me.f = atan2(x, y)

@@ -2,7 +2,7 @@ import { BitField } from './bitfield.js'
 import { DataReader, jsonToType } from '../data.js'
 import { codes } from './incomingPacket.js'
 import { frame } from './index.js'
-import { cbs, mouseMoveCb } from './controls.js'
+import { cbs, mouseMoveCb, wheelCb } from './controls.js'
 
 buttons = new BitField()
 options = {}
@@ -17,9 +17,11 @@ const onMsg = ({data}) => {
 			if(typeof data[0] == 'string') options[data[0]] = data[1]
 			else for(const cb of mouseMoveCb) cb(data[0], data[1])
 			return
+		}else if(data.length == 1){
+			for(const cb of wheelCb) cb(data[0])
+			return
 		}
-		// scripts
-		
+		// import scripts
 		Promise.all(data.slice(3).map(a => import(a))).then(() => {
 			// done importing
 			let i

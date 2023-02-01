@@ -54,7 +54,7 @@
 			const sid = _i++
 			postMessage([aid, sid, start, end, !ends], '*')
 			if(typeof ends == 'function')_soundEndedCbs.set(sid, ends)
-			return () => postMessage([aid, _i])
+			return () => postMessage([aid, _i], '*')
 		}
 	}
 	const TEX_SIZE = 16
@@ -206,7 +206,8 @@
 	function drawPhase(_1, _2){}
 	function tickPhase(_1, _2){}
 	function button(..._){}
-	function onmousemove(..._){}
+	function onmousemove(_){}
+	function onwheel(_){}
 	function pause(a){}
 	function send(a){}
 	function download(a){}

@@ -29,7 +29,7 @@ export function addEntity(e){
 export function removeEntity(e){
 	if(e.node)e.node.remove()
 	entities.delete(e._id)
-	if(e == me)me._id = -1
+	if(e == me) me._id = -1
 }
 export function moveEntity(e){
 	const ch = map.get((floor(e.x) >>> 6) + (floor(e.y) >>> 6) * 67108864) || null

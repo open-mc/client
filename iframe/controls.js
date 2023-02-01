@@ -2,8 +2,10 @@ import { movementFlags } from "./entity.js"
 import "./ipc.js"
 
 export const cbs = []
-
 export const mouseMoveCb = []
+export const wheelCb = []
+
+onwheel = cb => wheelCb.push(cb)
 
 onmousemove = cb => mouseMoveCb.push(cb)
 
@@ -75,9 +77,9 @@ let wasFullscreen = false
 let ignoreEsc = false
 button('escape', () => {if(ignoreEsc){ignoreEsc = false; return}; hideUI()}, true)*/
 
-onwheel = e => {
-	if(e.wheelDeltaY === (e.deltaY * -3) || e.deltaMode == 0){
-		
-	}else if(e.deltaY > 0) me.selected = (me.selected + 1) % 9
-	else me.selected = (me.selected + 8) % 9
-}
+let cummulative = 0
+onwheel(dy => {
+	cummulative += dy
+	if(cummulative > 60) me.selected = (me.selected + 8) % 9, cummulative = 0
+	else if(cummulative < -60) me.selected = (me.selected + 1) % 9, cummulative = 0
+})
