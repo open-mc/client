@@ -20,7 +20,7 @@ const defects = {
 	/**
 	 * No dedicated sound thread causes choppy or glitchy sounds when CPU is busy
 	 * Odd-looking text
-	 * Texture bleeding in atlases
+	 * Atlas texture bleeding
 	 */
 	m1: false,
 	/**

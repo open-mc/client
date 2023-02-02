@@ -27,7 +27,6 @@ export function addEntity(e){
 	}
 }
 export function removeEntity(e){
-	if(e.node)e.node.remove()
 	entities.delete(e._id)
 	if(e == me) me._id = -1
 }

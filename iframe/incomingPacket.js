@@ -56,9 +56,8 @@ function entityPacket(buf){
 	while(buf.left){
 		let mv = buf.byte()
 		const id = buf.uint32() + buf.uint16() * 4294967296
-		if(!mv){removeEntity(entities.get(id));continue}
 		let e = entities.get(id)
-		
+		if(!mv){if(e)removeEntity(e);continue}
 		if(!e){
 			if(mv & 128)mv |= 256, e = EntityIDs[buf.short()]({x:0,y:0,_id: id,dx:0,dy:0,f:0,chunk:null})
 			else e = EntityIDs[0]({x:0,y:0,_id:id,dx:0,dy:0,f:0,chunk:null}) //PANIC safe-guard

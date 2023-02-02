@@ -34,10 +34,10 @@ async function getSkin(accept){
 		ctx.drawImage(img, 40, 36, 4, 12, 8, 0, 4, 12)
 		//left (front) leg
 		ctx.drawImage(img, 16, 52, 4, 12, 12, 0, 4, 12)
-		ctx.drawImage(img, 16, 52, 4, 12, 12, 0, 4, 12)
+		ctx.drawImage(img, 0, 52, 4, 12, 12, 0, 4, 12)
 		//right (back) leg
-		ctx.drawImage(img, 0, 52, 4, 12, 16, 0, 4, 12)
-		ctx.drawImage(img, 0, 52, 4, 12, 16, 0, 4, 12)
+		ctx.drawImage(img, 0, 20, 4, 12, 16, 0, 4, 12)
+		ctx.drawImage(img, 0, 36, 4, 12, 16, 0, 4, 12)
 		//head
 		ctx.drawImage(img, 0, 8, 8, 8, 20, 4, 8, 8)
 		ctx.drawImage(img, 32, 8, 8, 8, 20, 4, 8, 8)

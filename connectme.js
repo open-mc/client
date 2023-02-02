@@ -26,9 +26,10 @@ const onpending = function(str){
 	const code = parseInt(str.slice(0,2), 16)
 	pendingConnection(str.slice(2), code)
 }
+const unencrypted = /^(localhost|127.0.0.1|0.0.0.0|\[::1\])$/i
 export function preconnect(ip, cb = Function.prototype){
 	const displayIp = ip
-	if(!/\w+:\/\//y.test(ip))ip = (location.protocol == 'http:' ? 'ws://' : 'wss://') + ip
+	if(!/\w+:\/\//y.test(ip))ip = (location.protocol == 'http:' || unencrypted.test(ip) ? 'ws://' : 'wss://') + ip
 	if(!/:\d+$/.test(ip))ip += ':27277'
 	let ws
 	try{
