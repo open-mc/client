@@ -17,16 +17,12 @@ bgGain.connect(actx.destination)
 
 onmessage = ({data, source}) => {
 	if(source && source != iframe.contentWindow)return
-	if(data === undefined){
-		const w = iframe.contentWindow
-		for(const k in options) w.postMessage([k, options[k]], '*')
-		w.postMessage(files, '*')
-	}else if(data === null){
-		//Loaded
+	if(data === null){
 		win = iframe.contentWindow
+		for(const k in options) win.postMessage([k, options[k]], '*')
+		win.postMessage(files, '*')
 		while(queue.length)queue.pop()(queue.pop())
-		hideUI()
-	}else if(data === true)showUI(null)
+	}else if(data === true) showUI(null)
 	else if(data === false)hideUI()
 	else if(data instanceof ArrayBuffer && globalThis.ws) ws.send(data)
 	else if(data instanceof Blob){
@@ -110,13 +106,12 @@ listen('music', () => bgGain.gain.value = options.music * options.music)
 listen(fwOption)
 
 export function fwPacket(a){
-	if(!iframe.contentWindow)return
-	if(a.buffer)iframe.contentWindow.postMessage(a.buffer, '*', [a.buffer])
-	else iframe.contentWindow.postMessage(a, '*')
+	if(!win)return void queue.push(a, fwPacket)
+	if(a.buffer)win.postMessage(a.buffer, '*', [a.buffer])
+	else win.postMessage(a, '*')
 }
 
 export function keyMsg(a){
 	if(!win)return void queue.push(a, keyMsg)
-	if(a.buffer)win.postMessage(a, '*')
-	else win.postMessage(a, '*')
+	win.postMessage(a, '*')
 }

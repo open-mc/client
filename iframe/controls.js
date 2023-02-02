@@ -1,5 +1,4 @@
 import { movementFlags } from "./entity.js"
-import "./ipc.js"
 
 export const cbs = []
 export const mouseMoveCb = []
@@ -16,7 +15,7 @@ button = (...keys) => {
 }
 
 
-export function playerControls(){
+export const playerControls = () => {
 	const R = buttons.has(KEY_RIGHT) || buttons.has(KEY_D)
 	const L = buttons.has(KEY_LEFT) || buttons.has(KEY_A)
 	if(R && !L) me.dx = 5; else if(L) me.dx = -5

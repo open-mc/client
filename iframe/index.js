@@ -218,7 +218,6 @@ Biome: ${me.chunk ? round(me.chunk.biomes[mex] * (1 - mexi) + me.chunk.biomes[me
 })
 
 
-
 button(KEY_F2, () => {
 	c.canvas.toBlob(download, 'image/png')
 })

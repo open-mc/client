@@ -11,7 +11,7 @@
 	onmessage = ({data}) => msgQueue.push(data)
 	const postMessage = parent.postMessage.bind(parent)
 	let msgQueue = []
-	parent.postMessage(undefined, '*')
+	parent.postMessage(null, '*')
 	const _filecache = Object.create(null)
 	const _c = document.createElement('canvas')
 	const _texture = class Texture{

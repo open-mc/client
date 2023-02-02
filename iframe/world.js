@@ -19,7 +19,7 @@ export function getblock(x, y){
 export function addEntity(e){
 	entities.set(e._id, e)
 	if(meid === e._id){
-		if(!me)postMessage(null, '*')
+		if(!me)postMessage(false, '*')
 		me = e
 		cam.x = me.ix = me.x
 		cam.y = me.iy = me.y
