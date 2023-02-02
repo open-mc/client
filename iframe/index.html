@@ -49,7 +49,7 @@
 	let _i = 0, _soundEndedCbs = new Map
 	const Audio = (src, bg = false) => {
 		const aid = _i++
-		fetch(src).then(a => a.arrayBuffer()).then(a => postMessage([aid, a, bg], '*', [a]))
+		postMessage([aid, src, bg], '*')
 		return (start = 0, end = NaN, ends = true) => {
 			const sid = _i++
 			postMessage([aid, sid, start, end, !ends], '*')

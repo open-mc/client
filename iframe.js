@@ -34,16 +34,16 @@ onmessage = ({data, source}) => {
 		URL.revokeObjectURL(a.href)
 	}else if(Array.isArray(data)){
 		const [aid, sid, start = NaN, end, loop] = data
-		if(sid instanceof ArrayBuffer){
+		if(typeof sid == 'string'){
 			audios.set(aid, new Map)
-			actx.decodeAudioData(sid, b => {
+			fetch(sid, {credentials: 'omit', priority: 'low'}).then(a => a.arrayBuffer()).then(a => actx.decodeAudioData(a, b => {
 				b.bg = start
 				const a = audios.get(aid)
 				audios.set(aid, b)
 				if(a instanceof Map)
 					for(const data of a.values())
 						onmessage({data})
-			})
+			}))
 			return
 		}
 		if(start != start){

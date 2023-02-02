@@ -12,10 +12,6 @@ function playfn(url){
 		a.play().catch(a.onended)
 	}
 }
-export const sounds = {
-	click: Audio('/img/click.mp3')
-}
-export default sounds
 
 const music = {
 	overworld: [
