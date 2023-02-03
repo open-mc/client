@@ -3,9 +3,10 @@ import { movementFlags } from "./entity.js"
 export const cbs = []
 export const mouseMoveCb = []
 export const wheelCb = []
+export const pauseCb = []
 
 onwheel = cb => wheelCb.push(cb)
-
+onpause = cb => pauseCb.push(cb)
 onmousemove = cb => mouseMoveCb.push(cb)
 
 button = (...keys) => {
@@ -18,21 +19,16 @@ button = (...keys) => {
 export const playerControls = () => {
 	const R = buttons.has(KEY_RIGHT) || buttons.has(KEY_D)
 	const L = buttons.has(KEY_LEFT) || buttons.has(KEY_A)
-	if(R && !L) me.dx = 5; else if(L) me.dx = -5
+	const D = buttons.has(KEY_DOWN) || buttons.has(KEY_S) || buttons.has(KEY_SHIFT)
+	if(D ^ buttons.has(KEY_CAPSLOCK)) me.state |= 2
+	else me.state &= -3
+	if(D && (me.state & 1)) me.dy = -5
+	if(R && !L) me.dx = (me.state & 3) == 2 ? 1 : 5; else if(L && !R) me.dx = (me.state & 3) == 2 ? -1 : -5
 	if(buttons.has(KEY_UP) || buttons.has(KEY_W) || buttons.has(KEY_SPACE)){
 		if(me.state & 1){
 			me.dy = 5
-			return
-		}
-		else if(movementFlags & 1)me.dy = 9
+		}else if(movementFlags & 1)me.dy = 9
 	}
-	if(buttons.has(KEY_DOWN) || buttons.has(KEY_S) || buttons.has(KEY_SHIFT)){
-		me.state |= 2
-		if(me.state & 1){
-			me.dy = -5
-			return
-		}
-	}else me.state &= -3
 }
 let lastPressUp = 0
 button(KEY_UP, KEY_W, KEY_SPACE, () => {

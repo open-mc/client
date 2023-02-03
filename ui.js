@@ -19,6 +19,7 @@ HTMLElement.prototype.attr = function(a, b){this.setAttribute(a, b); return this
 for(const n of [HTMLCollection, NodeList])Object.setPrototypeOf(n.prototype, Array.prototype)
 
 const NONE = document.createComment('')
+NONE.esc = () => hideUI()
 document.body.append(NONE)
 export let ui = null
 export async function hideUI(){
@@ -31,10 +32,10 @@ export async function hideUI(){
 	}catch(e){ defaultUI() }
 }
 
-export function showUI(a = this){
+export function showUI(a = null){
 	document.exitPointerLock()
 	void (ui && ui.finish || Function.prototype)()
-	void (ui || NONE).replaceWith((ui = a) || NONE)
+	void (ui || NONE).replaceWith(ui = a || NONE)
 }
 
 const selchange = new Set

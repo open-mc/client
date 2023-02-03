@@ -1,5 +1,5 @@
 import { listen, options } from './save.js'
-import { hideUI, showUI } from './ui.js'
+import { hideUI, showUI, ui } from './ui.js'
 
 export let iframe = document.createElement('iframe'), win = null
 iframe.sandbox = 'allow-scripts'
@@ -23,7 +23,7 @@ onmessage = ({data, source}) => {
 		win.postMessage(files, '*')
 		while(queue.length)queue.pop()(queue.pop())
 	}else if(data === true) showUI(null)
-	else if(data === false)hideUI()
+	else if(data === false) hideUI()
 	else if(data instanceof ArrayBuffer && globalThis.ws) ws.send(data)
 	else if(data instanceof Blob){
 		let d = new Date()
@@ -77,14 +77,18 @@ onmessage = ({data, source}) => {
 	}
 }
 
-document.body.onmousemove = ({movementX, movementY}) => {
-	if(!document.pointerLockElement || !win)return
-	const movementScale = devicePixelRatio ** (globalThis.netscape ? 1 : /Opera|OPR\//.test(navigator.userAgent) ? -1 : 0)
+document.body.onmousemove = ({movementX, movementY, clientX, clientY}) => {
+	if(!win)return
+	if(ui){
+		win.postMessage([clientX, clientY], '*')
+		return
+	}
+	const movementScale = globalThis.netscape ? devicePixelRatio : /Opera|OPR\//.test(navigator.userAgent) ? 1/devicePixelRatio : 1
 	win.postMessage([movementX * movementScale, -movementY * movementScale], '*')
 }
 
 document.body.onwheel = ({deltaY}) => {
-	if(!document.pointerLockElement || !win)return
+	if(!win)return
 	const movementScale = devicePixelRatio ** (globalThis.netscape ? 1 : /Opera|OPR\//.test(navigator.userAgent) ? -1 : 0)
 	win.postMessage([deltaY * movementScale], '*')
 }

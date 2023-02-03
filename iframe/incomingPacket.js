@@ -64,11 +64,12 @@ function entityPacket(buf){
 		}else if(mv & 128)Object.setPrototypeOf(e, EntityIDs[buf.short()]._)
 		if(mv & 1)if(abs(e.x - (e.x = buf.double())) > 16 || e == me)e.ix = e.x
 		if(mv & 2)if(abs(e.y - (e.y = buf.double())) > 16 || e == me)e.iy = e.y
-		if(mv & 4)e.state = buf.short()
-		if(mv & 8)e.dx = buf.float()
-		if(mv & 16)e.dy = buf.float()
-		if(mv & 32)e.f = buf.float()
-		if(mv & 64)buf.read(e.savedata, e)
+		if(mv & 4)e.name = buf.string()
+		if(mv & 8)e.state = buf.short()
+		if(mv & 16)e.dx = buf.float()
+		if(mv & 32)e.dy = buf.float()
+		if(mv & 64)e.f = buf.float()
+		if(mv & 128)buf.read(e.savedata, e)
 		if(mv & 256){
 			addEntity(e)
 			if(e.appeared)e.appeared()
@@ -85,3 +86,5 @@ export const codes = Object.assign(new Array(256), {
 	17: chunkDeletePacket,
 	20: entityPacket,
 })
+
+onpacket = (c, cb) => codes[c] = cb

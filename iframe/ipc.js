@@ -2,7 +2,7 @@ import { BitField } from './bitfield.js'
 import { DataReader, jsonToType } from '../data.js'
 import { codes } from './incomingPacket.js'
 import { frame } from './index.js'
-import { cbs, mouseMoveCb, wheelCb } from './controls.js'
+import { cbs, mouseMoveCb, pauseCb, wheelCb } from './controls.js'
 
 buttons = new BitField()
 options = {}
@@ -73,12 +73,15 @@ const onMsg = ({data}) => {
 			buttons.set(data)
 			if(cbs[data])for(const f of cbs[data])f()
 		}else buttons.unset(~data)
-	}else if(typeof data == 'boolean')paused = data
+	}else if(typeof data == 'boolean'){
+		paused = data
+		for(const cb of pauseCb) cb()
+	}
 }
 for(const data of [msgQueue, msgQueue = []][0])onMsg({data})
 addEventListener('message', onMsg)
 onmessage = null
 
-pause = paused => postMessage(!!paused, '*')
-send = buf => postMessage(buf.build().buffer, '*')
+pause = paused => me && postMessage(!!paused, '*')
+send = buf => postMessage(buf.build ? buf.build().buffer : buf.buffer || buf, '*')
 download = blob => postMessage(blob, '*')

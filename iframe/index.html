@@ -211,13 +211,15 @@
 	function pause(a){}
 	function send(a){}
 	function download(a){}
+	function onpause(a){}
+	function onpacket(c,b){}
 	let loading = 1, loaded = null
 	let buttons, options, paused = false, pointer
 	let t = 0, TPS = 20, map = new Map(), entities = new Map()
 	let meid = -1, r = 0, me = null
 	let ticks = 0, world = '', gx = 0, gy = 0
-	let cam = {x: 0, y: 0, z: 2}
-	const VERSION = 'alpha 3'
+	let cam = {x: 0, y: 0, z: 2}, mx = 0, my = 0
+	const VERSION = 'alpha 4 preview'
 </script>
 <script type="module">
 	import "./bitfield.js"

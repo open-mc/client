@@ -13,33 +13,77 @@ Blocks.snowy_grass = { texture: terrainPng.at(4, 4), solid: true }
 Blocks.coal_ore = { texture: terrainPng.at(2, 2), solid: true }
 Blocks.iron_ore = { texture: terrainPng.at(1, 2), solid: true }
 
+Items.oak_log = {
+	places(){return Blocks.oak_log()},
+	texture: Blocks.oak_log.texture
+}
+Items.sandstone = {
+	places(){return Blocks.sandstone()},
+	texture: Blocks.sandstone.texture
+}
+Items.stone = {
+	places(){return Blocks.stone()},
+	texture: Blocks.stone.texture
+}
+
+
 Entities.player = {
 	render(c){
 		if(!this.textures) return
-		const angle = sin(t * 12) * this.dx / 10, xs = this.f >= 0 ? 0.9 : -0.9, ys = this.name == 'Dinnerbone' || this.name == 'Grumm' ? -0.9 : 0.9
+		const angle = (me.state & 3) == 2 ? sin(t * 4) * this.dx / 5 : sin(t * 12) * this.dx / 10, xs = this.f >= 0 ? 0.9 : -0.9, ys = this.name == 'Dinnerbone' || this.name == 'Grumm' ? -0.9 : 0.9
+
+		if(this.name && this != me){
+			c.textAlign = 'center'
+			const {width, top, bottom} = c.measure(this.name)
+			c.fillStyle = '#000'
+			c.globalAlpha = 0.2
+			c.fillRect(width * -0.15 - 0.05, this.height + 0.15 - 0.05, width * 0.3 + 0.1, (bottom + top) * 0.3 + 0.1)
+			c.globalAlpha = 1
+			c.fillStyle = '#fff'
+			c.fillText(this.name, 0, this.height + 0.15 + bottom * 0.3, 0.3)
+		}
+		if(ys < 0)c.translate(0, this.height)
 		c.scale(xs, ys)
-		c.translate(0, 1.375)
-		c.rotate(angle)
-		c.image(this.textures.arm2, -0.125, -0.625, 0.25, 0.75)
-		c.restoreTransform()
-		c.scale(xs, ys)
-		c.translate(0, 0.75)
-		c.rotate(-angle)
-		c.image(this.textures.leg2, -0.125, -0.75, 0.25, 0.75)
-		c.restoreTransform()
-		c.scale(xs, ys)
-		c.image(this.textures.body, -0.125, 0.75, 0.25, 0.75)
-		c.translate(0, 1.375)
-		c.rotate(-angle)
-		c.image(this.textures.arm1, -0.125, -0.625, 0.25, 0.75)
-		c.restoreTransform()
-		c.scale(xs, ys)
-		c.translate(0, 0.75)
-		c.rotate(angle)
-		c.image(this.textures.leg1, -0.125, -0.75, 0.25, 0.75)
-		c.restoreTransform()
-		c.scale(xs, ys)
-		c.translate(0, 1.5)
+		if(me.state & 2){
+			c.translate(0.2, 1.2)
+			c.rotate(angle - .5)
+			c.image(this.textures.arm2, -0.125, -0.625, 0.25, 0.75)
+			c.rotate(-angle + .5)
+			c.translate(-0.3,-0.45)
+			c.rotate(-angle)
+			c.image(this.textures.leg2, -0.125, -0.75, 0.25, 0.75)
+			c.rotate(angle - .5)
+			c.image(this.textures.body, -0.125, -0.125, 0.25, 0.75)
+			c.rotate(0.5)
+			c.translate(0.3, 0.45)
+			c.rotate(-angle - .5)
+			c.image(this.textures.arm1, -0.125, -0.625, 0.25, 0.75)
+			c.rotate(angle + .5)
+			c.translate(-0.3,-0.45)
+			c.rotate(angle)
+			c.image(this.textures.leg1, -0.125, -0.75, 0.25, 0.75)
+			c.rotate(-angle)
+			c.translate(0.3,0.55)
+		}else{
+			c.translate(0, 1.375)
+			c.rotate(angle)
+			c.image(this.textures.arm2, -0.125, -0.625, 0.25, 0.75)
+			c.rotate(-angle)
+			c.translate(0,-0.625)
+			c.rotate(-angle)
+			c.image(this.textures.leg2, -0.125, -0.75, 0.25, 0.75)
+			c.rotate(angle)
+			c.image(this.textures.body, -0.125, 0, 0.25, 0.75)
+			c.translate(0, 0.625)
+			c.rotate(-angle)
+			c.image(this.textures.arm1, -0.125, -0.625, 0.25, 0.75)
+			c.rotate(angle)
+			c.translate(0,-0.625)
+			c.rotate(angle)
+			c.image(this.textures.leg1, -0.125, -0.75, 0.25, 0.75)
+			c.rotate(-angle)
+			c.translate(0,0.75)
+		}
 		c.rotate(PI/2-abs(this.f))
 		c.image(this.textures.head, -0.25, 0, 0.5, 0.5)
 	},
@@ -67,7 +111,24 @@ Entities.player = {
 	},
 	width: 0.3,
 	height: 1.8,
-	head: 1.6
+	head: 1.6,
+	drawInterface(id, c, mx, my){
+		// x=0, y=0 => left middle
+		// x=176 => right
+		if(id == 0){
+			c.image(meInterface, 0, -meInterface.h)
+			c.translate(50,-5)
+			c.scale(32,-32)
+			c.vertexOrder = 'bottom-left'
+			const f = this.f
+			this.f = atan2(mx - 50, -my - this.head * 32 - 5)
+			this.render(c)
+			this.f = f
+			c.vertexOrder = 'top-left'
+			c.scale(.03125,-.03125)
+			c.translate(-50,5)
+		}
+	}
 }
 
 const skyPng = Texture('/cli/sky.png')
@@ -84,7 +145,7 @@ const sun = skyPng.crop(128, 64, 32, 32), moons = [
 ], cloudMap = skyPng.crop(128, 127, 128, 1).pattern('repeat')
 uiLayer(-100, (c, w, h) => {
 	if(world != 'overworld')return
-	const reach = min(10, (min(W2, H2) - 1) * 1.5)
+	const reach = pointer.effectiveReach()
 	const time = ticks % 24000
 	const light = time < 1800 ? time / 1800 : time < 13800 ? 1 : time < 15600 ? (15600 - time) / 1800 : 0
 	let orangeness = 0
@@ -161,6 +222,8 @@ renderLayer(150, c => {
 
 const hotbar = Texture('/cli/hotbar.png')
 const slot = Texture('/cli/slot.png')
+const inventory = Texture('/cli/inv.png')
+const meInterface = Texture('/cli/meint.png')
 
 uiLayer(1000, (c, w, h) => {
 	let hotBarLeft = w / 2 - hotbar.w/2
@@ -173,18 +236,47 @@ uiLayer(1000, (c, w, h) => {
 		c.image(me.inv[i].texture, hotBarLeft + 3, hotBarTop + 3, 16, 16)
 		hotBarLeft += 20
 	}
+	if(!invInterface) return
+	c.fillStyle = '#000'
+	c.globalAlpha = 0.2
+	c.fillRect(0, 0, w, h)
+	c.globalAlpha = 1
+	c.translate(w / 2 - 88, h / 2)
+	c.image(inventory, 0, 0)
+	invInterface.drawInterface(interfaceId, c, mx - w / 2 + 88, my - h / 2)
+	c.translate(w / -2 + 88, h / -2)
 })
 
+let invInterface = null, interfaceId = 0
 
-Items.oak_log = {
-	places(){return Blocks.oak_log()},
-	texture: Blocks.oak_log.texture
+onpause(() => {
+	if(!paused && invInterface){
+		const buf = new DataWriter()
+		buf.byte(15)
+		send(buf)
+		invInterface = null
+	}
+})
+
+function openEntity(e, id = 0){
+	pause(true)
+	const buf = new DataWriter()
+	buf.byte(13)
+	buf.int(e._id)
+	buf.short((e._id / 4294967296) | 0)
+	buf.byte(id)
+	send(buf)
 }
-Items.sandstone = {
-	places(){return Blocks.sandstone()},
-	texture: Blocks.sandstone.texture
-}
-Items.stone = {
-	places(){return Blocks.stone()},
-	texture: Blocks.stone.texture
-}
+function closeInterface(){ pause(false) }
+
+onpacket(13, buf => {
+	const e = entities.get(buf.int() + buf.short() * 4294967296)
+	if(!e)return
+	invInterface = e
+	interfaceId = buf.byte()
+})
+
+button(KEY_E, () => {
+	if(paused)return closeInterface()
+	openEntity(me)
+})

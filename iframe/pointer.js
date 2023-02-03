@@ -6,8 +6,8 @@ export let x = 2, y = 0
 export let bx = 0, by = 0, bpx = 0, bpy = 0
 export const REACH = 10
 
-export const effectiveReach = () => min(REACH, min(W2, H2) * 1.5 - 1.5)
-
+export const effectiveReach = () => max(1, min(REACH, min(W2, H2) * 1.5 - 1.5))
+let lastPlace = 0
 export function drawPointer(c){
 	c.beginPath()
 	c.rect(ifloat(x + me.x - cam.x) - .3, ifloat(y + me.head + me.y - cam.y) - .03125, .6, .0625)
@@ -77,13 +77,43 @@ export function drawPointer(c){
 		c.globalAlpha = 1
 	}
 	me.f = atan2(x, y)
+	const now = Date.now()
+	place: if(buttons.has(LBUTTON) && bpx == bpx && now > lastPlace + 200){
+		let b = me.inv[me.selected]
+		if(!b || !b.places)break place
+		b = b.places()
+		if(!b)break place
+		setblock(bpx, bpy, b)
+		let buf = new DataWriter()
+		buf.byte(8)
+		buf.int(bpx)
+		buf.int(bpy)
+		buf.short(b.id)
+		send(buf)
+		lastPlace = now
+	}else if(buttons.has(RBUTTON) && bx == bx && now > lastPlace + 200){
+		setblock(bx, by, Blocks.air())
+		let buf = new DataWriter()
+		buf.byte(8)
+		buf.int(bx)
+		buf.int(by)
+		buf.short(0)
+		send(buf)
+		lastPlace = now
+	}
 }
-onmousemove((mx, my) => {
+button(LBUTTON, RBUTTON, () => lastPlace = 0)
+onmousemove((dx, dy) => {
+	if(paused){
+		const upscale = options.guiScale * 2
+		mx = dx / upscale; my = dy / upscale
+		return
+	}
 	const oldx = x, oldy = y
-	const reach = min(10, (min(W2, H2) - 1) * 1.5)
+	const reach = pointer.effectiveReach()
 	const s = min(reach, sqrt(x * x + y * y))
-	x += mx * 9 ** options.sensitivity / 3 / cam.z / TEX_SIZE
-	y += my * 9 ** options.sensitivity / 3 / cam.z / TEX_SIZE
+	x += dx * 9 ** options.sensitivity / 3 / cam.z / TEX_SIZE
+	y += dy * 9 ** options.sensitivity / 3 / cam.z / TEX_SIZE
 	const ns = sqrt(x * x + y * y)
 	if(!ns)return x = y = 0
 	if(ns > s){
@@ -104,32 +134,7 @@ export const resetPointer = (f) => {
 	y = cos(f) * r
 }
 
-onPlayerLoad(me => resetPointer(me.f))
-
-button(RBUTTON, () => {
-	if(bx != bx)return
-	setblock(bx, by, Blocks.air())
-	let buf = new DataWriter()
-	buf.byte(8)
-	buf.int(bx)
-	buf.int(by)
-	buf.short(0)
-	send(buf)
-})
-button(LBUTTON, () => {
-	if(bpx != bpx)return
-	let b = me.inv[me.selected]
-	if(!b || !b.places)return
-	b = b.places()
-	if(!b)return
-	setblock(bpx, bpy, b)
-	let buf = new DataWriter()
-	buf.byte(8)
-	buf.int(bpx)
-	buf.int(bpy)
-	buf.short(b.id)
-	send(buf)
-})
+onPlayerLoad(() => resetPointer(me.f))
 
 // I am flabbergasted this is even possible
 import * as ptr from "./pointer.js"

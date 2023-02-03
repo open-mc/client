@@ -2,7 +2,6 @@ import { playerControls, renderBoxes, renderF3 } from "./controls.js"
 import { DataWriter } from "../data.js"
 import { stepEntity } from "./entity.js"
 
-const VERSION = 'alpha 3'
 let last = performance.now(), count = 1.1
 t = Date.now()/1000%86400
 setInterval(function(){
@@ -103,7 +102,7 @@ export function frame(){
 	requestAnimationFrame(frame)
 	if(!me || me._id == -1)return
 	for(const entity of entities.values())stepEntity(entity, dt * options.speed)
-	cam.z = 2 ** round(options.zoom * 5 - 1) * devicePixelRatio
+	cam.z = 2 ** (options.zoom * 5 - 1) * devicePixelRatio
 	SCALE = cam.z * TEX_SIZE
 	W2 = (c.canvas.width = round(visualViewport.width * visualViewport.scale * devicePixelRatio)) / TEX_SIZE / cam.z / 2
 	H2 = (c.canvas.height = round(visualViewport.height * visualViewport.scale * devicePixelRatio)) / TEX_SIZE / cam.z / 2
