@@ -213,7 +213,7 @@
 	function download(a){}
 	function onpause(a){}
 	function onpacket(c,b){}
-	let loading = 1, loaded = null
+	let loading = 1, loaded = null, dt = 1 / 60
 	let buttons, options, paused = false, pointer
 	let t = 0, TPS = 20, map = new Map(), entities = new Map()
 	let meid = -1, r = 0, me = null

@@ -1,4 +1,5 @@
-import { movementFlags } from "./entity.js"
+import { EPSILON, movementFlags } from "./entity.js"
+import { getblock } from "./world.js"
 
 export const cbs = []
 export const mouseMoveCb = []
@@ -28,6 +29,12 @@ export const playerControls = () => {
 		if(me.state & 1){
 			me.dy = 5
 		}else if(movementFlags & 1)me.dy = 9
+	}
+	if((movementFlags & 1) && (me.state & 2)){
+		const x = me.x + (me.dx > 0 ? -me.width + EPSILON * 2 : me.width - EPSILON * 2)
+		if(getblock(floor(x), floor(me.y - .001)).solid && !getblock(floor(x + me.dx * dt), floor(me.y - .001)).solid){
+			me.dx = 0
+		}
 	}
 }
 let lastPressUp = 0
@@ -75,6 +82,6 @@ button('escape', () => {if(ignoreEsc){ignoreEsc = false; return}; hideUI()}, tru
 let cummulative = 0
 onwheel(dy => {
 	cummulative += dy
-	if(cummulative > 60) me.selected = (me.selected + 8) % 9, cummulative = 0
-	else if(cummulative < -60) me.selected = (me.selected + 1) % 9, cummulative = 0
+	if(cummulative > 60) me.selected = (me.selected + 1) % 9, cummulative = 0
+	else if(cummulative < -60) me.selected = (me.selected + 8) % 9, cummulative = 0
 })

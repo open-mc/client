@@ -24,7 +24,7 @@ export function stepEntity(e, dt){
 	moveEntity(e)
 }
 
-const EPSILON = .0001
+export const EPSILON = .0001
 function fastCollision(e, dx, dy){
 	let flags = 0
 	const x0 = floor(e.x - e.width + EPSILON), x1 = ceil(e.x + e.width - EPSILON)

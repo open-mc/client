@@ -17,6 +17,10 @@ Items.oak_log = {
 	places(){return Blocks.oak_log()},
 	texture: Blocks.oak_log.texture
 }
+Items.oak_planks = {
+	places(){return Blocks.oak_planks()},
+	texture: Blocks.oak_planks.texture
+}
 Items.sandstone = {
 	places(){return Blocks.sandstone()},
 	texture: Blocks.sandstone.texture
@@ -30,7 +34,7 @@ Items.stone = {
 Entities.player = {
 	render(c){
 		if(!this.textures) return
-		const angle = (me.state & 3) == 2 ? sin(t * 4) * this.dx / 5 : sin(t * 12) * this.dx / 10, xs = this.f >= 0 ? 0.9 : -0.9, ys = this.name == 'Dinnerbone' || this.name == 'Grumm' ? -0.9 : 0.9
+		const angle = (this.state & 3) == 2 ? sin(t * 4) * this.dx / 5 : sin(t * 12) * this.dx / 10, xs = this.f >= 0 ? 0.9 : -0.9, ys = this.name == 'Dinnerbone' || this.name == 'Grumm' ? -0.9 : 0.9
 
 		if(this.name && this != me){
 			c.textAlign = 'center'
@@ -44,7 +48,7 @@ Entities.player = {
 		}
 		if(ys < 0)c.translate(0, this.height)
 		c.scale(xs, ys)
-		if(me.state & 2){
+		if(this.state & 2){
 			c.translate(0.2, 1.2)
 			c.rotate(angle - .5)
 			c.image(this.textures.arm2, -0.125, -0.625, 0.25, 0.75)
@@ -55,15 +59,13 @@ Entities.player = {
 			c.rotate(angle - .5)
 			c.image(this.textures.body, -0.125, -0.125, 0.25, 0.75)
 			c.rotate(0.5)
+			c.rotate(angle)
+			c.image(this.textures.leg1, -0.125, -0.75, 0.25, 0.75)
+			c.rotate(-angle)
 			c.translate(0.3, 0.45)
 			c.rotate(-angle - .5)
 			c.image(this.textures.arm1, -0.125, -0.625, 0.25, 0.75)
 			c.rotate(angle + .5)
-			c.translate(-0.3,-0.45)
-			c.rotate(angle)
-			c.image(this.textures.leg1, -0.125, -0.75, 0.25, 0.75)
-			c.rotate(-angle)
-			c.translate(0.3,0.55)
 		}else{
 			c.translate(0, 1.375)
 			c.rotate(angle)
@@ -74,15 +76,14 @@ Entities.player = {
 			c.image(this.textures.leg2, -0.125, -0.75, 0.25, 0.75)
 			c.rotate(angle)
 			c.image(this.textures.body, -0.125, 0, 0.25, 0.75)
+			c.rotate(angle)
+			c.image(this.textures.leg1, -0.125, -0.75, 0.25, 0.75)
+			c.rotate(-angle)
 			c.translate(0, 0.625)
 			c.rotate(-angle)
 			c.image(this.textures.arm1, -0.125, -0.625, 0.25, 0.75)
 			c.rotate(angle)
-			c.translate(0,-0.625)
-			c.rotate(angle)
-			c.image(this.textures.leg1, -0.125, -0.75, 0.25, 0.75)
-			c.rotate(-angle)
-			c.translate(0,0.75)
+			c.translate(0,0.075)
 		}
 		c.rotate(PI/2-abs(this.f))
 		c.image(this.textures.head, -0.25, 0, 0.5, 0.5)
@@ -110,8 +111,8 @@ Entities.player = {
 		this.inv[2] = Items.sandstone(1)
 	},
 	width: 0.3,
-	height: 1.8,
-	head: 1.6,
+	get height(){return this.state & 2 ? 1.5 : 1.8},
+	get head(){return this.state & 2 ? 1.4 : 1.6},
 	drawInterface(id, c, mx, my){
 		// x=0, y=0 => left middle
 		// x=176 => right

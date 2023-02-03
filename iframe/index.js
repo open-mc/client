@@ -41,7 +41,7 @@ function tick(){ //20 times a second
 	}
 	ticks++
 }
-let dt = 1 / 60, lastFrame = performance.now(), elusmooth = 0
+let lastFrame = performance.now(), elusmooth = 0
 let elu = 0
 globalThis.requestIdleCallback = globalThis.requestIdleCallback || setTimeout
 let eluLast = 0
@@ -95,13 +95,14 @@ drawPhase = (prio, fn) => {
 export function frame(){
 	countElu()
 	const now = performance.now()
-	dt += ((now - lastFrame) / 1000 - dt) / (count = min(count ** 1.03, 60))
-	if(dt > .3)count = 1.1
+	dt += ((now - lastFrame) / 1000 * options.speed - dt) / (count = min(count ** 1.03, 60))
+	if(dt > .3)count = 1.1, dt = .3
 	t += (now - lastFrame) / 1000 * options.speed
 	lastFrame = now
 	requestAnimationFrame(frame)
 	if(!me || me._id == -1)return
-	for(const entity of entities.values())stepEntity(entity, dt * options.speed)
+	playerControls()
+	for(const entity of entities.values())stepEntity(entity, dt)
 	cam.z = 2 ** (options.zoom * 5 - 1) * devicePixelRatio
 	SCALE = cam.z * TEX_SIZE
 	W2 = (c.canvas.width = round(visualViewport.width * visualViewport.scale * devicePixelRatio)) / TEX_SIZE / cam.z / 2
@@ -135,7 +136,6 @@ export function frame(){
 		if(me.y > cam.y + H2)cam.y += H2*2
 		if(me.y < cam.y - H2)cam.y -= H2*2
 	}
-	playerControls()
 	c.font = '1000px mc'
 	for(const phase of renderPhases){
 		switch(phase.coordSpace){
