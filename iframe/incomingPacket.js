@@ -18,20 +18,20 @@ function dimPacket(data){
 function clockPacket(data){
 	ticks = data.double()
 }
-function chunkPacket(data){
-	const chunk = new Chunk(data)
+function chunkPacket(buf){
+	const chunk = new Chunk(buf)
 	const k = (chunk.x&67108863)+(chunk.y&67108863)*67108864
 	if(map.has(k))trashtrap.add(k)
 	map.set(k, chunk)
-	while(data.left){
+	while(buf.left){
 		let e = EntityIDs[0]({
-			x: data.double(), y: data.double(),
-			_id: data.int() + data.short() * 4294967296,
-			name: buf.string(), state: data.short(),
-			dx: data.float(), dy: data.float(),
-			f: data.float(), chunk
+			x: buf.double(), y: buf.double(),
+			_id: buf.int() + buf.short() * 4294967296,
+			name: buf.string(), state: buf.short(),
+			dx: buf.float(), dy: buf.float(),
+			f: buf.float(), chunk
 		})
-		data.read(e.savedata, e)
+		buf.read(e.savedata, e)
 		addEntity(e)
 		chunk.entities.add(e)
 		if(e.appeared)e.appeared()
