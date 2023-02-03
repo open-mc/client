@@ -90,7 +90,7 @@ export class DataReader extends DataView{
 		if(!item)return null
 		if(!target)target = item(count)
 		else target.count = count, target._ = item._
-		item.name = this.string()
+		target.name = this.string()
 		if(item._.savedata)this.read(item._.savedata, target)
 		return target
 	}

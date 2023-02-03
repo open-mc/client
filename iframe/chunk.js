@@ -19,7 +19,7 @@ export class Chunk{
 				x: buf.short() / 1024 + (this.x << 6),
 				y: buf.short() / 1024 + (this.y << 6),
 				_id: buf.uint32() + buf.uint16() * 4294967296,
-				state: buf.short(),
+				name: buf.string(), state: buf.short(),
 				dx: buf.float(), dy: buf.float(),
 				f: buf.float(), chunk: this
 			})
