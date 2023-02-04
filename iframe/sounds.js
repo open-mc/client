@@ -13,7 +13,7 @@ function playfn(url){
 	}
 }
 
-const music = {
+const musicdict = {
 	overworld: [
 		"calm1.mp3",
 		"calm2.mp3",
@@ -27,23 +27,28 @@ const music = {
 		"piano1.mp3",
 		"piano2.mp3",
 		"piano3.mp3"
+	],
+	nether: [
+		'nether1.mp3',
+		'nether2.mp3',
+		'nether3.mp3',
+		'nether4.mp3'
 	]
 }
-for(const k in music)for(let i = music[k].length - 1; i >= 0; i--)music[k][i] = Audio('/music/'+music[k][i], true)
+for(const k in musicdict)for(let i = musicdict[k].length - 1; i >= 0; i--)musicdict[k][i] = Audio('/music/'+musicdict[k][i], true)
 function choose(theme){
-	if(!theme)return null
-	return music[theme][Math.floor(Math.random() * music[theme].length)]
+	if(!theme || !(theme in musicdict))return null
+	return musicdict[theme][Math.floor(Math.random() * musicdict[theme].length)]
 }
 
 let currentTheme = '', current = null, currentStop = null
-export function queue(theme, skip = false){
-	currentTheme = theme
-	if(skip && current)currentStop(), next()
-	else if(!current)next()
+export function queue(theme){
+	if(currentTheme == (currentTheme = theme))return
+	next()
 }
 function next(){
 	if(current){ currentStop() }
-	if(Math.random() > 0.99){
+	if(Math.random() > 0.75){
 		setTimeout(next, 120e3) //1 min
 		return
 	}
@@ -51,3 +56,5 @@ function next(){
 	if(current == (current = choose(currentTheme)))current = choose(currentTheme)
 	if(current) currentStop = current(0, undefined, next)
 }
+
+music = (src, theme) => (musicdict[theme] || (musicdict[theme] = [])).push(Audio(src, true))

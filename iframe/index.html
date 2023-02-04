@@ -54,7 +54,7 @@
 			const sid = _i++
 			postMessage([aid, sid, start, end, !ends], '*')
 			if(typeof ends == 'function')_soundEndedCbs.set(sid, ends)
-			return () => postMessage([aid, _i], '*')
+			return () => postMessage([aid, sid], '*')
 		}
 	}
 	const TEX_SIZE = 16
@@ -190,12 +190,14 @@
 	function download(a){}
 	function onpause(a){}
 	function onpacket(c,b){}
+	function music(s,t){}
 	let loading = 1, loaded = null, dt = 1 / 60
 	let buttons, options, paused = false, pointer
 	let t = 0, TPS = 20, map = new Map(), entities = new Map()
 	let meid = -1, r = 0, me = null
 	let ticks = 0, world = '', gx = 0, gy = 0
 	let cam = {x: 0, y: 0, z: 2}, mx = 0, my = 0
+	let DataReader, DataWriter
 	const VERSION = 'alpha 4 preview'
 </script>
 <script type="module">

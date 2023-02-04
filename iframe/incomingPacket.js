@@ -26,7 +26,7 @@ function chunkPacket(buf){
 	while(buf.left){
 		let e = EntityIDs[0]({
 			x: buf.double(), y: buf.double(),
-			_id: buf.int() + buf.short() * 4294967296,
+			_id: buf.uint32() + buf.short() * 4294967296,
 			name: buf.string(), state: buf.short(),
 			dx: buf.float(), dy: buf.float(),
 			f: buf.float(), chunk

@@ -5,9 +5,11 @@ export function setblock(x, y, b){
 	const lx = x & 63
 	const ly = y & 63
 	ch.tiles[lx + (ly << 6)] = b
-	if(ch.ctx){
+	i: if(ch.ctx){
+		const t = b.texture
 		ch.ctx.clearRect(lx * TEX_SIZE, (63 - ly) * TEX_SIZE, TEX_SIZE, TEX_SIZE)
-		if(b.texture)ch.ctx.image(b.texture, lx * TEX_SIZE, (63 - ly) * TEX_SIZE)
+		if(!t)break i
+		if(b.texture)ch.ctx.drawImage(t.img,t.x,t.y,t.w,t.h,lx*TEX_SIZE,(63-ly)*TEX_SIZE,TEX_SIZE,TEX_SIZE)
 	}
 }
 export function getblock(x, y){

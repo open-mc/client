@@ -12,7 +12,7 @@ Blocks.snow_block = { texture: terrainPng.at(2, 4), solid: true }
 Blocks.snowy_grass = { texture: terrainPng.at(4, 4), solid: true }
 Blocks.coal_ore = { texture: terrainPng.at(2, 2), solid: true }
 Blocks.iron_ore = { texture: terrainPng.at(1, 2), solid: true }
-
+Blocks.netherrack = { texture: terrainPng.at(7, 6), solid: true }
 Items.oak_log = {
 	places(){return Blocks.oak_log()},
 	texture: Blocks.oak_log.texture
@@ -92,7 +92,7 @@ Entities.player = {
 			c.translate(-0.2,0.8)
 			c.image(this.textures.arm1, -0.125, -0.625, 0.25, 0.75)
 			c.rotate(angle)
-			c.translate(0,0.1)
+			c.translate(0,0.115)
 		}
 		c.rotate(PI/2-abs(this.f))
 		c.image(this.textures.head, -0.25, 0, 0.5, 0.5)
@@ -115,10 +115,6 @@ Entities.player = {
 			leg1: can.texture(12, 0, 4, 12),
 			leg2: can.texture(16, 0, 4, 12)
 		}
-		this.inv[0] = Items.oak_log(1)
-		this.inv[1] = Items.stone(2)
-		this.inv[2] = Items.sandstone(3)
-		this.inv[3] = Items.oak_planks(4)
 	},
 	width: 0.3,
 	get height(){return this.state & 2 ? 1.5 : 1.8},
@@ -154,49 +150,62 @@ const sun = skyPng.crop(128, 64, 32, 32), moons = [
 	skyPng.crop(224, 32, 32, 32)
 ], cloudMap = skyPng.crop(128, 127, 128, 1).pattern('repeat')
 uiLayer(-100, (c, w, h) => {
-	if(world != 'overworld')return
-	const reach = pointer.effectiveReach()
-	const time = ticks % 24000
-	const light = time < 1800 ? time / 1800 : time < 13800 ? 1 : time < 15600 ? (15600 - time) / 1800 : 0
-	let orangeness = 0
-	if(time < 1800)orangeness = 1 - abs(time - 900)/900
-	else if(time >= 13800 && time < 15600)orangeness = 1 - abs(time - 14700)/900
-	const wspan = w + 64 + reach/2
-	let gradient = c.createLinearGradient(0, 0, 0, h)
-	gradient.addColorStop(0.3, '#0a0c14')
-	gradient.addColorStop(0.7, '#040609')
-	c.fillStyle = gradient
-	c.fillRect(0, 0, w, h)
-	c.rect(0, 0, w, h)
-	const xo = wspan * ((time + 12600) % 24000 / 8400 - .5) - 20 - reach/4 - pointer.x*cam.z/16
-	const yo = h/2 + 6 + h/3 * sin(((time + 12600) % 24000 / 8400 - .5) * PI) - pointer.y*cam.z/16
-	c.translate(xo, yo)
-	c.fillStyle = stars
-	c.fill()
-	c.translate(-xo, -yo)
-	gradient = c.createLinearGradient(0, 0, 0, h)
-	gradient.addColorStop(0.3, '#c3d2ff')
-	gradient.addColorStop(0.7, '#78a7ff')
-	c.globalAlpha = light
-	c.fillStyle = gradient
-	c.fillRect(0, 0, w, h)
-	gradient = c.createLinearGradient(0, 0, 0, h)
-	gradient.addColorStop(0.3, '#c5563b')
-	gradient.addColorStop(0.7, 'transparent')
-	c.globalAlpha = orangeness
-	c.fillStyle = gradient
-	c.fillRect(0, 0, w, h)
-	c.globalAlpha = 1
-	c.globalCompositeOperation = 'lighter'
-	if(time < 15600){
-		const progress = time / 15600
-		c.image(sun, wspan * progress - 64 - reach/4 - pointer.x*cam.z/16, h/2 - 32 + h/3 * sin(progress * PI) - pointer.y*cam.z/16, 64, 64)
-	}else{
-		const progress = (time - 15600) / 8400
-		c.image(moons[ticks / 24000 & 7], wspan * progress - 64 - reach/4 - pointer.x*cam.z/16, h/2 - 32 + h/3 * sin(progress * PI) - pointer.y*cam.z/16, 64, 64)
+	if(world == 'overworld'){
+		const reach = pointer.effectiveReach()
+		const time = ticks % 24000
+		const light = time < 1800 ? time / 1800 : time < 13800 ? 1 : time < 15600 ? (15600 - time) / 1800 : 0
+		let orangeness = 0
+		if(time < 1800)orangeness = 1 - abs(time - 900)/900
+		else if(time >= 13800 && time < 15600)orangeness = 1 - abs(time - 14700)/900
+		const wspan = w + 64 + reach/2
+		let gradient = c.createLinearGradient(0, 0, 0, h)
+		gradient.addColorStop(0.3, '#0a0c14')
+		gradient.addColorStop(0.7, '#040609')
+		c.fillStyle = gradient
+		c.fillRect(0, 0, w, h)
+		c.rect(0, 0, w, h)
+		const xo = wspan * ((time + 12600) % 24000 / 8400 - .5) - 20 - reach/4 - pointer.x*cam.z/16
+		const yo = h/2 + 6 + h/3 * sin(((time + 12600) % 24000 / 8400 - .5) * PI) - pointer.y*cam.z/16
+		c.translate(xo, yo)
+		c.fillStyle = stars
+		c.fill()
+		c.translate(-xo, -yo)
+		gradient = c.createLinearGradient(0, 0, 0, h)
+		gradient.addColorStop(0.3, '#c3d2ff')
+		gradient.addColorStop(0.7, '#78a7ff')
+		c.globalAlpha = light
+		c.fillStyle = gradient
+		c.fillRect(0, 0, w, h)
+		gradient = c.createLinearGradient(0, 0, 0, h)
+		gradient.addColorStop(0.3, '#c5563b')
+		gradient.addColorStop(0.7, 'transparent')
+		c.globalAlpha = orangeness
+		c.fillStyle = gradient
+		c.fillRect(0, 0, w, h)
+		c.globalAlpha = 1
+		c.globalCompositeOperation = 'lighter'
+		if(time < 15600){
+			const progress = time / 15600
+			c.image(sun, wspan * progress - 64 - reach/4 - pointer.x*cam.z/16, h/2 - 32 + h/3 * sin(progress * PI) - pointer.y*cam.z/16, 64, 64)
+		}else{
+			const progress = (time - 15600) / 8400
+			c.image(moons[ticks / 24000 & 7], wspan * progress - 64 - reach/4 - pointer.x*cam.z/16, h/2 - 32 + h/3 * sin(progress * PI) - pointer.y*cam.z/16, 64, 64)
+		}
+		c.globalCompositeOperation = 'source-over'
+		c.globalAlpha = 1
+	}else if(world == 'nether'){
+		c.fillStyle = '#190404'
+		c.fillRect(0, 0, w, h)
+		c.globalAlpha = 1
 	}
-	c.globalCompositeOperation = 'source-over'
-	c.globalAlpha = 1
+})
+uiLayer(500, (c, w, h) => {
+	if(world == 'nether'){
+		c.fillStyle = '#200404'
+		c.globalAlpha = 0.2
+		c.fillRect(0, 0, w, h)
+		c.globalAlpha = 1
+	}
 })
 
 const cloudLayers = [
@@ -299,6 +308,9 @@ uiLayer(1000, (c, w, h) => {
 			if(!(h.count -= add))me.inv[36] = null
 			t.count += add
 		}else me.inv[slot] = h, me.inv[36] = t
+		const buf = new DataWriter()
+		buf.byte(32); buf.byte(slot)
+		send(buf)
 	}else if(action == 2 && slot > -1){
 		const t = me.inv[slot], h = me.inv[36]
 		if(t && !h){
@@ -311,6 +323,9 @@ uiLayer(1000, (c, w, h) => {
 			t.count++
 			if(!--h.count)me.inv[36] = null
 		}else me.inv[slot] = h, me.inv[36] = t
+		const buf = new DataWriter()
+		buf.byte(34); buf.byte(slot)
+		send(buf)
 	}
 	c.peek()
 	c.scale(16,16)
@@ -335,22 +350,32 @@ onpause(() => {
 	}
 })
 
-function openEntity(e, id = 0){
+function openEntity(e){
 	pause(true)
 	const buf = new DataWriter()
 	buf.byte(13)
 	buf.int(e._id)
 	buf.short((e._id / 4294967296) | 0)
-	buf.byte(id)
 	send(buf)
 }
 function closeInterface(){ pause(false) }
 
 onpacket(13, buf => {
-	const e = entities.get(buf.int() + buf.short() * 4294967296)
+	const e = entities.get(buf.uint32() + buf.short() * 4294967296)
 	if(!e)return
 	invInterface = e
 	interfaceId = buf.byte()
+})
+onpacket(32, buf => {
+	const e = entities.get(buf.uint32() + buf.short() * 4294967296)
+	if(!e) return
+	while(buf.left)
+		e.inv[buf.byte()] = buf.item()
+})
+onpacket(15, buf => {
+	const e = entities.get(buf.uint32() + buf.short() * 4294967296)
+	if(!e) return
+	e.selected = buf.byte()
 })
 
 button(KEY_E, () => {
