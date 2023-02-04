@@ -4,7 +4,7 @@ import { queue } from "./sounds.js"
 
 function rubberPacket(data){
 	meid = data.uint32() + data.uint16() * 4294967296
-	let e = entities.get(meid)
+	const e = entities.get(meid)
 	if(e && (e != me)) addEntity(e)
 	r = data.byte()
 	TPS = data.float()
@@ -60,7 +60,7 @@ function entityPacket(buf){
 		if(!mv){if(e)removeEntity(e);continue}
 		if(!e){
 			if(mv & 128)mv |= 256, e = EntityIDs[buf.short()]({x:0,y:0,_id: id,dx:0,dy:0,f:0,chunk:null})
-			else e = EntityIDs[0]({x:0,y:0,_id:id,dx:0,dy:0,f:0,chunk:null}) //PANIC safe-guard
+			else throw 'Not supposed to happen!'
 		}else if(mv & 128)Object.setPrototypeOf(e, EntityIDs[buf.short()]._)
 		if(mv & 1)if(abs(e.x - (e.x = buf.double())) > 16 || e == me)e.ix = e.x
 		if(mv & 2)if(abs(e.y - (e.y = buf.double())) > 16 || e == me)e.iy = e.y
