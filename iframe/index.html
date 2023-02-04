@@ -70,7 +70,6 @@
 		 * - Browser
 		 * - Whether it's a scaled draw
 		 * - CPU or GPU
-		 * - vertexOrder (this._vOrder)
 		 * - current transformation matrix
 		 * 
 		 * Additionally, despite docs saying otherwise, specifying a newgative sourceHeight in drawImage does not, in fact, flip the image
@@ -80,7 +79,7 @@
 		 * Any insight by someone who has more knowledge of the workings of Canvas API in v8, tracemonkey or applewebkit would be greatly appreciated
 		 * 
 		 * 
-		 * An alternative solution that I may implement later is for vertexOrder to modify the transformation matrix,
+		 * An alternative solution that I may implement later is to modify the transformation matrix,
 		 * and coordinates be adjusted individually for each operation (including .rect(), .circle(), ...)
 		 */
 		const _fillTxt = C.fillText, _strokeTxt = C.strokeText, {set: setFillStyle, get: getFillStyle} = Object.getOwnPropertyDescriptor(C, 'fillStyle'),{set: setStrokeStyle, get: getStrokeStyle} = Object.getOwnPropertyDescriptor(C, 'strokeStyle')
@@ -89,60 +88,28 @@
 		C.fillText = function(t, x, y, s, maxW = 2147483647){
 			s *= .001
 			const S = 1/s
-			if(this._vOrder < 2){
-				if(this._vOrder == 0){
-					this.scale(s, s)
-					_fillTxt.call(this, t, x*S, y*S, maxW*S)
-					this.scale(S,S)
-				}else{
-					this.scale(s, -s)
-					_fillTxt.call(this, t, x*S, -y*S, maxW*S)
-					this.scale(S,-S)
-				}
-			}else if(this._vOrder == 2){
-				this.scale(-s, s)
-				_fillTxt.call(this, t, -x*S, y*S, maxW*S)
-				this.scale(-S,S)
-			}else{
-				this.scale(-s, -s)
-				_fillTxt.call(this, t, -x*S, -y*S, maxW*S)
-				this.scale(-S,-S)
-			}
+			this.scale(s, -s)
+			_fillTxt.call(this, t, x*S, -y*S, maxW*S)
+			this.scale(S,-S)
 		}
 		C.strokeText = function(t, x, y, s, maxW = Infinity){
 			s *= .001
 			const S = 1/s
-			if(this._vOrder < 2){
-				if(this._vOrder == 0){
-					this.scale(s, s)
-					_strokeTxt.call(this, t, x*S, y*S, maxW)
-					this.scale(S,S)
-				}else{
-					this.scale(s, -s)
-					_strokeTxt.call(this, t, x*S, -y*S, maxW)
-					this.scale(S,-S)
-				}
-			}else if(this._vOrder == 2){
-				this.scale(-s, s)
-				_strokeTxt.call(this, t, -x*S, y*S, maxW)
-				this.scale(-S,S)
-			}else{
-				this.scale(-s, -s)
-				_strokeTxt.call(this, t, -x*S, -y*S, maxW)
-				this.scale(-S,-S)
-			}
+			this.scale(s, -s)
+			_strokeTxt.call(this, t, x*S, -y*S, maxW*S)
+			this.scale(S,-S)
 		}
 		//Canvas API sucks
 		C.image = function(img, x, y, w = img.w, h = img.h){
-			if((this._vOrder < 2) ^ (w < 0)){
-				if((this._vOrder == 0) ^ (h < 0)){
+			if(w > 0){
+				if(h < 0){
 					this.drawImage(img.img, img.x, img.y, img.w, img.h, x, y, w, h)
 				}else{
 					this.scale(1,-1)
 					this.drawImage(img.img, img.x, img.y, img.w, img.h, x, -y, w, -h)
 					this.scale(1,-1)
 				}
-			}else if((this._vOrder == 2) ^ (h < 0)){
+			}else if(h < 0){
 				this.scale(-1,1)
 				this.drawImage(img.img, img.x, img.y, img.w, img.h, -x, y, -w, h)
 				this.scale(-1,1)
@@ -156,16 +123,8 @@
 			const {actualBoundingBoxLeft: left, actualBoundingBoxRight: right, actualBoundingBoxAscent: top, actualBoundingBoxDescent: bottom, width} = this.measureText(txt)
 			return {left: left / 1000, right: right / 1000, top: top / 1000, bottom: bottom / 1000, width: width / 1000}
 		}
-		C.saveTransform = function(a,b,c,d,e,f){
-			this.setTransform(this.savedTransform[0] = a, this.savedTransform[1] = b, this.savedTransform[2] = c, this.savedTransform[3] = d, this.savedTransform[4] = e, this.savedTransform[5] = f)
-		}
-		C.restoreTransform = function(){
-			this.setTransform(this.savedTransform[0], this.savedTransform[1], this.savedTransform[2], this.savedTransform[3], this.savedTransform[4], this.savedTransform[5])
-		}
 		Object.defineProperty(C, 'fillStyle', {get: getFillStyle, set(a){this.setFillStyle(a._pattern||a)}})
 		Object.defineProperty(C, 'strokeStyle', {get: getStrokeStyle, set(a){this.setStrokeStyle(a._pattern||a)}})
-		const vertexOrders = ['top-left', 'bottom-left', 'top-right', 'bottom-right']
-		Object.defineProperty(C, 'vertexOrder', {get(){return vertexOrders[this._vOrder]}, set(a){const i=vertexOrders.indexOf(a);if(i>=0)this._vOrder=i}})
 	})(CanvasRenderingContext2D.prototype)
 	Math.fclamp = (a, b = 1) => a < 0 ? 0 : (a > b ? b : a)
 	Math.ifloat = x => {
@@ -176,12 +135,6 @@
 	const Can = (w = 100, h = 100) => {
 		const c = document.createElement('canvas').getContext('2d')
 		c.canvas.width = w; c.canvas.height = h
-		// Possible values:
-		// top-left = normal document
-		// bottom-left = y-flipped
-		// top-right = x-flipped
-		// bottom-right = xy-flipped
-		c._vOrder = 0
 		c.savedTransform = [1,0,0,1,0,0]
 		return c
 	}

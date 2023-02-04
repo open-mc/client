@@ -13,7 +13,7 @@ export function drawPointer(c){
 	c.rect(ifloat(x + me.x - cam.x) - .3, ifloat(y + me.head + me.y - cam.y) - .03125, .6, .0625)
 	c.rect(ifloat(x + me.x - cam.x) - .03125, ifloat(y + me.head + me.y - cam.y) - .3, .0625, .6)
 	c.globalCompositeOperation = 'difference'
-	c.fillStyle = '#fff'
+	c.fillStyle = '#ccc'
 	c.fill()
   c.globalCompositeOperation = 'source-over'
 	bx = floor(me.x)

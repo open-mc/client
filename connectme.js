@@ -51,10 +51,6 @@ export function preconnect(ip, cb = Function.prototype){
 		}
 		ws.challenge = null
 		if(typeof data == 'string'){
-			if(!data.length){
-				onbeforeunload = () => true
-				for(;;)location=''
-			}
 			const style = parseInt(data.slice(0,2), 16)
 			if(style == -1)return onerror(data.slice(2))
 			else if(style == -2)return onpending(data.slice(2))

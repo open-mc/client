@@ -140,15 +140,14 @@ export function frame(){
 	for(const phase of renderPhases){
 		switch(phase.coordSpace){
 			case 'none': phase(c, c.canvas.width, c.canvas.height); break
-			case 'world': c.vertexOrder = 'bottom-left'; c.saveTransform(SCALE, 0, 0, -SCALE, W2 * SCALE, c.canvas.height - H2 * SCALE); phase(c); break
-			case 'ui': c.vertexOrder = 'top-left'; const s = options.guiScale * devicePixelRatio * 2; c.saveTransform(s, 0, 0, s, 0, 0); phase(c, c.canvas.width /  s, c.canvas.height /  s); break
+			case 'world': c.setTransform(SCALE, 0, 0, -SCALE, W2 * SCALE, c.canvas.height - H2 * SCALE); phase(c); break
+			case 'ui': const s = options.guiScale * devicePixelRatio * 2; c.setTransform(s, 0, 0, -s, 0, c.canvas.height); phase(c, c.canvas.width /  s, c.canvas.height /  s); break
 			default: console.error('Invalid coordinate space: ' + phase.coordSpace)
 		}
 	}
 }
 drawPhase(0, (c, w, h) => {
 	c.setTransform(1,0,0,1,0,h)
-	c.vertexOrder = 'bottom-left'
 	for(const chunk of map.values()){
 		const x0 = round(ifloat((chunk.x << 6) - cam.x + W2) * SCALE)
 		const x1 = round(ifloat((chunk.x + 1 << 6) - cam.x + W2) * SCALE)
@@ -162,11 +161,10 @@ drawPhase(0, (c, w, h) => {
 })
 
 drawPhase(100, (c, w, h) => {
-	c.vertexOrder = 'bottom-left'
-	const hitboxes = buttons.has(KEY_TAB) ^ renderBoxes
+	const hitboxes = buttons.has(KEY_SYMBOL) ^ renderBoxes
 	for(const entity of entities.values()){
 		if(!entity.render)continue
-		c.saveTransform(SCALE, 0, 0, -SCALE, ifloat(entity.ix - cam.x + W2) * SCALE, ifloat(cam.y - H2 - entity.iy) * SCALE + h)
+		c.setTransform(SCALE, 0, 0, -SCALE, ifloat(entity.ix - cam.x + W2) * SCALE, ifloat(cam.y - H2 - entity.iy) * SCALE + h)
 		if(hitboxes){
 			c.strokeStyle = '#fff'
 			c.lineWidth = 0.0625
@@ -182,9 +180,9 @@ renderLayer(200, c => {
 })
 
 uiLayer(1000, (c, w, h) => {
-	if(renderF3 == buttons.has(KEY_TAB))return
+	if(renderF3 == buttons.has(KEY_SYMBOL))return
 	c.textAlign = 'left'
-	let y = 1
+	let y = h - 1
 	for(const t of `Paper Minecraft ${VERSION}
 FPS: ${round(1/dt)}, ELU: ${min(99.9,elusmooth/10*TPS).toFixed(1).padStart(4,"0")}%
 Ch: ${map.size}, E: ${entities.size}, N: ${document.all.length}
@@ -194,25 +192,25 @@ Looking at: ${floor(pointer.x + me.x)|0} ${floor(pointer.y + me.y + me.head)|0}
 Facing: ${(me.f >= 0 ? 'R ' : 'L ') + (90 - abs(me.f / PI2 * 360)).toFixed(1).padStart(5, '\u2007')} (${(me.f / PI2 * 360).toFixed(1)})
 `.slice(0, -1).split('\n')){
 		let {top, bottom, width} = c.measure(t)
-		top = top * 10 + 1; bottom = bottom * 10 + 1; width = width * 10 + 2
+		top = top * 10 + 1; bottom = bottom * 10 + 1; width = width * 10 + 2; y -= top + bottom
 		c.fillStyle = '#7777'
 		c.fillRect(1, y, width, top + bottom)
 		c.fillStyle = '#fff'
-		c.fillText(t, 2, y += top, 10, w/1-3); y += bottom
+		c.fillText(t, 2, y + bottom, 10, w/1-3)
 	}
 	const mex = floor(me.x) >> 3 & 6, mexi = (floor(me.x) & 15) / 16
-	y = 1
+	y = h - 1
 	c.textAlign = 'right'
 	for(const t of `Tick ${ticks}, Day ${floor((ticks+6000)/24000)}, Time ${floor((ticks/1000+6)%24).toString().padStart(2,'0')}:${(floor((ticks/250)%4)*15).toString().padStart(2,'0')}
 Dimension: ${world}
 Biome: ${me.chunk ? round(me.chunk.biomes[mex] * (1 - mexi) + me.chunk.biomes[mex+2] * mexi) : 0}/${me.chunk ? round(me.chunk.biomes[mex+1] * (1 - mexi) + me.chunk.biomes[mex+3] * mexi) : 0}
 `.slice(0, -1).split('\n')){
 		let {top, bottom, width} = c.measure(t)
-		top = top * 10 + 1; bottom = bottom * 10 + 1; width = width * 10 + 2
+		top = top * 10 + 1; bottom = bottom * 10 + 1; width = width * 10 + 2; y -= top + bottom
 		c.fillStyle = '#7777'
 		c.fillRect(w - width - 1, y, width, top + bottom)
 		c.fillStyle = '#fff'
-		c.fillText(t, w - 2, y += top, 10, w/1-3); y += bottom
+		c.fillText(t, w - 2, y + bottom, 10, w/1-3);
 	}
 })
 

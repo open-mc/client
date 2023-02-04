@@ -20,8 +20,8 @@ button = (...keys) => {
 export const playerControls = () => {
 	const R = buttons.has(KEY_RIGHT) || buttons.has(KEY_D)
 	const L = buttons.has(KEY_LEFT) || buttons.has(KEY_A)
-	const D = buttons.has(KEY_DOWN) || buttons.has(KEY_S) || buttons.has(KEY_SHIFT)
-	if(D ^ buttons.has(KEY_CAPSLOCK)) me.state |= 2
+	const D = buttons.has(KEY_DOWN) || buttons.has(KEY_S)
+	if(D ^ buttons.has(KEY_SHIFT) ^ buttons.has(KEY_CAPSLOCK)) me.state |= 2
 	else me.state &= -3
 	if(D && (me.state & 1)) me.dy = -5
 	if(R && !L) me.dx = (me.state & 3) == 2 ? 1 : 5; else if(L && !R) me.dx = (me.state & 3) == 2 ? -1 : -5
@@ -45,7 +45,7 @@ button(KEY_UP, KEY_W, KEY_SPACE, () => {
 	}else lastPressUp = t
 })
 export let renderF3 = false, renderBoxes = false
-let renderBoxes_o = true
+let renderBoxes_o = false
 button(KEY_F3, () => {
 	if(buttons.has(KEY_ALT) || buttons.has(KEY_MOD)) renderBoxes = !renderBoxes
 	else{

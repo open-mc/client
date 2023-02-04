@@ -35,7 +35,6 @@ Entities.player = {
 	render(c){
 		if(!this.textures) return
 		const angle = (this.state & 3) == 2 ? sin(t * 4) * this.dx / 5 : sin(t * 12) * this.dx / 10, xs = this.f >= 0 ? 0.9 : -0.9, ys = this.name == 'Dinnerbone' || this.name == 'Grumm' ? -0.9 : 0.9
-
 		if(this.name && this != me){
 			c.textAlign = 'center'
 			const {width, top, bottom} = c.measure(this.name)
@@ -83,7 +82,7 @@ Entities.player = {
 			c.rotate(-angle)
 			c.image(this.textures.arm1, -0.125, -0.625, 0.25, 0.75)
 			c.rotate(angle)
-			c.translate(0,0.075)
+			c.translate(0,0.1)
 		}
 		c.rotate(PI/2-abs(this.f))
 		c.image(this.textures.head, -0.25, 0, 0.5, 0.5)
@@ -117,17 +116,15 @@ Entities.player = {
 		// x=0, y=0 => left middle
 		// x=176 => right
 		if(id == 0){
-			c.image(meInterface, 0, -meInterface.h)
-			c.translate(50,-5)
-			c.scale(32,-32)
-			c.vertexOrder = 'bottom-left'
+			c.image(meInterface, 0, 0)
+			c.translate(50,5)
+			c.scale(32,32)
 			const f = this.f
 			this.f = atan2(mx - 50, -my - this.head * 32 - 5)
 			this.render(c)
 			this.f = f
-			c.vertexOrder = 'top-left'
-			c.scale(.03125,-.03125)
-			c.translate(-50,5)
+			c.scale(.03125,.03125)
+			c.translate(-50,-5)
 		}
 	}
 }
@@ -228,13 +225,13 @@ const meInterface = Texture('/cli/meint.png')
 
 uiLayer(1000, (c, w, h) => {
 	let hotBarLeft = w / 2 - hotbar.w/2
-	const hotBarTop = h - hotbar.h - 5
-	c.image(hotbar, hotBarLeft, hotBarTop, hotbar.w, hotbar.h)
-	c.image(slot, hotBarLeft - 1 + me.selected * 20, hotBarTop - 1, slot.w, slot.h)
+	const hotBarBottom = 5
+	c.image(hotbar, hotBarLeft, hotBarBottom, hotbar.w, hotbar.h)
+	c.image(slot, hotBarLeft - 1 + me.selected * 20, hotBarBottom - 1, slot.w, slot.h)
 	if(!me || !me.inv)return
 	for(let i = 0; i < 9; i++){
 		if(!me.inv[i])continue
-		c.image(me.inv[i].texture, hotBarLeft + 3, hotBarTop + 3, 16, 16)
+		c.image(me.inv[i].texture, hotBarLeft + 3, hotBarBottom + 3, 16, 16)
 		hotBarLeft += 20
 	}
 	if(!invInterface) return
@@ -243,7 +240,10 @@ uiLayer(1000, (c, w, h) => {
 	c.fillRect(0, 0, w, h)
 	c.globalAlpha = 1
 	c.translate(w / 2 - 88, h / 2)
-	c.image(inventory, 0, 0)
+	c.image(inventory, 0, -inventory.h)
+	for(let i = 0; i < 9; i++){
+
+	}
 	invInterface.drawInterface(interfaceId, c, mx - w / 2 + 88, my - h / 2)
 	c.translate(w / -2 + 88, h / -2)
 })
@@ -281,3 +281,13 @@ button(KEY_E, () => {
 	if(paused)return closeInterface()
 	openEntity(me)
 })
+
+
+
+function renderItem(c, item, showCount = true){
+	if(!texture) return
+	c.image(item.texture, -0.5, 0, 1, 1)
+	if(showCount){
+		c.fillText(item.count + '', )
+	}
+}

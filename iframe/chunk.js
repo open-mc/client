@@ -102,7 +102,7 @@ export class Chunk{
 			for(let y = 0; y < 64; y++){
 				const t = this.tiles[x|(y<<6)].texture
 				if(!t)continue
-				this.ctx.image(t,x*TEX_SIZE,(63-y)*TEX_SIZE,TEX_SIZE,TEX_SIZE)
+				this.ctx.drawImage(t.img,t.x,t.y,t.w,t.h,x*TEX_SIZE,(63-y)*TEX_SIZE,TEX_SIZE,TEX_SIZE)
 			}
 		}
 	}

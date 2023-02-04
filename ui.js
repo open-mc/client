@@ -19,13 +19,14 @@ HTMLElement.prototype.attr = function(a, b){this.setAttribute(a, b); return this
 for(const n of [HTMLCollection, NodeList])Object.setPrototypeOf(n.prototype, Array.prototype)
 
 const NONE = document.createComment('')
-NONE.esc = () => hideUI()
+NONE.esc = hideUI
 document.body.append(NONE)
 export let ui = null
 export async function hideUI(){
 	if(!ui)return
 	try{
 		await document.body.requestPointerLock()
+		if(!document.pointerLockElement)return
 		ui.replaceWith(NONE)
 		void (ui.finish||Function.prototype)()
 		ui = null
