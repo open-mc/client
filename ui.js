@@ -21,12 +21,15 @@ for(const n of [HTMLCollection, NodeList])Object.setPrototypeOf(n.prototype, Arr
 export const NONE = document.createComment('')
 NONE.esc = hideUI
 document.body.append(NONE)
+
+export let ptrSuccess = Function.prototype, ptrFail = Function.prototype
+const ptrlock = () => new Promise((r, c) => { document.body.requestPointerLock(); ptrSuccess = r; ptrFail = c })
+
 export let ui = null
 export async function hideUI(){
 	if(!ui)return
 	try{
-		await document.body.requestPointerLock()
-		if(!document.pointerLockElement)return
+		await ptrlock()
 		ui.replaceWith(NONE)
 		void (ui.finish||Function.prototype)()
 		ui = null

@@ -1,7 +1,7 @@
 import { keyMsg, win } from "./iframe.js"
 import { options } from "./save.js"
 import { pause } from "./uis/pauseui.js"
-import { ui, hideUI, NONE } from "./ui.js"
+import { ui, hideUI, NONE, ptrFail, ptrSuccess } from "./ui.js"
 
 onkeydown = e => {
 	if(document.activeElement != document.body && e.key != 'Escape')return
@@ -14,7 +14,7 @@ onkeyup = e => {
 	if(document.activeElement != document.body && e.key != 'Escape')return
 	else if(e.key == 'Escape'){
 		if(ignoreEsc){ignoreEsc = false; return}
-		if(ui.esc) ui.esc()
+		if(ui && ui.esc) ui.esc()
 		return
 	}
 	if(win) keyMsg(~e.keyCode)
@@ -36,7 +36,9 @@ HTMLElement.prototype.requestFullscreen = HTMLElement.prototype.requestFullscree
 let wasFullscreen = false
 let ignoreEsc = false
 document.onpointerlockerror = document.onpointerlockchange = function(e){
-	if(document.pointerLockElement){
+	if(e.type == 'error' || e.type == 'pointerlockerror') ptrFail(), keyMsg(true)
+	else if(document.pointerLockElement){
+		ptrSuccess()
 		keyMsg(false)
 		if(wasFullscreen)document.documentElement.requestFullscreen()
 	}else{
