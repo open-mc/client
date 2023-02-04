@@ -77,8 +77,7 @@ export function drawPointer(c){
 		c.globalAlpha = 1
 	}
 	me.f = atan2(x, y)
-	const now = Date.now()
-	place: if(buttons.has(LBUTTON) && bpx == bpx && now > lastPlace + 200){
+	place: if(buttons.has(LBUTTON) && bpx == bpx && t > lastPlace + .18){
 		let b = me.inv[me.selected]
 		if(!b || !b.places)break place
 		b = b.places()
@@ -90,8 +89,8 @@ export function drawPointer(c){
 		buf.int(bpy)
 		buf.short(b.id)
 		send(buf)
-		lastPlace = now
-	}else if(buttons.has(RBUTTON) && bx == bx && now > lastPlace + 200){
+		lastPlace = t
+	}else if(buttons.has(RBUTTON) && bx == bx && t > lastPlace + .18){
 		setblock(bx, by, Blocks.air())
 		let buf = new DataWriter()
 		buf.byte(8)
@@ -99,7 +98,7 @@ export function drawPointer(c){
 		buf.int(by)
 		buf.short(0)
 		send(buf)
-		lastPlace = now
+		lastPlace = t
 	}
 }
 button(LBUTTON, RBUTTON, () => lastPlace = 0)

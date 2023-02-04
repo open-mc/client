@@ -1,4 +1,5 @@
 const terrainPng = Texture("/cli/terrain.png")
+const MISSING = terrainPng.at(15, 1)
 Blocks.grass = { texture: terrainPng.at(3, 0), solid: true }
 Blocks.stone = { texture: terrainPng.at(1, 0), solid: true }
 Blocks.dirt = { texture: terrainPng.at(2, 0), solid: true }
@@ -387,7 +388,7 @@ button(KEY_E, () => {
 
 function renderItem(c, item, showCount = item && item.count != 1){
 	if(!item) return
-	c.image(item.texture, -0.5, 0, 1, 1)
+	c.image(item.texture || MISSING, -0.5, 0, 1, 1)
 	if(showCount){
 		c.textBaseline = 'alphabetic'
 		c.textAlign = 'right'
