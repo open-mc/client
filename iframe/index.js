@@ -37,6 +37,7 @@ function tick(){ //20 times a second
 		buf.float(me.dx)
 		buf.float(me.dy)
 		buf.float(me.f)
+		buf.byte(me.selected)
 		send(buf)
 	}
 	ticks++

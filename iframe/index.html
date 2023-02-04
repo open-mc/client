@@ -123,6 +123,29 @@
 			const {actualBoundingBoxLeft: left, actualBoundingBoxRight: right, actualBoundingBoxAscent: top, actualBoundingBoxDescent: bottom, width} = this.measureText(txt)
 			return {left: left / 1000, right: right / 1000, top: top / 1000, bottom: bottom / 1000, width: width / 1000}
 		}
+		C.push = function(){
+			//V8 says we can avoid allocation because the object does not escape. We extract props and add them directly to the array, avoiding the super expensive DOMMatrix object allocation. If you try and touch the following line, you better be sleeping with one eye open...
+			const {a, b, c, d, e, f} = this.getTransform()
+			this.transforms.push(f, e, d, c, b, a)
+		}
+		C.pop = function(){
+			this.setTransform(this.transforms.pop(), this.transforms.pop(), this.transforms.pop(), this.transforms.pop(), this.transforms.pop(), this.transforms.pop())
+		}
+		C.peek = function(){
+			const l = this.transforms.length
+			this.setTransform(this.transforms[l-1], this.transforms[l-2], this.transforms[l-3], this.transforms[l-4], this.transforms[l-5], this.transforms[l-6])
+		}
+		C.mouse = function(){
+			const {a, b, c, d, e, f} = this.getTransform()
+			const det = a * d - b * c
+			// x y 1
+			// a c e -> x
+			// b d f -> y
+			return {
+				x: mx * d / det - mx * c / det + (c * f - d * e) / det,
+				y: my * a / det - my * b / det + (b * e - a * f) / det
+			}
+		}
 		Object.defineProperty(C, 'fillStyle', {get: getFillStyle, set(a){this.setFillStyle(a._pattern||a)}})
 		Object.defineProperty(C, 'strokeStyle', {get: getStrokeStyle, set(a){this.setStrokeStyle(a._pattern||a)}})
 	})(CanvasRenderingContext2D.prototype)
@@ -135,7 +158,8 @@
 	const Can = (w = 100, h = 100) => {
 		const c = document.createElement('canvas').getContext('2d')
 		c.canvas.width = w; c.canvas.height = h
-		c.savedTransform = [1,0,0,1,0,0]
+		//Possible consideration: filling the array with
+		c.transforms = []
 		return c
 	}
 	const Blocks = {}, Items = {}, Entities = {}

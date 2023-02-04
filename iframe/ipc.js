@@ -41,7 +41,7 @@ const onMsg = ({data}) => {
 			thing.savedata = jsonToType(a.pop()||'null')
 			thing.savedatahistory = a.map(jsonToType)
 			const f = dict == Blocks ? 
-				thing.savedata ? (data = {}) => Object.setPrototypeOf(data, thing) : _ => thing
+				thing.savedata ? (data = {}) => Object.setPrototypeOf(data, thing) : (i => i).bind(undefined, Object.create(thing))
 			: dict == Items ?
 				(count, data = {}) => (data.count=count|0,data.name = data.name||'',Object.setPrototypeOf(data, thing))
 			: (data = {}) => {
@@ -55,6 +55,7 @@ const onMsg = ({data}) => {
 					return data
 				}
 			f._ = thing
+			thing.constructor = f
 			dict[name] = f
 			return f
 		}

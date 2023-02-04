@@ -37,7 +37,7 @@ export class DataReader extends DataView{
 				if(len >= 64){
 					if(len >= 128)len = this.getUint32(this.i) & 0x7FFFFFFF, this.i += 4
 					else len = this.getUint16(this.i) & 0x3FFF, this.i += 2
-				}else len &= 0x3F, this.i++
+				}else this.i++
 			}
 			while(len--)target.push(this.read(type[0]))
 			return target
@@ -62,13 +62,21 @@ export class DataReader extends DataView{
 	float64(){ return this.getFloat64((this.i+=8)-8) }
 	bool(){return this.getUint8(this.i++) != 0}
 	boolean(){return this.getUint8(this.i++) != 0}
+	flint(){
+		let n = this.getUint8(this.i)
+		if(n >= 64){
+			if(n >= 128)n = this.getUint32(this.i) & 0x7FFFFFFF, this.i += 4
+			else n = this.getUint16(this.i) & 0x3FFF, this.i += 2
+		}else this.i++
+		return n
+	}
 	uint8array(){
 		let i = this.i
 		let len = this.getUint8(i)
 		if(len >= 64){
 			if(len >= 128)len = this.getUint32(i) & 0x7FFFFFFF, i += 4
 			else len = this.getUint16(i) & 0x3FFF, i += 2
-		}else len &= 0x3F, i++
+		}else i++
 		this.i = i + len
 		return new Uint8Array(this.buffer, i, len)
 	}
@@ -78,7 +86,7 @@ export class DataReader extends DataView{
 		if(len >= 64){
 			if(len >= 128)len = this.getUint32(i) & 0x7FFFFFFF, i += 4
 			else len = this.getUint16(i) & 0x3FFF, i += 2
-		}else len &= 0x3F, i++
+		}else i++
 		this.i = i + len
 		return decoder.decode(new Uint8Array(this.buffer, i, len))
 	}
@@ -89,9 +97,9 @@ export class DataReader extends DataView{
 		this.i += 2
 		if(!item)return null
 		if(!target)target = item(count)
-		else target.count = count, target._ = item._
+		else target.count = count, Object.setPrototypeOf(target, Object.getPrototypeOf(item))
 		target.name = this.string()
-		if(item._.savedata)this.read(item._.savedata, target)
+		if(target.savedata)this.read(target.savedatahistory[this.flint()] || target.savedata, target)
 		return target
 	}
 	get left(){return this.byteLength - this.i}
@@ -135,7 +143,7 @@ export class DataWriter extends Array{
 				buf.setUint8(this.i++, v.count)
 				buf.setUint16(this.i, v.id); this.i += 2
 				this.string(v.name)
-				if(v._.savedata)this.write(v._.savedata, v)
+				if(v.savedata)this.write(v.savedatahistory[this.flint()] || v.savedata, v)
 				return
 		}
 		if(Array.isArray(type)){
@@ -144,9 +152,9 @@ export class DataWriter extends Array{
 			else{
 				len = v.length
 				if(len > 0x3FFF){
-					if(len <= 0x7FFFFFFF)throw new RangeError('Encoded arrays may not have more than 2147483647 items')
-					else buf.setUint32((this.i += 4) - 4, len + 0x80000000)
-				}else if(len > 0x3F)buf.setUint16((this.i += 2) - 2, len + 0x4000)
+					if(len > 0x7FFFFFFF)throw new RangeError('Encoded arrays may not have more than 2147483647 items')
+					else buf.setUint32((this.i += 4) - 4, len | 0x80000000)
+				}else if(len > 0x3F)buf.setUint16((this.i += 2) - 2, len | 0x4000)
 				else buf.setUint8(this.i++, len)
 			} 
 			for(let i = 0; i < len; i++)this.write(type[0], v[i])
@@ -170,14 +178,21 @@ export class DataWriter extends Array{
 	float64(n){ if(this.i > this.cur.byteLength - 8)this.allocnew(); this.cur.setFloat64((this.i+=8)-8, n) }
 	bool(n){ if(this.i == this.cur.byteLength)this.allocnew(); this.cur.setUint8(this.i++, n) }
 	boolean(n){ if(this.i == this.cur.byteLength)this.allocnew(); this.cur.setUint8(this.i++, n) }
+	flint(n){
+		if(n > 0x3FFF){
+			if(n > 0x7FFFFFFF)throw new RangeError('n > 2147483647')
+			else this.cur.setUint32((this.i += 4) - 4, n | 0x80000000)
+		}else if(n > 0x3F)this.cur.setUint16((this.i += 2) - 2, n | 0x4000)
+		else this.cur.setUint8(this.i++, n)
+	}
 	uint8array(v){
 		if(this.i > this.cur.byteLength - 4)this.allocnew()
 		const len = v.length
 		const buf = this.cur
 		if(len > 0x3FFF){
-			if(len <= 0x7FFFFFFF)throw new RangeError('Encoded strings may not have more than 2147483647 characters')
-			else buf.setUint32((this.i += 4) - 4, len + 0x80000000)
-		}else if(len > 0x3F)buf.setUint16((this.i += 2) - 2, len + 0x4000)
+			if(len > 0x7FFFFFFF)throw new RangeError('Encoded strings may not have more than 2147483647 characters')
+			else buf.setUint32((this.i += 4) - 4, len | 0x80000000)
+		}else if(len > 0x3F)buf.setUint16((this.i += 2) - 2, len | 0x4000)
 		else buf.setUint8(this.i++, len)
 		const avail = buf.byteLength - this.i
 		if(len <= avail){
@@ -200,9 +215,9 @@ export class DataWriter extends Array{
 		const len = encoded.length
 		const buf = this.cur
 		if(len > 0x3FFF){
-			if(len <= 0x7FFFFFFF)throw new RangeError('Encoded strings may not have more than 2147483647 characters')
-			else buf.setUint32((this.i += 4) - 4, len + 0x80000000)
-		}else if(len > 0x3F)buf.setUint16((this.i += 2) - 2, len + 0x4000)
+			if(len > 0x7FFFFFFF)throw new RangeError('Encoded strings may not have more than 2147483647 characters')
+			else buf.setUint32((this.i += 4) - 4, len | 0x80000000)
+		}else if(len > 0x3F)buf.setUint16((this.i += 2) - 2, len | 0x4000)
 		else buf.setUint8(this.i++, len)
 		const avail = buf.byteLength - this.i
 		if(len <= avail){
@@ -225,7 +240,7 @@ export class DataWriter extends Array{
 		this.cur.setUint8(this.i++, v.count)
 		this.cur.setUint16(this.i, v.id); this.i += 2
 		this.string(v.name)
-		if(v._.savedata)this.write(v._.savedata, v)
+		if(v.savedata)this.write(v.savedatahistory[this.flint()] || v.savedata, v)
 	}
 	pipe(sock){ sock.send(this.build()) }
 	build(paddingStart = 0, paddingEnd = 0){

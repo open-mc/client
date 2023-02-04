@@ -1,7 +1,7 @@
 import { keyMsg, win } from "./iframe.js"
 import { options } from "./save.js"
 import { pause } from "./uis/pauseui.js"
-import { ui, hideUI } from "./ui.js"
+import { ui, hideUI, NONE } from "./ui.js"
 
 onkeydown = e => {
 	if(document.activeElement != document.body && e.key != 'Escape')return
@@ -20,7 +20,7 @@ onkeyup = e => {
 	if(win) keyMsg(~e.keyCode)
 	e.preventDefault()
 }
-onmousedown = e => win && !ui && keyMsg(e.button)
+onmousedown = e => win && (!ui || ui == NONE) && keyMsg(e.button)
 onmouseup = e => win && keyMsg(~e.button)
 
 const cbs = {}

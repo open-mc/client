@@ -18,7 +18,7 @@ HTMLElement.prototype.attr = function(a, b){this.setAttribute(a, b); return this
 
 for(const n of [HTMLCollection, NodeList])Object.setPrototypeOf(n.prototype, Array.prototype)
 
-const NONE = document.createComment('')
+export const NONE = document.createComment('')
 NONE.esc = hideUI
 document.body.append(NONE)
 export let ui = null

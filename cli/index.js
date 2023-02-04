@@ -63,6 +63,11 @@ Entities.player = {
 			c.rotate(-angle)
 			c.translate(0.3, 0.45)
 			c.rotate(-angle - .5)
+			c.translate(0.2,-0.8)
+			c.scale(0.4,0.4)
+			renderItem(c, this.inv[this.selected], false)
+			c.scale(2.5,2.5)
+			c.translate(-0.2,0.8)
 			c.image(this.textures.arm1, -0.125, -0.625, 0.25, 0.75)
 			c.rotate(angle + .5)
 		}else{
@@ -80,6 +85,11 @@ Entities.player = {
 			c.rotate(-angle)
 			c.translate(0, 0.625)
 			c.rotate(-angle)
+			c.translate(0.2,-0.8)
+			c.scale(0.4,0.4)
+			renderItem(c, this.inv[this.selected], false)
+			c.scale(2.5,2.5)
+			c.translate(-0.2,0.8)
 			c.image(this.textures.arm1, -0.125, -0.625, 0.25, 0.75)
 			c.rotate(angle)
 			c.translate(0,0.1)
@@ -106,13 +116,14 @@ Entities.player = {
 			leg2: can.texture(16, 0, 4, 12)
 		}
 		this.inv[0] = Items.oak_log(1)
-		this.inv[1] = Items.stone(1)
-		this.inv[2] = Items.sandstone(1)
+		this.inv[1] = Items.stone(2)
+		this.inv[2] = Items.sandstone(3)
+		this.inv[3] = Items.oak_planks(4)
 	},
 	width: 0.3,
 	get height(){return this.state & 2 ? 1.5 : 1.8},
 	get head(){return this.state & 2 ? 1.4 : 1.6},
-	drawInterface(id, c, mx, my){
+	drawInterface(id, c){
 		// x=0, y=0 => left middle
 		// x=176 => right
 		if(id == 0){
@@ -120,7 +131,8 @@ Entities.player = {
 			c.translate(50,5)
 			c.scale(32,32)
 			const f = this.f
-			this.f = atan2(mx - 50, -my - this.head * 32 - 5)
+			const {x, y} = c.mouse()
+			this.f = atan2(x, y - me.head)
 			this.render(c)
 			this.f = f
 			c.scale(.03125,.03125)
@@ -151,26 +163,26 @@ uiLayer(-100, (c, w, h) => {
 	else if(time >= 13800 && time < 15600)orangeness = 1 - abs(time - 14700)/900
 	const wspan = w + 64 + reach/2
 	let gradient = c.createLinearGradient(0, 0, 0, h)
-	gradient.addColorStop(0.3, '#040609')
-	gradient.addColorStop(0.7, '#0a0c14')
+	gradient.addColorStop(0.3, '#0a0c14')
+	gradient.addColorStop(0.7, '#040609')
 	c.fillStyle = gradient
 	c.fillRect(0, 0, w, h)
 	c.rect(0, 0, w, h)
 	const xo = wspan * ((time + 12600) % 24000 / 8400 - .5) - 20 - reach/4 - pointer.x*cam.z/16
-	const yo = h/2 - 70 - h/4 * sin(((time + 12600) % 24000 / 8400 - .5) * PI) + pointer.y*cam.z/16
+	const yo = h/2 + 6 + h/3 * sin(((time + 12600) % 24000 / 8400 - .5) * PI) - pointer.y*cam.z/16
 	c.translate(xo, yo)
 	c.fillStyle = stars
 	c.fill()
 	c.translate(-xo, -yo)
 	gradient = c.createLinearGradient(0, 0, 0, h)
-	gradient.addColorStop(0.3, '#78a7ff')
-	gradient.addColorStop(0.7, '#c3d2ff')
+	gradient.addColorStop(0.3, '#c3d2ff')
+	gradient.addColorStop(0.7, '#78a7ff')
 	c.globalAlpha = light
 	c.fillStyle = gradient
 	c.fillRect(0, 0, w, h)
 	gradient = c.createLinearGradient(0, 0, 0, h)
-	gradient.addColorStop(0.3, 'transparent')
-	gradient.addColorStop(0.7, '#c5563b')
+	gradient.addColorStop(0.3, '#c5563b')
+	gradient.addColorStop(0.7, 'transparent')
 	c.globalAlpha = orangeness
 	c.fillStyle = gradient
 	c.fillRect(0, 0, w, h)
@@ -178,10 +190,10 @@ uiLayer(-100, (c, w, h) => {
 	c.globalCompositeOperation = 'lighter'
 	if(time < 15600){
 		const progress = time / 15600
-		c.image(sun, wspan * progress - 64 - reach/4 - pointer.x*cam.z/16, h/2 - 96 - h/4 * sin(progress * PI) + pointer.y*cam.z/16, 64, 64)
+		c.image(sun, wspan * progress - 64 - reach/4 - pointer.x*cam.z/16, h/2 - 32 + h/3 * sin(progress * PI) - pointer.y*cam.z/16, 64, 64)
 	}else{
 		const progress = (time - 15600) / 8400
-		c.image(moons[ticks / 24000 & 7], wspan * progress - 64 - reach/4 - pointer.x*cam.z/16, h/2 - 96 - h/4 * sin(progress * PI) + pointer.y*cam.z/16, 64, 64)
+		c.image(moons[ticks / 24000 & 7], wspan * progress - 64 - reach/4 - pointer.x*cam.z/16, h/2 - 32 + h/3 * sin(progress * PI) - pointer.y*cam.z/16, 64, 64)
 	}
 	c.globalCompositeOperation = 'source-over'
 	c.globalAlpha = 1
@@ -219,36 +231,100 @@ renderLayer(150, c => {
 })
 
 const hotbar = Texture('/cli/hotbar.png')
-const slot = Texture('/cli/slot.png')
+const selected = Texture('/cli/slot.png')
 const inventory = Texture('/cli/inv.png')
 const meInterface = Texture('/cli/meint.png')
 
 uiLayer(1000, (c, w, h) => {
 	let hotBarLeft = w / 2 - hotbar.w/2
-	const hotBarBottom = 5
-	c.image(hotbar, hotBarLeft, hotBarBottom, hotbar.w, hotbar.h)
-	c.image(slot, hotBarLeft - 1 + me.selected * 20, hotBarBottom - 1, slot.w, slot.h)
-	if(!me || !me.inv)return
+	c.push()
+	c.translate(hotBarLeft, 5)
+	c.image(hotbar, 0, 0, hotbar.w, hotbar.h)
+	c.translate(11, 3)
+	c.scale(16, 16)
 	for(let i = 0; i < 9; i++){
-		if(!me.inv[i])continue
-		c.image(me.inv[i].texture, hotBarLeft + 3, hotBarBottom + 3, 16, 16)
-		hotBarLeft += 20
+		renderItem(c, me.inv[i])
+		if(i == me.selected) c.image(selected, -0.75, -0.25, 1.5, 1.5)
+		c.translate(1.25, 0)
 	}
+	c.pop()
+
+	const action = invAction
+	invAction = 0
 	if(!invInterface) return
 	c.fillStyle = '#000'
 	c.globalAlpha = 0.2
 	c.fillRect(0, 0, w, h)
 	c.globalAlpha = 1
+	let slot = -1
 	c.translate(w / 2 - 88, h / 2)
+	c.push()
+	invInterface.drawInterface(interfaceId, c)
+	c.peek()
 	c.image(inventory, 0, -inventory.h)
+	c.translate(16,8 - inventory.h)
+	c.scale(16,16)
 	for(let i = 0; i < 9; i++){
-
+		renderItem(c, me.inv[i])
+		const {x, y} = c.mouse()
+		if(y >= 0 && y < 1 && x >= -0.5 && x < .5 && slot == -1){
+			c.fillStyle = '#fff'
+			c.globalAlpha = 0.2
+			c.fillRect(-0.5, 0, 1, 1)
+			c.globalAlpha = 1
+			slot = i
+		}
+		c.translate(1.125,0)
 	}
-	invInterface.drawInterface(interfaceId, c, mx - w / 2 + 88, my - h / 2)
-	c.translate(w / -2 + 88, h / -2)
+	c.translate(-10.125, 1.375)
+	for(let i = 9; i < 36; i++){
+		renderItem(c, me.inv[i])
+		const {x, y} = c.mouse()
+		if(y >= 0 && y < 1 && x >= -0.5 && x < .5 && slot == -1){
+			c.fillStyle = '#fff'
+			c.globalAlpha = 0.2
+			c.fillRect(-0.5, 0, 1, 1)
+			c.globalAlpha = 1
+			slot = i
+		}
+		if(i % 9 == 8) c.translate(-9, 1.125)
+		else c.translate(1.125,0)
+	}
+	if(action == 1 && slot > -1){
+		const t = me.inv[slot], h = me.inv[36]
+		if(t && !h) me.inv[36] = t, me.inv[slot] = null
+		else if(h && !t) me.inv[slot] = h, me.inv[36] = null
+		else if(h && t && h.constructor == t.constructor && !h.savedata){
+			const add = min(h.count, (t.maxStack || 64) - t.count)
+			if(!(h.count -= add))me.inv[36] = null
+			t.count += add
+		}else me.inv[slot] = h, me.inv[36] = t
+	}else if(action == 2 && slot > -1){
+		const t = me.inv[slot], h = me.inv[36]
+		if(t && !h){
+			me.inv[36] = t.constructor(t.count - (t.count >>= 1))
+			if(!t.count)me.inv[slot] = null
+		}else if(h && !t){
+			me.inv[slot] = h.constructor(1)
+			if(!--h.count)me.inv[36] = null
+		}else if(h && t && h.constructor == t.constructor && !h.savedata && t.count < (t.maxStack || 64)){
+			t.count++
+			if(!--h.count)me.inv[36] = null
+		}else me.inv[slot] = h, me.inv[36] = t
+	}
+	c.peek()
+	c.scale(16,16)
+	const {x, y} = c.mouse()
+	c.translate(x, y - .5)
+	renderItem(c, me.inv[36])
+	c.pop()
 })
 
 let invInterface = null, interfaceId = 0
+let invAction = 0
+button(LBUTTON, () => invAction = 1)
+button(RBUTTON, () => invAction = 2)
+button(MBUTTON, () => invAction = 3)
 
 onpause(() => {
 	if(!paused && invInterface){
@@ -284,10 +360,15 @@ button(KEY_E, () => {
 
 
 
-function renderItem(c, item, showCount = true){
-	if(!texture) return
+function renderItem(c, item, showCount = item && item.count != 1){
+	if(!item) return
 	c.image(item.texture, -0.5, 0, 1, 1)
 	if(showCount){
-		c.fillText(item.count + '', )
+		c.textBaseline = 'alphabetic'
+		c.textAlign = 'right'
+		c.fillStyle = '#000'
+		c.fillText(item.count + '', 0.56, -0.06, 0.6)
+		c.fillStyle = item.count === (item.count & 127) ? '#fff' : '#e44'
+		c.fillText(item.count + '', 0.5, 0, 0.6)
 	}
 }

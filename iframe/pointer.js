@@ -106,7 +106,7 @@ button(LBUTTON, RBUTTON, () => lastPlace = 0)
 onmousemove((dx, dy) => {
 	if(paused){
 		const upscale = options.guiScale * 2
-		mx = dx / upscale; my = dy / upscale
+		mx = dx * devicePixelRatio; my = dy * devicePixelRatio
 		return
 	}
 	const oldx = x, oldy = y

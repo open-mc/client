@@ -23,7 +23,7 @@ export class Chunk{
 				dx: buf.float(), dy: buf.float(),
 				f: buf.float(), chunk: this
 			})
-			if(e.savedata)buf.read(e.savedata, e)
+			if(e.savedata)buf.read(e.savedatahistory[buf.flint()] || e.savedata, e)
 			addEntity(e)
 			this.entities.add(e)
 			if(e.appeared)e.appeared()
@@ -77,10 +77,10 @@ export class Chunk{
 		}
 		//parse block entities
 		for(j=0;j<4096;j++){
-			let type = this.tiles[j].savedata
-			if(!type)continue
+			const block = this.tiles[j]
+			if(!block.savedata)continue
 			//decode data
-			let data = {}
+			const data = buf.read(block.savedatahistory[buf.flint()] || block.savedata)
 			Object.setPrototypeOf(data, this.tiles[j])
 			this.tiles[j] = data
 		}
