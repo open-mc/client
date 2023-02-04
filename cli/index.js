@@ -121,10 +121,12 @@ Entities.player = {
 	get height(){return this.state & 2 ? 1.5 : 1.8},
 	get head(){return this.state & 2 ? 1.4 : 1.6},
 	drawInterface(id, c){
+		let slot = -1
 		// x=0, y=0 => left middle
 		// x=176 => right
 		if(id == 0){
 			c.image(meInterface, 0, 0)
+			c.push()
 			c.translate(50,5)
 			c.scale(32,32)
 			const f = this.f
@@ -132,9 +134,35 @@ Entities.player = {
 			this.f = atan2(x, y - me.head)
 			this.render(c)
 			this.f = f
-			c.scale(.03125,.03125)
-			c.translate(-50,-5)
+			c.pop()
+			c.translate(16, 2)
+			c.scale(16,16)
+			for(let i = 0; i < 4; i++){
+				renderItem(c, this.items[i])
+				const {x, y} = c.mouse()
+				if(y >= 0 && y < 1 && x >= -0.5 && x < .5){
+					c.fillStyle = '#fff'
+					c.globalAlpha = 0.2
+					c.fillRect(-0.5, 0, 1, 1)
+					c.globalAlpha = 1
+					slot = i
+				}
+				c.translate(0, 1.125)
+			}
+			c.translate(4.3125, -4.5)
+			{
+				renderItem(c, this.items[5])
+				const {x, y} = c.mouse()
+				if(y >= 0 && y < 1 && x >= -0.5 && x < .5){
+					c.fillStyle = '#fff'
+					c.globalAlpha = 0.2
+					c.fillRect(-0.5, 0, 1, 1)
+					c.globalAlpha = 1
+					slot = 5
+				}
+			}
 		}
+		return slot
 	}
 }
 
@@ -269,7 +297,8 @@ uiLayer(1000, (c, w, h) => {
 	let slot = -1
 	c.translate(w / 2 - 88, h / 2)
 	c.push()
-	invInterface.drawInterface(interfaceId, c)
+	const s2 = invInterface.drawInterface(interfaceId, c)
+	if(s2 > -1) slot = s2 | 128
 	c.peek()
 	c.image(inventory, 0, -inventory.h)
 	c.translate(16,8 - inventory.h)
@@ -277,7 +306,7 @@ uiLayer(1000, (c, w, h) => {
 	for(let i = 0; i < 9; i++){
 		renderItem(c, me.inv[i])
 		const {x, y} = c.mouse()
-		if(y >= 0 && y < 1 && x >= -0.5 && x < .5 && slot == -1){
+		if(slot == -1 && y >= 0 && y < 1 && x >= -0.5 && x < .5){
 			c.fillStyle = '#fff'
 			c.globalAlpha = 0.2
 			c.fillRect(-0.5, 0, 1, 1)
@@ -301,31 +330,33 @@ uiLayer(1000, (c, w, h) => {
 		else c.translate(1.125,0)
 	}
 	if(action == 1 && slot > -1){
-		const t = me.inv[slot], h = me.inv[36]
-		if(t && !h) me.inv[36] = t, me.inv[slot] = null
-		else if(h && !t) me.inv[slot] = h, me.inv[36] = null
+		const items = slot > 127 ? invInterface.items : me.inv; slot &= 127
+		const t = items[slot], h = me.inv[36]
+		if(t && !h) me.inv[36] = t, items[slot] = null
+		else if(h && !t) items[slot] = h, me.inv[36] = null
 		else if(h && t && h.constructor == t.constructor && !h.savedata){
 			const add = min(h.count, (t.maxStack || 64) - t.count)
 			if(!(h.count -= add))me.inv[36] = null
 			t.count += add
-		}else me.inv[slot] = h, me.inv[36] = t
+		}else items[slot] = h, me.inv[36] = t
 		const buf = new DataWriter()
-		buf.byte(32); buf.byte(slot)
+		buf.byte(32); buf.byte(slot | (items == me.inv ? 0 : 128))
 		send(buf)
 	}else if(action == 2 && slot > -1){
-		const t = me.inv[slot], h = me.inv[36]
+		const items = slot > 127 ? invInterface.items : me.inv; slot &= 127
+		const t = items[slot], h = me.inv[36]
 		if(t && !h){
 			me.inv[36] = t.constructor(t.count - (t.count >>= 1))
-			if(!t.count)me.inv[slot] = null
+			if(!t.count)items[slot] = null
 		}else if(h && !t){
-			me.inv[slot] = h.constructor(1)
+			items[slot] = h.constructor(1)
 			if(!--h.count)me.inv[36] = null
 		}else if(h && t && h.constructor == t.constructor && !h.savedata && t.count < (t.maxStack || 64)){
 			t.count++
 			if(!--h.count)me.inv[36] = null
-		}else me.inv[slot] = h, me.inv[36] = t
+		}else items[slot] = h, me.inv[36] = t
 		const buf = new DataWriter()
-		buf.byte(34); buf.byte(slot)
+		buf.byte(33); buf.byte(slot | (items == me.inv ? 0 : 128))
 		send(buf)
 	}
 	c.peek()
@@ -370,8 +401,11 @@ onpacket(13, buf => {
 onpacket(32, buf => {
 	const e = entities.get(buf.uint32() + buf.short() * 4294967296)
 	if(!e) return
-	while(buf.left)
-		e.inv[buf.byte()] = buf.item()
+	while(buf.left){
+		const slot = buf.byte()
+		if(slot > 127)e.items[slot] = buf.item()
+		else e.inv[slot] = buf.item()
+	}
 })
 onpacket(15, buf => {
 	const e = entities.get(buf.uint32() + buf.short() * 4294967296)
