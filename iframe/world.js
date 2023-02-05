@@ -1,15 +1,20 @@
-export function setblock(x, y, b){
+export function setblock(x, y, b, natural = true){
 	const k = (x>>>6)+(y>>>6)*67108864
 	const ch = map.get(k)
 	if(!ch)return
 	const lx = x & 63
 	const ly = y & 63
+	const old = ch.tiles[lx + (ly << 6)]
 	ch.tiles[lx + (ly << 6)] = b
 	i: if(ch.ctx){
 		const t = b.texture
 		ch.ctx.clearRect(lx * TEX_SIZE, (63 - ly) * TEX_SIZE, TEX_SIZE, TEX_SIZE)
 		if(!t)break i
 		if(b.texture)ch.ctx.drawImage(t.img,t.x,t.y,t.w,t.h,lx*TEX_SIZE,(63-ly)*TEX_SIZE,TEX_SIZE,TEX_SIZE)
+	}
+	if(natural){
+		if(b.place) b.place()
+		if(old.break) old.break()
 	}
 }
 export function getblock(x, y){

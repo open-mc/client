@@ -25,39 +25,50 @@ const onMsg = ({data}) => {
 		Promise.all(data.slice(3).map(a => import(a))).then(() => {
 			// done importing
 			let i
-			i = 0; for(const b of data[0].split('\n'))BlockIDs.push(funcify(b, i++, Blocks))
-			i = 0; for(const b of data[1].split('\n'))ItemIDs.push(funcify(b, i++, Items))
-			i = 0; for(const b of data[2].split('\n'))EntityIDs.push(funcify(b, i++, Entities))
+			i = 0; for(const b of data[0].split('\n'))funcify(b, i++, Blocks)
+			i = 0; for(const b of data[1].split('\n'))funcify(b, i++, Items)
+			i = 0; for(const b of data[2].split('\n'))funcify(b, i++, Entities)
 			if(!--loading)loaded()
 			frame()
 		})
-		function funcify(e, i, dict){
-			const a = e.split(" ")
+		function funcify(a, i, Dict){
+			const Constructor = Dict == Items ? Item : Dict == Entities ? Entity : Block
+			const List = Dict == Items ? ItemIDs : Dict == Entities ? EntityIDs : BlockIDs
+			a = a.split(' ')
 			const name = a.shift()
-			const thing = dict[name] || {}
-			thing.id = i
-			thing.name = name
-			thing[Symbol.toStringTag] = (dict == Blocks ? 'Blocks.' : dict == Items ? 'Items.' : 'Entities.') + name
-			thing.savedata = jsonToType(a.pop()||'null')
-			thing.savedatahistory = a.map(jsonToType)
-			const f = dict == Blocks ? 
-				thing.savedata ? (data = {}) => Object.setPrototypeOf(data, thing) : (i => i).bind(undefined, Object.create(thing))
-			: dict == Items ?
-				(count, data = {}) => (data.count=count|0,data.name = data.name||'',Object.setPrototypeOf(data, thing))
-			: (data = {}) => {
-					data.ix = data.x = data.x || 0
-					data.iy = data.y = data.y || 0
-					data.dx = data.dx || 0
-					data.dy = data.dy || 0
-					data.state = data.state || 0
-					data.f = typeof data.f == 'number' ? data.f : PI/2
-					Object.setPrototypeOf(data, thing)
-					return data
-				}
-			f._ = thing
-			thing.constructor = f
-			dict[name] = f
-			return f
+			const Thing = Dict[name] || class extends Block{}
+			Thing.id = i
+			Thing.className = name
+			Thing[Symbol.toStringTag] = (Dict == Blocks ? 'Blocks.' : Dict == Items ? 'Items.' : 'Entities.') + name
+			Thing.savedata = a.length ? jsonToType(a.pop()) : null
+			Thing.savedatahistory = a.map(jsonToType)
+			Thing.constructor = Thing
+			if(Object.hasOwn(Thing.prototype, 'prototype')){ console.warn('Reused class for ' + Thing.prototype.className + ' (by ' + name + ')') }
+			Object.defineProperty(Thing, 'name', {value: name})
+			// Force extend
+			if(!(Thing.prototype instanceof Constructor)){
+				console.warn('Class ' + name + ' does not extend ' + Constructor.name)
+				Object.setPrototypeOf(Thing, Constructor)
+				Object.setPrototypeOf(Thing.prototype, Constructor.prototype)
+			}
+			List[Thing.id] = Dict[name] = Dict == Items ? c => new Thing(c) : Dict == Blocks ? 
+				Thing.savedata ? () => new Thing : Function.returns(new Thing)
+			: (x, y) => new Thing(x, y)
+
+			Thing.constructor = Dict[name]
+			// Copy static props to prototype
+			// This will also copy .prototype, which we want
+			const desc = Object.getOwnPropertyDescriptors(Thing)
+			delete desc.length; delete desc.name; desc.className = {value: name, enumerable: false, writable: false}
+			Object.defineProperties(Thing.prototype, desc)
+
+			if(Dict == Blocks){
+				Object.setPrototypeOf(Dict[name], Thing.prototype)
+				Object.defineProperties(Dict[name], Object.getOwnPropertyDescriptors(new Thing))
+			}else if(Dict == Items){
+				Object.setPrototypeOf(Dict[name], Thing.prototype)
+				Object.defineProperties(Dict[name], Object.getOwnPropertyDescriptors(new Thing(1)))
+			}
 		}
 	}else if(data instanceof ArrayBuffer){
 		if(loading) return void msgQueue.push(data)

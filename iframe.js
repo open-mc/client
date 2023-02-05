@@ -11,8 +11,7 @@ export function gameIframe(f){
 	document.body.append(iframe)
 }
 const audios = new Map, actx = new AudioContext()
-const sfxGain = actx.createGain(), bgGain = actx.createGain()
-sfxGain.connect(actx.destination)
+const bgGain = actx.createGain()
 bgGain.connect(actx.destination)
 
 onmessage = ({data, source}) => {
@@ -33,17 +32,9 @@ onmessage = ({data, source}) => {
 		a.click()
 		URL.revokeObjectURL(a.href)
 	}else if(Array.isArray(data)){
-		const [aid, sid, start = NaN, end, loop] = data
+		const [aid, sid, start = NaN, end, loop, vol, pitch] = data
 		if(typeof sid == 'string'){
-			audios.set(aid, new Map)
-			fetch(sid, {credentials: 'omit', priority: 'low'}).then(a => a.arrayBuffer()).then(a => actx.decodeAudioData(a, b => {
-				b.bg = start
-				const a = audios.get(aid)
-				audios.set(aid, b)
-				if(a instanceof Map)
-					for(const data of a.values())
-						onmessage({data})
-			}))
+			audios.set(aid, start ? '+' + sid : sid)
 			return
 		}
 		if(start != start){
@@ -59,11 +50,31 @@ onmessage = ({data, source}) => {
 			return
 		}
 		const buf = audios.get(aid)
+		if(typeof buf == 'string'){
+			audios.set(aid, new Map([[sid, data]]))
+			const bg = buf.startsWith('+')
+			fetch(buf.slice(bg), {credentials: 'omit', priority: 'low'}).then(a => a.arrayBuffer()).then(a => actx.decodeAudioData(a, b => {
+				b.bg = bg
+				const a = audios.get(aid)
+				audios.set(aid, b)
+				if(a instanceof Map)
+					for(const data of a.values())
+						onmessage({data})
+			}))
+			return
+		}
 		if(buf instanceof Map)return void buf.set(sid, data)
 		if(!buf) return
 		const source = actx.createBufferSource()
 		source.buffer = buf
-		source.connect(buf.bg ? bgGain : sfxGain)
+		if(buf.bg) source.connect(bgGain)
+		else{
+			const gain = actx.createGain()
+			gain.gain.value = options.sound * options.sound * vol
+			gain.connect(actx.destination)
+			source.playbackRate.value = pitch
+			source.connect(gain)
+		}
 		source.loop = loop
 		if(loop){
 			source.loopStart = start
@@ -105,7 +116,6 @@ export const fwOption = (a, b) => {
 	if(!win)return void queue.push(a, fwOption)
 	win.postMessage([a, b], '*')
 }
-listen('sound', () => sfxGain.gain.value = options.sound * options.sound)
 listen('music', () => bgGain.gain.value = options.music * options.music)
 listen(fwOption)
 

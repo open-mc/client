@@ -24,13 +24,11 @@ function chunkPacket(buf){
 	if(map.has(k))trashtrap.add(k)
 	map.set(k, chunk)
 	while(buf.left){
-		let e = EntityIDs[0]({
-			x: buf.double(), y: buf.double(),
-			_id: buf.uint32() + buf.short() * 4294967296,
-			name: buf.string(), state: buf.short(),
-			dx: buf.float(), dy: buf.float(),
-			f: buf.float(), chunk
-		})
+		let e = EntityIDs[0](buf.double(), buf.double())
+		e._id = buf.uint32() + buf.short() * 4294967296
+		e.name = buf.string(); e.state = buf.short()
+		e.dx = buf.float(); e.dy = buf.float()
+		e.f = buf.float(); e.chunk = chunk
 		buf.read(e.savedata, e)
 		addEntity(e)
 		chunk.entities.add(e)
@@ -59,9 +57,9 @@ function entityPacket(buf){
 		let e = entities.get(id)
 		if(!mv){if(e)removeEntity(e);continue}
 		if(!e){
-			if(mv & 128)mv |= 256, e = EntityIDs[buf.short()]({x:0,y:0,_id: id,dx:0,dy:0,f:0,chunk:null})
+			if(mv & 128)mv |= 256, e = EntityIDs[buf.short()](0,0),e._id=id,e.dx=e.dy=e.f=0,e.chunk=null
 			else throw 'Not supposed to happen!'
-		}else if(mv & 128)Object.setPrototypeOf(e, EntityIDs[buf.short()]._)
+		}else if(mv & 128)Object.setPrototypeOf(e, EntityIDs[buf.short()].prototype)
 		if(mv & 1)if(abs(e.x - (e.x = buf.double())) > 16 || e == me)e.ix = e.x
 		if(mv & 2)if(abs(e.y - (e.y = buf.double())) > 16 || e == me)e.iy = e.y
 		if(mv & 4)e.name = buf.string()

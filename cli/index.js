@@ -1,38 +1,53 @@
+import { netherrack } from "./sounds.js"
+
 const terrainPng = Texture("/cli/terrain.png")
 const MISSING = terrainPng.at(15, 1)
-Blocks.grass = { texture: terrainPng.at(3, 0), solid: true }
-Blocks.stone = { texture: terrainPng.at(1, 0), solid: true }
-Blocks.dirt = { texture: terrainPng.at(2, 0), solid: true }
-Blocks.bedrock = { texture: terrainPng.at(1, 1), solid: true }
-Blocks.oak_log = { texture: terrainPng.at(4, 1), solid: true }
-Blocks.oak_planks = { texture: terrainPng.at(4, 0), solid: true }
-Blocks.sand = { texture: terrainPng.at(2, 1), solid: true }
-Blocks.water = { texture: terrainPng.at(13, 12), solid: false }
-Blocks.sandstone = { texture: terrainPng.at(0, 12), solid: true }
-Blocks.snow_block = { texture: terrainPng.at(2, 4), solid: true }
-Blocks.snowy_grass = { texture: terrainPng.at(4, 4), solid: true }
-Blocks.coal_ore = { texture: terrainPng.at(2, 2), solid: true }
-Blocks.iron_ore = { texture: terrainPng.at(1, 2), solid: true }
-Blocks.netherrack = { texture: terrainPng.at(7, 6), solid: true }
-Items.oak_log = {
-	places(){return Blocks.oak_log()},
-	texture: Blocks.oak_log.texture
+Blocks.grass = class extends Block{ static texture = terrainPng.at(3, 0); static solid = true }
+Blocks.stone = class extends Block{ static texture = terrainPng.at(1, 0); static solid = true }
+Blocks.dirt = class extends Block{ static texture = terrainPng.at(2, 0); static solid = true }
+Blocks.bedrock = class extends Block{ static texture = terrainPng.at(1, 1); static solid = true }
+Blocks.oak_log = class extends Block{ static texture = terrainPng.at(4, 1); static solid = true }
+Blocks.oak_planks = class extends Block{ static texture = terrainPng.at(4, 0); static solid = true }
+Blocks.sand = class extends Block{ static texture = terrainPng.at(2, 1); static solid = true }
+Blocks.water = class extends Block{ static texture = terrainPng.at(13, 1); static solid = false }
+Blocks.sandstone = class extends Block{ static texture = terrainPng.at(0, 12); static solid = true }
+Blocks.snow_block = class extends Block{ static texture = terrainPng.at(2, 4); static solid = true }
+Blocks.snowy_grass = class extends Block{ static texture = terrainPng.at(4, 4); static solid = true }
+Blocks.coal_ore = class extends Block{ static texture = terrainPng.at(2, 2); static solid = true }
+Blocks.iron_ore = class extends Block{ static texture = terrainPng.at(1, 2); static solid = true }
+Blocks.netherrack = class extends Block{
+	static texture = terrainPng.at(7, 6)
+	static solid = true
 }
-Items.oak_planks = {
-	places(){return Blocks.oak_planks()},
-	texture: Blocks.oak_planks.texture
+Items.oak_log = class extends Item{
+	places(){return Blocks.oak_log()}
+	static texture = Blocks.oak_log.texture
 }
-Items.sandstone = {
-	places(){return Blocks.sandstone()},
-	texture: Blocks.sandstone.texture
+Items.oak_planks = class extends Item{
+	places(){return Blocks.oak_planks()}
+	static texture = Blocks.oak_planks.texture
 }
-Items.stone = {
-	places(){return Blocks.stone()},
-	texture: Blocks.stone.texture
+Items.sandstone = class extends Item{
+	places(){return Blocks.sandstone()}
+	static texture = Blocks.sandstone.texture
+}
+Items.stone = class extends Item{
+	places(){return Blocks.stone()}
+	static texture = Blocks.stone.texture
+}
+Items.netherrack = class extends Item{
+	places(){ return Blocks.netherrack() }
+	static texture = Blocks.netherrack.texture
 }
 
 
-Entities.player = {
+Entities.player = class extends Entity{
+	inv = Array.null(36)
+	items = [null, null, null, null, null, null]
+	health = 20
+	selected = 0
+	skin = null
+	textures = null
 	render(c){
 		if(!this.textures) return
 		const angle = (this.state & 3) == 2 ? sin(t * 4) * this.dx / 5 : sin(t * 12) * this.dx / 10, xs = this.f >= 0 ? 0.9 : -0.9, ys = this.name == 'Dinnerbone' || this.name == 'Grumm' ? -0.9 : 0.9
@@ -97,7 +112,7 @@ Entities.player = {
 		}
 		c.rotate(PI/2-abs(this.f))
 		c.image(this.textures.head, -0.25, 0, 0.5, 0.5)
-	},
+	}
 	appeared(){
 		const can = Can(28, 12)
 		const skinUnpacked = new ImageData(28, 12)
@@ -116,10 +131,10 @@ Entities.player = {
 			leg1: can.texture(12, 0, 4, 12),
 			leg2: can.texture(16, 0, 4, 12)
 		}
-	},
-	width: 0.3,
-	get height(){return this.state & 2 ? 1.5 : 1.8},
-	get head(){return this.state & 2 ? 1.4 : 1.6},
+	}
+	static width = 0.3
+	get height(){return this.state & 2 ? 1.5 : 1.8}
+	get head(){return this.state & 2 ? 1.4 : 1.6}
 	drawInterface(id, c){
 		let slot = -1
 		// x=0, y=0 => left middle
@@ -230,7 +245,7 @@ uiLayer(-100, (c, w, h) => {
 })
 uiLayer(500, (c, w, h) => {
 	if(world == 'nether'){
-		c.fillStyle = '#200404'
+		c.fillStyle = '#400000'
 		c.globalAlpha = 0.2
 		c.fillRect(0, 0, w, h)
 		c.globalAlpha = 1

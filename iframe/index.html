@@ -50,9 +50,9 @@
 	const Audio = (src, bg = false) => {
 		const aid = _i++
 		postMessage([aid, src, bg], '*')
-		return (start = 0, end = NaN, ends = true) => {
+		return (vol = 1, pitch = 1, start = 0, end = NaN, ends = true) => {
 			const sid = _i++
-			postMessage([aid, sid, start, end, !ends], '*')
+			postMessage([aid, sid, start, end, !ends, vol, pitch], '*')
 			if(typeof ends == 'function')_soundEndedCbs.set(sid, ends)
 			return () => postMessage([aid, sid], '*')
 		}
@@ -164,6 +164,15 @@
 	}
 	const Blocks = {}, Items = {}, Entities = {}
 	const BlockIDs = [], ItemIDs = [], EntityIDs = []
+	class Block{static id=-1;static savedata=null;static savedatahistory=[]}
+	class Item{constructor(a){this.count=a&255;this.name=''}static id=-1;static savedata=null;static savedatahistory=[]}
+	class Entity{constructor(x,y){
+		this.ix = this.x = x
+		this.iy = this.y = y
+		this.dx = this.dy = 0
+		this.state = 0
+		this.f = PI / 2
+	}static id=-1;static savedata=null;static savedatahistory=[]}
 	let W2 = 0, H2 = 0, SCALE = 1
 	const {abs, min, max, round, floor, ceil, ifloat, fclamp, sqrt, cbrt, atan2, sign, sin, cos, tan, PI, PI2 = PI * 2, } = Math
 	const LBUTTON = 0, RBUTTON = 2, MBUTTON = 1,
@@ -198,6 +207,14 @@
 	let ticks = 0, world = '', gx = 0, gy = 0
 	let cam = {x: 0, y: 0, z: 2}, mx = 0, my = 0
 	let DataReader, DataWriter
+	const nul = new Array(1000).fill(null)
+	Array.null = len => {
+		if(len <= 1000)return nul.slice(0, len)
+		let a = new Array(len)
+		for(let i = len; i > 0; i--)a[i] = null
+		return a
+	}
+	Function.returns = v => () => v
 	const VERSION = 'alpha 4'
 </script>
 <script type="module">

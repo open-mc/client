@@ -15,14 +15,11 @@ export class Chunk{
 		let palettelen = (x >>> 26) + (y >>> 26) * 64 + 1
 		let id = buf.short()
 		while(id){
-			const e = EntityIDs[id]({
-				x: buf.short() / 1024 + (this.x << 6),
-				y: buf.short() / 1024 + (this.y << 6),
-				_id: buf.uint32() + buf.uint16() * 4294967296,
-				name: buf.string(), state: buf.short(),
-				dx: buf.float(), dy: buf.float(),
-				f: buf.float(), chunk: this
-			})
+			const e = EntityIDs[id](buf.short() / 1024 + (this.x << 6), buf.short() / 1024 + (this.y << 6))
+			e._id = buf.uint32() + buf.uint16() * 4294967296
+			e.name =buf.string(); e.state = buf.short()
+			e.dx = buf.float(); e.dy = buf.float()
+			e.f = buf.float(); e.chunk = this
 			if(e.savedata)buf.read(e.savedatahistory[buf.flint()] || e.savedata, e)
 			addEntity(e)
 			this.entities.add(e)
@@ -33,7 +30,7 @@ export class Chunk{
 		let palette = []
 		let i = 0
 		for(;i<palettelen;i++){
-			palette.push(BlockIDs[buf.short()]._)
+			palette.push(BlockIDs[buf.short()])
 		}
 		let j = 0; i = 11 + i * 2
 		if(palettelen<2){
@@ -80,9 +77,7 @@ export class Chunk{
 			const block = this.tiles[j]
 			if(!block.savedata)continue
 			//decode data
-			const data = buf.read(block.savedatahistory[buf.flint()] || block.savedata)
-			Object.setPrototypeOf(data, this.tiles[j])
-			this.tiles[j] = data
+			this.tiles[j] = buf.read(block.savedatahistory[buf.flint()] || block.savedata, block())
 		}
 	}
 	static of(block, x, y){
