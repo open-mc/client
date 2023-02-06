@@ -21,7 +21,8 @@ onmessage = ({data, source}) => {
 		win = iframe.contentWindow
 		for(const k in options) win.postMessage([k, options[k]], '*')
 		win.postMessage(files, '*')
-		while(queue.length)queue.pop()(queue.pop())
+		for(let i = 0; i < queue.length; i += 2)queue[i](queue[i+1])
+		queue.length = 0
 	}else if(data === true) showUI(null)
 	else if(data === false) hideUI()
 	else if(data instanceof ArrayBuffer && globalThis.ws) ws.send(data)
@@ -114,19 +115,19 @@ export function destroyIframe(){
 }
 
 export const fwOption = (a, b) => {
-	if(!win)return void queue.push(a, fwOption)
+	if(!win)return void queue.push(fwOption, a)
 	win.postMessage([a, b], '*')
 }
 listen('music', () => bgGain.gain.value = options.music * options.music)
 listen(fwOption)
 
 export function fwPacket(a){
-	if(!win)return void queue.push(a, fwPacket)
+	if(!win)return void queue.push(fwPacket, a)
 	if(a.buffer)win.postMessage(a.buffer, '*', [a.buffer])
 	else win.postMessage(a, '*')
 }
 
 export function keyMsg(a){
-	if(!win)return void queue.push(a, keyMsg)
+	if(!win)return void queue.push(keyMsg, a)
 	win.postMessage(a, '*')
 }

@@ -18,11 +18,13 @@ button = (...keys) => {
 let blocksWalked = 0
 export const playerControls = () => {
 	blocksWalked += abs(me.dx * dt)
-	if((movementFlags & 1) && !(me.state & 2) && blocksWalked > 1.7 && abs(me.dx) > 0.03){
-		blocksWalked = 0
-		const block = getblock(floor(me.x + me.dx * dt), ceil(me.y) - 1)
-		if(block.walk) block.walk()
-	}
+	if((movementFlags & 1) && !(me.state & 2)){
+		if(blocksWalked > 1.7){
+			blocksWalked = 0
+			const block = getblock(floor(me.x + me.dx * dt), ceil(me.y) - 1)
+			if(block.walk) block.walk()
+		}
+	}else blocksWalked = me.dy < -10 ? 1.7 : 1.68
 	const R = buttons.has(KEY_RIGHT) || buttons.has(KEY_D)
 	const L = buttons.has(KEY_LEFT) || buttons.has(KEY_A)
 	const D = buttons.has(KEY_DOWN) || buttons.has(KEY_S)

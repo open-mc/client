@@ -31,6 +31,7 @@ function chunkPacket(buf){
 		e.f = buf.float(); e.chunk = chunk
 		buf.read(e.savedata, e)
 		addEntity(e)
+		console.log(e)
 		chunk.entities.add(e)
 		if(e.appeared)e.appeared()
 	}

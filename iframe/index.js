@@ -7,7 +7,7 @@ DataWriter = DW
 let last = performance.now(), count = 1.1
 t = Date.now()/1000%86400
 setInterval(function(){
-	countElu()
+	eluStart()
 	const now = performance.now()
 	let update = 1000 / TPS
 	let dt = now - last
@@ -24,6 +24,7 @@ setInterval(function(){
 		ticked++
 	}
 	last -= dt
+	eluEnd()
 })
 
 const sendDelay = 1 //send packet every 4 ticks
@@ -46,10 +47,9 @@ function tick(){ //20 times a second
 }
 let lastFrame = performance.now(), elusmooth = 0
 let elu = 0
-globalThis.requestIdleCallback = globalThis.requestIdleCallback || setTimeout
 let eluLast = 0
-const eluCb = () => (elu += performance.now() - eluLast, eluLast = 0)
-globalThis.countElu = () => eluLast ? 0 : (eluLast = performance.now(), requestIdleCallback(eluCb))
+const eluEnd = () => (elu += performance.now() - eluLast, eluLast = 0)
+const eluStart = () => eluLast ? 0 : (eluLast = performance.now())
 export let zoom_correction = 0
 let camMovingX = false, camMovingY = false
 
@@ -93,10 +93,10 @@ drawPhase = (prio, fn) => {
 	i++
 	renderPhases[i] = fn
 }
-
+let W = 0, H = 0
 
 export function frame(){
-	countElu()
+	eluStart()
 	const now = performance.now()
 	dt += ((now - lastFrame) / 1000 * options.speed - dt) / (count = min(count ** 1.03, 60))
 	if(dt > .3)count = 1.1, dt = .3
@@ -108,8 +108,12 @@ export function frame(){
 	for(const entity of entities.values())stepEntity(entity, dt)
 	cam.z = 2 ** (options.zoom * 5 - 1) * devicePixelRatio
 	SCALE = cam.z * TEX_SIZE
-	W2 = (c.canvas.width = round(visualViewport.width * visualViewport.scale * devicePixelRatio)) / TEX_SIZE / cam.z / 2
-	H2 = (c.canvas.height = round(visualViewport.height * visualViewport.scale * devicePixelRatio)) / TEX_SIZE / cam.z / 2
+	W2 = (W = round(visualViewport.width * visualViewport.scale * devicePixelRatio)) / SCALE / 2
+	H2 = (H = round(visualViewport.height * visualViewport.scale * devicePixelRatio)) / SCALE / 2
+	if(W != c.canvas.width || H != c.canvas.height) c.canvas.width = W, c.canvas.height = H
+	else if(c.reset) c.reset()
+	else c.resetTransform(),c.clearRect(0, 0, w, h)
+	c.transforms.length = 0
 	c.imageSmoothingEnabled = false
 	if(!me) return
 	const reach = pointer.effectiveReach()
@@ -142,12 +146,13 @@ export function frame(){
 	c.font = '1000px mc'
 	for(const phase of renderPhases){
 		switch(phase.coordSpace){
-			case 'none': phase(c, c.canvas.width, c.canvas.height); break
-			case 'world': c.setTransform(SCALE, 0, 0, -SCALE, W2 * SCALE, c.canvas.height - H2 * SCALE); phase(c); break
-			case 'ui': const s = options.guiScale * devicePixelRatio * 2; c.setTransform(s, 0, 0, -s, 0, c.canvas.height); phase(c, c.canvas.width /  s, c.canvas.height /  s); break
+			case 'none': phase(c, W, H); break
+			case 'world': c.setTransform(SCALE, 0, 0, -SCALE, W2 * SCALE, H - H2 * SCALE); phase(c); break
+			case 'ui': const s = options.guiScale * devicePixelRatio * 2; c.setTransform(s, 0, 0, -s, 0, H); phase(c, W /  s, H /  s); break
 			default: console.error('Invalid coordinate space: ' + phase.coordSpace)
 		}
 	}
+	eluEnd()
 }
 drawPhase(0, (c, w, h) => {
 	c.setTransform(1,0,0,1,0,h)

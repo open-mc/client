@@ -77,7 +77,7 @@ const onMsg = ({data}) => {
 			const List = Dict == Items ? ItemIDs : Dict == Entities ? EntityIDs : BlockIDs
 			a = a.split(' ')
 			const name = a.shift()
-			const Thing = Dict[name] || class extends Constructor{static{console.warn((Dict == Blocks ? 'Blocks.' : Dict == Items ? 'Items.' : 'Entities.') + name + ' missing!')}}
+			const Thing = Dict[name] || class extends Constructor{static _ = console.warn((Dict == Blocks ? 'Blocks.' : Dict == Items ? 'Items.' : 'Entities.') + name + ' missing!')}
 			Thing.id = i
 			Thing.className = name
 			Thing[Symbol.toStringTag] = (Dict == Blocks ? 'Blocks.' : Dict == Items ? 'Items.' : 'Entities.') + name
@@ -136,7 +136,7 @@ const onMsg = ({data}) => {
 		for(const cb of pauseCb) cb()
 	}
 }
-for(const data of [msgQueue, msgQueue = []][0])onMsg({data})
+for(const data of [msgQueue, msgQueue = []][0]) onMsg({data})
 addEventListener('message', onMsg)
 onmessage = null
 
