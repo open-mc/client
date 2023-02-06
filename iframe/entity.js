@@ -2,9 +2,9 @@ import { getblock, moveEntity } from "./world.js"
 
 const groundDrag = .0000244
 const airDrag = 0.667
-export let movementFlags = 0
-export function stepEntity(e, dt){
-	const flags = fastCollision(e, e.dx * dt, e.dy * dt)
+export function stepEntity(e){
+	e.step()
+	e.state = (e.state & 0xffff) | fastCollision(e, e.dx * dt, e.dy * dt) << 16
 	if(e.state & 1)e.dy = 0
 	else{
 		e.dy += dt * gy
@@ -12,11 +12,8 @@ export function stepEntity(e, dt){
 		e.dx += dt * gx
 	}
 	e.dx = e.dx * groundDrag ** dt
-	if(e == me){
-		e.ix = e.x
-		e.iy = e.y
-		movementFlags = flags
-	}else{
+	if(e == me)e.ix = e.x, e.iy = e.y
+	else{
 		//TODO: make interpolation entirely dx/dy based
 		e.ix += ifloat(e.x - e.ix) * dt * 20
 		e.iy += ifloat(e.y - e.iy) * dt * 20

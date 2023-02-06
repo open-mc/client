@@ -14,7 +14,7 @@ export function setblock(x, y, b, natural = true){
 	}
 	if(natural && old.constructor != b.constructor){
 		if(b.place) b.place(x, y)
-		if(old.break) old.break(x, y)
+		if(old.solid && old.break) old.break(x, y)
 	}
 }
 export function getblock(x, y){
@@ -44,3 +44,15 @@ export function moveEntity(e){
 
 const playerLoadCb = []
 export const onPlayerLoad = cb => playerLoadCb.push(cb)
+const SPEEDOFSOUND = 340
+sound = function(fn, x, y, vol = 1, pitch = 1){
+	x -= me.x - .5; y -= me.y + me.head - .5
+	const dist = sqrt(x * x + y * y)
+	// Let's see if I can get the physics right from the top of my head
+	// The speed of sound is 340m/s. This means a speed of 340m/s => 2x pitch, -170m/s => 0.5x pitch, -340m/s => 0x pitch
+	// The dot product of (x0,y0) . (x1,y1) is x0*x1 + y0*y1
+	// "Fix" the inputs x and y by normalizing them with `/ dist`
+	const speed = (me.dx * x + me.dy * y) / dist
+	// For 2d, the inverse square law becomes the inverse linear law
+	fn(vol * 2 / (dist + 1), pitch * max(SPEEDOFSOUND / 100, speed + SPEEDOFSOUND) / SPEEDOFSOUND)
+}

@@ -90,3 +90,10 @@ export function blockBreak(block, x, y){
 		new BlockParticle(block, i, x, y)
 	}
 }
+
+export function stepParticles(block, e){
+	for(let i = 0; i < 4; i++){
+		const p = new BlockParticle(block, i, e.x - .5, e.y)
+		p.dy /= 2; p.dx -= e.dx / 2; p.ddx = e.dx / 2; p.lifetime /= 2
+	}
+}

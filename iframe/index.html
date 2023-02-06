@@ -222,6 +222,7 @@
 	function onpause(a){}
 	function onpacket(c,b){}
 	function music(s,t){}
+	function sound(s,x,y,v,p){}
 	let loading = 1, loaded = null, dt = 1 / 60
 	let buttons, options, paused = false, pointer
 	let t = 0, TPS = 20, map = new Map(), entities = new Map()
@@ -237,7 +238,7 @@
 		return a
 	}
 	Function.returns = v => () => v
-	const VERSION = 'alpha 5 (maybe)'
+	const VERSION = 'alpha 6 preview'
 </script>
 <script type="module">
 	import "./bitfield.js"

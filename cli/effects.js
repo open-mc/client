@@ -20,3 +20,12 @@ music('nether',
 	'/music/nether3.mp3',
 	'/music/nether4.mp3'
 )
+
+export const lava = {
+	ambient: Audio('/music/lava/ambient.mp3'),
+	pop: Audio('/music/lava/pop.mp3')
+}
+
+export const water = {
+	ambient: [Audio('/music/water/ambient1.mp3'), Audio('/music/water/ambient2.mp3')],
+}

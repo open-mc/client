@@ -3,32 +3,36 @@ import { DataReader, jsonToType } from '../data.js'
 import { codes } from './incomingPacket.js'
 import { frame } from './index.js'
 import { cbs, mouseMoveCb, pauseCb, wheelCb } from './controls.js'
-import { blockBreak } from './particles.js'
+import { blockBreak, stepParticles } from './particles.js'
+import { getblock } from './world.js'
 
 Block = class Block{
 	static placeSounds = []; static stepSounds = []
 	static solid = true
 	static texture = null
+	static climbable = false
+	static gooeyness = 0
 	place(x, y){
 		if(this.placeSounds.length)
-			this.placeSounds[Math.floor(Math.random() * this.placeSounds.length)](1, 0.8)
+			sound(this.placeSounds[Math.floor(Math.random() * this.placeSounds.length)], x, y, 1, 0.8)
 	}
 	break(x, y){
 		if(this.placeSounds.length)
-			this.placeSounds[Math.floor(Math.random() * this.placeSounds.length)](1, 0.8)
+			sound(this.placeSounds[Math.floor(Math.random() * this.placeSounds.length)], x, y, 1, 0.8)
 		blockBreak(this, x, y)
 	}
-	punch(){
+	punch(x, y){
 		if(this.stepSounds.length)
-			this.stepSounds[Math.floor(Math.random() * this.stepSounds.length)](0.1375, 0.5)
+			sound(this.stepSounds[Math.floor(Math.random() * this.stepSounds.length)], x, y, 0.1375, 0.5)
 	}
-	walk(){
+	walk(x, y, e){
 		if(this.stepSounds.length)
-			this.stepSounds[Math.floor(Math.random() * this.stepSounds.length)](0.15, 1)
+			sound(this.stepSounds[Math.floor(Math.random() * this.stepSounds.length)], x, y, 0.15, 1)
+		stepParticles(this, e)
 	}
-	fall(){
+	fall(x, y){
 		if(this.stepSounds.length)
-			this.stepSounds[Math.floor(Math.random() * this.stepSounds.length)](0.5, 0.75)
+			sound(this.stepSounds[Math.floor(Math.random() * this.stepSounds.length)], x ,y, 0.5, 0.75)
 	}
 }
 Item = class Item{
@@ -41,6 +45,20 @@ Entity = class Entity{
 		this.dx = this.dy = 0
 		this.state = 0
 		this.f = PI / 2
+		this.blocksWalked = 0
+	}
+	step(){
+		this.blocksWalked += abs(this.dx * dt)
+		if((this.state & 0x10000) && !(this.state & 2)){
+			if(this.blocksWalked >= 1.7){
+				this.blocksWalked = 0
+				const x = floor(this.x + this.dx * dt), y = ceil(this.y) - 1
+				const block = getblock(x, y)
+				if(block.walk) block.walk(x, y, this)
+			}
+		}else this.blocksWalked = this.dy < -10 ? 1.7 : 1.68
+		const { gooeyness } = getblock(floor(this.x), floor(this.dy > 0 ? this.y : this.y + this.height / 4))
+		if(gooeyness) this.dx *= (1 - gooeyness), this.dy *= (1 - gooeyness)
 	}
 }
 

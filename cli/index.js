@@ -1,4 +1,4 @@
-import { audioSet } from "./effects.js"
+import { audioSet, lava, water } from "./effects.js"
 
 const terrainPng = Texture("/cli/terrain.png")
 const MISSING = terrainPng.at(15, 1)
@@ -38,9 +38,25 @@ Blocks.sand = class extends Block{
 	static placeSounds = audioSet('sand', 'place', 4)
 	static stepSounds = audioSet('sand', 'step', 5)
 }
-Blocks.water = class extends Block{ static texture = terrainPng.at(13, 12); static solid = false }
+Blocks.water = class extends Block{
+	static texture = terrainPng.at(13, 12)
+	static solid = false
+	static climbable = true
+	static gooeyness = 0.07
+	random(x, y){
+		const r = random()
+		if(r < .1)
+			sound(water.ambient[0], x, y, 1, 1)
+		else if(r < .2)
+			sound(water.ambient[1], x, y, 1, 1)	
+	}
+}
 Blocks.lava = class extends Blocks.water{
 	static texture = terrainPng.at(13, 14)
+	static gooeyness = 0.5
+	random(x, y){
+		sound(random() < .05 ? lava.ambient : lava.pop, x, y, 1, 1)
+	}
 }
 Blocks.sandstone = class extends Stone{ static texture = terrainPng.at(0, 12) }
 Blocks.snow_block = class extends Block{ static texture = terrainPng.at(2, 4) }
@@ -80,6 +96,10 @@ Items.obsidian = class extends Item{
 Items.netherrack = class extends Item{
 	places(){ return Blocks.netherrack }
 	static texture = Blocks.netherrack.texture
+}
+Items.grass = class extends Item{
+	places(){ return Blocks.grass }
+	static texture = Blocks.grass.texture
 }
 
 

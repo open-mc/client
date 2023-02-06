@@ -1,6 +1,7 @@
 import { playerControls, renderBoxes, renderF3 } from "./controls.js"
 import { DataWriter as DW, DataReader as DR } from "../data.js"
 import { stepEntity } from "./entity.js"
+import { getblock } from "./world.js"
 DataReader = DR
 DataWriter = DW
 
@@ -44,6 +45,11 @@ function tick(){ //20 times a second
 		send(buf)
 	}
 	ticks++
+	if(random() < .25){
+		const x = floor(me.x + random() * 16 - 8), y = floor(me.y + random() * 16 - 8)
+		const randomBlock = getblock(x, y)
+		if(randomBlock.random) randomBlock.random(x, y)
+	}
 }
 let lastFrame = performance.now(), elusmooth = 0
 let elu = 0
@@ -105,8 +111,9 @@ export function frame(){
 	requestAnimationFrame(frame)
 	if(!me || me._id == -1)return
 	playerControls()
-	for(const entity of entities.values())stepEntity(entity, dt)
-	cam.z = 2 ** (options.zoom * 5 - 1) * devicePixelRatio
+	for(const entity of entities.values())stepEntity(entity)
+	const tzoom = 2 ** (options.zoom * 5 - 1) * devicePixelRatio * (me.state & 4 ? 0.9 : 1)
+	cam.z = sqrt(sqrt(cam.z * cam.z * cam.z * tzoom))
 	SCALE = cam.z * TEX_SIZE
 	W2 = (W = round(visualViewport.width * visualViewport.scale * devicePixelRatio)) / SCALE / 2
 	H2 = (H = round(visualViewport.height * visualViewport.scale * devicePixelRatio)) / SCALE / 2
@@ -118,7 +125,8 @@ export function frame(){
 	if(!me) return
 	const reach = pointer.effectiveReach()
 	if(options.camera == 0){
-		const dx = ifloat(me.x + pointer.x/2 - cam.x), dy = ifloat(me.y + pointer.y/2 + me.head - cam.y)
+		const D = me.state & 4 ? 0.7 : 2
+		const dx = ifloat(me.x + pointer.x/D - cam.x), dy = ifloat(me.y + pointer.y/D + me.head - cam.y)
 		if(abs(dx) > 64)cam.x += dx
 		else{
 			if(!camMovingX && abs(dx) > reach / 2)camMovingX = true
@@ -154,7 +162,7 @@ export function frame(){
 	}
 	eluEnd()
 }
-drawPhase(0, (c, w, h) => {
+drawPhase(200, (c, w, h) => {
 	c.setTransform(1,0,0,1,0,h)
 	for(const chunk of map.values()){
 		const x0 = round(ifloat((chunk.x << 6) - cam.x + W2) * SCALE)
