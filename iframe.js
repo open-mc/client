@@ -9,6 +9,7 @@ export function gameIframe(f){
 	files = f
 	destroyIframe()
 	document.body.append(iframe)
+	console.clear()
 }
 const audios = new Map, actx = new AudioContext()
 const bgGain = actx.createGain()

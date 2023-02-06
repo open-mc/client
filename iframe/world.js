@@ -12,9 +12,9 @@ export function setblock(x, y, b, natural = true){
 		if(!t)break i
 		if(b.texture)ch.ctx.drawImage(t.img,t.x,t.y,t.w,t.h,lx*TEX_SIZE,(63-ly)*TEX_SIZE,TEX_SIZE,TEX_SIZE)
 	}
-	if(natural){
-		if(b.place) b.place()
-		if(old.break) old.break()
+	if(natural && old.constructor != b.constructor){
+		if(b.place) b.place(x, y)
+		if(old.break) old.break(x, y)
 	}
 }
 export function getblock(x, y){

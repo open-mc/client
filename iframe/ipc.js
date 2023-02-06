@@ -3,6 +3,47 @@ import { DataReader, jsonToType } from '../data.js'
 import { codes } from './incomingPacket.js'
 import { frame } from './index.js'
 import { cbs, mouseMoveCb, pauseCb, wheelCb } from './controls.js'
+import { blockBreak } from './particles.js'
+
+Block = class Block{
+	static placeSounds = []; static stepSounds = []
+	static solid = true
+	static texture = null
+	place(x, y){
+		if(this.placeSounds.length)
+			this.placeSounds[Math.floor(Math.random() * this.placeSounds.length)](1, 0.8)
+	}
+	break(x, y){
+		if(this.placeSounds.length)
+			this.placeSounds[Math.floor(Math.random() * this.placeSounds.length)](1, 0.8)
+		blockBreak(this, x, y)
+	}
+	punch(){
+		if(this.stepSounds.length)
+			this.stepSounds[Math.floor(Math.random() * this.stepSounds.length)](0.1375, 0.5)
+	}
+	walk(){
+		if(this.stepSounds.length)
+			this.stepSounds[Math.floor(Math.random() * this.stepSounds.length)](0.15, 1)
+	}
+	fall(){
+		if(this.stepSounds.length)
+			this.stepSounds[Math.floor(Math.random() * this.stepSounds.length)](0.5, 0.75)
+	}
+}
+Item = class Item{
+	constructor(a){ this.count=a&255; this.name='' }
+}
+Entity = class Entity{
+	constructor(x,y){
+		this.ix = this.x = x
+		this.iy = this.y = y
+		this.dx = this.dy = 0
+		this.state = 0
+		this.f = PI / 2
+	}
+}
+
 
 buttons = new BitField()
 options = {}
@@ -36,7 +77,7 @@ const onMsg = ({data}) => {
 			const List = Dict == Items ? ItemIDs : Dict == Entities ? EntityIDs : BlockIDs
 			a = a.split(' ')
 			const name = a.shift()
-			const Thing = Dict[name] || class extends Block{}
+			const Thing = Dict[name] || class extends Constructor{static{console.warn((Dict == Blocks ? 'Blocks.' : Dict == Items ? 'Items.' : 'Entities.') + name + ' missing!')}}
 			Thing.id = i
 			Thing.className = name
 			Thing[Symbol.toStringTag] = (Dict == Blocks ? 'Blocks.' : Dict == Items ? 'Items.' : 'Entities.') + name
@@ -51,23 +92,28 @@ const onMsg = ({data}) => {
 				Object.setPrototypeOf(Thing, Constructor)
 				Object.setPrototypeOf(Thing.prototype, Constructor.prototype)
 			}
+			const shared = Dict == Items ? new Thing(1) : Dict == Blocks ? new Thing : null
 			List[Thing.id] = Dict[name] = Dict == Items ? c => new Thing(c) : Dict == Blocks ? 
-				Thing.savedata ? () => new Thing : Function.returns(new Thing)
+				Thing.savedata ? () => shared : Function.returns(shared)
 			: (x, y) => new Thing(x, y)
-
 			Thing.constructor = Dict[name]
+			if(Thing.prototype.static) Thing.prototype.static.call(Thing)
+			else if(Thing.static) Thing.static()
 			// Copy static props to prototype
 			// This will also copy .prototype, which we want
-			const desc = Object.getOwnPropertyDescriptors(Thing)
-			delete desc.length; delete desc.name; desc.className = {value: name, enumerable: false, writable: false}
-			Object.defineProperties(Thing.prototype, desc)
-
+			let proto = Thing
+			while(proto.prototype && !Object.hasOwn(proto.prototype, 'prototype')){
+				const desc = Object.getOwnPropertyDescriptors(proto)
+				delete desc.length; delete desc.name
+				Object.defineProperties(proto.prototype, desc)
+				proto = Object.getPrototypeOf(proto)
+			}
 			if(Dict == Blocks){
 				Object.setPrototypeOf(Dict[name], Thing.prototype)
-				Object.defineProperties(Dict[name], Object.getOwnPropertyDescriptors(new Thing))
+				Object.defineProperties(Dict[name], Object.getOwnPropertyDescriptors(shared))
 			}else if(Dict == Items){
 				Object.setPrototypeOf(Dict[name], Thing.prototype)
-				Object.defineProperties(Dict[name], Object.getOwnPropertyDescriptors(new Thing(1)))
+				Object.defineProperties(Dict[name], Object.getOwnPropertyDescriptors(shared))
 			}
 		}
 	}else if(data instanceof ArrayBuffer){

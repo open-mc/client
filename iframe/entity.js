@@ -5,12 +5,13 @@ const airDrag = 0.667
 export let movementFlags = 0
 export function stepEntity(e, dt){
 	const flags = fastCollision(e, e.dx * dt, e.dy * dt)
-	e.dx = e.dx * groundDrag ** dt
 	if(e.state & 1)e.dy = 0
 	else{
-		e.dy -= dt * 32
+		e.dy += dt * gy
 		e.dy = e.dy * airDrag ** dt
+		e.dx += dt * gx
 	}
+	e.dx = e.dx * groundDrag ** dt
 	if(e == me){
 		e.ix = e.x
 		e.iy = e.y

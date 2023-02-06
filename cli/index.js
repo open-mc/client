@@ -1,42 +1,84 @@
-import { netherrack } from "./sounds.js"
+import { audioSet } from "./effects.js"
 
 const terrainPng = Texture("/cli/terrain.png")
 const MISSING = terrainPng.at(15, 1)
-Blocks.grass = class extends Block{ static texture = terrainPng.at(3, 0); static solid = true }
-Blocks.stone = class extends Block{ static texture = terrainPng.at(1, 0); static solid = true }
-Blocks.dirt = class extends Block{ static texture = terrainPng.at(2, 0); static solid = true }
-Blocks.bedrock = class extends Block{ static texture = terrainPng.at(1, 1); static solid = true }
-Blocks.oak_log = class extends Block{ static texture = terrainPng.at(4, 1); static solid = true }
-Blocks.oak_planks = class extends Block{ static texture = terrainPng.at(4, 0); static solid = true }
-Blocks.sand = class extends Block{ static texture = terrainPng.at(2, 1); static solid = true }
-Blocks.water = class extends Block{ static texture = terrainPng.at(13, 1); static solid = false }
-Blocks.sandstone = class extends Block{ static texture = terrainPng.at(0, 12); static solid = true }
-Blocks.snow_block = class extends Block{ static texture = terrainPng.at(2, 4); static solid = true }
-Blocks.snowy_grass = class extends Block{ static texture = terrainPng.at(4, 4); static solid = true }
-Blocks.coal_ore = class extends Block{ static texture = terrainPng.at(2, 2); static solid = true }
-Blocks.iron_ore = class extends Block{ static texture = terrainPng.at(1, 2); static solid = true }
+Blocks.air = class extends Block{ static solid = false }
+Blocks.grass = class extends Block{
+	static texture = terrainPng.at(3, 0)
+	static placeSounds = audioSet('grass', 'place', 4)
+	static stepSounds = audioSet('grass', 'step', 6)
+}
+class Stone extends Block{
+	static texture = terrainPng.at(1, 0)
+	static placeSounds = audioSet('stone', 'place', 4)
+	static stepSounds = audioSet('stone', 'step', 6)
+}
+Blocks.stone = Stone
+Blocks.obsidian = class extends Stone{
+	static texture = terrainPng.at(5, 2)
+}
+Blocks.dirt = class extends Block{
+	static texture = terrainPng.at(2, 0)
+	static placeSounds = audioSet('dirt', 'place', 4)
+	static stepSounds = audioSet('dirt', 'step', 4)
+}
+Blocks.bedrock = class extends Stone{ static texture = terrainPng.at(1, 1) }
+class Wood extends Block{
+	static placeSounds = audioSet('wood', 'place', 4)
+	static stepSounds = audioSet('wood', 'step', 6)
+}
+Blocks.oak_log = class extends Wood{
+	static texture = terrainPng.at(4, 1)
+}
+Blocks.oak_planks = class extends Wood{
+	static texture = terrainPng.at(4, 0)
+}
+Blocks.sand = class extends Block{
+	static texture = terrainPng.at(2, 1)
+	static placeSounds = audioSet('sand', 'place', 4)
+	static stepSounds = audioSet('sand', 'step', 5)
+}
+Blocks.water = class extends Block{ static texture = terrainPng.at(13, 12); static solid = false }
+Blocks.lava = class extends Blocks.water{
+	static texture = terrainPng.at(13, 14)
+}
+Blocks.sandstone = class extends Stone{ static texture = terrainPng.at(0, 12) }
+Blocks.snow_block = class extends Block{ static texture = terrainPng.at(2, 4) }
+Blocks.snowy_grass = class extends Blocks.grass{
+	static texture = terrainPng.at(4, 4)
+}
+Blocks.coal_ore = class extends Stone{ static texture = terrainPng.at(2, 2) }
+Blocks.iron_ore = class extends Stone{ static texture = terrainPng.at(1, 2) }
 Blocks.netherrack = class extends Block{
 	static texture = terrainPng.at(7, 6)
-	static solid = true
+	static placeSounds = audioSet('netherrack', 'place', 6)
+	static stepSounds = audioSet('netherrack', 'step', 6)
+}
+Blocks.quartz_ore = class extends Blocks.netherrack{
+	static texture = terrainPng.at(6, 6)
 }
 Items.oak_log = class extends Item{
-	places(){return Blocks.oak_log()}
+	places(){ return Blocks.oak_log }
 	static texture = Blocks.oak_log.texture
 }
 Items.oak_planks = class extends Item{
-	places(){return Blocks.oak_planks()}
+	places(){ return Blocks.oak_planks }
 	static texture = Blocks.oak_planks.texture
 }
 Items.sandstone = class extends Item{
-	places(){return Blocks.sandstone()}
+	places(){ return Blocks.sandstone }
 	static texture = Blocks.sandstone.texture
 }
 Items.stone = class extends Item{
-	places(){return Blocks.stone()}
+	places(){ return Blocks.stone }
 	static texture = Blocks.stone.texture
 }
+Items.obsidian = class extends Item{
+	places(){ return Blocks.obsidian }
+	static texture = Blocks.obsidian.texture
+}
 Items.netherrack = class extends Item{
-	places(){ return Blocks.netherrack() }
+	places(){ return Blocks.netherrack }
 	static texture = Blocks.netherrack.texture
 }
 
