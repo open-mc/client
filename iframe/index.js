@@ -112,7 +112,7 @@ export function frame(){
 	H2 = (H = round(visualViewport.height * visualViewport.scale * devicePixelRatio)) / SCALE / 2
 	if(W != c.canvas.width || H != c.canvas.height) c.canvas.width = W, c.canvas.height = H
 	else if(c.reset) c.reset()
-	else c.resetTransform(),c.clearRect(0, 0, w, h)
+	else c.resetTransform(),c.clearRect(0, 0, W, H)
 	c.transforms.length = 0
 	c.imageSmoothingEnabled = false
 	if(!me) return
