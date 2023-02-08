@@ -85,7 +85,7 @@ function entityPacket(buf){
 		const id = buf.uint32() + buf.uint16() * 4294967296
 		let e = entities.get(id)
 		if(!e){
-			if(mv & 128)mv |= 256, e = EntityIDs[buf.short()](0,0),e._id=id,e.dx=e.dy=e.f=0,e.chunk=null
+			if(mv & 128)mv |= 256, e = EntityIDs[buf.short()](1e100,1e100),e._id=id,e.dx=e.dy=e.f=0,e.chunk=null
 			else throw 'Not supposed to happen!'
 		}else if(mv & 128)Object.setPrototypeOf(e, EntityIDs[buf.short()].prototype)
 		if(mv & 1)if(abs(e.x - (e.x = buf.double())) > 16 || e == me)e.ix = e.x
