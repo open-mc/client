@@ -30,7 +30,7 @@ function chunkPacket(buf){
 		e.dx = buf.float(); e.dy = buf.float()
 		e.f = buf.float(); e.age = buf.double()
 		e.chunk = chunk
-		buf.read(e.savedata, e)
+		buf.read(e.savedatahistory[buf.flint()] || e.savedata, e)
 		addEntity(e)
 		chunk.entities.add(e)
 		if(e.appeared)e.appeared()

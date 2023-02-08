@@ -44,6 +44,7 @@ const playerLoadCb = []
 export const onPlayerLoad = cb => playerLoadCb.push(cb)
 const SPEEDOFSOUND = 340
 sound = function(fn, x, y, vol = 1, pitch = 1){
+	if(!me) return
 	x -= me.x - .5; y -= me.y + me.head - .5
 	const dist = sqrt(x * x + y * y)
 	// Let's see if I can get the physics right from the top of my head
