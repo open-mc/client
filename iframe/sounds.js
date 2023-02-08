@@ -18,7 +18,7 @@ function next(){
 	}
 	//try choosing twice
 	if(current == (current = choose(currentTheme)))current = choose(currentTheme)
-	if(current) currentStop = current(1, 1, 0, undefined, next)
+	if(current) currentStop = current(1, 1, 0, 0, undefined, next)
 }
 
 music = (theme, ...srcs) => {

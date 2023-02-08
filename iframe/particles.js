@@ -1,5 +1,5 @@
 import './index.js'
-import { getblock } from './world.js';
+import './world.js'
 
 Particle = class{
 	constructor(physical, lifetime, x, y, dx, dy, ddx = gx, ddy = gy){
@@ -82,7 +82,8 @@ class BlockParticle extends Particle{
 	}
 	render(c){
 		if(!this.block || !this.block.texture) return
-		c.image(this.block.texture, -0.1, -0.1, 0.2, 0.2, (this.frac & 3) << 2, this.frac & 12, (this.frac&2)+2, (this.frac&1)+2)
+		const w = (this.frac&2)+2, h = (this.frac<<1&2)+2
+		c.image(this.block.texture, -0.1, -0.1, w/20, h/20, (this.frac & 3) << 2, this.frac & 12, w, h)
 	}
 }
 export function blockBreak(block, x, y){
@@ -96,4 +97,12 @@ export function stepParticles(block, e){
 		const p = new BlockParticle(block, i, e.x - .5, e.y)
 		p.dy /= 2; p.dx -= e.dx / 2; p.ddx = e.dx / 2; p.lifetime /= 2
 	}
+}
+
+export function punchParticles(block, x, y){
+	const s = (random() * 256) | 0
+	let p = new BlockParticle(block, s&15, x, y)
+	p.dy /= 2; p.lifetime /= 2; p.physical = false; p.ddy /= 2
+	p = new BlockParticle(block, s>>4, x, y)
+	p.dy /= 2; p.lifetime /= 2; p.physical = false; p.ddy /= 2
 }

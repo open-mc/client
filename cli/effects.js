@@ -29,3 +29,28 @@ export const lava = {
 export const water = {
 	ambient: [Audio('/music/water/ambient1.mp3'), Audio('/music/water/ambient2.mp3')],
 }
+
+export function renderItem(c, item, showCount = item && item.count != 1, model = item ? item.model : 0){
+	if(!item) return
+	if(item.texture){
+		if(model == 0){
+			c.image(item.texture, -0.5, 0, 1, 1)
+		}else if(model == 1){
+			c.push()
+			c.translate(0.5,0)
+			c.rotate(PI / -4)
+			c.translate(-1,-1)
+			c.scale(2, 2)
+			c.image(item.texture, -0.5, 0, 1, 1)
+			c.pop()
+		}
+	}
+	if(showCount){
+		c.textBaseline = 'alphabetic'
+		c.textAlign = 'right'
+		c.fillStyle = '#000'
+		c.fillText(item.count + '', 0.56, -0.06, 0.6)
+		c.fillStyle = item.count === (item.count & 127) ? '#fff' : '#e44'
+		c.fillText(item.count + '', 0.5, 0, 0.6)
+	}
+}

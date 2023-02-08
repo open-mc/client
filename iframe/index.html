@@ -50,9 +50,9 @@
 	const Audio = (src, bg = false) => {
 		const aid = _i++
 		postMessage([aid, src, bg], '*')
-		return (vol = 1, pitch = 1, start = 0, end = NaN, ends = true) => {
+		return (vol = 1, pitch = 1, pan = 0, start = 0, end = NaN, ends = true) => {
 			const sid = _i++
-			postMessage([aid, sid, start, end, !ends, vol, pitch], '*')
+			postMessage([aid, sid, start, end, !ends, vol, pitch, pan], '*')
 			if(typeof ends == 'function')_soundEndedCbs.set(sid, ends)
 			return () => postMessage([aid, sid], '*')
 		}
@@ -197,6 +197,7 @@
 	let Block, Item, Entity, Particle
 	let W2 = 0, H2 = 0, SCALE = 1
 	const {random, abs, min, max, round, floor, ceil, ifloat, fclamp, sqrt, cbrt, atan2, sign, sin, cos, tan, PI, PI2 = PI * 2, } = Math
+	const mac = navigator.platform.startsWith('Mac')
 	const LBUTTON = 0, RBUTTON = 2, MBUTTON = 1,
 		KEY_A = 65, KEY_B = 66, KEY_C = 67, KEY_D = 68, KEY_E = 69, KEY_F = 70,
 		KEY_G = 71, KEY_H = 72, KEY_I = 73, KEY_J = 74, KEY_K = 75, KEY_L = 76,
@@ -204,9 +205,9 @@
 		KEY_S = 83, KEY_T = 84, KEY_U = 85, KEY_V = 86, KEY_W = 87, KEY_X = 88,
 		KEY_Y = 89, KEY_Z = 90, KEY_0 = 48, KEY_1 = 49, KEY_2 = 50, KEY_3 = 51,
 		KEY_4 = 52, KEY_5 = 53, KEY_6 = 54, KEY_7 = 55, KEY_8 = 56, KEY_9 = 57,
-		KEY_SPACE = 32, KEY_SYMBOL = 192, KEY_TAB = 9, KEY_BACK = 8, KEY_SHIFT = 16,
+		KEY_SPACE = 32, KEY_SYMBOL = mac ? 192 : 223, KEY_TAB = 9, KEY_BACK = 8, KEY_SHIFT = 16,
 		KEY_CTRL = 17, KEY_ALT = 18, KEY_ESC = 27, KEY_META = 91, KEY_METARIGHT = 93,
-		KEY_CAPSLOCK = 20, KEY_UP = 38, KEY_RIGHT = 39, KEY_DOWN = 40, KEY_LEFT = 37, KEY_MOD = navigator.platform.startsWith('Mac') ? KEY_META : KEY_CTRL,
+		KEY_CAPSLOCK = 20, KEY_UP = 38, KEY_RIGHT = 39, KEY_DOWN = 40, KEY_LEFT = 37, KEY_MOD = mac ? KEY_META : KEY_CTRL,
 		KEY_F1 = 112, KEY_F2 = 113, KEY_F3 = 114, KEY_F4 = 115, KEY_F5 = 116, KEY_F6 = 117, KEY_F7 = 118, KEY_F8 = 119, KEY_F9 = 120, KEY_F10 = 121, KEY_F11 = 122, KEY_F12 = 123
 
 	function renderLayer(_1, _2){}
@@ -223,6 +224,8 @@
 	function onpacket(c,b){}
 	function music(s,t){}
 	function sound(s,x,y,v,p){}
+	function getblock(x,y){}
+	function blockevent(t, r){}
 	let loading = 1, loaded = null, dt = 1 / 60
 	let buttons, options, paused = false, pointer
 	let t = 0, TPS = 20, map = new Map(), entities = new Map()
@@ -238,7 +241,7 @@
 		return a
 	}
 	Function.returns = v => () => v
-	const VERSION = 'alpha 6 preview'
+	const VERSION = 'alpha 6'
 </script>
 <script type="module">
 	import "./bitfield.js"

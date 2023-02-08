@@ -1,10 +1,10 @@
-import { getblock, moveEntity } from "./world.js"
+import { moveEntity } from "./world.js"
 
 const groundDrag = .0000244
 const airDrag = 0.667
 export function stepEntity(e){
-	e.step()
-	e.state = (e.state & 0xffff) | fastCollision(e, e.dx * dt, e.dy * dt) << 16
+	e.prestep()
+	e.state = (e.state & 0xffff) | (e.state << 8 & 0xff000000) | fastCollision(e, e.dx * dt, e.dy * dt) << 16
 	if(e.state & 1)e.dy = 0
 	else{
 		e.dy += dt * gy
@@ -20,6 +20,8 @@ export function stepEntity(e){
 		//if(tf == tf)e.f = ((e.f+(((tf-e.f)%PI2+PI2+PI)%PI2-PI)*dt*20)%PI2+PI2+PI)%PI2-PI
 	}
 	moveEntity(e)
+	e.step()
+	e.age += dt * TPS
 }
 
 export const EPSILON = .0001

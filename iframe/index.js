@@ -1,7 +1,9 @@
 import { playerControls, renderBoxes, renderF3 } from "./controls.js"
 import { DataWriter as DW, DataReader as DR } from "../data.js"
 import { stepEntity } from "./entity.js"
-import { getblock } from "./world.js"
+import "./world.js"
+import { blockEventDefs, blockEvents, entityEvents } from "./world.js"
+import { blockbreakx } from "./pointer.js"
 DataReader = DR
 DataWriter = DW
 
@@ -37,6 +39,8 @@ function tick(){ //20 times a second
 		buf.byte(r)
 		buf.double(me.x)
 		buf.double(me.y)
+		if(blockbreakx == blockbreakx) me.state |= 8
+		else me.state &= -9
 		buf.short(me.state)
 		buf.float(me.dx)
 		buf.float(me.dy)
@@ -50,6 +54,7 @@ function tick(){ //20 times a second
 		const randomBlock = getblock(x, y)
 		if(randomBlock.random) randomBlock.random(x, y)
 	}
+	for(const e of entities.values()) e.tick()
 }
 let lastFrame = performance.now(), elusmooth = 0
 let elu = 0
@@ -172,6 +177,16 @@ drawPhase(200, (c, w, h) => {
 		if(x1 <= 0 || y1 <= 0 || x0 >= w || y0 >= h){ chunk.hide(); continue }
 		if(!chunk.ctx)chunk.draw()
 		c.drawImage(chunk.ctx.canvas, 0, TEX_SIZE << 6, TEX_SIZE << 6, -(TEX_SIZE << 6), x0, -y0, x1 - x0, y0 - y1)
+	}
+})
+drawPhase(300, (c, w, h) => {
+	for(const ev of blockEvents.values()){
+		c.setTransform(SCALE, 0, 0, -SCALE, ifloat(ev[0] - cam.x + W2) * SCALE, ifloat(cam.y - H2 - ev[1]) * SCALE + h)
+		if(!map.has((ev[0]>>>6)+(ev[1]>>>6)*67108864) || !(ev[3] = blockEventDefs[ev[2]&0xff](c, ev[0], ev[1], ev[3])))blockEvents.delete(ev[2]/256>>>0)
+	}
+	for(const [e, ti] of entityEvents.values()){
+		c.setTransform(SCALE, 0, 0, -SCALE, ifloat(e.x - cam.x + W2) * SCALE, ifloat(cam.y - H2 - e.y) * SCALE + h)
+		if(!entities.has(e._id) || !e.event(c,ti&0xff))entityEvents.delete(ti/256>>>0)
 	}
 })
 

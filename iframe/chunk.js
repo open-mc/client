@@ -17,9 +17,10 @@ export class Chunk{
 		while(id){
 			const e = EntityIDs[id](buf.short() / 1024 + (this.x << 6), buf.short() / 1024 + (this.y << 6))
 			e._id = buf.uint32() + buf.uint16() * 4294967296
-			e.name =buf.string(); e.state = buf.short()
+			e.name = buf.string(); e.state = buf.short()
 			e.dx = buf.float(); e.dy = buf.float()
-			e.f = buf.float(); e.chunk = this
+			e.f = buf.float(); e.age = buf.double()
+			e.chunk = this
 			if(e.savedata)buf.read(e.savedatahistory[buf.flint()] || e.savedata, e)
 			addEntity(e)
 			this.entities.add(e)

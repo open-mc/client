@@ -34,7 +34,7 @@ onmessage = ({data, source}) => {
 		a.click()
 		URL.revokeObjectURL(a.href)
 	}else if(Array.isArray(data)){
-		const [aid, sid, start = NaN, end, loop, vol, pitch] = data
+		const [aid, sid, start = NaN, end, loop, vol = 1, pitch = 1, pan = 0] = data
 		if(typeof sid == 'string'){
 			audios.set(aid, start ? '+' + sid : sid)
 			return
@@ -71,11 +71,22 @@ onmessage = ({data, source}) => {
 		source.buffer = buf
 		if(buf.bg) source.connect(bgGain)
 		else{
-			const gain = actx.createGain()
-			gain.gain.value = options.sound * options.sound * vol
-			gain.connect(actx.destination)
+			let dest = actx.destination
+			const volume = options.sound * options.sound * vol
+			if(volume != 1){
+				const gain = actx.createGain()
+				gain.gain.value = volume
+				gain.connect(dest)
+				dest = gain
+			}
+			if(pan != 0){
+				const panner = actx.createStereoPanner()
+				panner.pan.value = pan
+				panner.connect(dest)
+				dest = panner
+			}
 			source.playbackRate.value = pitch
-			source.connect(gain)
+			source.connect(dest)
 		}
 		source.loop = loop
 		if(loop){

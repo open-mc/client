@@ -1,4 +1,4 @@
-import { getblock, setblock, onPlayerLoad } from './world.js'
+import { setblock, onPlayerLoad } from './world.js'
 import { DataWriter } from '../data.js'
 import './controls.js'
 
@@ -77,30 +77,38 @@ export function drawPointer(c){
 		c.globalAlpha = 1
 	}
 	me.f = atan2(x, y)
-	place: if(buttons.has(LBUTTON) && bpx == bpx && t > lastPlace + .18){
+	place: if(buttons.has(LBUTTON) && bpx == bpx && t > lastPlace + .17){
 		let b = me.inv[me.selected]
 		if(!b || !b.places)break place
 		b = b.places()
-		if(!b)break place
-		setblock(bpx, bpy, b)
+		if(b) setblock(bpx, bpy, b)
 		let buf = new DataWriter()
 		buf.byte(8)
+		buf.byte(me.selected)
 		buf.int(bpx)
 		buf.int(bpy)
-		buf.short(b.id)
-		send(buf)
-		lastPlace = t
-	}else if(buttons.has(RBUTTON) && bx == bx && t > lastPlace + .18){
-		setblock(bx, by, Blocks.air())
-		let buf = new DataWriter()
-		buf.byte(8)
-		buf.int(bx)
-		buf.int(by)
-		buf.short(0)
 		send(buf)
 		lastPlace = t
 	}
+	if(buttons.has(RBUTTON) && bx == bx){
+		if(bx != blockbreakx || by != blockbreaky){
+			let buf = new DataWriter()
+			buf.byte(9)
+			buf.byte(me.selected)
+			buf.int(blockbreakx = bx)
+			buf.int(blockbreaky = by)
+			send(buf)
+			lastPlace = t
+		}
+	}else if(blockbreakx == blockbreakx){
+		let buf = new DataWriter()
+		buf.byte(9)
+		buf.byte(me.selected | 128)
+		blockbreakx = blockbreaky = NaN
+		send(buf)
+	}
 }
+export let blockbreakx = NaN, blockbreaky = NaN
 button(LBUTTON, RBUTTON, () => lastPlace = 0)
 onmousemove((dx, dy) => {
 	if(paused){

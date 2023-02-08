@@ -1,247 +1,8 @@
-import { audioSet, lava, water } from "./effects.js"
+import { terrainPng } from "./defs.js"
+import { renderItem } from "./effects.js"
+import "./entities.js"
 
-const terrainPng = Texture("/cli/terrain.png")
-const MISSING = terrainPng.at(15, 1)
-Blocks.air = class extends Block{ static solid = false }
-Blocks.grass = class extends Block{
-	static texture = terrainPng.at(3, 0)
-	static placeSounds = audioSet('grass', 'place', 4)
-	static stepSounds = audioSet('grass', 'step', 6)
-}
-class Stone extends Block{
-	static texture = terrainPng.at(1, 0)
-	static placeSounds = audioSet('stone', 'place', 4)
-	static stepSounds = audioSet('stone', 'step', 6)
-}
-Blocks.stone = Stone
-Blocks.obsidian = class extends Stone{
-	static texture = terrainPng.at(5, 2)
-}
-Blocks.dirt = class extends Block{
-	static texture = terrainPng.at(2, 0)
-	static placeSounds = audioSet('dirt', 'place', 4)
-	static stepSounds = audioSet('dirt', 'step', 4)
-}
-Blocks.bedrock = class extends Stone{ static texture = terrainPng.at(1, 1) }
-class Wood extends Block{
-	static placeSounds = audioSet('wood', 'place', 4)
-	static stepSounds = audioSet('wood', 'step', 6)
-}
-Blocks.oak_log = class extends Wood{
-	static texture = terrainPng.at(4, 1)
-}
-Blocks.oak_planks = class extends Wood{
-	static texture = terrainPng.at(4, 0)
-}
-Blocks.sand = class extends Block{
-	static texture = terrainPng.at(2, 1)
-	static placeSounds = audioSet('sand', 'place', 4)
-	static stepSounds = audioSet('sand', 'step', 5)
-}
-Blocks.water = class extends Block{
-	static texture = terrainPng.at(13, 12)
-	static solid = false
-	static climbable = true
-	static gooeyness = 0.07
-	random(x, y){
-		const r = random()
-		if(r < .1)
-			sound(water.ambient[0], x, y, 1, 1)
-		else if(r < .2)
-			sound(water.ambient[1], x, y, 1, 1)	
-	}
-}
-Blocks.lava = class extends Blocks.water{
-	static texture = terrainPng.at(13, 14)
-	static gooeyness = 0.5
-	random(x, y){
-		sound(random() < .05 ? lava.ambient : lava.pop, x, y, 1, 1)
-	}
-}
-Blocks.sandstone = class extends Stone{ static texture = terrainPng.at(0, 12) }
-Blocks.snow_block = class extends Block{ static texture = terrainPng.at(2, 4) }
-Blocks.snowy_grass = class extends Blocks.grass{
-	static texture = terrainPng.at(4, 4)
-}
-Blocks.coal_ore = class extends Stone{ static texture = terrainPng.at(2, 2) }
-Blocks.iron_ore = class extends Stone{ static texture = terrainPng.at(1, 2) }
-Blocks.netherrack = class extends Block{
-	static texture = terrainPng.at(7, 6)
-	static placeSounds = audioSet('netherrack', 'place', 6)
-	static stepSounds = audioSet('netherrack', 'step', 6)
-}
-Blocks.quartz_ore = class extends Blocks.netherrack{
-	static texture = terrainPng.at(6, 6)
-}
-Items.oak_log = class extends Item{
-	places(){ return Blocks.oak_log }
-	static texture = Blocks.oak_log.texture
-}
-Items.oak_planks = class extends Item{
-	places(){ return Blocks.oak_planks }
-	static texture = Blocks.oak_planks.texture
-}
-Items.sandstone = class extends Item{
-	places(){ return Blocks.sandstone }
-	static texture = Blocks.sandstone.texture
-}
-Items.stone = class extends Item{
-	places(){ return Blocks.stone }
-	static texture = Blocks.stone.texture
-}
-Items.obsidian = class extends Item{
-	places(){ return Blocks.obsidian }
-	static texture = Blocks.obsidian.texture
-}
-Items.netherrack = class extends Item{
-	places(){ return Blocks.netherrack }
-	static texture = Blocks.netherrack.texture
-}
-Items.grass = class extends Item{
-	places(){ return Blocks.grass }
-	static texture = Blocks.grass.texture
-}
-
-
-Entities.player = class extends Entity{
-	inv = Array.null(36)
-	items = [null, null, null, null, null, null]
-	health = 20
-	selected = 0
-	skin = null
-	textures = null
-	render(c){
-		if(!this.textures) return
-		const angle = (this.state & 3) == 2 ? sin(t * 4) * this.dx / 5 : sin(t * 12) * this.dx / 10, xs = this.f >= 0 ? 0.9 : -0.9, ys = this.name == 'Dinnerbone' || this.name == 'Grumm' ? -0.9 : 0.9
-		if(this.name && this != me){
-			c.textAlign = 'center'
-			const {width, top, bottom} = c.measure(this.name)
-			c.fillStyle = '#000'
-			c.globalAlpha = 0.2
-			c.fillRect(width * -0.15 - 0.05, this.height + 0.15 - 0.05, width * 0.3 + 0.1, (bottom + top) * 0.3 + 0.1)
-			c.globalAlpha = 1
-			c.fillStyle = '#fff'
-			c.fillText(this.name, 0, this.height + 0.15 + bottom * 0.3, 0.3)
-		}
-		if(ys < 0)c.translate(0, this.height)
-		c.scale(xs, ys)
-		if(this.state & 2){
-			c.translate(0.2, 1.2)
-			c.rotate(angle - .5)
-			c.image(this.textures.arm2, -0.125, -0.625, 0.25, 0.75)
-			c.rotate(-angle + .5)
-			c.translate(-0.3,-0.45)
-			c.rotate(-angle)
-			c.image(this.textures.leg2, -0.125, -0.75, 0.25, 0.75)
-			c.rotate(angle - .5)
-			c.image(this.textures.body, -0.125, -0.125, 0.25, 0.75)
-			c.rotate(0.5)
-			c.rotate(angle)
-			c.image(this.textures.leg1, -0.125, -0.75, 0.25, 0.75)
-			c.rotate(-angle)
-			c.translate(0.3, 0.45)
-			c.rotate(-angle - .5)
-			c.translate(0.2,-0.8)
-			c.scale(0.4,0.4)
-			renderItem(c, this.inv[this.selected], false)
-			c.scale(2.5,2.5)
-			c.translate(-0.2,0.8)
-			c.image(this.textures.arm1, -0.125, -0.625, 0.25, 0.75)
-			c.rotate(angle + .5)
-		}else{
-			c.translate(0, 1.375)
-			c.rotate(angle)
-			c.image(this.textures.arm2, -0.125, -0.625, 0.25, 0.75)
-			c.rotate(-angle)
-			c.translate(0,-0.625)
-			c.rotate(-angle)
-			c.image(this.textures.leg2, -0.125, -0.75, 0.25, 0.75)
-			c.rotate(angle)
-			c.image(this.textures.body, -0.125, 0, 0.25, 0.75)
-			c.rotate(angle)
-			c.image(this.textures.leg1, -0.125, -0.75, 0.25, 0.75)
-			c.rotate(-angle)
-			c.translate(0, 0.625)
-			c.rotate(-angle)
-			c.translate(0.2,-0.8)
-			c.scale(0.4,0.4)
-			renderItem(c, this.inv[this.selected], false)
-			c.scale(2.5,2.5)
-			c.translate(-0.2,0.8)
-			c.image(this.textures.arm1, -0.125, -0.625, 0.25, 0.75)
-			c.rotate(angle)
-			c.translate(0,0.115)
-		}
-		c.rotate(PI/2-abs(this.f))
-		c.image(this.textures.head, -0.25, 0, 0.5, 0.5)
-	}
-	appeared(){
-		const can = Can(28, 12)
-		const skinUnpacked = new ImageData(28, 12)
-		for(let i = 0; i < 336; i++){
-			skinUnpacked.data[i << 2] = this.skin[i * 3]
-			skinUnpacked.data[(i << 2) + 1] = this.skin[i * 3 + 1]
-			skinUnpacked.data[(i << 2) + 2] = this.skin[i * 3 + 2]
-			skinUnpacked.data[(i << 2) + 3] = 255
-		}
-		can.putImageData(skinUnpacked, 0, 0)
-		this.textures = {
-			head: can.texture(20, 4, 8, 8),
-			body: can.texture(0, 0, 4, 12),
-			arm1: can.texture(4, 0, 4, 12),
-			arm2: can.texture(8, 0, 4, 12),
-			leg1: can.texture(12, 0, 4, 12),
-			leg2: can.texture(16, 0, 4, 12)
-		}
-	}
-	static width = 0.3
-	get height(){return this.state & 2 ? 1.5 : 1.8}
-	get head(){return this.state & 2 ? 1.4 : 1.6}
-	drawInterface(id, c){
-		let slot = -1
-		// x=0, y=0 => left middle
-		// x=176 => right
-		if(id == 0){
-			c.image(meInterface, 0, 0)
-			c.push()
-			c.translate(50,5)
-			c.scale(32,32)
-			const f = this.f
-			const {x, y} = c.mouse()
-			this.f = atan2(x, y - me.head)
-			this.render(c)
-			this.f = f
-			c.pop()
-			c.translate(16, 2)
-			c.scale(16,16)
-			for(let i = 0; i < 4; i++){
-				renderItem(c, this.items[i])
-				const {x, y} = c.mouse()
-				if(y >= 0 && y < 1 && x >= -0.5 && x < .5){
-					c.fillStyle = '#fff'
-					c.globalAlpha = 0.2
-					c.fillRect(-0.5, 0, 1, 1)
-					c.globalAlpha = 1
-					slot = i
-				}
-				c.translate(0, 1.125)
-			}
-			c.translate(4.3125, -4.5)
-			{
-				renderItem(c, this.items[5])
-				const {x, y} = c.mouse()
-				if(y >= 0 && y < 1 && x >= -0.5 && x < .5){
-					c.fillStyle = '#fff'
-					c.globalAlpha = 0.2
-					c.fillRect(-0.5, 0, 1, 1)
-					c.globalAlpha = 1
-					slot = 5
-				}
-			}
-		}
-		return slot
-	}
-}
+const BREAKING = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].mutmap(x => terrainPng.at(x, 15))
 
 const skyPng = Texture('/cli/sky.png')
 const stars = Texture('/cli/stars.png').pattern()
@@ -348,7 +109,6 @@ renderLayer(150, c => {
 const hotbar = Texture('/cli/hotbar.png')
 const selected = Texture('/cli/slot.png')
 const inventory = Texture('/cli/inv.png')
-const meInterface = Texture('/cli/meint.png')
 
 uiLayer(1000, (c, w, h) => {
 	let hotBarLeft = w / 2 - hotbar.w/2
@@ -358,7 +118,7 @@ uiLayer(1000, (c, w, h) => {
 	c.translate(11, 3)
 	c.scale(16, 16)
 	for(let i = 0; i < 9; i++){
-		renderItem(c, me.inv[i])
+		renderItem(c, me.inv[i], undefined, 0)
 		if(i == me.selected) c.image(selected, -0.75, -0.25, 1.5, 1.5)
 		c.translate(1.25, 0)
 	}
@@ -381,7 +141,7 @@ uiLayer(1000, (c, w, h) => {
 	c.translate(16,8 - inventory.h)
 	c.scale(16,16)
 	for(let i = 0; i < 9; i++){
-		renderItem(c, me.inv[i])
+		renderItem(c, me.inv[i], undefined, 0)
 		const {x, y} = c.mouse()
 		if(slot == -1 && y >= 0 && y < 1 && x >= -0.5 && x < .5){
 			c.fillStyle = '#fff'
@@ -394,7 +154,7 @@ uiLayer(1000, (c, w, h) => {
 	}
 	c.translate(-10.125, 1.375)
 	for(let i = 9; i < 36; i++){
-		renderItem(c, me.inv[i])
+		renderItem(c, me.inv[i], undefined, 0)
 		const {x, y} = c.mouse()
 		if(y >= 0 && y < 1 && x >= -0.5 && x < .5 && slot == -1){
 			c.fillStyle = '#fff'
@@ -412,7 +172,7 @@ uiLayer(1000, (c, w, h) => {
 		if(t && !h) me.inv[36] = t, items[slot] = null
 		else if(h && !t) items[slot] = h, me.inv[36] = null
 		else if(h && t && h.constructor == t.constructor && !h.savedata){
-			const add = min(h.count, (t.maxStack || 64) - t.count)
+			const add = min(h.count, t.maxStack - t.count)
 			if(!(h.count -= add))me.inv[36] = null
 			t.count += add
 		}else items[slot] = h, me.inv[36] = t
@@ -428,7 +188,7 @@ uiLayer(1000, (c, w, h) => {
 		}else if(h && !t){
 			items[slot] = h.constructor(1)
 			if(!--h.count)me.inv[36] = null
-		}else if(h && t && h.constructor == t.constructor && !h.savedata && t.count < (t.maxStack || 64)){
+		}else if(h && t && h.constructor == t.constructor && !h.savedata && t.count < t.maxStack){
 			t.count++
 			if(!--h.count)me.inv[36] = null
 		}else items[slot] = h, me.inv[36] = t
@@ -440,7 +200,7 @@ uiLayer(1000, (c, w, h) => {
 	c.scale(16,16)
 	const {x, y} = c.mouse()
 	c.translate(x, y - .5)
-	renderItem(c, me.inv[36])
+	renderItem(c, me.inv[36], undefined, 0)
 	c.pop()
 })
 
@@ -495,17 +255,22 @@ button(KEY_E, () => {
 	openEntity(me)
 })
 
+blockevent(1, (c, x, y, state = 0) => {
+	const block = getblock(x, y)
+	c.globalCompositeOperation = 'multiply'
+	const item = me.inv[me.selected]
+	c.image(BREAKING[min(9, floor(state / (item ? item.breaktime(block) : block.breaktime) * 10))], 0, 0, 1, 1)
+	c.globalCompositeOperation = 'source-over'
+	if(floor(state * 5) != floor((state + dt) * 5))
+		if(block.punch) block.punch(x, y)
+	return state + dt
+})
 
-
-function renderItem(c, item, showCount = item && item.count != 1){
-	if(!item) return
-	c.image(item.texture || MISSING, -0.5, 0, 1, 1)
-	if(showCount){
-		c.textBaseline = 'alphabetic'
-		c.textAlign = 'right'
-		c.fillStyle = '#000'
-		c.fillText(item.count + '', 0.56, -0.06, 0.6)
-		c.fillStyle = item.count === (item.count & 127) ? '#fff' : '#e44'
-		c.fillText(item.count + '', 0.5, 0, 0.6)
-	}
-}
+blockevent(3, undefined, (x, y) => {
+	const block = getblock(x, y)
+	if(block.place) block.place(x, y)
+})
+blockevent(2, undefined, (x, y) => {
+	const old = getblock(x, y)
+	if(old.break) old.break(x, y)
+})

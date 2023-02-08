@@ -1,5 +1,5 @@
 import { EPSILON } from "./entity.js"
-import { getblock } from "./world.js"
+import "./world.js"
 
 export const cbs = []
 export const mouseMoveCb = []
@@ -22,6 +22,7 @@ export const playerControls = () => {
 	if((me.state & 2) || !(L || R)) me.state &= -5
 	if(D ^ buttons.has(KEY_SHIFT) ^ buttons.has(KEY_CAPSLOCK)) me.state |= 2
 	else me.state &= -3
+	if((me.state & 0x10003) == 0x10003) me.state &= -2
 	if(D && (me.state & 1)) me.dy = -5
 	if(R && !L) me.dx = (me.dx + ((me.state & 3) == 2 ? 1.3 : me.state & 4 ? 8 : 6)) / 2
 	else if(L && !R) me.dx = (me.dx + ((me.state & 3) == 2 ? -1.3 : me.state & 4 ? -8 : -6)) / 2

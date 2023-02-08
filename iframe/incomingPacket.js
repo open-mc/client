@@ -1,4 +1,4 @@
-import { setblock, addEntity, moveEntity, removeEntity } from "./world.js"
+import { setblock, addEntity, moveEntity, removeEntity, blockEvents, blockEventDefs, blockEventIfns, entityEvents } from "./world.js"
 import { Chunk } from "./chunk.js"
 import { queue } from "./sounds.js"
 
@@ -28,10 +28,10 @@ function chunkPacket(buf){
 		e._id = buf.uint32() + buf.short() * 4294967296
 		e.name = buf.string(); e.state = buf.short()
 		e.dx = buf.float(); e.dy = buf.float()
-		e.f = buf.float(); e.chunk = chunk
+		e.f = buf.float(); e.age = buf.double()
+		e.chunk = chunk
 		buf.read(e.savedata, e)
 		addEntity(e)
-		console.log(e)
 		chunk.entities.add(e)
 		if(e.appeared)e.appeared()
 	}
@@ -49,14 +49,41 @@ function chunkDeletePacket(data){
 	}
 }
 function blockSetPacket(buf){
-	setblock(buf.int(), buf.int(), BlockIDs[buf.short()]())
+	while(buf.left){
+		const type = buf.byte()
+		if(type == 255) blockEvents.delete(buf.uint32())
+		else if(type > 0){
+			const x = buf.int(), y = buf.int()
+			const id = buf.uint32()
+			const v = blockEventIfns[type] ? blockEventIfns[type](x, y) : undefined
+			if(blockEventDefs[type])
+				blockEvents.set(id, [x, y, type+id*256, v])
+		}else{
+			const x = buf.int(), y = buf.int()
+			const block = BlockIDs[buf.short()]()
+			setblock(x, y, block)
+			if(block.savedata) buf.read(block.savedata, block)
+		}
+	}
 }
 function entityPacket(buf){
 	while(buf.left){
 		let mv = buf.byte()
+		if(!mv){
+			const type = buf.byte()
+			if(!type)removeEntity(entities.get(buf.uint32() + buf.uint16() * 4294967296))
+			else if(type == 255)entityEvents.delete(buf.uint32())
+			else{
+				const e = entities.get(buf.uint32() + buf.uint16() * 4294967296)
+				const id = buf.uint32()
+				if(e)
+					e.immevent(type),
+					entityEvents.set(id, [e, type+id*256])
+			}
+			continue
+		}
 		const id = buf.uint32() + buf.uint16() * 4294967296
 		let e = entities.get(id)
-		if(!mv){if(e)removeEntity(e);continue}
 		if(!e){
 			if(mv & 128)mv |= 256, e = EntityIDs[buf.short()](0,0),e._id=id,e.dx=e.dy=e.f=0,e.chunk=null
 			else throw 'Not supposed to happen!'

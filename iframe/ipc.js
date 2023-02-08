@@ -3,8 +3,8 @@ import { DataReader, jsonToType } from '../data.js'
 import { codes } from './incomingPacket.js'
 import { frame } from './index.js'
 import { cbs, mouseMoveCb, pauseCb, wheelCb } from './controls.js'
-import { blockBreak, stepParticles } from './particles.js'
-import { getblock } from './world.js'
+import { blockBreak, punchParticles, stepParticles } from './particles.js'
+import './world.js'
 
 Block = class Block{
 	static placeSounds = []; static stepSounds = []
@@ -12,6 +12,7 @@ Block = class Block{
 	static texture = null
 	static climbable = false
 	static gooeyness = 0
+	static breaktime = 3
 	place(x, y){
 		if(this.placeSounds.length)
 			sound(this.placeSounds[Math.floor(Math.random() * this.placeSounds.length)], x, y, 1, 0.8)
@@ -24,11 +25,12 @@ Block = class Block{
 	punch(x, y){
 		if(this.stepSounds.length)
 			sound(this.stepSounds[Math.floor(Math.random() * this.stepSounds.length)], x, y, 0.1375, 0.5)
+		punchParticles(this, x, y)
 	}
 	walk(x, y, e){
 		if(this.stepSounds.length)
 			sound(this.stepSounds[Math.floor(Math.random() * this.stepSounds.length)], x, y, 0.15, 1)
-		stepParticles(this, e)
+		if((e.state & 0x1010000) == 0x10000 || (e.state & 4)) stepParticles(this, e)
 	}
 	fall(x, y){
 		if(this.stepSounds.length)
@@ -37,6 +39,9 @@ Block = class Block{
 }
 Item = class Item{
 	constructor(a){ this.count=a&255; this.name='' }
+	breaktime(b){ return b.breaktime }
+	static maxStack = 64
+	static model = 0
 }
 Entity = class Entity{
 	constructor(x,y){
@@ -44,8 +49,13 @@ Entity = class Entity{
 		this.iy = this.y = y
 		this.dx = this.dy = 0
 		this.state = 0
+		this.age = 0
 		this.f = PI / 2
 		this.blocksWalked = 0
+	}
+	prestep(){
+		const { gooeyness } = getblock(floor(this.x), floor(this.dy > 0 ? this.y : this.y + this.height / 4))
+		if(gooeyness) this.dx *= (1 - gooeyness), this.dy *= (1 - gooeyness)
 	}
 	step(){
 		this.blocksWalked += abs(this.dx * dt)
@@ -57,9 +67,10 @@ Entity = class Entity{
 				if(block.walk) block.walk(x, y, this)
 			}
 		}else this.blocksWalked = this.dy < -10 ? 1.7 : 1.68
-		const { gooeyness } = getblock(floor(this.x), floor(this.dy > 0 ? this.y : this.y + this.height / 4))
-		if(gooeyness) this.dx *= (1 - gooeyness), this.dy *= (1 - gooeyness)
 	}
+	tick(){}
+	event(i){}
+	immevent(i){}
 }
 
 
@@ -126,13 +137,11 @@ const onMsg = ({data}) => {
 				Object.defineProperties(proto.prototype, desc)
 				proto = Object.getPrototypeOf(proto)
 			}
-			if(Dict == Blocks){
-				Object.setPrototypeOf(Dict[name], Thing.prototype)
+			Object.setPrototypeOf(Dict[name], Thing.prototype)
+			if(Dict == Blocks)
 				Object.defineProperties(Dict[name], Object.getOwnPropertyDescriptors(shared))
-			}else if(Dict == Items){
-				Object.setPrototypeOf(Dict[name], Thing.prototype)
+			else if(Dict == Items)
 				Object.defineProperties(Dict[name], Object.getOwnPropertyDescriptors(shared))
-			}
 		}
 	}else if(data instanceof ArrayBuffer){
 		if(loading) return void msgQueue.push(data)
