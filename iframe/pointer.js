@@ -1,5 +1,4 @@
 import { setblock, onPlayerLoad } from './world.js'
-import { DataWriter } from '../data.js'
 import './controls.js'
 
 export let x = 2, y = 0
@@ -21,6 +20,7 @@ export function drawPointer(c){
 	bpx = NaN, bpy = NaN
 	const reach = sqrt(x * x + y * y)
 	let d = 0, px = me.x - bx, py = me.y + me.head - by
+	me.f = atan2(x, y)
 	const dx = sin(me.f), dy = cos(me.f)
 	while(d < reach){
 		if(getblock(bx, by).solid)break
@@ -41,7 +41,6 @@ export function drawPointer(c){
 			if(ix >= 0 && ix <= 1){by--; d += -py / dy; py = 1; px = ix; continue}
 		}
 	}
-
 	if(d >= reach) bx = by = NaN
 	if(!getblock(bpx + 1, bpy).solid && !getblock(bpx - 1, bpy).solid && !getblock(bpx, bpy + 1).solid && !getblock(bpx, bpy - 1).solid){
 		bpx = bpy = NaN
@@ -76,36 +75,23 @@ export function drawPointer(c){
 		}
 		c.globalAlpha = 1
 	}
-	me.f = atan2(x, y)
-	place: if(buttons.has(LBUTTON) && bpx == bpx && t > lastPlace + .17){
+}
+export function checkBlockPlacing(buf){
+	if(buttons.has(LBUTTON) && t > lastPlace + .17){
 		let b = me.inv[me.selected]
-		if(!b || !b.places)break place
-		b = b.places()
-		if(b) setblock(bpx, bpy, b)
-		let buf = new DataWriter()
-		buf.byte(8)
+		if(b && bpx == bpx && b.places && (b = b.places())) setblock(bpx, bpy, b)
 		buf.byte(me.selected)
-		buf.int(bpx)
-		buf.int(bpy)
-		send(buf)
+		buf.float(x); buf.float(y)
 		lastPlace = t
-	}
-	if(buttons.has(RBUTTON) && bx == bx){
-		if(bx != blockbreakx || by != blockbreaky){
-			let buf = new DataWriter()
-			buf.byte(9)
-			buf.byte(me.selected)
-			buf.int(blockbreakx = bx)
-			buf.int(blockbreaky = by)
-			send(buf)
-			lastPlace = t
-		}
-	}else if(blockbreakx == blockbreakx){
-		let buf = new DataWriter()
-		buf.byte(9)
+	}else if(buttons.has(RBUTTON) && bx == bx){
 		buf.byte(me.selected | 128)
+		buf.float(x); buf.float(y)
+		blockbreakx = bx; blockbreaky = by
+		me.state |= 8; lastPlace = t
+	}else{
+		buf.byte(me.selected); buf.float(NaN); buf.float(me.f)
 		blockbreakx = blockbreaky = NaN
-		send(buf)
+		me.state &= -9
 	}
 }
 export let blockbreakx = NaN, blockbreaky = NaN

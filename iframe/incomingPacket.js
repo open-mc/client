@@ -1,4 +1,4 @@
-import { setblock, addEntity, moveEntity, removeEntity, blockEvents, blockEventDefs, blockEventIfns, entityEvents } from "./world.js"
+import { setblock, addEntity, moveEntity, removeEntity, blockEvents, blockEventDefs, blockEventIfns } from "./world.js"
 import { Chunk } from "./chunk.js"
 import { queue } from "./sounds.js"
 
@@ -33,7 +33,7 @@ function chunkPacket(buf){
 		buf.read(e.savedatahistory[buf.flint()] || e.savedata, e)
 		addEntity(e)
 		chunk.entities.add(e)
-		if(e.appeared)e.appeared()
+		if(e.placed)e.placed()
 	}
 }
 const trashtrap = new Set()
@@ -72,13 +72,11 @@ function entityPacket(buf){
 		if(!mv){
 			const type = buf.byte()
 			if(!type)removeEntity(entities.get(buf.uint32() + buf.uint16() * 4294967296))
-			else if(type == 255)entityEvents.delete(buf.uint32())
+			//else if(type == 255)entityEvents.delete(buf.uint32())
 			else{
 				const e = entities.get(buf.uint32() + buf.uint16() * 4294967296)
-				const id = buf.uint32()
-				if(e)
-					e.immevent(type),
-					entityEvents.set(id, [e, type+id*256])
+				//const id = buf.uint32()
+				if(e) e.event(type)
 			}
 			continue
 		}
@@ -98,7 +96,7 @@ function entityPacket(buf){
 		if(mv & 128)buf.read(e.savedata, e)
 		if(mv & 256){
 			addEntity(e)
-			if(e.appeared)e.appeared()
+			if(e.placed)e.placed()
 		}
 		moveEntity(e)
 	}

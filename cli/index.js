@@ -259,7 +259,7 @@ blockevent(1, (c, x, y, state = 0) => {
 	const block = getblock(x, y)
 	c.globalCompositeOperation = 'multiply'
 	const item = me.inv[me.selected]
-	c.image(BREAKING[min(9, floor(state / (item ? item.breaktime(block) : block.breaktime) * 10))], 0, 0, 1, 1)
+	c.image(BREAKING[min(9, floor(state / (item ? item.breaktime(block) : block.breaktime) * 10)) || 0], 0, 0, 1, 1)
 	c.globalCompositeOperation = 'source-over'
 	if(floor(state * 5) != floor((state + dt) * 5))
 		if(block.punch) block.punch(x, y)

@@ -1,4 +1,4 @@
-import { terrainPng } from "./defs.js"
+import { particlePng } from "./defs.js"
 import { renderItem } from "./effects.js"
 
 const meInterface = Texture('/cli/meint.png')
@@ -76,7 +76,7 @@ Entities.player = class extends Entity{
 		c.rotate(PI/2-abs(this.f))
 		c.image(this.textures.head, -0.25, 0, 0.5, 0.5)
 	}
-	appeared(){
+	placed(){
 		const can = Can(28, 12)
 		const skinUnpacked = new ImageData(28, 12)
 		for(let i = 0; i < 336; i++){
@@ -87,12 +87,12 @@ Entities.player = class extends Entity{
 		}
 		can.putImageData(skinUnpacked, 0, 0)
 		this.textures = {
-			head: can.texture(20, 4, 8, 8),
-			body: can.texture(0, 0, 4, 12),
-			arm1: can.texture(4, 0, 4, 12),
-			arm2: can.texture(8, 0, 4, 12),
-			leg1: can.texture(12, 0, 4, 12),
-			leg2: can.texture(16, 0, 4, 12)
+			head: can.crop(20, 4, 8, 8),
+			body: can.crop(0, 0, 4, 12),
+			arm1: can.crop(4, 0, 4, 12),
+			arm2: can.crop(8, 0, 4, 12),
+			leg1: can.crop(12, 0, 4, 12),
+			leg2: can.crop(16, 0, 4, 12)
 		}
 	}
 	static width = 0.3
@@ -144,7 +144,7 @@ Entities.player = class extends Entity{
 	}
 }
 
-const pop = Audio('/music/pop.mp3')
+const pop = Audio('/music/misc/pop.mp3')
 
 Entities.item = class extends Entity{
 	item = null
@@ -156,9 +156,81 @@ Entities.item = class extends Entity{
 		c.scale(0.3125, 0.3125)
 		renderItem(c, this.item, false, 0)
 	}
-	immevent(i){
+	event(i){
 		if(i == 1){
-			sound(pop, this.ix-.5,this.iy-.5,0.2,random()*1.5+0.5)
+			this.sound(pop,0.2,random()*1.5+0.5)
 		}
+	}
+}
+
+const fuse = Audio('/music/misc/fuse.mp3')
+const explode = [1,2,3,4].mutmap(a => Audio(`/music/misc/explode${a}.mp3`))
+
+
+Entities.tnt = class extends Entity{
+	static width = 0.49
+	static height = 0.98
+	fusing = 0
+	static breaktime = 0
+	placed(){
+		this.sound(fuse)
+	}
+	render(c){
+		if(this.fusing){
+			c.scale(1.1 - 1/(this.fusing+10), 1.1 - 1/(this.fusing+10))
+			this.fusing++
+		}
+		c.image(Blocks.tnt.texture, -0.5, 0, 1, 1)
+		c.globalAlpha = 0.7
+		c.fillStyle = t*3&1 ? '#fff' : '#000'
+		c.fillRect(-0.5,0,1,1)
+		c.globalAlpha = 1
+	}
+	event(i){
+		if(i == 1)
+			this.fusing = 1
+	}
+	removed(){
+		this.sound(explode[floor(random()*explode.length)])
+		for(let i = 0; i < 15; i++) new BlastParticle(this.x, this.y)
+		for(let i = 0; i < 30; i++) new AshParticle(this.x, this.y)
+	}
+}
+const explodeParticles = [0,8,16,24,32,40,48,56,64,72,80,88,96,104,112].mutmap(a => particlePng.crop(a,80,8,8))
+const ashParticles = [0,8,16,24,32,40,48,56].mutmap(a => particlePng.crop(a,0,8,8))
+
+class BlastParticle extends Particle{
+	constructor(x, y){
+		super(false, random() / 4 + 0.5, x + random() * 4 - 2, y + random() * 4 - 2, 0, 0, 0, 0)
+		this.size = random() + 1
+		const a = floor(random() * 128 + 128)
+		this.fillStyle = `rgb(${a}, ${a}, ${a})`
+	}
+	render(c){
+		if(this.lifetime >= .5) return
+		secondCanvas.globalCompositeOperation = 'destination-atop'
+		secondCanvas.fillStyle = this.fillStyle
+		secondCanvas.fillRect(0,0,8,8)
+		secondCanvas.image(explodeParticles[floor(15 - this.lifetime * 30)], 0, 0, 8, 8)
+		c.image(secondCanvas, -this.size/2, -this.size/2, this.size, this.size)
+	}
+}
+const secondCanvas = Can(8,8)
+secondCanvas.setTransform(1,0,0,-1,0,8)
+class AshParticle extends Particle{
+	constructor(x, y){
+		const rx = random() * 4 - 2, ry = random() * 4 - 2
+		super(false, 79.9999, x + rx, y + ry, rx*3, ry*3, 0, 0)
+		this.size = random() / 2 + .5
+		const a = floor(random() * 128 + 128)
+		this.fillStyle = `rgb(${a}, ${a}, ${a})`
+	}
+	render(c){
+		secondCanvas.globalCompositeOperation = 'destination-atop'
+		secondCanvas.fillStyle = this.fillStyle
+		secondCanvas.fillRect(0,0,8,8)
+		secondCanvas.image(ashParticles[floor(this.lifetime / 10)], 0, 0, 8, 8)
+		c.image(secondCanvas, -this.size/2, -this.size/2, this.size, this.size)
+		if(random() < dt*10) this.lifetime -= 10
 	}
 }

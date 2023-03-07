@@ -70,7 +70,10 @@ Entity = class Entity{
 	}
 	tick(){}
 	event(i){}
-	immevent(i){}
+	sound(a,b=1,c=1){sound(a, this.ix-.5, this.iy-.5+this.head, b, c)}
+	static width = 0.5
+	static height = 1
+	static head = .5
 }
 
 
@@ -113,7 +116,7 @@ const onMsg = ({data}) => {
 			Thing.savedata = a.length ? jsonToType(a.pop()) : null
 			Thing.savedatahistory = a.map(jsonToType)
 			Thing.constructor = Thing
-			if(Object.hasOwn(Thing.prototype, 'prototype')){ console.warn('Reused class for ' + Thing.prototype.className + ' (by ' + name + ')') }
+			if(Object.hasOwn(Thing.prototype, 'prototype')){ console.warn('Reused class for ' + Thing.prototype.className + ' (by ' + name + ')'); return }
 			Object.defineProperty(Thing, 'name', {value: name})
 			// Force extend
 			if(!(Thing.prototype instanceof Constructor)){

@@ -1,6 +1,8 @@
 import { audioSet, lava, water } from "./effects.js"
 export const terrainPng = Texture("/cli/terrain.png")
 export const itemsPng = Texture("/cli/items.png")
+export const particlePng = Texture("/cli/particles.png")
+
 
 Blocks.air = class extends Block{ static solid = false }
 Blocks.grass = class extends Block{
@@ -91,6 +93,16 @@ Blocks.netherrack = class extends Block{
 Blocks.quartz_ore = class extends Blocks.netherrack{
 	static texture = terrainPng.at(6, 6)
 }
+
+Blocks.tnt = class extends Block{
+	static breaktime = 0
+	static texture = terrainPng.at(8, 0)
+	static stepSounds = Blocks.grass.placeSounds
+	static placeSounds = Blocks.grass.placeSounds
+}
+
+
+
 Items.oak_log = class extends Item{
 	places(){ return Blocks.oak_log }
 	static texture = Blocks.oak_log.texture
@@ -120,11 +132,37 @@ Items.grass = class extends Item{
 	static texture = Blocks.grass.texture
 }
 
-Items.diamond_pickaxe = class DiamondPickaxe extends Item{
-	breaktime(block){
-		return block.tool == 'pick' ? block.breaktime / 25 : block.breaktime
-	}
-	static texture = itemsPng.at(2, 8)
+class Tool extends Item{
 	static maxStack = 1
 	static model = 1
+	static for = ''
+	static speed = 10
+	breaktime(block){
+		return block.tool == this.for ? block.breaktime / this.speed : block.breaktime
+	}
+}
+
+Items.diamond_pickaxe = class extends Tool{
+	static for = 'pick'
+	static speed = 25
+	static texture = itemsPng.at(2, 8)
+}
+
+Items.diamond_shovel = class extends Tool{
+	static for = 'shovel'
+	static speed = 25
+	static texture = itemsPng.at(3, 8)
+}
+Items.flint_and_steel = class extends Tool{
+	static model = 2
+	static texture = itemsPng.at(17, 10)
+}
+
+Items.tnt = class extends Item{
+	static texture = Blocks.tnt.texture
+	places(){ return Blocks.tnt }
+}
+
+Items.end_crystal = class extends Item{
+	static texture = itemsPng.at(0,10)
 }

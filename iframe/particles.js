@@ -68,9 +68,9 @@ const particles = new Set
 renderLayer(300, c => {
 	let tx = 0, ty = 0
 	for(const p of particles){
-		p.step()
 		c.translate(-(tx - (tx = ifloat(p.x - cam.x))), -(ty - (ty = ifloat(p.y - cam.y))))
 		p.render(c)
+		p.step()
 	}
 })
 
