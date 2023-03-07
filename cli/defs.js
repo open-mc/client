@@ -36,6 +36,7 @@ Blocks.bedrock = class extends Stone{
 class Wood extends Block{
 	static placeSounds = audioSet('wood', 'place', 4)
 	static stepSounds = audioSet('wood', 'step', 6)
+	static tool = 'axe'
 }
 Blocks.oak_log = class extends Wood{
 	static texture = terrainPng.at(4, 1)
@@ -153,6 +154,13 @@ Items.diamond_shovel = class extends Tool{
 	static speed = 25
 	static texture = itemsPng.at(3, 8)
 }
+
+Items.diamond_axe = class extends Tool{
+	static for = 'axe'
+	static speed = 25
+	static texture = itemsPng.at(14, 7)
+}
+
 Items.flint_and_steel = class extends Tool{
 	static model = 2
 	static texture = itemsPng.at(17, 10)

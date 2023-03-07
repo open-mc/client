@@ -28,6 +28,7 @@ Block = class Block{
 		punchParticles(this, x, y)
 	}
 	walk(x, y, e){
+		if(!e.alive) return
 		if(this.stepSounds.length)
 			sound(this.stepSounds[Math.floor(Math.random() * this.stepSounds.length)], x, y, 0.15, 1)
 		if((e.state & 0x1010000) == 0x10000 || (e.state & 4)) stepParticles(this, e)
@@ -74,6 +75,9 @@ Entity = class Entity{
 	static width = 0.5
 	static height = 1
 	static head = .5
+	static gx = 1
+	static gy = 1
+	static alive = false
 }
 
 
@@ -110,13 +114,13 @@ const onMsg = ({data}) => {
 			a = a.split(' ')
 			const name = a.shift()
 			const Thing = Dict[name] || class extends Constructor{static _ = console.warn((Dict == Blocks ? 'Blocks.' : Dict == Items ? 'Items.' : 'Entities.') + name + ' missing!')}
+			if(Object.hasOwn(Thing.prototype, 'prototype')){ console.warn('Reused class for ' + Thing.prototype.className + ' (by ' + name + ')'); List[Thing.id] = Thing; return }
 			Thing.id = i
 			Thing.className = name
 			Thing[Symbol.toStringTag] = (Dict == Blocks ? 'Blocks.' : Dict == Items ? 'Items.' : 'Entities.') + name
 			Thing.savedata = a.length ? jsonToType(a.pop()) : null
 			Thing.savedatahistory = a.map(jsonToType)
 			Thing.constructor = Thing
-			if(Object.hasOwn(Thing.prototype, 'prototype')){ console.warn('Reused class for ' + Thing.prototype.className + ' (by ' + name + ')'); return }
 			Object.defineProperty(Thing, 'name', {value: name})
 			// Force extend
 			if(!(Thing.prototype instanceof Constructor)){

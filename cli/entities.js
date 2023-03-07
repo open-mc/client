@@ -4,7 +4,8 @@ import { renderItem } from "./effects.js"
 const meInterface = Texture('/cli/meint.png')
 
 Entities.player = class extends Entity{
-	inv = Array.null(36)
+	static alive = true
+	inv = Array.null(37)
 	items = [null, null, null, null, null, null]
 	health = 20
 	selected = 0
@@ -171,7 +172,6 @@ Entities.tnt = class extends Entity{
 	static width = 0.49
 	static height = 0.98
 	fusing = 0
-	static breaktime = 0
 	placed(){
 		this.sound(fuse)
 	}
@@ -196,6 +196,35 @@ Entities.tnt = class extends Entity{
 		for(let i = 0; i < 30; i++) new AshParticle(this.x, this.y)
 	}
 }
+const endercrystal = Texture('/cli/endercrystal.png')
+const endCrystalWiregrid = endercrystal.crop(32,16,16,16)
+const endCrystalCore = endercrystal.crop(96,16,16,16)
+Entities.end_crystal = class extends Entity{
+	static width = 0.99
+	static height = 1.99
+	render(c){
+		const t = this.age / TPS
+		c.push()
+		c.translate(0, 1.2 + sin(t * 4) / 3)
+		c.rotate(t*-0.5)
+		c.image(endCrystalCore, -0.4, -0.4, 0.8, 0.8)
+		c.rotate(t)
+		c.image(endCrystalWiregrid, -0.53, -0.53, 1.06, 1.06)
+		c.rotate(t*-1.5)
+		c.image(endCrystalWiregrid, -0.6, -0.6, 1.2, 1.2)
+		c.pop()
+	}
+	removed(){
+		this.sound(explode[floor(random()*explode.length)])
+		for(let i = 0; i < 15; i++) new BlastParticle(this.x, this.y)
+		for(let i = 0; i < 30; i++) new AshParticle(this.x, this.y)
+	}
+	static gx = 0
+	static gy = 0
+}
+
+
+
 const explodeParticles = [0,8,16,24,32,40,48,56,64,72,80,88,96,104,112].mutmap(a => particlePng.crop(a,80,8,8))
 const ashParticles = [0,8,16,24,32,40,48,56].mutmap(a => particlePng.crop(a,0,8,8))
 

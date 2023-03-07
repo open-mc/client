@@ -7,12 +7,12 @@ export function stepEntity(e){
 	e.state = (e.state & 0xffff) | (e.state << 8 & 0xff000000) | fastCollision(e, e.dx * dt, e.dy * dt) << 16
 	if(e.state & 1)e.dy = 0
 	else{
-		e.dy += dt * gy
+		e.dy += dt * gy * e.gy
 		e.dy = e.dy * airDrag ** dt
-		e.dx += dt * gx
+		e.dx += dt * gx * e.gx
 	}
 	e.dx = e.dx * groundDrag ** dt
-	if(e == me)e.ix = e.x, e.iy = e.y
+	if(e == me || dt > 1/30)e.ix = e.x, e.iy = e.y
 	else{
 		//TODO: make interpolation entirely dx/dy based
 		e.ix += ifloat(e.x - e.ix) * dt * 20

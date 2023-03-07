@@ -60,7 +60,8 @@ function blockSetPacket(buf){
 				blockEvents.set(id, [x, y, type+id*256, v])
 		}else{
 			const x = buf.int(), y = buf.int()
-			const block = BlockIDs[buf.short()]()
+			const id = buf.short()
+			const block = BlockIDs[id]()
 			setblock(x, y, block)
 			if(block.savedata) buf.read(block.savedata, block)
 		}

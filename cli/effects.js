@@ -21,6 +21,8 @@ music('nether',
 	'/music/nether4.mp3'
 )
 
+music('end', '/music/end.mp3')
+
 export const lava = {
 	ambient: Audio('/music/lava/ambient.mp3'),
 	pop: Audio('/music/lava/pop.mp3')

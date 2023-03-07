@@ -81,7 +81,7 @@ onmessage = ({data, source}) => {
 			}
 			if(pan != 0){
 				const panner = actx.createStereoPanner()
-				panner.pan.value = pan
+				panner.pan.value = Math.min(1, Math.max(-1, pan))
 				panner.connect(dest)
 				dest = panner
 			}

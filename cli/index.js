@@ -16,6 +16,7 @@ const sun = skyPng.crop(128, 64, 32, 32), moons = [
 	skyPng.crop(192, 32, 32, 32),
 	skyPng.crop(224, 32, 32, 32)
 ], cloudMap = skyPng.crop(128, 127, 128, 1).pattern('repeat')
+const endSky = skyPng.crop(128,128,128,128).pattern('repeat')
 uiLayer(-100, (c, w, h) => {
 	if(world == 'overworld'){
 		const reach = pointer.effectiveReach()
@@ -62,6 +63,10 @@ uiLayer(-100, (c, w, h) => {
 		c.globalAlpha = 1
 	}else if(world == 'nether'){
 		c.fillStyle = '#190404'
+		c.fillRect(0, 0, w, h)
+	}else if(world == 'end'){
+		c.globalAlpha = 0.15
+		c.fillStyle = endSky
 		c.fillRect(0, 0, w, h)
 		c.globalAlpha = 1
 	}
@@ -253,6 +258,12 @@ onpacket(15, buf => {
 button(KEY_E, () => {
 	if(paused)return closeInterface()
 	openEntity(me)
+})
+
+button(KEY_Q, () => {
+	const buf = new DataWriter()
+	buf.byte(34)
+	send(buf)
 })
 
 blockevent(1, (c, x, y, state = 0) => {

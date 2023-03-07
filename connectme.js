@@ -26,6 +26,20 @@ const onpending = function(str){
 	const code = parseInt(str.slice(0,2), 16)
 	pendingConnection(str.slice(2), code)
 }
+let blurred = false, notifs = 0
+
+function notif(){
+	if(!blurred || !ws) return
+	document.title = '(🔴' + (++notifs) + ') ' + ws.name + ' | PaperMinecraft'
+}
+
+onfocus = () => {
+	blurred = false
+	notifs = 0
+	document.title = ws ? ws.name + ' | PaperMinecraft' : 'Paper Minecraft'
+}
+onblur = () => blurred = true
+
 const unencrypted = /^(localhost|127.0.0.1|0.0.0.0|\[::1\])$/i
 export function preconnect(ip, cb = Function.prototype){
 	const displayIp = ip
@@ -41,7 +55,7 @@ export function preconnect(ip, cb = Function.prototype){
 	ws.onmessage = function({data}){
 		if(ws != globalThis.ws){
 			const packet = new DataReader(data)
-			name.textContent = packet.string()
+			name.textContent = ws.name = packet.string()
 			motd.textContent = packet.string()
 			icon.src = packet.string()
 			ws.packs = decoder.decode(pako.inflate(packet.uint8array())).split('\0')
@@ -59,6 +73,7 @@ export function preconnect(ip, cb = Function.prototype){
 			box.textContent = data.slice(2)
 			chat.insertAdjacentElement('afterbegin', box)
 			box.classList = `c${style&15} s${style>>4}`
+			notif()
 		}else fwPacket(data)
 	}
 	ws.onclose = () => {
@@ -100,6 +115,7 @@ export async function play(ws, ip){
 	packet.set(signature, skin.length)
 	ws.send(packet)
 	globalThis.ws = ws
+	onfocus()
 	msg('Authenticating...')
 	gameIframe(ws.packs)
 }
@@ -113,5 +129,7 @@ export function finished(){
 	ws.onclose = Function.prototype
 	ws.close()
 	ws = null
+	notifs = 0
+	onfocus()
 	destroyIframe()
 }

@@ -77,7 +77,7 @@ export function drawPointer(c){
 	}
 }
 export function checkBlockPlacing(buf){
-	if(buttons.has(LBUTTON) && t > lastPlace + .17){
+	if(buttons.has(LBUTTON) && t > lastPlace + .15){
 		let b = me.inv[me.selected]
 		if(b && bpx == bpx && b.places && (b = b.places())) setblock(bpx, bpy, b)
 		buf.byte(me.selected)
