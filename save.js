@@ -4,7 +4,8 @@ if(!storage.name) {
 	throw 'No account'
 }
 
-export const servers = (storage.servers || 'localhost:27277').split('\0')
+export const servers = (storage.servers || 
+	/.github.io$|.pages.dev$/.test(location.host) ? 'blobk.at' : /localhost$|127.0.0.1$/y.test(location.host) ? 'localhost:27277' : location.host).split('\0')
 
 Object.defineProperty(globalThis, 'localStorage', {get(){window.close(); location.href = '//youtu.be/a3Z7zEc7AXQ'}})
 
