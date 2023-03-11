@@ -172,9 +172,6 @@ Entities.tnt = class extends Entity{
 	static width = 0.49
 	static height = 0.98
 	fusing = 0
-	placed(){
-		this.sound(fuse)
-	}
 	render(c){
 		if(this.fusing){
 			c.scale(1.1 - 1/(this.fusing+10), 1.1 - 1/(this.fusing+10))
@@ -188,12 +185,14 @@ Entities.tnt = class extends Entity{
 	}
 	event(i){
 		if(i == 1)
+			this.sound(fuse)
+		else if(i == 2)
 			this.fusing = 1
-	}
-	removed(){
-		this.sound(explode[floor(random()*explode.length)])
-		for(let i = 0; i < 15; i++) new BlastParticle(this.x, this.y)
-		for(let i = 0; i < 30; i++) new AshParticle(this.x, this.y)
+		else if(i == 3){
+			this.sound(explode[floor(random()*explode.length)])
+			for(let i = 0; i < 15; i++) new BlastParticle(this.x, this.y)
+			for(let i = 0; i < 30; i++) new AshParticle(this.x, this.y)
+		}
 	}
 }
 const endercrystal = Texture('/cli/endercrystal.png')
@@ -214,16 +213,16 @@ Entities.end_crystal = class extends Entity{
 		c.image(endCrystalWiregrid, -0.6, -0.6, 1.2, 1.2)
 		c.pop()
 	}
-	removed(){
-		this.sound(explode[floor(random()*explode.length)])
-		for(let i = 0; i < 15; i++) new BlastParticle(this.x, this.y)
-		for(let i = 0; i < 30; i++) new AshParticle(this.x, this.y)
+	event(i){
+		if(i == 1){
+			this.sound(explode[floor(random()*explode.length)])
+			for(let i = 0; i < 15; i++) new BlastParticle(this.x, this.y)
+			for(let i = 0; i < 30; i++) new AshParticle(this.x, this.y)
+		}
 	}
 	static gx = 0
 	static gy = 0
 }
-
-
 
 const explodeParticles = [0,8,16,24,32,40,48,56,64,72,80,88,96,104,112].mutmap(a => particlePng.crop(a,80,8,8))
 const ashParticles = [0,8,16,24,32,40,48,56].mutmap(a => particlePng.crop(a,0,8,8))

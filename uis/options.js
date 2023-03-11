@@ -3,12 +3,10 @@ import { options } from "../save.js"
 import { Btn, Label, Row, Scale, ScaleSmall, showUI, Spacer, UI } from "../ui.js"
 import { advancedOptionsScreen } from "./advanced.js"
 
-
 function renderScale(){
 	guiNode.textContent = 'GUI scale: ' + options.guiScale
 	const size = Math.round(devicePixelRatio) / devicePixelRatio * options.guiScale * 2
 	document.documentElement.style.fontSize = size + 'px'
-	document.documentElement.style.setProperty('--scale', size)
 }
 function guiChange(){
 	options.guiScale *= 2

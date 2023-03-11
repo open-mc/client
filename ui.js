@@ -23,7 +23,12 @@ NONE.esc = hideUI
 document.body.append(NONE)
 
 export let ptrSuccess = Function.prototype, ptrFail = Function.prototype
-const ptrlock = () => new Promise((r, c) => { document.body.requestPointerLock(); ptrSuccess = r; ptrFail = c })
+const ptrlock = () => new Promise((r, c) => {
+	const fs = document.body.requestFullscreen()
+	if(fs instanceof Promise) fs.then(() => document.body.requestPointerLock());
+	else document.body.requestPointerLock()
+	ptrSuccess = r; ptrFail = c
+})
 
 export let ui = null
 export async function hideUI(){
@@ -37,6 +42,7 @@ export async function hideUI(){
 }
 
 export function showUI(a = null){
+	//document.exitFullscreen()
 	document.exitPointerLock()
 	void (ui && ui.finish || Function.prototype)()
 	void (ui || NONE).replaceWith(ui = a || NONE)

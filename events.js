@@ -43,7 +43,7 @@ document.onpointerlockerror = document.onpointerlockchange = function(e){
 	else if(document.pointerLockElement){
 		ptrSuccess()
 		keyMsg(false)
-		if(wasFullscreen)document.documentElement.requestFullscreen()
+		//if(wasFullscreen)document.documentElement.requestFullscreen()
 	}else{
 		keyMsg(true)
 		wasFullscreen = !!(!ui && document.fullscreenElement)

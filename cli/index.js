@@ -208,6 +208,13 @@ uiLayer(1000, (c, w, h) => {
 	renderItem(c, me.inv[36], undefined, 0)
 	c.pop()
 })
+/*
+const guiAtlas = Texture()
+uiLayer(1000, (c) => {
+	
+})
+*/
+
 
 let invInterface = null, interfaceId = 0
 let invAction = 0

@@ -114,7 +114,7 @@ const onMsg = ({data}) => {
 			a = a.split(' ')
 			const name = a.shift()
 			const Thing = Dict[name] || class extends Constructor{static _ = console.warn((Dict == Blocks ? 'Blocks.' : Dict == Items ? 'Items.' : 'Entities.') + name + ' missing!')}
-			if(Object.hasOwn(Thing.prototype, 'prototype')){ console.warn('Reused class for ' + Thing.prototype.className + ' (by ' + name + ')'); List[Thing.id] = Thing; return }
+			if(!Object.hasOwn(Thing, 'prototype')){ console.warn('Reused class for ' + Thing.className + ' (by ' + name + ')'); List[Thing.id] = Thing; return }
 			Thing.id = i
 			Thing.className = name
 			Thing[Symbol.toStringTag] = (Dict == Blocks ? 'Blocks.' : Dict == Items ? 'Items.' : 'Entities.') + name
@@ -138,12 +138,12 @@ const onMsg = ({data}) => {
 			// Copy static props to prototype
 			// This will also copy .prototype, which we want
 			let proto = Thing
-			while(proto.prototype && !Object.hasOwn(proto.prototype, 'prototype')){
+			do{
 				const desc = Object.getOwnPropertyDescriptors(proto)
 				delete desc.length; delete desc.name
 				Object.defineProperties(proto.prototype, desc)
 				proto = Object.getPrototypeOf(proto)
-			}
+			}while(proto.prototype && !Object.hasOwn(proto.prototype, 'prototype'))
 			Object.setPrototypeOf(Dict[name], Thing.prototype)
 			if(Dict == Blocks)
 				Object.defineProperties(Dict[name], Object.getOwnPropertyDescriptors(shared))

@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <style>
 	@font-face {
 		font-family: mc;
@@ -69,7 +70,7 @@
 		 * - CPU or GPU
 		 * - current transformation matrix
 		 * 
-		 * Additionally, despite docs saying otherwise, specifying a newgative sourceHeight in drawImage does not, in fact, flip the image
+		 * Additionally, despite docs saying otherwise, specifying a negative sourceHeight in drawImage does not, in fact, flip the image
 		 * which would have most likely allowed an improve in performane if it did
 		 * This is actually the primary concern here (text isn't a cheap operation to begin with and it's not drawn in large quantities, but images are)
 		 * 

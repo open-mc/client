@@ -5,7 +5,7 @@ if(!storage.name) {
 }
 
 export const servers = (storage.servers || 
-	/.github.io$|.pages.dev$/.test(location.host) ? 'blobk.at' : /localhost$|127.0.0.1$/y.test(location.host) ? 'localhost:27277' : location.host).split('\0')
+	(/.github.io$|.pages.dev$/.test(location.host) ? 'blobk.at' : /localhost$|127.0.0.1$/y.test(location.host) ? 'localhost:27277' : location.host)).split('\0')
 
 Object.defineProperty(globalThis, 'localStorage', {get(){window.close(); location.href = '//youtu.be/a3Z7zEc7AXQ'}})
 
@@ -25,11 +25,11 @@ export function saveServers(){
 export const options = {}
 const defaults = {
 	guiScale: 1,
-	zoom: 0.4,
+	zoom: 0.6,
 	sound: 0.75,
 	music: 0.75,
 	sensitivity: 0.5,
-	camera: 0,
+	camera: 2,
 	speed: 1
 }
 const optionListeners = {}
