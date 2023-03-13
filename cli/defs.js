@@ -3,6 +3,8 @@ export const terrainPng = Texture("/cli/terrain.png")
 export const itemsPng = Texture("/cli/items.png")
 export const particlePng = Texture("/cli/particles.png")
 
+import { Blocks, Items, Block, Item } from 'definitions'
+
 
 Blocks.air = class extends Block{ static solid = false }
 Blocks.grass = class extends Block{

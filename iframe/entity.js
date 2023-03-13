@@ -1,4 +1,4 @@
-import { moveEntity } from "./world.js"
+import { getblock } from 'world'
 
 const groundDrag = .0000244
 const airDrag = 0.667
@@ -22,6 +22,10 @@ export function stepEntity(e){
 	moveEntity(e)
 	e.step()
 	e.age += dt * TPS
+}
+export function moveEntity(e){
+	const ch = map.get((floor(e.x) >>> 6) + (floor(e.y) >>> 6) * 67108864) || null
+	if(ch != e.chunk)e.chunk&&e.chunk.entities.delete(e), e.chunk = ch, ch&&ch.entities.add(e)
 }
 
 export const EPSILON = .0001

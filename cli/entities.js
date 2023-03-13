@@ -1,5 +1,6 @@
 import { particlePng } from "./defs.js"
 import { renderItem } from "./effects.js"
+import { Entities, Entity, Item, Items, Particle } from 'definitions'
 
 const meInterface = Texture('/cli/meint.png')
 

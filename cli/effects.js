@@ -1,3 +1,4 @@
+
 export const audioSet = (name, variant, count) => Array.from({length: count}, (_, i) => Audio('/music/'+name+'/'+variant+(i+1)+'.mp3'))
 
 music('overworld',

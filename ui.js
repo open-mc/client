@@ -3,7 +3,6 @@ import { options } from "./save.js"
 let defaultUI
 export function setDefaultUI(fn){defaultUI = fn}
 const arr = [new Audio('./img/click.mp3')]
-arr[0].crossOrigin = 'anonymous'
 export const click = () => {
 	let a = arr.length > 1 ? arr.pop() : arr[0].cloneNode(true)
 	a.volume = options.sound
@@ -11,7 +10,7 @@ export const click = () => {
 		a.onended = null
 		if(arr.length<3)arr.push(a)
 	}
-	a.play().catch(a.onended)
+	a.play()//.catch(a.onended)
 }
 
 HTMLElement.prototype.attr = function(a, b){this.setAttribute(a, b); return this}
@@ -24,7 +23,7 @@ document.body.append(NONE)
 
 export let ptrSuccess = Function.prototype, ptrFail = Function.prototype
 const ptrlock = () => new Promise((r, c) => {
-	const fs = document.body.requestFullscreen()
+	const fs = document.documentElement.requestFullscreen()
 	if(fs instanceof Promise) fs.then(() => document.body.requestPointerLock());
 	else document.body.requestPointerLock()
 	ptrSuccess = r; ptrFail = c

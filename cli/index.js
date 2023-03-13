@@ -1,6 +1,9 @@
 import { terrainPng } from "./defs.js"
 import { renderItem } from "./effects.js"
 import "./entities.js"
+import { button, W2, H2, uiLayer, renderLayer, onpause, pause, paused } from 'api'
+import { getblock } from 'world'
+import { Item } from 'definitions'
 
 const BREAKING = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].mutmap(x => terrainPng.at(x, 15))
 
@@ -252,8 +255,8 @@ onpacket(32, buf => {
 	if(!e) return
 	while(buf.left){
 		const slot = buf.byte()
-		if(slot > 127)e.items[slot] = buf.item()
-		else e.inv[slot] = buf.item()
+		if(slot > 127)e.items[slot] = Item.decode(buf)
+		else e.inv[slot] = Item.decode(buf)
 	}
 })
 onpacket(15, buf => {
@@ -262,12 +265,12 @@ onpacket(15, buf => {
 	e.selected = buf.byte()
 })
 
-button(KEY_E, () => {
+button(KEYS.E, () => {
 	if(paused)return closeInterface()
 	openEntity(me)
 })
 
-button(KEY_Q, () => {
+button(KEYS.Q, () => {
 	const buf = new DataWriter()
 	buf.byte(34)
 	send(buf)

@@ -1,4 +1,13 @@
 <!DOCTYPE html>
+<!-- Safari, fuck you! -->
+<script async src="https://ga.jspm.io/npm:es-module-shims@1.7.0/dist/es-module-shims.js"></script>
+<script type="importmap" id="iMap">
+{"imports": {
+	"api": "./api.js",
+	"world": "./world.js",
+	"definitions": "./defs.js"
+}}
+</script>
 <style>
 	@font-face {
 		font-family: mc;
@@ -14,98 +23,6 @@
 	const postMessage = parent.postMessage.bind(parent)
 	let msgQueue = []
 	parent.postMessage(null, '*')
-	const _filecache = Object.create(null)
-	const _c = document.createElement('canvas')
-	const _texture = class Texture{
-		constructor(img, x, y, w, h){ this.canvas = img; this.x = x; this.y = y; this.w = w; this.h = h; this._pattern = null }
-		crop(x, y, w, h){ return new _texture(this.canvas, this.x + x, this.y + y, w, h) }
-		at(x, y){ return new _texture(this.canvas, this.x + x * TEX_SIZE, this.y + y * TEX_SIZE, TEX_SIZE, TEX_SIZE) }
-		pattern(rep = ''){
-			if(this._pattern)return this._pattern
-			const c = document.createElement('canvas')
-			const ctx = c.getContext('2d')
-			if(this.canvas.complete === false){
-				this.canvas.addEventListener('load', () => {
-					c.width = this.w; c.height = this.h
-					ctx.drawImage(this.canvas, this.x, this.y, this.w, this.h, 0, 0, this.w, this.h)
-					this._pattern = ctx.createPattern(c, rep)
-				})
-			}else{
-				c.width = this.w; c.height = this.h
-				ctx.drawImage(this.canvas, this.x, this.y, this.w, this.h, 0, 0, this.w, this.h)
-				this._pattern = ctx.createPattern(c, rep)
-			}
-			return this
-		}
-	}
-	const Texture = src => {
-		if(_filecache[src])return _filecache[src]
-		const i = new Image()
-		i.crossOrigin = 'anonymous'
-		i.src = src
-		loading++
-		const t = new _texture(i, 0, 0, 0, 0)
-		i.onload = i.onerror = () => (i.onload=i.onerror=null,t.w=i.width,t.h=i.height,--loading||loaded())
-		return t
-	}
-	const _actx = new AudioContext()
-	const _bgGain = _actx.createGain()
-	_bgGain.connect(_actx.destination)
-	const Audio = (src, bg = false) => {
-		let buf = null
-		return function play(vol = 1, pitch = 1, pan = 0, start = 0, end = NaN, ends = true){
-			if(buf === null){
-				buf = []
-				fetch(src, {credentials: 'omit', priority: 'low'}).then(a => a.arrayBuffer()).then(a => _actx.decodeAudioData(a, b => {
-					const l = buf; buf = b
-					for(let i = 0; i < l.length; i++) l[i][0] = play(...l[i])
-				}))
-			}
-			if(Array.isArray(buf)){
-				const a = [vol,pitch,pan,start,end,ends]
-				buf.push(a)
-				return () => {
-					if(Array.isArray(buf)){
-						const i = buf.indexOf(a)
-						if(i > -1) buf.splice(i, 1)
-					}else a[0]()
-				}
-			}
-			const source = _actx.createBufferSource()
-			source.buffer = buf
-			if(bg) source.connect(_bgGain)
-			else{
-				let dest = _actx.destination
-				const volume = options.sound * options.sound * vol
-				if(volume != 1){
-					const gain = _actx.createGain()
-					gain.gain.value = volume
-					gain.connect(dest)
-					dest = gain
-				}
-				if(pan != 0){
-					const panner = _actx.createStereoPanner()
-					panner.pan.value = min(1, max(-1, pan))
-					panner.connect(dest)
-					dest = panner
-				}
-				source.playbackRate.value = pitch
-				source.connect(dest)
-			}
-			if(source.loop = !ends){
-				source.loopStart = start
-				if(end == end)source.loopEnd = end
-				source.start(0, start)
-			}else{
-				source.start(0, start, end == end ? end - start : buf.duration)
-				if(typeof ends == 'function') source.onended = ends
-			}
-			return () => {
-				source.onended = null
-				source.stop()
-			}
-		}
-	}
 	const TEX_SIZE = 16
 	;(C => {
 		/**
@@ -198,7 +115,7 @@
 			this.canvas.width = this.w = w
 			this.canvas.height = this.h = h
 		}
-		C.crop = function(x, y, w, h){ return new _texture(this.canvas, x, y, w, h) }
+		C.crop = function(x, y, w, h){ return new _txtr(this.canvas, x, y, w, h) }
 	})(CanvasRenderingContext2D.prototype)
 	Math.fclamp = (a, b = 1) => a < 0 ? 0 : (a > b ? b : a)
 	Math.ifloat = x => {
@@ -244,31 +161,118 @@
 		c.x = c.y = 0
 		return c
 	}
-	const Blocks = {}, Items = {}, Entities = {}
-	const BlockIDs = [], ItemIDs = [], EntityIDs = []
-	let Block, Item, Entity, Particle
-	let W2 = 0, H2 = 0, SCALE = 1
 	const {random, abs, min, max, round, floor, ceil, ifloat, fclamp, sqrt, cbrt, atan2, sign, sin, cos, tan, PI, PI2 = PI * 2, imul } = Math
-	const mac = navigator.platform.startsWith('Mac')
-	const LBUTTON = 0, RBUTTON = 2, MBUTTON = 1,
-		KEY_A = 65, KEY_B = 66, KEY_C = 67, KEY_D = 68, KEY_E = 69, KEY_F = 70,
-		KEY_G = 71, KEY_H = 72, KEY_I = 73, KEY_J = 74, KEY_K = 75, KEY_L = 76,
-		KEY_M = 77, KEY_N = 78, KEY_O = 79, KEY_P = 80, KEY_Q = 81, KEY_R = 82,
-		KEY_S = 83, KEY_T = 84, KEY_U = 85, KEY_V = 86, KEY_W = 87, KEY_X = 88,
-		KEY_Y = 89, KEY_Z = 90, KEY_0 = 48, KEY_1 = 49, KEY_2 = 50, KEY_3 = 51,
-		KEY_4 = 52, KEY_5 = 53, KEY_6 = 54, KEY_7 = 55, KEY_8 = 56, KEY_9 = 57,
-		KEY_SPACE = 32, KEY_SYMBOL = mac ? 192 : 223, KEY_TAB = 9, KEY_BACK = 8, KEY_SHIFT = 16,
-		KEY_CTRL = 17, KEY_ALT = 18, KEY_ESC = 27, KEY_META = 91, KEY_METARIGHT = 93,
-		KEY_CAPSLOCK = 20, KEY_UP = 38, KEY_RIGHT = 39, KEY_DOWN = 40, KEY_LEFT = 37, KEY_MOD = mac ? KEY_META : KEY_CTRL,
-		KEY_F1 = 112, KEY_F2 = 113, KEY_F3 = 114, KEY_F4 = 115, KEY_F5 = 116, KEY_F6 = 117, KEY_F7 = 118, KEY_F8 = 119, KEY_F9 = 120, KEY_F10 = 121, KEY_F11 = 122, KEY_F12 = 123
 
-	let renderLayer, uiLayer, drawPhase, tickPhase
-	let button, onmousemove, onwheel, blockevent
-	let pause, onpause, music, sound
+	const _mac = navigator.platform.startsWith('Mac')
+const LBUTTON = 0, RBUTTON = 2, MBUTTON = 1, KEYS = {
+	A: 65, B: 66, C: 67, D: 68, E: 69, F: 70, G: 71, H: 72, I: 73, J: 74, K: 75, L: 76,
+	M: 77, N: 78, O: 79, P: 80, Q: 81, R: 82, S: 83, T: 84, U: 85, V: 86, W: 87, X: 88,
+	Y: 89, Z: 90, NUM_0: 48, NUM_1: 49, NUM_2: 50, NUM_3: 51, NUM_4: 52, NUM_5: 53, NUM_6: 54,
+	NUM_7: 55, NUM_8: 56, NUM_9: 57, SPACE: 32, SYMBOL: _mac ? 192 : 223, TAB: 9, BACK: 8,
+	SHIFT: 16, CTRL: 17, ALT: 18, ESC: 27, META: 91, METARIGHT: 93, CAPSLOCK: 20, UP: 38,
+	RIGHT: 39, DOWN: 40, LEFT: 37, MOD: _mac ? 91 : 17, F1: 112, F2: 113, F3: 114, F4: 115,
+	F5: 116, F6: 117, F7: 118, F8: 119, F9: 120, F10: 121, F11: 122, F12: 123, MINUS: 189,
+	PLUS: 187, OPENBR: 219, CLOSEBR: 221, SEMICOLON: 186, APOS: 222, BACKSLASH: 220, COMMA: 188,
+	DOT: 190, SLASH: 191
+}
+Object.freeze(KEYS)
+
+const _filecache = Object.create(null)
+const _txtr = class Texture{
+	constructor(img, x, y, w, h){ this.canvas = img; this.x = x; this.y = y; this.w = w; this.h = h; this._pattern = null }
+	crop(x, y, w, h){ return new _txtr(this.canvas, this.x + x, this.y + y, w, h) }
+	at(x, y){ return new _txtr(this.canvas, this.x + x * TEX_SIZE, this.y + y * TEX_SIZE, TEX_SIZE, TEX_SIZE) }
+	pattern(rep = ''){
+		if(this._pattern)return this._pattern
+		const c = document.createElement('canvas')
+		const ctx = c.getContext('2d')
+		if(this.canvas.complete === false){
+			this.canvas.addEventListener('load', () => {
+				c.width = this.w; c.height = this.h
+				ctx.drawImage(this.canvas, this.x, this.y, this.w, this.h, 0, 0, this.w, this.h)
+				this._pattern = ctx.createPattern(c, rep)
+			})
+		}else{
+			c.width = this.w; c.height = this.h
+			ctx.drawImage(this.canvas, this.x, this.y, this.w, this.h, 0, 0, this.w, this.h)
+			this._pattern = ctx.createPattern(c, rep)
+		}
+		return this
+	}
+}
+const Texture = src => {
+	if(_filecache[src])return _filecache[src]
+	const i = new Image()
+	i.crossOrigin = 'anonymous'
+	i.src = src
+	loading++
+	const t = new _txtr(i, 0, 0, 0, 0)
+	i.onload = i.onerror = () => (i.onload=i.onerror=null,t.w=i.width,t.h=i.height,--loading||loaded())
+	return t
+}
+const _actx = new AudioContext()
+const _bgGain = _actx.createGain()
+_bgGain.connect(_actx.destination)
+let _volume = 0
+const Audio = (src, bg = false) => {
+	let buf = null
+	return function play(vol = 1, pitch = 1, pan = 0, start = 0, end = NaN, ends = true){
+		if(buf === null){
+			buf = []
+			fetch(src, {credentials: 'omit', priority: 'low'}).then(a => a.arrayBuffer()).then(a => _actx.decodeAudioData(a, b => {
+				const l = buf; buf = b
+				for(let i = 0; i < l.length; i++) l[i][0] = play(...l[i])
+			}))
+		}
+		if(Array.isArray(buf)){
+			const a = [vol,pitch,pan,start,end,ends]
+			buf.push(a)
+			return () => {
+				if(Array.isArray(buf)){
+					const i = buf.indexOf(a)
+					if(i > -1) buf.splice(i, 1)
+				}else a[0]()
+			}
+		}
+		const source = _actx.createBufferSource()
+		source.buffer = buf
+		if(bg) source.connect(_bgGain)
+		else{
+			let dest = _actx.destination
+			const volume = _volume * vol
+			if(volume != 1){
+				const gain = _actx.createGain()
+				gain.gain.value = volume
+				gain.connect(dest)
+				dest = gain
+			}
+			if(pan != 0){
+				const panner = _actx.createStereoPanner()
+				panner.pan.value = min(1, max(-1, pan))
+				panner.connect(dest)
+				dest = panner
+			}
+			source.playbackRate.value = pitch
+			source.connect(dest)
+		}
+		if(source.loop = !ends){
+			source.loopStart = start
+			if(end == end)source.loopEnd = end
+			source.start(0, start)
+		}else{
+			source.start(0, start, end == end ? end - start : buf.duration)
+			if(typeof ends == 'function') source.onended = ends
+		}
+		return () => {
+			source.onended = null
+			source.stop()
+		}
+	}
+}
+	let blockevent
+	let music, sound
 	let send, onpacket, download, listen
-	function getblock(x,y){}
-	let loading = 1, loaded = null, dt = 1 / 60
-	let buttons, options, paused = false, pointer
+	let loading = 1, loaded = null, dt = 1 / 60, pointer
 	let t = 0, TPS = 20, map = new Map(), entities = new Map()
 	let meid = -1, r = 0, me = null
 	let ticks = 0, world = '', gx = 0, gy = 0

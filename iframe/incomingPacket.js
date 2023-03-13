@@ -1,6 +1,8 @@
-import { setblock, addEntity, moveEntity, removeEntity, blockEvents, blockEventDefs, blockEventIfns } from "./world.js"
+import { setblock, addEntity, removeEntity, blockEvents, blockEventDefs, blockEventIfns } from "world"
 import { Chunk } from "./chunk.js"
 import { queue } from "./sounds.js"
+import { moveEntity } from "./entity.js"
+import { EntityIDs, BlockIDs } from 'definitions'
 
 function rubberPacket(data){
 	meid = data.uint32() + data.uint16() * 4294967296

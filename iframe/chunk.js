@@ -1,5 +1,5 @@
-import { addEntity } from "./world.js"
-
+import { addEntity } from 'world'
+import { BlockIDs, EntityIDs } from 'definitions'
 const canvasPool = []
 export class Chunk{
 	constructor(buf){

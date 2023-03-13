@@ -1,3 +1,5 @@
+import { Blocks } from 'definitions'
+
 export function setblock(x, y, b){
 	const k = (x>>>6)+(y>>>6)*67108864
 	const ch = map.get(k)
@@ -13,7 +15,7 @@ export function setblock(x, y, b){
 		if(b.texture)ch.ctx.drawImage(t.canvas,t.x,t.y,t.w,t.h,lx*TEX_SIZE,(63-ly)*TEX_SIZE,TEX_SIZE,TEX_SIZE)
 	}
 }
-getblock = function(x, y){
+export function getblock(x, y){
 	const k = (x>>>6)+(y>>>6)*67108864
 	const ch = map.get(k)
 	return ch ? ch.tiles[(x & 63) + ((y & 63) << 6)] : Blocks.air()
@@ -35,10 +37,6 @@ export function removeEntity(e){
 	if(e == me) me._id = -1
 	if(e.chunk) e.chunk.entities.delete(e)
 	if(e.removed) e.removed()
-}
-export function moveEntity(e){
-	const ch = map.get((floor(e.x) >>> 6) + (floor(e.y) >>> 6) * 67108864) || null
-	if(ch != e.chunk)e.chunk&&e.chunk.entities.delete(e), e.chunk = ch, ch&&ch.entities.add(e)
 }
 
 const playerLoadCb = []

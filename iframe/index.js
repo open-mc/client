@@ -1,9 +1,10 @@
 import { playerControls, renderBoxes, renderF3 } from "./controls.js"
 import { DataWriter as DW, DataReader as DR } from "../data.js"
 import { stepEntity } from "./entity.js"
-import "./world.js"
-import { blockEventDefs, blockEvents } from "./world.js"
+import { blockEventDefs, blockEvents, getblock } from 'world'
 import { checkBlockPlacing } from "./pointer.js"
+import { button, buttons, drawPhase, renderLayer, uiLayer, W, H, W2, H2, SCALE, options, paused, _recalcDimensions, _renderPhases } from "api"
+
 DataReader = DR
 DataWriter = DW
 
@@ -65,42 +66,6 @@ const c = Can(0, 0)
 c.canvas.style = 'width: 100%; height: 100%; position: fixed; top: 0; left: 0; z-index: 0;'
 document.body.append(c.canvas)
 
-const renderPhases = []
-
-renderLayer = (prio, fn) => {
-	let i = renderPhases.push(null) - 2
-	while(i >= 0 && renderPhases[i].prio > prio){
-		renderPhases[i + 1] = renderPhases[i]
-		i--
-	}
-	fn.prio = prio
-	fn.coordSpace = 'world'
-	i++
-	renderPhases[i] = fn
-}
-uiLayer = (prio, fn) => {
-	let i = renderPhases.push(null) - 2
-	while(i >= 0 && renderPhases[i].prio > prio){
-		renderPhases[i + 1] = renderPhases[i]
-		i--
-	}
-	fn.prio = prio
-	fn.coordSpace = 'ui'
-	i++
-	renderPhases[i] = fn
-}
-drawPhase = (prio, fn) => {
-	let i = renderPhases.push(null) - 2
-	while(i >= 0 && renderPhases[i].prio > prio){
-		renderPhases[i + 1] = renderPhases[i]
-		i--
-	}
-	fn.prio = prio
-	fn.coordSpace = 'none'
-	i++
-	renderPhases[i] = fn
-}
-let W = 0, H = 0
 
 export function frame(){
 	eluStart()
@@ -115,12 +80,7 @@ export function frame(){
 	for(const entity of entities.values())stepEntity(entity)
 	const tzoom = 2 ** (options.zoom * 5 - 1) * devicePixelRatio * (me.state & 4 ? 0.9 : 1)
 	cam.z = sqrt(sqrt(cam.z * cam.z * cam.z * tzoom))
-	SCALE = cam.z * TEX_SIZE
-	W2 = (W = round(visualViewport.width * visualViewport.scale * devicePixelRatio)) / SCALE / 2
-	H2 = (H = round(visualViewport.height * visualViewport.scale * devicePixelRatio)) / SCALE / 2
-	if(W != c.canvas.width || H != c.canvas.height) c.canvas.width = W, c.canvas.height = H
-	else if(c.reset) c.reset()
-	else c.resetTransform(),c.clearRect(0, 0, W, H)
+	_recalcDimensions(c)
 	c.transforms.length = 0
 	c.imageSmoothingEnabled = false
 	if(!me) return
@@ -153,7 +113,7 @@ export function frame(){
 		if(me.y < cam.y - H2)cam.y -= H2*2
 	}
 	c.font = '1000px mc'
-	for(const phase of renderPhases){
+	for(const phase of _renderPhases){
 		switch(phase.coordSpace){
 			case 'none': phase(c, W, H); break
 			case 'world': c.setTransform(SCALE, 0, 0, -SCALE, W2 * SCALE, H - H2 * SCALE); phase(c); break
@@ -163,7 +123,10 @@ export function frame(){
 	}
 }
 drawPhase(200, (c, w, h) => {
+	const hitboxes = buttons.has(KEYS.SYMBOL) ^ renderBoxes
 	c.setTransform(1,0,0,1,0,h)
+	c.lineWidth = 0.0625 * SCALE
+	c.strokeStyle = '#f00'
 	for(const chunk of map.values()){
 		const x0 = round(ifloat((chunk.x << 6) - cam.x + W2) * SCALE)
 		const x1 = round(ifloat((chunk.x + 1 << 6) - cam.x + W2) * SCALE)
@@ -172,6 +135,8 @@ drawPhase(200, (c, w, h) => {
 		if(x1 <= 0 || y1 <= 0 || x0 >= w || y0 >= h){ chunk.hide(); continue }
 		if(!chunk.ctx)chunk.draw()
 		c.drawImage(chunk.ctx.canvas, 0, TEX_SIZE << 6, TEX_SIZE << 6, -(TEX_SIZE << 6), x0, -y0, x1 - x0, y0 - y1)
+		if(hitboxes && (chunk.x^chunk.y&1))
+			c.strokeRect(x0, -y0, x1 - x0, y0 - y1)
 	}
 })
 drawPhase(300, (c, w, h) => {
@@ -182,7 +147,7 @@ drawPhase(300, (c, w, h) => {
 })
 
 drawPhase(100, (c, w, h) => {
-	const hitboxes = buttons.has(KEY_SYMBOL) ^ renderBoxes
+	const hitboxes = buttons.has(KEYS.SYMBOL) ^ renderBoxes
 	for(const entity of entities.values()){
 		if(!entity.render)continue
 		c.setTransform(SCALE, 0, 0, -SCALE, ifloat(entity.ix - cam.x + W2) * SCALE, ifloat(cam.y - H2 - entity.iy) * SCALE + h)
@@ -195,13 +160,13 @@ drawPhase(100, (c, w, h) => {
 		entity.render(c)
 	}
 })
-renderLayer(200, c => {
+renderLayer(400, c => {
 	if(paused)return
 	pointer.drawPointer(c)
 })
 
 uiLayer(1000, (c, w, h) => {
-	if(renderF3 == buttons.has(KEY_SYMBOL))return
+	if(renderF3 == buttons.has(KEYS.SYMBOL))return
 	c.textAlign = 'left'
 	let y = h - 1
 	for(const t of `Paper Minecraft ${VERSION}
@@ -236,6 +201,6 @@ Biome: ${me.chunk ? round(me.chunk.biomes[mex] * (1 - mexi) + me.chunk.biomes[me
 })
 
 
-button(KEY_F2, () => {
+button(KEYS.F2, () => {
 	c.canvas.toBlob(download, 'image/png')
 })

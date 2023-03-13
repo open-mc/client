@@ -1,5 +1,6 @@
-import { setblock, onPlayerLoad } from './world.js'
+import { setblock, onPlayerLoad, getblock } from './world.js'
 import './controls.js'
+import { button, onmousemove, W2, H2, options, paused, buttons } from 'api'
 
 export let x = 2, y = 0
 export let bx = 0, by = 0, bpx = 0, bpy = 0
@@ -54,7 +55,7 @@ export function drawPointer(c){
 					break a
 				}
 		c.lineWidth = 0.0625
-		c.stokeStyle = '#000'
+		c.strokeStyle = '#000'
 		c.fillStyle = '#000'
 		c.globalAlpha = 0.5
 		const xd = ifloat(bx-cam.x), yd = ifloat(by-cam.y)
@@ -77,7 +78,7 @@ export function drawPointer(c){
 	}
 }
 export function checkBlockPlacing(buf){
-	if(buttons.has(LBUTTON) && t > lastPlace + .15){
+	if(buttons.has(LBUTTON) && t > lastPlace + .12){
 		let b = me.inv[me.selected]
 		if(b && bpx == bpx && b.places && (b = b.places())) setblock(bpx, bpy, b)
 		buf.byte(me.selected)
