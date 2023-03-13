@@ -5,7 +5,7 @@ if(!storage.name) {
 }
 
 export const servers = (storage.servers || 
-	(/.github.io$|.pages.dev$/.test(location.host) ? 'blobk.at' : /localhost$|127.0.0.1$/y.test(location.host) ? 'localhost:27277' : location.host)).split('\0')
+	(/.github.io$|.pages.dev$/.test(location.hostname) ? 'blobk.at' : /localhost$|127.0.0.1$/y.test(location.hostname) ? 'localhost:27277' : location.hostname)).split('\0')
 
 Object.defineProperty(globalThis, 'localStorage', {get(){window.close(); location.href = '//youtu.be/a3Z7zEc7AXQ'}})
 
@@ -38,7 +38,8 @@ for(const k in defaults){
 	if(typeof v == 'string' && s !== undefined)v = s
 	else if(typeof v == 'number' && s !== undefined)v = +s
 	else if(typeof v == 'boolean' && s !== undefined)v = s == 'true'
-	Object.defineProperty(options, k, {enumerable:true,get(){return v},set(a){storage[k] = v = a;
+	Object.defineProperty(options, k, {enumerable:true, get: () => v, set(a){
+		storage[k] = v = a
 		if(optionListeners[k])for(const f of optionListeners[k])f(k,a)
 	}})
 }

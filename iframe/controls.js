@@ -58,16 +58,11 @@ button(KEY_LEFT, KEY_A, () => {
 		lastPressLeft = 0
 	}else lastPressLeft = t
 })
-export let renderF3 = false, renderBoxes = false
-let renderBoxes_o = false
+export let renderF3 = false, renderBoxes = false, renderUI = true
+button(KEY_F1, () => renderUI = !renderUI)
 button(KEY_F3, () => {
 	if(buttons.has(KEY_ALT) || buttons.has(KEY_MOD)) renderBoxes = !renderBoxes
-	else{
-		renderF3 = !renderF3
-		let r = renderBoxes
-		renderBoxes = renderBoxes_o
-		renderBoxes_o = r
-	}
+	else renderF3 = !renderF3
 })
 
 button(KEY_1, () => me.selected = 0)
@@ -79,19 +74,6 @@ button(KEY_6, () => me.selected = 5)
 button(KEY_7, () => me.selected = 6)
 button(KEY_8, () => me.selected = 7)
 button(KEY_9, () => me.selected = 8)
-
-//button(KEY_F11, e => document.body.requestFullscreen())
-/*
-button('f1', () => document.body.classList.toggle('f1'))
-
-ctrl('dypsfgl,[]-='.split(""), () => {})
-button('123456789'.split(""), e => me.selected = e.key - 1)
-button('e', () => {showInventory()})
-
-HTMLElement.prototype.requestFullscreen = HTMLElement.prototype.requestFullscreen || Function.prototype //Safari fullscreen is broken
-let wasFullscreen = false
-let ignoreEsc = false
-button('escape', () => {if(ignoreEsc){ignoreEsc = false; return}; hideUI()}, true)*/
 
 let cummulative = 0
 onwheel(dy => {

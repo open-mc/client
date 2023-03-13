@@ -87,6 +87,15 @@ loaded = () => {
 	for(const data of msgQueue)onMsg({data})
 	msgQueue = null
 }
+const optionListeners = {}
+listen = (...keys) => {
+	const cb = keys.pop()
+	for(const key of keys){
+		(optionListeners[key] || (optionListeners[key] = [])).push(cb)
+		if(key in options) cb(options[key])
+	}
+}
+listen('music', () => _bgGain.gain.value = options.music * options.music)
 
 const onMsg = ({data}) => {
 	if(Array.isArray(data)){
@@ -113,21 +122,21 @@ const onMsg = ({data}) => {
 			const List = Dict == Items ? ItemIDs : Dict == Entities ? EntityIDs : BlockIDs
 			a = a.split(' ')
 			const name = a.shift()
-			const Thing = Dict[name] || class extends Constructor{static _ = console.warn((Dict == Blocks ? 'Blocks.' : Dict == Items ? 'Items.' : 'Entities.') + name + ' missing!')}
-			if(!Object.hasOwn(Thing, 'prototype')){ console.warn('Reused class for ' + Thing.className + ' (by ' + name + ')'); List[Thing.id] = Thing; return }
+			let Thing = Dict[name] || class extends Constructor{static _ = console.warn((Dict == Blocks ? 'Blocks.' : Dict == Items ? 'Items.' : 'Entities.') + name + ' missing!')}
+			if(!Object.hasOwn(Thing, 'prototype')) Thing = class extends Thing.__constructor{}
+			if(!(Thing.prototype instanceof Constructor)){
+				console.warn('Class ' + name + ' does not extend ' + Constructor.name)
+				let T = Thing
+				for(let i = T; i.prototype; i = Object.getPrototypeOf(i)) T = i;
+				Object.setPrototypeOf(T, Constructor)
+				Object.setPrototypeOf(T.prototype, Constructor.prototype)
+			}
 			Thing.id = i
 			Thing.className = name
 			Thing[Symbol.toStringTag] = (Dict == Blocks ? 'Blocks.' : Dict == Items ? 'Items.' : 'Entities.') + name
 			Thing.savedata = a.length ? jsonToType(a.pop()) : null
 			Thing.savedatahistory = a.map(jsonToType)
-			Thing.constructor = Thing
-			Object.defineProperty(Thing, 'name', {value: name})
-			// Force extend
-			if(!(Thing.prototype instanceof Constructor)){
-				console.warn('Class ' + name + ' does not extend ' + Constructor.name)
-				Object.setPrototypeOf(Thing, Constructor)
-				Object.setPrototypeOf(Thing.prototype, Constructor.prototype)
-			}
+			Thing.__constructor = Thing
 			const shared = Dict == Items ? new Thing(1) : Dict == Blocks ? new Thing : null
 			List[Thing.id] = Dict[name] = Dict == Items ? c => new Thing(c) : Dict == Blocks ? 
 				Thing.savedata ? () => shared : Function.returns(shared)
@@ -145,9 +154,7 @@ const onMsg = ({data}) => {
 				proto = Object.getPrototypeOf(proto)
 			}while(proto.prototype && !Object.hasOwn(proto.prototype, 'prototype'))
 			Object.setPrototypeOf(Dict[name], Thing.prototype)
-			if(Dict == Blocks)
-				Object.defineProperties(Dict[name], Object.getOwnPropertyDescriptors(shared))
-			else if(Dict == Items)
+			if(Dict == Blocks || Dict == Items)
 				Object.defineProperties(Dict[name], Object.getOwnPropertyDescriptors(shared))
 		}
 	}else if(data instanceof ArrayBuffer){
@@ -157,11 +164,7 @@ const onMsg = ({data}) => {
 		if(!codes[code])return
 		codes[code](packet)
 	}else if(typeof data == 'number'){
-		if(data > 65535){
-			data -= 65536
-			const fn = _soundEndedCbs.get(data)
-			if(fn)fn(), _soundEndedCbs.delete(data)
-		}else if(data >= 0){
+		if(data >= 0){
 			buttons.set(data)
 			if(cbs[data])for(const f of cbs[data])f()
 		}else buttons.unset(~data)

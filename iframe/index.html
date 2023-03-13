@@ -8,6 +8,7 @@
 	}
 </style>
 <script>
+	delete window.localStorage; delete window.sessionStorage
 	document.fonts.forEach(font => font.load())
 	onmessage = ({data}) => msgQueue.push(data)
 	const postMessage = parent.postMessage.bind(parent)
@@ -47,15 +48,62 @@
 		i.onload = i.onerror = () => (i.onload=i.onerror=null,t.w=i.width,t.h=i.height,--loading||loaded())
 		return t
 	}
-	let _i = 0, _soundEndedCbs = new Map
+	const _actx = new AudioContext()
+	const _bgGain = _actx.createGain()
+	_bgGain.connect(_actx.destination)
 	const Audio = (src, bg = false) => {
-		const aid = _i++
-		postMessage([aid, src, bg], '*')
-		return (vol = 1, pitch = 1, pan = 0, start = 0, end = NaN, ends = true) => {
-			const sid = _i++
-			postMessage([aid, sid, start, end, !ends, vol, pitch, pan], '*')
-			if(typeof ends == 'function')_soundEndedCbs.set(sid, ends)
-			return () => postMessage([aid, sid], '*')
+		let buf = null
+		return function play(vol = 1, pitch = 1, pan = 0, start = 0, end = NaN, ends = true){
+			if(buf === null){
+				buf = []
+				fetch(src, {credentials: 'omit', priority: 'low'}).then(a => a.arrayBuffer()).then(a => _actx.decodeAudioData(a, b => {
+					const l = buf; buf = b
+					for(let i = 0; i < l.length; i++) l[i][0] = play(...l[i])
+				}))
+			}
+			if(Array.isArray(buf)){
+				const a = [vol,pitch,pan,start,end,ends]
+				buf.push(a)
+				return () => {
+					if(Array.isArray(buf)){
+						const i = buf.indexOf(a)
+						if(i > -1) buf.splice(i, 1)
+					}else a[0]()
+				}
+			}
+			const source = _actx.createBufferSource()
+			source.buffer = buf
+			if(bg) source.connect(_bgGain)
+			else{
+				let dest = _actx.destination
+				const volume = options.sound * options.sound * vol
+				if(volume != 1){
+					const gain = _actx.createGain()
+					gain.gain.value = volume
+					gain.connect(dest)
+					dest = gain
+				}
+				if(pan != 0){
+					const panner = _actx.createStereoPanner()
+					panner.pan.value = min(1, max(-1, pan))
+					panner.connect(dest)
+					dest = panner
+				}
+				source.playbackRate.value = pitch
+				source.connect(dest)
+			}
+			if(source.loop = !ends){
+				source.loopStart = start
+				if(end == end)source.loopEnd = end
+				source.start(0, start)
+			}else{
+				source.start(0, start, end == end ? end - start : buf.duration)
+				if(typeof ends == 'function') source.onended = ends
+			}
+			return () => {
+				source.onended = null
+				source.stop()
+			}
 		}
 	}
 	const TEX_SIZE = 16
@@ -214,22 +262,11 @@
 		KEY_CAPSLOCK = 20, KEY_UP = 38, KEY_RIGHT = 39, KEY_DOWN = 40, KEY_LEFT = 37, KEY_MOD = mac ? KEY_META : KEY_CTRL,
 		KEY_F1 = 112, KEY_F2 = 113, KEY_F3 = 114, KEY_F4 = 115, KEY_F5 = 116, KEY_F6 = 117, KEY_F7 = 118, KEY_F8 = 119, KEY_F9 = 120, KEY_F10 = 121, KEY_F11 = 122, KEY_F12 = 123
 
-	function renderLayer(_1, _2){}
-	function uiLayer(_1, _2){}
-	function drawPhase(_1, _2){}
-	function tickPhase(_1, _2){}
-	function button(..._){}
-	function onmousemove(_){}
-	function onwheel(_){}
-	function pause(a){}
-	function send(a){}
-	function download(a){}
-	function onpause(a){}
-	function onpacket(c,b){}
-	function music(s,t){}
-	function sound(s,x,y,v,p){}
+	let renderLayer, uiLayer, drawPhase, tickPhase
+	let button, onmousemove, onwheel, blockevent
+	let pause, onpause, music, sound
+	let send, onpacket, download, listen
 	function getblock(x,y){}
-	function blockevent(t, r){}
 	let loading = 1, loaded = null, dt = 1 / 60
 	let buttons, options, paused = false, pointer
 	let t = 0, TPS = 20, map = new Map(), entities = new Map()

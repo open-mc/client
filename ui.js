@@ -2,8 +2,8 @@ import { options } from "./save.js"
 
 let defaultUI
 export function setDefaultUI(fn){defaultUI = fn}
-
 const arr = [new Audio('./img/click.mp3')]
+arr[0].crossOrigin = 'anonymous'
 export const click = () => {
 	let a = arr.length > 1 ? arr.pop() : arr[0].cloneNode(true)
 	a.volume = options.sound

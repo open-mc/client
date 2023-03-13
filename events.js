@@ -34,7 +34,6 @@ export function key(key, handler){
 window.onbeforeunload = () => (location.host != '127.0.0.1' && location.host != 'localhost' &&
 	![].find.call(document.body.childNodes, a =>
 		a instanceof Comment && a.data.trim() == 'Code injected by live-server')) || undefined
-
 HTMLElement.prototype.requestFullscreen = HTMLElement.prototype.requestFullscreen || Function.prototype //Safari fullscreen is broken
 let wasFullscreen = false
 let ignoreEsc = false
