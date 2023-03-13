@@ -78,7 +78,7 @@ export function frame(){
 	if(!me || me._id == -1)return
 	playerControls()
 	for(const entity of entities.values())stepEntity(entity)
-	const tzoom = 2 ** (options.zoom * 5 - 1) * devicePixelRatio * (me.state & 4 ? 0.9 : 1)
+	const tzoom = 2 ** (options.zoom * 5 - 1) * devicePixelRatio * ((me.state & 4 ? -0.13 : 0) * options.ffx + 1)
 	cam.z = sqrt(sqrt(cam.z * cam.z * cam.z * tzoom))
 	_recalcDimensions(c)
 	c.transforms.length = 0

@@ -30,7 +30,9 @@ const defaults = {
 	music: 0.75,
 	sensitivity: 0.5,
 	camera: 2,
-	speed: 1
+	speed: 1,
+	click: true,
+	ffx: 1
 }
 const optionListeners = {}
 for(const k in defaults){

@@ -78,13 +78,13 @@ export function drawPointer(c){
 	}
 }
 export function checkBlockPlacing(buf){
-	if(buttons.has(LBUTTON) && t > lastPlace + .12){
+	if(buttons.has(options.click ? LBUTTON : RBUTTON) && t > lastPlace + .12){
 		let b = me.inv[me.selected]
 		if(b && bpx == bpx && b.places && (b = b.places())) setblock(bpx, bpy, b)
 		buf.byte(me.selected)
 		buf.float(x); buf.float(y)
 		lastPlace = t
-	}else if(buttons.has(RBUTTON) && bx == bx){
+	}else if(buttons.has(options.click ? RBUTTON : LBUTTON) && bx == bx){
 		buf.byte(me.selected | 128)
 		buf.float(x); buf.float(y)
 		blockbreakx = bx; blockbreaky = by

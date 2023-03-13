@@ -27,10 +27,7 @@ function musicChange(a = options.music){
 	return [a >= 0.005 ? a < 0.995 ? 'Music: '+Math.round(a*100)+'%' : 'Music: LOUD' : 'Music: quiet', a]
 }
 
-function sensitivityChange(a = options.sensitivity){
-	options.sensitivity = a
-	return [a > 0.005 ? a < 0.995 ? 'Sensitivity: '+Math.floor(9 ** a * 10 / 3) / 10 +'x' : 'Sensitivity: HYPERSPEED!!!' : 'Sensitivity: *yawn*', a]
-}
+
 const cameraOptions = ['Dynamic', 'Follow Pointer', 'Follow player', 'Page']
 function renderCamMode(){
 	camNode.textContent = 'Camera: ' + cameraOptions[options.camera]
@@ -46,7 +43,6 @@ const optionsui = UI('menu',
 	camNode = Btn('', camChange, 'small'),
 	Row(ScaleSmall(zoomChange), guiNode = Btn('', guiChange, 'small')),
 	Row(ScaleSmall(soundChange), ScaleSmall(musicChange)),
-	Scale(sensitivityChange),
 	Spacer(20),
 	Row(Btn('Back', pause, 'small'), Btn('Advanced', advancedOptionsScreen, 'small'))
 )
