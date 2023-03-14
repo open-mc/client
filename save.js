@@ -32,7 +32,8 @@ const defaults = {
 	camera: 2,
 	speed: 1,
 	click: true,
-	ffx: 1
+	ffx: 1,
+	autof3: false
 }
 const optionListeners = {}
 for(const k in defaults){

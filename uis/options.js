@@ -2,6 +2,7 @@ import { pause } from "./pauseui.js"
 import { options } from "../save.js"
 import { Btn, Label, Row, Scale, ScaleSmall, showUI, Spacer, UI } from "../ui.js"
 import { advancedOptionsScreen } from "./advanced.js"
+import { controlsScreen } from "./controlsScreen.js"
 
 function renderScale(){
 	guiNode.textContent = 'GUI scale: ' + options.guiScale
@@ -36,15 +37,16 @@ function camChange(){
 	options.camera = (options.camera + 1) % 4
 	renderCamMode()
 }
-
-let guiNode, camNode
+let guiNode, camNode, af3Node
 const optionsui = UI('menu',
 	Label('Options'),
 	camNode = Btn('', camChange, 'small'),
 	Row(ScaleSmall(zoomChange), guiNode = Btn('', guiChange, 'small')),
 	Row(ScaleSmall(soundChange), ScaleSmall(musicChange)),
+	af3Node = Btn('Open debug automatically: '+(options.autof3 ? 'YES' : 'NO'), () => af3Node.text = 'Open debug automatically: '+((options.autof3 = !options.autof3) ? 'YES' : 'NO'), 'small'),
+	Btn('Advanced', advancedOptionsScreen),
 	Spacer(20),
-	Row(Btn('Back', pause, 'small'), Btn('Advanced', advancedOptionsScreen, 'small'))
+	Row(Btn('Back', pause, 'small'), Btn('Controls', controlsScreen, 'small'))
 )
 optionsui.esc = pause
 

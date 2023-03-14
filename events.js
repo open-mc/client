@@ -20,8 +20,8 @@ onkeyup = e => {
 	if(win) keyMsg(~e.keyCode)
 	e.preventDefault()
 }
-onmousedown = e => win && (!ui || ui == NONE) && keyMsg(e.button)
-onmouseup = e => win && keyMsg(~e.button)
+onmousedown = e => void(win && (!ui || ui == NONE) && keyMsg(e.button))
+onmouseup = e => void(win && keyMsg(~e.button))
 
 const cbs = {}
 export function key(key, handler){

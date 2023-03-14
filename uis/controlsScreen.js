@@ -1,12 +1,13 @@
 import { pause } from "./pauseui.js"
 import { options } from "../save.js"
 import { Btn, Label, Row, Scale, showUI, Spacer, UI } from "../ui.js"
+import { optionsScreen } from "./options.js"
 
 function renderClick(){
 	clickNode.text = options.click ? 'Left click: place' : 'Left click: break'
 }
 function renderFfx(){
-	ffxNode.text = options.ffx < 2 ? options.ffx == 0 ? 'Zoom FX: None' : 'Zoom FX: Normal' : options.ffx == 2 ? 'Zoom FX: 2x' : 'Zoom FX: 3x'
+	ffxNode.text = options.ffx < 2 ? options.ffx == 0 ? 'Zoom FX: None' : 'Zoom FX: Normal' : options.ffx == 2 ? 'Zoom FX: 3x' : 'Zoom FX: CRAZY!!!'
 }
 
 function clickChange(){
@@ -28,7 +29,7 @@ const controlssui = UI('menu',
 	Row(clickNode = Btn('', clickChange, 'small'), ffxNode = Btn('', ffxChange, 'small')),
 	Scale(sensitivityChange),
 	Spacer(20),
-	Row(Btn('Back', pause, 'small'), '')
+	Row(Btn('Back', pause, 'small'), Btn('Other options', optionsScreen, 'small'))
 )
 controlssui.esc = pause
 

@@ -77,6 +77,7 @@ export function drawPointer(c){
 		c.globalAlpha = 1
 	}
 }
+let didHit = false
 export function checkBlockPlacing(buf){
 	if(buttons.has(options.click ? LBUTTON : RBUTTON) && t > lastPlace + .12){
 		let b = me.inv[me.selected]
@@ -91,6 +92,20 @@ export function checkBlockPlacing(buf){
 		me.state |= 8; lastPlace = t
 	}else{
 		buf.byte(me.selected); buf.float(NaN); buf.float(me.f)
+		let id = 281474976710655 // -1
+		const hitBtnDown = buttons.has(options.click ? RBUTTON : LBUTTON)
+		if(hitBtnDown && !didHit){
+			const xp = me.x + x, yp = me.y + me.head + y
+			const xa = xp - 32 >>> 6, ya = yp - 32 >>> 6, x1 = xa + 1 & 67108863, y1 = ya + 1 & 67108863
+			a: for(const ch of [map.get(xa+ya*67108864), map.get(x1+ya*67108864), map.get(xa+y1*67108864), map.get(x1+y1*67108864)]) if(ch)for(const e of ch.entities)
+				if(e.y < yp && e.y + e.height > yp && e.x - e.width < xp && e.x + e.width > xp){
+					// Found entity
+					id = e._id
+					break a
+				}
+			didHit = true
+		}else if(!hitBtnDown) didHit = false
+		buf.uint32(id|0), buf.short(id/4294967296|0)
 		blockbreakx = blockbreaky = NaN
 		me.state &= -9
 	}

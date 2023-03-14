@@ -4,6 +4,10 @@
 
 Todo: Player movement checks
 
+Todo: animated textures (water + lava)
+
+Todo: water + lava cut textures for surface (and flowing variants)
+
 ## Alpha 7 (current preview)
 
 - TNT and a few entities
@@ -14,9 +18,9 @@ Todo: Player movement checks
 
 - A few more items / blocks
 
-Todo: animated textures (water + lava)
+- Hitting entities
 
-Todo: water + lava cut textures for surface (and flowing variants)
+Todo: explosions
 
 </details>
 

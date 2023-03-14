@@ -1,6 +1,6 @@
 import { particlePng } from "./defs.js"
 import { renderItem } from "./effects.js"
-import { Entities, Entity, Item, Items, Particle } from 'definitions'
+import { Entities, Entity, Item, Items, Particle, Blocks } from 'definitions'
 
 const meInterface = Texture('/cli/meint.png')
 
@@ -215,7 +215,7 @@ Entities.end_crystal = class extends Entity{
 		c.pop()
 	}
 	event(i){
-		if(i == 1){
+		if(i == 3){
 			this.sound(explode[floor(random()*explode.length)])
 			for(let i = 0; i < 15; i++) new BlastParticle(this.x, this.y)
 			for(let i = 0; i < 30; i++) new AshParticle(this.x, this.y)

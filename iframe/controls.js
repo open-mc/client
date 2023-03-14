@@ -1,4 +1,4 @@
-import { button, onwheel, buttons } from "api"
+import { button, onwheel, buttons, listen, options } from "api"
 import { EPSILON } from "./entity.js"
 import { getblock } from 'world'
 
@@ -46,6 +46,7 @@ button(KEYS.LEFT, KEYS.A, () => {
 	}else lastPressLeft = t
 })
 export let renderF3 = false, renderBoxes = false, renderUI = true
+listen('autof3', () => renderF3 = options.autof3)
 button(KEYS.F1, () => renderUI = !renderUI)
 button(KEYS.F3, () => {
 	if(buttons.has(KEYS.ALT) || buttons.has(KEYS.MOD)) renderBoxes = !renderBoxes

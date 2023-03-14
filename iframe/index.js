@@ -78,8 +78,8 @@ export function frame(){
 	if(!me || me._id == -1)return
 	playerControls()
 	for(const entity of entities.values())stepEntity(entity)
-	const tzoom = 2 ** (options.zoom * 5 - 1) * devicePixelRatio * ((me.state & 4 ? -0.13 : 0) * options.ffx + 1)
-	cam.z = sqrt(sqrt(cam.z * cam.z * cam.z * tzoom))
+	const tzoom = (me.state & 4 ? -0.13 : 0) * ((1 << options.ffx) - 1) + 1
+	cam.z = sqrt(sqrt(cam.z * cam.z * cam.z * 2 ** (options.zoom * 5 - 1) * devicePixelRatio * tzoom))
 	_recalcDimensions(c)
 	c.transforms.length = 0
 	c.imageSmoothingEnabled = false
@@ -126,7 +126,8 @@ drawPhase(200, (c, w, h) => {
 	const hitboxes = buttons.has(KEYS.SYMBOL) ^ renderBoxes
 	c.setTransform(1,0,0,1,0,h)
 	c.lineWidth = 0.0625 * SCALE
-	c.strokeStyle = '#f00'
+	c.strokeStyle = '#f80'
+	c.fillStyle = '#ff0'
 	for(const chunk of map.values()){
 		const x0 = round(ifloat((chunk.x << 6) - cam.x + W2) * SCALE)
 		const x1 = round(ifloat((chunk.x + 1 << 6) - cam.x + W2) * SCALE)
@@ -134,9 +135,24 @@ drawPhase(200, (c, w, h) => {
 		const y1 = round(ifloat((chunk.y + 1 << 6) - cam.y + H2) * SCALE)
 		if(x1 <= 0 || y1 <= 0 || x0 >= w || y0 >= h){ chunk.hide(); continue }
 		if(!chunk.ctx)chunk.draw()
-		c.drawImage(chunk.ctx.canvas, 0, TEX_SIZE << 6, TEX_SIZE << 6, -(TEX_SIZE << 6), x0, -y0, x1 - x0, y0 - y1)
-		if(hitboxes && (chunk.x^chunk.y&1))
+		c.drawImage(chunk.ctx.canvas, 0, 0, TEX_SIZE << 6, TEX_SIZE << 6, x0, -y0, x1 - x0, y0 - y1)
+		if(hitboxes){
+			c.globalAlpha = cam.z / 16
+			for(let i = 0.125; i < 1; i += 0.125)
+				c.fillRect(x0 + (x1 - x0) * i - 0.015625 * SCALE, -y0, 0.03125 * SCALE, y0 - y1)
+			for(let i = 0.125; i < 1; i += 0.125)
+				c.fillRect(x0, (y0 - y1) * i - y0 - 0.015625 * SCALE, x1 - x0, 0.03125 * SCALE)
+			c.globalAlpha = 1
 			c.strokeRect(x0, -y0, x1 - x0, y0 - y1)
+		}
+	}
+	if(abs(cam.x) <= W2 + 0.0625 && hitboxes){
+		c.fillStyle = '#f00'
+		c.fillRect((W2-cam.x-0.0625)*SCALE,0,0.125*SCALE,-h)
+	}
+	if(abs(cam.y) <= H2 + 0.0625 && hitboxes){
+		c.fillStyle = '#f00'
+		c.fillRect(0,(cam.y-H2-0.0625)*SCALE,w,0.125*SCALE)
 	}
 })
 drawPhase(300, (c, w, h) => {

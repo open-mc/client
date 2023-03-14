@@ -41,6 +41,8 @@ input.key = (key) => {
 		input.value = tg = ''
 		hideUI()
 		ws.send(v)
+	}else if(key == 'Backspace' && !input.value){
+		hideUI()
 	}else return
 	event.preventDefault()
 }

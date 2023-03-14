@@ -2,7 +2,8 @@ import { options } from "./save.js"
 
 let defaultUI
 export function setDefaultUI(fn){defaultUI = fn}
-const arr = [new Audio('./img/click.mp3')]
+const arr = [new Audio]
+fetch('./img/click.mp3').then(a => a.blob()).then(a => arr[0].src = URL.createObjectURL(a))
 export const click = () => {
 	let a = arr.length > 1 ? arr.pop() : arr[0].cloneNode(true)
 	a.volume = options.sound
