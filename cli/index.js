@@ -1,6 +1,9 @@
 import { terrainPng } from "./defs.js"
 import { renderItem } from "./effects.js"
 import "./entities.js"
+import { button, W2, H2, uiLayer, renderLayer, onpause, pause, paused } from 'api'
+import { getblock } from 'world'
+import { Item } from 'definitions'
 
 const BREAKING = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].mutmap(x => terrainPng.at(x, 15))
 
@@ -16,6 +19,7 @@ const sun = skyPng.crop(128, 64, 32, 32), moons = [
 	skyPng.crop(192, 32, 32, 32),
 	skyPng.crop(224, 32, 32, 32)
 ], cloudMap = skyPng.crop(128, 127, 128, 1).pattern('repeat')
+const endSky = skyPng.crop(128,128,128,128).pattern('repeat')
 uiLayer(-100, (c, w, h) => {
 	if(world == 'overworld'){
 		const reach = pointer.effectiveReach()
@@ -62,6 +66,10 @@ uiLayer(-100, (c, w, h) => {
 		c.globalAlpha = 1
 	}else if(world == 'nether'){
 		c.fillStyle = '#190404'
+		c.fillRect(0, 0, w, h)
+	}else if(world == 'end'){
+		c.globalAlpha = 0.15
+		c.fillStyle = endSky
 		c.fillRect(0, 0, w, h)
 		c.globalAlpha = 1
 	}
@@ -203,6 +211,13 @@ uiLayer(1000, (c, w, h) => {
 	renderItem(c, me.inv[36], undefined, 0)
 	c.pop()
 })
+/*
+const guiAtlas = Texture()
+uiLayer(1000, (c) => {
+	
+})
+*/
+
 
 let invInterface = null, interfaceId = 0
 let invAction = 0
@@ -240,8 +255,8 @@ onpacket(32, buf => {
 	if(!e) return
 	while(buf.left){
 		const slot = buf.byte()
-		if(slot > 127)e.items[slot] = buf.item()
-		else e.inv[slot] = buf.item()
+		if(slot > 127)e.items[slot] = Item.decode(buf)
+		else e.inv[slot] = Item.decode(buf)
 	}
 })
 onpacket(15, buf => {
@@ -250,16 +265,22 @@ onpacket(15, buf => {
 	e.selected = buf.byte()
 })
 
-button(KEY_E, () => {
+button(KEYS.E, () => {
 	if(paused)return closeInterface()
 	openEntity(me)
+})
+
+button(KEYS.Q, () => {
+	const buf = new DataWriter()
+	buf.byte(34)
+	send(buf)
 })
 
 blockevent(1, (c, x, y, state = 0) => {
 	const block = getblock(x, y)
 	c.globalCompositeOperation = 'multiply'
 	const item = me.inv[me.selected]
-	c.image(BREAKING[min(9, floor(state / (item ? item.breaktime(block) : block.breaktime) * 10))], 0, 0, 1, 1)
+	c.image(BREAKING[min(9, floor(state / (item ? item.breaktime(block) : block.breaktime) * 10)) || 0], 0, 0, 1, 1)
 	c.globalCompositeOperation = 'source-over'
 	if(floor(state * 5) != floor((state + dt) * 5))
 		if(block.punch) block.punch(x, y)

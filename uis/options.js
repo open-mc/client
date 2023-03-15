@@ -2,13 +2,12 @@ import { pause } from "./pauseui.js"
 import { options } from "../save.js"
 import { Btn, Label, Row, Scale, ScaleSmall, showUI, Spacer, UI } from "../ui.js"
 import { advancedOptionsScreen } from "./advanced.js"
-
+import { controlsScreen } from "./controlsScreen.js"
 
 function renderScale(){
 	guiNode.textContent = 'GUI scale: ' + options.guiScale
 	const size = Math.round(devicePixelRatio) / devicePixelRatio * options.guiScale * 2
 	document.documentElement.style.fontSize = size + 'px'
-	document.documentElement.style.setProperty('--scale', size)
 }
 function guiChange(){
 	options.guiScale *= 2
@@ -29,10 +28,7 @@ function musicChange(a = options.music){
 	return [a >= 0.005 ? a < 0.995 ? 'Music: '+Math.round(a*100)+'%' : 'Music: LOUD' : 'Music: quiet', a]
 }
 
-function sensitivityChange(a = options.sensitivity){
-	options.sensitivity = a
-	return [a > 0.005 ? a < 0.995 ? 'Sensitivity: '+Math.floor(9 ** a * 10 / 3) / 10 +'x' : 'Sensitivity: HYPERSPEED!!!' : 'Sensitivity: *yawn*', a]
-}
+
 const cameraOptions = ['Dynamic', 'Follow Pointer', 'Follow player', 'Page']
 function renderCamMode(){
 	camNode.textContent = 'Camera: ' + cameraOptions[options.camera]
@@ -41,16 +37,16 @@ function camChange(){
 	options.camera = (options.camera + 1) % 4
 	renderCamMode()
 }
-
-let guiNode, camNode
+let guiNode, camNode, af3Node
 const optionsui = UI('menu',
 	Label('Options'),
 	camNode = Btn('', camChange, 'small'),
 	Row(ScaleSmall(zoomChange), guiNode = Btn('', guiChange, 'small')),
 	Row(ScaleSmall(soundChange), ScaleSmall(musicChange)),
-	Scale(sensitivityChange),
+	af3Node = Btn('Open debug automatically: '+(options.autof3 ? 'YES' : 'NO'), () => af3Node.text = 'Open debug automatically: '+((options.autof3 = !options.autof3) ? 'YES' : 'NO'), 'small'),
+	Btn('Advanced', advancedOptionsScreen),
 	Spacer(20),
-	Row(Btn('Back', pause, 'small'), Btn('Advanced', advancedOptionsScreen, 'small'))
+	Row(Btn('Back', pause, 'small'), Btn('Controls', controlsScreen, 'small'))
 )
 optionsui.esc = pause
 

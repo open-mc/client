@@ -1,3 +1,4 @@
+
 export const audioSet = (name, variant, count) => Array.from({length: count}, (_, i) => Audio('/music/'+name+'/'+variant+(i+1)+'.mp3'))
 
 music('overworld',
@@ -21,6 +22,8 @@ music('nether',
 	'/music/nether4.mp3'
 )
 
+music('end', '/music/end.mp3')
+
 export const lava = {
 	ambient: Audio('/music/lava/ambient.mp3'),
 	pop: Audio('/music/lava/pop.mp3')
@@ -38,11 +41,13 @@ export function renderItem(c, item, showCount = item && item.count != 1, model =
 		}else if(model == 1){
 			c.push()
 			c.translate(0.5,0)
-			c.rotate(PI / -4)
-			c.translate(-1,-1)
-			c.scale(2, 2)
+			c.translate(-1.2,1.2)
+			c.rotate(PI * -0.75)
+			c.scale(-1.6, 1.6)
 			c.image(item.texture, -0.5, 0, 1, 1)
 			c.pop()
+		}else if(model == 2){
+			c.image(item.texture, -0.75, -0.25, 1.5, 1.5)
 		}
 	}
 	if(showCount){

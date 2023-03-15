@@ -1,4 +1,4 @@
-import { moveEntity } from "./world.js"
+import { getblock } from 'world'
 
 const groundDrag = .0000244
 const airDrag = 0.667
@@ -7,12 +7,12 @@ export function stepEntity(e){
 	e.state = (e.state & 0xffff) | (e.state << 8 & 0xff000000) | fastCollision(e, e.dx * dt, e.dy * dt) << 16
 	if(e.state & 1)e.dy = 0
 	else{
-		e.dy += dt * gy
+		e.dy += dt * gy * e.gy
 		e.dy = e.dy * airDrag ** dt
-		e.dx += dt * gx
+		e.dx += dt * gx * e.gx
 	}
 	e.dx = e.dx * groundDrag ** dt
-	if(e == me)e.ix = e.x, e.iy = e.y
+	if(e == me || dt > 1/30)e.ix = e.x, e.iy = e.y
 	else{
 		//TODO: make interpolation entirely dx/dy based
 		e.ix += ifloat(e.x - e.ix) * dt * 20
@@ -22,6 +22,10 @@ export function stepEntity(e){
 	moveEntity(e)
 	e.step()
 	e.age += dt * TPS
+}
+export function moveEntity(e){
+	const ch = map.get((floor(e.x) >>> 6) + (floor(e.y) >>> 6) * 67108864) || null
+	if(ch != e.chunk)e.chunk&&e.chunk.entities.delete(e), e.chunk = ch, ch&&ch.entities.add(e)
 }
 
 export const EPSILON = .0001

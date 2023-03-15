@@ -12,6 +12,7 @@ export class DataReader extends DataView{
 		this.i = 0
 	}
 	read(type, target){
+		if(!type) return target
 		switch(type){
 			case Uint8: return this.getUint8(this.i++)
 			case Int8: return this.getInt8(this.i++)
@@ -24,11 +25,9 @@ export class DataReader extends DataView{
 			case Boolean: return this.getUint8(this.i++) != 0
 			case String: return this.string()
 			case Uint8Array: return this.uint8array()
-			case Item: return this.item(target)
 		}
+		if(typeof type.decode == 'function') return type.decode(this, target)
 		if(Array.isArray(type)){
-			target = target || []
-			if(target.length)target.length = 0
 			let len = 0
 			if(type.length > 1){
 				len = type[1] >>> 0
@@ -39,7 +38,10 @@ export class DataReader extends DataView{
 					else len = this.getUint16(this.i) & 0x3FFF, this.i += 2
 				}else this.i++
 			}
-			while(len--)target.push(this.read(type[0]))
+			target = (target || []); target.length = len
+			Object.seal(target)
+			let i = 0
+			while(i < len)target[i++] = this.read(type[0])
 			return target
 		}else{
 			const obj = target || {}
@@ -90,18 +92,7 @@ export class DataReader extends DataView{
 		this.i = i + len
 		return decoder.decode(new Uint8Array(this.buffer, i, len))
 	}
-	item(target){
-		const count = this.getUint8(this.i++)
-		if(!count)return null
-		const item = ItemIDs[this.getUint16(this.i)]
-		this.i += 2
-		if(!item)return null
-		if(!target)target = item(count)
-		else target.count = count, Object.setPrototypeOf(target, Object.getPrototypeOf(item))
-		target.name = this.string()
-		if(target.savedata)this.read(target.savedatahistory[this.flint()] || target.savedata, target)
-		return target
-	}
+	
 	get left(){return this.byteLength - this.i}
 	pipe(sock){
 		sock.send(this)
@@ -124,6 +115,7 @@ export class DataWriter extends Array{
 		this.i = 0
 	}
 	write(type, v){
+		if(!type) return
 		if(this.i > this.cur.byteLength - (type < 7 ? 1 << (type >> 1) : 4))this.allocnew()
 		let buf = this.cur
 		switch(type){
@@ -138,14 +130,8 @@ export class DataWriter extends Array{
 			case Boolean: buf.setUint8(this.i++, v); return
 			case String: this.string(v); return
 			case Uint8Array: this.uint8array(v); return
-			case Item:
-				if(!v){buf.setUint8(this.i++, 0); return}
-				buf.setUint8(this.i++, v.count)
-				buf.setUint16(this.i, v.id); this.i += 2
-				this.string(v.name)
-				if(v.savedata)this.write(v.savedatahistory[this.flint()] || v.savedata, v)
-				return
 		}
+		if(typeof type.encode == 'function'){ type.encode(this, v); return }
 		if(Array.isArray(type)){
 			let len
 			if(type.length > 1)len = type[1]
@@ -234,14 +220,6 @@ export class DataWriter extends Array{
 			this.i = left
 		}else super.push(encoded.subarray(avail))
 	}
-	item(v){
-		if(this.i > this.cur.byteLength - 3)this.allocnew();
-		if(!v){this.cur.setUint8(this.i++, 0); return}
-		this.cur.setUint8(this.i++, v.count)
-		this.cur.setUint16(this.i, v.id); this.i += 2
-		this.string(v.name)
-		if(v.savedata)this.write(v.savedatahistory[this.flint()] || v.savedata, v)
-	}
 	pipe(sock){ sock.send(this.build()) }
 	build(paddingStart = 0, paddingEnd = 0){
 		let len = paddingStart + paddingEnd + this.i
@@ -277,7 +255,14 @@ globalThis.Int8 = a => a << 24 >> 24
 globalThis.Bool = Boolean
 globalThis.DataReader = DataReader
 globalThis.DataWriter = DataWriter
-export const Item = {}
-const types = [Byte, Int8, Short, Int16, Uint32, Int32, Float, Double, Boolean, String, Item, Uint8Array]
-export const typeToJson = type => JSON.stringify(type, (k, v) => typeof v == 'object' ? v : typeof v == 'function' ? types.indexOf(v) : typeof v == 'number' && k == '1' ? v : undefined)
-export const jsonToType = json => JSON.parse(json, (k, v) => typeof v == 'object' ? v : typeof v == 'number' ? k == '1' ? v : types[v] : undefined)
+const types = [Byte, Int8, Short, Int16, Uint32, Int32, Float, Double, Boolean, String, Uint8Array]
+const typesReverse = new Map()
+for(let i in types) typesReverse.set(types[i], i)
+export function registerTypes(dict){
+	for(const k in dict){
+		types[k] = dict[k]
+		typesReverse.set(dict[k], k)
+	}
+}
+export const typeToJson = type => JSON.stringify(type, (_, v) => typeof v == 'object' || typeof v == 'number' || typeof v == 'string' ? v : typeof v == 'function' ? typesReverse.get(v) : undefined)
+export const jsonToType = json => JSON.parse(json, (_, v) => typeof v == 'object' || typeof v == 'number' ? v : typeof v == 'string' ? types[v] : undefined)

@@ -1,3 +1,5 @@
+import { Blocks } from 'definitions'
+
 export function setblock(x, y, b){
 	const k = (x>>>6)+(y>>>6)*67108864
 	const ch = map.get(k)
@@ -10,10 +12,10 @@ export function setblock(x, y, b){
 		const t = b.texture
 		ch.ctx.clearRect(lx * TEX_SIZE, (63 - ly) * TEX_SIZE, TEX_SIZE, TEX_SIZE)
 		if(!t)break i
-		if(b.texture)ch.ctx.drawImage(t.img,t.x,t.y,t.w,t.h,lx*TEX_SIZE,(63-ly)*TEX_SIZE,TEX_SIZE,TEX_SIZE)
+		if(b.texture)ch.ctx.drawImage(t.canvas,t.x,t.y,t.w,t.h,lx*TEX_SIZE,(63-ly)*TEX_SIZE,TEX_SIZE,TEX_SIZE)
 	}
 }
-getblock = function(x, y){
+export function getblock(x, y){
 	const k = (x>>>6)+(y>>>6)*67108864
 	const ch = map.get(k)
 	return ch ? ch.tiles[(x & 63) + ((y & 63) << 6)] : Blocks.air()
@@ -34,10 +36,7 @@ export function removeEntity(e){
 	entities.delete(e._id)
 	if(e == me) me._id = -1
 	if(e.chunk) e.chunk.entities.delete(e)
-}
-export function moveEntity(e){
-	const ch = map.get((floor(e.x) >>> 6) + (floor(e.y) >>> 6) * 67108864) || null
-	if(ch != e.chunk)e.chunk&&e.chunk.entities.delete(e), e.chunk = ch, ch&&ch.entities.add(e)
+	if(e.removed) e.removed()
 }
 
 const playerLoadCb = []
@@ -53,7 +52,7 @@ sound = function(fn, x, y, vol = 1, pitch = 1){
 	// "Fix" the inputs x and y by normalizing them with `/ dist`
 	const speed = (me.dx * x + me.dy * y) / dist
 	// For 2d, the inverse square law becomes the inverse linear law
-	fn(vol * 2 / (dist + 1), pitch * max(SPEEDOFSOUND / 100, speed + SPEEDOFSOUND) / SPEEDOFSOUND, x / 16)
+	fn(vol * 2 / (dist + 1), pitch * max(SPEEDOFSOUND / 100, speed + SPEEDOFSOUND) / SPEEDOFSOUND, min(1, max(-1, x / 16)))
 }
 
 export const blockEvents = new Map
@@ -61,7 +60,7 @@ export const blockEventDefs = new Array(255)
 export const blockEventIfns = new Array(255)
 blockevent = (id, r, r2) => (blockEventDefs[id] = r, blockEventIfns[id] = r2)
 
-export const entityEvents = new Map
+//export const entityEvents = new Map
 //export const entityEventDefs = new Array(255)
 //export const entityEventIfns = new Array(255)
 //entityevent = (id, r, r2) => (entityEventDefs[id] = r, entityEventIfns[id] = r2)

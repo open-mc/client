@@ -2,16 +2,16 @@ import { options } from "./save.js"
 
 let defaultUI
 export function setDefaultUI(fn){defaultUI = fn}
-
-const arr = [new Audio('./img/click.mp3')]
+const arr = [new Audio]
+fetch('./img/click.mp3').then(a => a.blob()).then(a => arr[0].src = URL.createObjectURL(a))
 export const click = () => {
 	let a = arr.length > 1 ? arr.pop() : arr[0].cloneNode(true)
-	a.volume = options.sound
+	a.volume = Math.min(1, options.sound)
 	a.onended = () => {
 		a.onended = null
 		if(arr.length<3)arr.push(a)
 	}
-	a.play().catch(a.onended)
+	a.play()//.catch(a.onended)
 }
 
 HTMLElement.prototype.attr = function(a, b){this.setAttribute(a, b); return this}
@@ -23,7 +23,12 @@ NONE.esc = hideUI
 document.body.append(NONE)
 
 export let ptrSuccess = Function.prototype, ptrFail = Function.prototype
-const ptrlock = () => new Promise((r, c) => { document.body.requestPointerLock(); ptrSuccess = r; ptrFail = c })
+const ptrlock = () => new Promise((r, c) => {
+	const fs = document.documentElement.requestFullscreen()
+	if(fs instanceof Promise) fs.then(() => document.body.requestPointerLock());
+	else document.body.requestPointerLock()
+	ptrSuccess = r; ptrFail = c
+})
 
 export let ui = null
 export async function hideUI(){
@@ -37,6 +42,7 @@ export async function hideUI(){
 }
 
 export function showUI(a = null){
+	//document.exitFullscreen()
 	document.exitPointerLock()
 	void (ui && ui.finish || Function.prototype)()
 	void (ui || NONE).replaceWith(ui = a || NONE)

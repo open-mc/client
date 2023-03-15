@@ -25,7 +25,7 @@ body{
 	text-shadow: 1rem 1rem #3f3f3f;
 	overscroll-behavior-x: none;
 }
-*{margin: 0;box-sizing: border-box;padding: 0;line-height: 1;}
+*{margin:0;box-sizing:border-box;padding:0;line-height:1;min-width:0}
 input, textarea{
 	font: inherit;
 	border: unset;
@@ -61,6 +61,9 @@ in div{
 	overflow: auto;
 	white-space: pre-wrap;
 	overflow-wrap: break-word;
+}
+in > input + div{
+	white-space: pre;
 }
 f.__invalid{color: red}
 in textarea:focus + div > f.__cursor, in input:focus + div > f.__cursor{
@@ -98,6 +101,9 @@ label{
 	text-align: center;
 	height: 20rem;
 	line-height: 18rem;
+	text-overflow: ellipsis;
+  white-space: pre;
+  overflow: hidden;
 }
 btn{
 	display: block;

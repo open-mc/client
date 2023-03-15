@@ -1,9 +1,10 @@
 import { playerControls, renderBoxes, renderF3 } from "./controls.js"
 import { DataWriter as DW, DataReader as DR } from "../data.js"
 import { stepEntity } from "./entity.js"
-import "./world.js"
-import { blockEventDefs, blockEvents, entityEvents } from "./world.js"
-import { blockbreakx } from "./pointer.js"
+import { blockEventDefs, blockEvents, getblock } from 'world'
+import { checkBlockPlacing } from "./pointer.js"
+import { button, buttons, drawPhase, renderLayer, uiLayer, W, H, W2, H2, SCALE, options, paused, _recalcDimensions, _renderPhases } from "api"
+
 DataReader = DR
 DataWriter = DW
 
@@ -27,7 +28,6 @@ setInterval(function(){
 		ticked++
 	}
 	last -= dt
-	eluEnd()
 })
 
 const sendDelay = 1 //send packet every 4 ticks
@@ -39,13 +39,10 @@ function tick(){ //20 times a second
 		buf.byte(r)
 		buf.double(me.x)
 		buf.double(me.y)
-		if(blockbreakx == blockbreakx) me.state |= 8
-		else me.state &= -9
 		buf.short(me.state)
 		buf.float(me.dx)
 		buf.float(me.dy)
-		buf.float(me.f)
-		buf.byte(me.selected)
+		checkBlockPlacing(buf)
 		send(buf)
 	}
 	ticks++
@@ -60,7 +57,7 @@ let lastFrame = performance.now(), elusmooth = 0
 let elu = 0
 let eluLast = 0
 const eluEnd = () => (elu += performance.now() - eluLast, eluLast = 0)
-const eluStart = () => eluLast ? 0 : (eluLast = performance.now())
+const eluStart = () => eluLast ? 0 : (eluLast = performance.now(), Promise.resolve().then(eluEnd))
 export let zoom_correction = 0
 let camMovingX = false, camMovingY = false
 
@@ -69,42 +66,6 @@ const c = Can(0, 0)
 c.canvas.style = 'width: 100%; height: 100%; position: fixed; top: 0; left: 0; z-index: 0;'
 document.body.append(c.canvas)
 
-const renderPhases = []
-
-renderLayer = (prio, fn) => {
-	let i = renderPhases.push(null) - 2
-	while(i >= 0 && renderPhases[i].prio > prio){
-		renderPhases[i + 1] = renderPhases[i]
-		i--
-	}
-	fn.prio = prio
-	fn.coordSpace = 'world'
-	i++
-	renderPhases[i] = fn
-}
-uiLayer = (prio, fn) => {
-	let i = renderPhases.push(null) - 2
-	while(i >= 0 && renderPhases[i].prio > prio){
-		renderPhases[i + 1] = renderPhases[i]
-		i--
-	}
-	fn.prio = prio
-	fn.coordSpace = 'ui'
-	i++
-	renderPhases[i] = fn
-}
-drawPhase = (prio, fn) => {
-	let i = renderPhases.push(null) - 2
-	while(i >= 0 && renderPhases[i].prio > prio){
-		renderPhases[i + 1] = renderPhases[i]
-		i--
-	}
-	fn.prio = prio
-	fn.coordSpace = 'none'
-	i++
-	renderPhases[i] = fn
-}
-let W = 0, H = 0
 
 export function frame(){
 	eluStart()
@@ -117,14 +78,9 @@ export function frame(){
 	if(!me || me._id == -1)return
 	playerControls()
 	for(const entity of entities.values())stepEntity(entity)
-	const tzoom = 2 ** (options.zoom * 5 - 1) * devicePixelRatio * (me.state & 4 ? 0.9 : 1)
-	cam.z = sqrt(sqrt(cam.z * cam.z * cam.z * tzoom))
-	SCALE = cam.z * TEX_SIZE
-	W2 = (W = round(visualViewport.width * visualViewport.scale * devicePixelRatio)) / SCALE / 2
-	H2 = (H = round(visualViewport.height * visualViewport.scale * devicePixelRatio)) / SCALE / 2
-	if(W != c.canvas.width || H != c.canvas.height) c.canvas.width = W, c.canvas.height = H
-	else if(c.reset) c.reset()
-	else c.resetTransform(),c.clearRect(0, 0, W, H)
+	const tzoom = (me.state & 4 ? -0.13 : 0) * ((1 << options.ffx) - 1) + 1
+	cam.z = sqrt(sqrt(cam.z * cam.z * cam.z * 2 ** (options.zoom * 5 - 1) * devicePixelRatio * tzoom))
+	_recalcDimensions(c)
 	c.transforms.length = 0
 	c.imageSmoothingEnabled = false
 	if(!me) return
@@ -157,7 +113,7 @@ export function frame(){
 		if(me.y < cam.y - H2)cam.y -= H2*2
 	}
 	c.font = '1000px mc'
-	for(const phase of renderPhases){
+	for(const phase of _renderPhases){
 		switch(phase.coordSpace){
 			case 'none': phase(c, W, H); break
 			case 'world': c.setTransform(SCALE, 0, 0, -SCALE, W2 * SCALE, H - H2 * SCALE); phase(c); break
@@ -165,10 +121,13 @@ export function frame(){
 			default: console.error('Invalid coordinate space: ' + phase.coordSpace)
 		}
 	}
-	eluEnd()
 }
 drawPhase(200, (c, w, h) => {
+	const hitboxes = buttons.has(KEYS.SYMBOL) ^ renderBoxes
 	c.setTransform(1,0,0,1,0,h)
+	c.lineWidth = 0.0625 * SCALE
+	c.strokeStyle = '#f80'
+	c.fillStyle = '#ff0'
 	for(const chunk of map.values()){
 		const x0 = round(ifloat((chunk.x << 6) - cam.x + W2) * SCALE)
 		const x1 = round(ifloat((chunk.x + 1 << 6) - cam.x + W2) * SCALE)
@@ -176,7 +135,24 @@ drawPhase(200, (c, w, h) => {
 		const y1 = round(ifloat((chunk.y + 1 << 6) - cam.y + H2) * SCALE)
 		if(x1 <= 0 || y1 <= 0 || x0 >= w || y0 >= h){ chunk.hide(); continue }
 		if(!chunk.ctx)chunk.draw()
-		c.drawImage(chunk.ctx.canvas, 0, TEX_SIZE << 6, TEX_SIZE << 6, -(TEX_SIZE << 6), x0, -y0, x1 - x0, y0 - y1)
+		c.drawImage(chunk.ctx.canvas, 0, 0, TEX_SIZE << 6, TEX_SIZE << 6, x0, -y0, x1 - x0, y0 - y1)
+		if(hitboxes){
+			c.globalAlpha = cam.z / 16
+			for(let i = 0.125; i < 1; i += 0.125)
+				c.fillRect(x0 + (x1 - x0) * i - 0.015625 * SCALE, -y0, 0.03125 * SCALE, y0 - y1)
+			for(let i = 0.125; i < 1; i += 0.125)
+				c.fillRect(x0, (y0 - y1) * i - y0 - 0.015625 * SCALE, x1 - x0, 0.03125 * SCALE)
+			c.globalAlpha = 1
+			c.strokeRect(x0, -y0, x1 - x0, y0 - y1)
+		}
+	}
+	if(abs(cam.x) <= W2 + 0.0625 && hitboxes){
+		c.fillStyle = '#f00'
+		c.fillRect((W2-cam.x-0.0625)*SCALE,0,0.125*SCALE,-h)
+	}
+	if(abs(cam.y) <= H2 + 0.0625 && hitboxes){
+		c.fillStyle = '#f00'
+		c.fillRect(0,(cam.y-H2-0.0625)*SCALE,w,0.125*SCALE)
 	}
 })
 drawPhase(300, (c, w, h) => {
@@ -184,14 +160,10 @@ drawPhase(300, (c, w, h) => {
 		c.setTransform(SCALE, 0, 0, -SCALE, ifloat(ev[0] - cam.x + W2) * SCALE, ifloat(cam.y - H2 - ev[1]) * SCALE + h)
 		if(!map.has((ev[0]>>>6)+(ev[1]>>>6)*67108864) || !(ev[3] = blockEventDefs[ev[2]&0xff](c, ev[0], ev[1], ev[3])))blockEvents.delete(ev[2]/256>>>0)
 	}
-	for(const [e, ti] of entityEvents.values()){
-		c.setTransform(SCALE, 0, 0, -SCALE, ifloat(e.x - cam.x + W2) * SCALE, ifloat(cam.y - H2 - e.y) * SCALE + h)
-		if(!entities.has(e._id) || !e.event(c,ti&0xff))entityEvents.delete(ti/256>>>0)
-	}
 })
 
 drawPhase(100, (c, w, h) => {
-	const hitboxes = buttons.has(KEY_SYMBOL) ^ renderBoxes
+	const hitboxes = buttons.has(KEYS.SYMBOL) ^ renderBoxes
 	for(const entity of entities.values()){
 		if(!entity.render)continue
 		c.setTransform(SCALE, 0, 0, -SCALE, ifloat(entity.ix - cam.x + W2) * SCALE, ifloat(cam.y - H2 - entity.iy) * SCALE + h)
@@ -204,13 +176,13 @@ drawPhase(100, (c, w, h) => {
 		entity.render(c)
 	}
 })
-renderLayer(200, c => {
+renderLayer(400, c => {
 	if(paused)return
 	pointer.drawPointer(c)
 })
 
 uiLayer(1000, (c, w, h) => {
-	if(renderF3 == buttons.has(KEY_SYMBOL))return
+	if(renderF3 == buttons.has(KEYS.SYMBOL))return
 	c.textAlign = 'left'
 	let y = h - 1
 	for(const t of `Paper Minecraft ${VERSION}
@@ -245,6 +217,6 @@ Biome: ${me.chunk ? round(me.chunk.biomes[mex] * (1 - mexi) + me.chunk.biomes[me
 })
 
 
-button(KEY_F2, () => {
+button(KEYS.F2, () => {
 	c.canvas.toBlob(download, 'image/png')
 })

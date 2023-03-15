@@ -20,8 +20,8 @@ onkeyup = e => {
 	if(win) keyMsg(~e.keyCode)
 	e.preventDefault()
 }
-onmousedown = e => win && (!ui || ui == NONE) && keyMsg(e.button)
-onmouseup = e => win && keyMsg(~e.button)
+onmousedown = e => void(win && (!ui || ui == NONE) && keyMsg(e.button))
+onmouseup = e => void(win && keyMsg(~e.button))
 
 const cbs = {}
 export function key(key, handler){
@@ -30,8 +30,10 @@ export function key(key, handler){
 	cbs[keyname].push(handler)
 }
 
-window.onbeforeunload = () => location.host != '127.0.0.1' && location.host != 'localhost' ? true : undefined
-
+// Don't prompt if live server or local server
+window.onbeforeunload = () => (location.host != '127.0.0.1' && location.host != 'localhost' &&
+	![].find.call(document.body.childNodes, a =>
+		a instanceof Comment && a.data.trim() == 'Code injected by live-server')) || undefined
 HTMLElement.prototype.requestFullscreen = HTMLElement.prototype.requestFullscreen || Function.prototype //Safari fullscreen is broken
 let wasFullscreen = false
 let ignoreEsc = false
@@ -40,7 +42,7 @@ document.onpointerlockerror = document.onpointerlockchange = function(e){
 	else if(document.pointerLockElement){
 		ptrSuccess()
 		keyMsg(false)
-		if(wasFullscreen)document.documentElement.requestFullscreen()
+		//if(wasFullscreen)document.documentElement.requestFullscreen()
 	}else{
 		keyMsg(true)
 		wasFullscreen = !!(!ui && document.fullscreenElement)

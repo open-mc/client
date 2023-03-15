@@ -1,6 +1,6 @@
-import { setblock, onPlayerLoad } from './world.js'
-import { DataWriter } from '../data.js'
+import { setblock, onPlayerLoad, getblock } from './world.js'
 import './controls.js'
+import { button, onmousemove, W2, H2, options, paused, buttons } from 'api'
 
 export let x = 2, y = 0
 export let bx = 0, by = 0, bpx = 0, bpy = 0
@@ -21,6 +21,7 @@ export function drawPointer(c){
 	bpx = NaN, bpy = NaN
 	const reach = sqrt(x * x + y * y)
 	let d = 0, px = me.x - bx, py = me.y + me.head - by
+	me.f = atan2(x, y)
 	const dx = sin(me.f), dy = cos(me.f)
 	while(d < reach){
 		if(getblock(bx, by).solid)break
@@ -41,7 +42,6 @@ export function drawPointer(c){
 			if(ix >= 0 && ix <= 1){by--; d += -py / dy; py = 1; px = ix; continue}
 		}
 	}
-
 	if(d >= reach) bx = by = NaN
 	if(!getblock(bpx + 1, bpy).solid && !getblock(bpx - 1, bpy).solid && !getblock(bpx, bpy + 1).solid && !getblock(bpx, bpy - 1).solid){
 		bpx = bpy = NaN
@@ -55,7 +55,7 @@ export function drawPointer(c){
 					break a
 				}
 		c.lineWidth = 0.0625
-		c.stokeStyle = '#000'
+		c.strokeStyle = '#000'
 		c.fillStyle = '#000'
 		c.globalAlpha = 0.5
 		const xd = ifloat(bx-cam.x), yd = ifloat(by-cam.y)
@@ -76,36 +76,38 @@ export function drawPointer(c){
 		}
 		c.globalAlpha = 1
 	}
-	me.f = atan2(x, y)
-	place: if(buttons.has(LBUTTON) && bpx == bpx && t > lastPlace + .17){
+}
+let didHit = false
+export function checkBlockPlacing(buf){
+	if(buttons.has(options.click ? LBUTTON : RBUTTON) && t > lastPlace + .12){
 		let b = me.inv[me.selected]
-		if(!b || !b.places)break place
-		b = b.places()
-		if(b) setblock(bpx, bpy, b)
-		let buf = new DataWriter()
-		buf.byte(8)
+		if(b && bpx == bpx && b.places && (b = b.places())) setblock(bpx, bpy, b)
 		buf.byte(me.selected)
-		buf.int(bpx)
-		buf.int(bpy)
-		send(buf)
+		buf.float(x); buf.float(y)
 		lastPlace = t
-	}
-	if(buttons.has(RBUTTON) && bx == bx){
-		if(bx != blockbreakx || by != blockbreaky){
-			let buf = new DataWriter()
-			buf.byte(9)
-			buf.byte(me.selected)
-			buf.int(blockbreakx = bx)
-			buf.int(blockbreaky = by)
-			send(buf)
-			lastPlace = t
-		}
-	}else if(blockbreakx == blockbreakx){
-		let buf = new DataWriter()
-		buf.byte(9)
+	}else if(buttons.has(options.click ? RBUTTON : LBUTTON) && bx == bx){
 		buf.byte(me.selected | 128)
+		buf.float(x); buf.float(y)
+		blockbreakx = bx; blockbreaky = by
+		me.state |= 8; lastPlace = t
+	}else{
+		buf.byte(me.selected); buf.float(NaN); buf.float(me.f)
+		let id = 281474976710655 // -1
+		const hitBtnDown = buttons.has(options.click ? RBUTTON : LBUTTON)
+		if(hitBtnDown && !didHit){
+			const xp = me.x + x, yp = me.y + me.head + y
+			const xa = xp - 32 >>> 6, ya = yp - 32 >>> 6, x1 = xa + 1 & 67108863, y1 = ya + 1 & 67108863
+			a: for(const ch of [map.get(xa+ya*67108864), map.get(x1+ya*67108864), map.get(xa+y1*67108864), map.get(x1+y1*67108864)]) if(ch)for(const e of ch.entities)
+				if(e.y < yp && e.y + e.height > yp && e.x - e.width < xp && e.x + e.width > xp){
+					// Found entity
+					id = e._id
+					break a
+				}
+			didHit = true
+		}else if(!hitBtnDown) didHit = false
+		buf.uint32(id|0), buf.short(id/4294967296|0)
 		blockbreakx = blockbreaky = NaN
-		send(buf)
+		me.state &= -9
 	}
 }
 export let blockbreakx = NaN, blockbreaky = NaN
