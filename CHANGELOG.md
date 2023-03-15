@@ -2,6 +2,8 @@
 
 ## Alpha 8 (what's next)
 
+Todo: better explosions
+
 Todo: Player movement checks
 
 Todo: animated textures (water + lava)
@@ -20,7 +22,7 @@ Todo: water + lava cut textures for surface (and flowing variants)
 
 - Hitting entities
 
-Todo: explosions
+- Explosions
 
 </details>
 

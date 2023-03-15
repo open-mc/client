@@ -33,6 +33,7 @@ Blocks.dirt = class extends Block{
 }
 Blocks.bedrock = class extends Stone{
 	static texture = terrainPng.at(1, 1)
+	static breaktime = Infinity
 	static tool = 'pick'
 }
 class Wood extends Block{

@@ -6,7 +6,7 @@ const arr = [new Audio]
 fetch('./img/click.mp3').then(a => a.blob()).then(a => arr[0].src = URL.createObjectURL(a))
 export const click = () => {
 	let a = arr.length > 1 ? arr.pop() : arr[0].cloneNode(true)
-	a.volume = options.sound
+	a.volume = Math.min(1, options.sound)
 	a.onended = () => {
 		a.onended = null
 		if(arr.length<3)arr.push(a)
