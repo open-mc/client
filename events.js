@@ -1,7 +1,6 @@
 import { keyMsg, win } from "./iframe.js"
-import { options } from "./save.js"
 import { pause } from "./uis/pauseui.js"
-import { ui, hideUI, NONE, ptrFail, ptrSuccess } from "./ui.js"
+import { ui, NONE, ptrFail, ptrSuccess } from "./ui.js"
 
 onkeydown = e => {
 	if(document.activeElement != document.body && e.key != 'Escape')return
