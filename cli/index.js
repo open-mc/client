@@ -221,9 +221,9 @@ uiLayer(1000, (c) => {
 
 let invInterface = null, interfaceId = 0
 let invAction = 0
-button(LBUTTON, () => invAction = 1)
-button(RBUTTON, () => invAction = 2)
-button(MBUTTON, () => invAction = 3)
+button(LBUTTON, () => {invAction = 1})
+button(RBUTTON, () => {invAction = 2})
+button(MBUTTON, () => {invAction = 3})
 
 onpause(() => {
 	if(!paused && invInterface){

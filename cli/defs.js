@@ -27,7 +27,8 @@ Blocks.obsidian = class extends Stone{
 }
 Blocks.dirt = class extends Block{
 	static texture = terrainPng.at(2, 0)
-	static breaktime = 1.5
+	static breaktime = 1
+	static tool = 'shovel'
 	static placeSounds = audioSet('dirt', 'place', 4)
 	static stepSounds = audioSet('dirt', 'step', 4)
 }
@@ -189,6 +190,10 @@ Items.netherrack = class extends Item{
 Items.grass = class extends Item{
 	places(){ return Blocks.grass }
 	static texture = Blocks.grass.texture
+}
+Items.dirt = class extends Item{
+	places(){ return Blocks.dirt }
+	static texture = Blocks.dirt.texture
 }
 
 class Tool extends Item{
