@@ -82,9 +82,6 @@ export class Chunk{
 			this.tiles[j] = buf.read(block.savedatahistory[buf.flint()] || block.savedata, block())
 		}
 	}
-	static of(block, x, y){
-		return new Chunk(new DataReader(Uint8Array.of(16, x >> 24, x >> 16, x >> 8, x, y >> 24, y >> 16, y >> 8, y, 0, 0, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128, block.id >> 8, block.id)))
-	}
 	hide(){
 		if(!this.ctx)return
 		canvasPool.push(this.ctx)

@@ -79,13 +79,13 @@ export function drawPointer(c){
 }
 let didHit = false
 export function checkBlockPlacing(buf){
-	if(buttons.has(options.click ? LBUTTON : RBUTTON) && t > lastPlace + .12){
+	if(buttons.has(options.click ? LBUTTON : RBUTTON) && t > lastPlace + .12 && !paused){
 		let b = me.inv[me.selected]
 		if(b && bpx == bpx && b.places && (b = b.places())) setblock(bpx, bpy, b)
 		buf.byte(me.selected)
 		buf.float(x); buf.float(y)
 		lastPlace = t
-	}else if(buttons.has(options.click ? RBUTTON : LBUTTON) && bx == bx){
+	}else if(buttons.has(options.click ? RBUTTON : LBUTTON) && bx == bx && !paused){
 		buf.byte(me.selected | 128)
 		buf.float(x); buf.float(y)
 		blockbreakx = bx; blockbreaky = by
@@ -93,7 +93,7 @@ export function checkBlockPlacing(buf){
 	}else{
 		buf.byte(me.selected); buf.float(NaN); buf.float(me.f)
 		let id = 281474976710655 // -1
-		const hitBtnDown = buttons.has(options.click ? RBUTTON : LBUTTON)
+		const hitBtnDown = buttons.has(options.click ? RBUTTON : LBUTTON) && !paused
 		if(hitBtnDown && !didHit){
 			const xp = me.x + x, yp = me.y + me.head + y
 			const xa = xp - 32 >>> 6, ya = yp - 32 >>> 6, x1 = xa + 1 & 67108863, y1 = ya + 1 & 67108863
@@ -111,7 +111,7 @@ export function checkBlockPlacing(buf){
 	}
 }
 export let blockbreakx = NaN, blockbreaky = NaN
-button(LBUTTON, RBUTTON, () => lastPlace = 0)
+button(LBUTTON, RBUTTON, () => {lastPlace = 0})
 onmousemove((dx, dy) => {
 	if(paused){
 		const upscale = options.guiScale * 2

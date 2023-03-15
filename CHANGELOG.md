@@ -10,23 +10,19 @@ Todo: animated textures (water + lava)
 
 Todo: water + lava cut textures for surface (and flowing variants)
 
-## Alpha 7 (current preview)
-
-- TNT and a few entities
-
-- Changelog + credits
-
-- Camera effect option + leftclick/rightclick option
-
-- A few more items / blocks
-
-- Hitting entities
-
-- Explosions
-
 </details>
 
-# Alpha 6 (current)
+## Alpha 7 (current)
+
+- The end
+- TNT and a few entities
+- Changelog + credits
+- Camera effect option + leftclick/rightclick option
+- A few more items / blocks
+- Hitting entities
+- Explosions
+
+# Alpha 6
 
 - Sprinting
 - Random sound events

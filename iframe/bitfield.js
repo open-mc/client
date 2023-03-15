@@ -20,6 +20,13 @@ export class BitField extends Array{
 		if((int >> 5) >= this.length)return false
 		return !!(this[int >> 5] & (1 << (int & 31)))
 	}
+	pop(int){
+		if((int >> 5) >= this.length)return false
+		let i = int >> 5
+		const a = !!(this[i] ^ (this[i] &= ~(1 << (int & 31))))
+		if(i == this.length - 1) while(i >= 0 && !this[i--]) super.pop()
+		return a
+	}
 	xor(other){
 		let l = this.length
 		if(l == other.length){
