@@ -1,8 +1,8 @@
 import { DataReader, decoder } from "./data.js"
 import "./uis/chat.js"
 import { msg, pendingConnection, reconn } from "./uis/dirtscreen.js"
-import { Btn, click, Div, Img, Label, Row } from "./ui.js"
-import { servers, saveServers, storage } from "./save.js"
+import { Btn, click, Div, Img, Label, ping, Row } from "./ui.js"
+import { servers, saveServers, storage, options } from "./save.js"
 import { destroyIframe, fwPacket, gameIframe } from "./iframe.js"
 let lastIp = null
 globalThis.ws = null
@@ -30,17 +30,21 @@ let blurred = false, notifs = 0
 
 function notif(){
 	if(!blurred || !ws) return
-	document.title = '(🔴' + (++notifs) + ') ' + ws.name + ' | PaperMinecraft'
+	document.title = '(🔴' + (++notifs) + ') ' + ws.name + ' | pMC'
+	ping()
 }
 
 onfocus = () => {
 	blurred = false
 	notifs = 0
-	document.title = ws ? ws.name + ' | PaperMinecraft' : 'Paper Minecraft'
+	document.title = ws ? ws.name + ' | pMC' : 'Paper Minecraft'
 }
 onblur = () => blurred = true
 
 const unencrypted = /^(localhost|127.0.0.1|0.0.0.0|\[::1\])$/i
+
+const pingRegex = new RegExp('@' + storage.name + '(?!\\w)', 'i')
+
 export function preconnect(ip, cb = Function.prototype){
 	const displayIp = ip
 	if(!/\w+:\/\//y.test(ip))ip = (location.protocol == 'http:' || unencrypted.test(ip) ? 'ws://' : 'wss://') + ip
@@ -73,7 +77,7 @@ export function preconnect(ip, cb = Function.prototype){
 			box.textContent = data.slice(2)
 			chat.insertAdjacentElement('afterbegin', box)
 			box.classList = `c${style&15} s${style>>4}`
-			notif()
+			if(options.notifs == 2 || (options.notifs == 1 && pingRegex.test(box.textContent))) notif()
 		}else fwPacket(data)
 	}
 	ws.onclose = () => {

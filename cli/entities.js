@@ -150,7 +150,7 @@ const pop = Audio('/music/misc/pop.mp3')
 
 Entities.item = class extends Entity{
 	item = null
-	static width = 0.25
+	static width = 0.125
 	static height = 0.25
 	static savedata = {item: Item}
 	render(c){

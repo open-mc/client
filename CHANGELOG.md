@@ -6,6 +6,10 @@ Todo: better explosions
 
 Todo: Player movement checks
 
+Todo: player health
+
+Todo: Ability to die and respawn
+
 Todo: animated textures (water + lava)
 
 Todo: water + lava cut textures for surface (and flowing variants)

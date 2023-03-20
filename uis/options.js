@@ -37,13 +37,23 @@ function camChange(){
 	options.camera = (options.camera + 1) % 4
 	renderCamMode()
 }
-let guiNode, camNode, af3Node
+
+function notifChange(){
+	options.notifs = (options.notifs + 1) % 3
+	renderChat()
+}
+
+function renderChat(){
+	chatNode.textContent = 'Chat notifications: ' + (options.notifs == 0 ? 'None' : options.notifs == 1 ? 'Mentions' : 'All')
+}
+
+let guiNode, camNode, chatNode
 const optionsui = UI('menu',
 	Label('Options'),
 	camNode = Btn('', camChange, 'small'),
 	Row(ScaleSmall(zoomChange), guiNode = Btn('', guiChange, 'small')),
 	Row(ScaleSmall(soundChange), ScaleSmall(musicChange)),
-	af3Node = Btn('Open debug automatically: '+(options.autof3 ? 'YES' : 'NO'), () => af3Node.text = 'Open debug automatically: '+((options.autof3 = !options.autof3) ? 'YES' : 'NO'), 'small'),
+	chatNode = Btn('', notifChange),
 	Btn('Advanced', advancedOptionsScreen),
 	Spacer(20),
 	Row(Btn('Back', pause, 'small'), Btn('Controls', controlsScreen, 'small'))
@@ -52,6 +62,8 @@ optionsui.esc = pause
 
 renderScale()
 renderCamMode()
+renderChat()
+
 export function optionsScreen(){
 	showUI(optionsui)
 }

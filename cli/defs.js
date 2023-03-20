@@ -10,6 +10,7 @@ Blocks.air = class extends Block{ static solid = false }
 Blocks.grass = class extends Block{
 	static texture = terrainPng.at(3, 0)
 	static breaktime = 1.5
+	static tool = 'shovel'
 	static placeSounds = audioSet('grass', 'place', 4)
 	static stepSounds = audioSet('grass', 'step', 6)
 }
