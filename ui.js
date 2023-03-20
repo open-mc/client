@@ -2,17 +2,22 @@ import { options } from "./save.js"
 
 let defaultUI
 export function setDefaultUI(fn){defaultUI = fn}
-const arr = [new Audio]
-fetch('./img/click.mp3').then(a => a.blob()).then(a => arr[0].src = URL.createObjectURL(a))
-export const click = () => {
-	let a = arr.length > 1 ? arr.pop() : arr[0].cloneNode(true)
-	a.volume = Math.min(1, options.sound)
-	a.onended = () => {
-		a.onended = null
-		if(arr.length<3)arr.push(a)
+
+const Sound = src => {
+	const arr = [new Audio]
+	fetch(src).then(a => a.blob()).then(a => arr[0].src = URL.createObjectURL(a))
+	return () => {
+		let a = arr.length > 1 ? arr.pop() : arr[0].cloneNode(true)
+		a.volume = Math.min(1, options.sound)
+		a.onended = () => {
+			a.onended = null
+			if(arr.length<3)arr.push(a)
+		}
+		a.play()//.catch(a.onended)
 	}
-	a.play()//.catch(a.onended)
 }
+export const click = Sound('./img/click.mp3')
+export const ping = Sound('./img/ping.mp3')
 
 HTMLElement.prototype.attr = function(a, b){this.setAttribute(a, b); return this}
 

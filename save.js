@@ -33,7 +33,8 @@ const defaults = {
 	speed: 1,
 	click: true,
 	ffx: 1,
-	autof3: false
+	autof3: false,
+	notifs: 1
 }
 const optionListeners = {}
 for(const k in defaults){
