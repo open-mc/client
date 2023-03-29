@@ -2,7 +2,7 @@
 
 ## Alpha 8 (what's next)
 
-Todo: better explosions
+- better explosions
 
 Todo: Player movement checks
 
