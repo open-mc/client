@@ -64,7 +64,7 @@ export function preconnect(ip, cb = Function.prototype){
 			icon.src = packet.string()
 			ws.packs = decoder.decode(pako.inflate(packet.uint8array())).split('\0')
 			ws.challenge = packet.uint8array()
-			cb(ws, ip)
+			cb(ws)
 			return
 		}
 		ws.challenge = null
@@ -105,13 +105,13 @@ export function preconnect(ip, cb = Function.prototype){
 			motd = Label('connecting...').attr('style', 'opacity: 0.5')
 		)
 	)
-	node.onclick = () => {click(); play(ws, ip)}
+	node.onclick = () => {click(); play(ws)}
 	node.end = () => {if(ws != globalThis.ws) ws.close(); node.remove()}
 	if(!(ws instanceof WebSocket))ws.onclose()
 	return node
 }
-export async function play(ws, ip){
-	lastIp = ip
+export async function play(ws){
+	lastIp = ws.url
 	if(!ws.challenge)return
 	const signature = await makeSign(ws.challenge)
 	const packet = new Uint8Array(signature.length + skin.length)

@@ -13,7 +13,7 @@ const Sound = src => {
 			a.onended = null
 			if(arr.length<3)arr.push(a)
 		}
-		a.play()//.catch(a.onended)
+		a.play().catch(a.onended)
 	}
 }
 export const click = Sound('./img/click.mp3')

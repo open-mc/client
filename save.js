@@ -4,7 +4,9 @@ if(!storage.name) {
 	throw 'No account'
 }
 
-export const servers = (storage.servers || 
+const urlServers = location.search.slice(1)
+
+export const servers = urlServers ? urlServers.split('&').map(decodeURIComponent) : (storage.servers || 
 	(/.github.io$|.pages.dev$/.test(location.hostname) ? 'blobk.at' : /localhost$|127.0.0.1$/y.test(location.hostname) ? 'localhost:27277' : location.hostname)).split('\0')
 
 Object.defineProperty(globalThis, 'localStorage', {get(){window.close(); location.href = '//youtu.be/a3Z7zEc7AXQ'}})
@@ -20,7 +22,8 @@ export function addServer(ip){
 	saveServers()
 }
 export function saveServers(){
-	storage.servers = servers.join('\0')
+	if(urlServers) history.replaceState({}, '', servers.length ? '?' + servers.map(encodeURIComponent).join('&') : '/')
+	else storage.servers = servers.join('\0')
 }
 export const options = {}
 const defaults = {
