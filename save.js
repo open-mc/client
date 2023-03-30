@@ -32,7 +32,7 @@ const defaults = {
 	sound: 0.75,
 	music: 0.75,
 	sensitivity: 0.5,
-	camera: 2,
+	camera: 0,
 	speed: 1,
 	click: true,
 	ffx: 1,
