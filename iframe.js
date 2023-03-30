@@ -2,7 +2,12 @@ import { listen, options } from './save.js'
 import { hideUI, showUI, ui } from './ui.js'
 
 export let iframe = document.createElement('iframe'), win = null
+
+// Security druggie
 iframe.sandbox = 'allow-scripts'
+iframe.allow = 'cross-origin-isolated; autoplay'
+iframe.credentialless = true
+
 iframe.src = location.origin + '/iframe/index.html'
 const queue = []; let files = null
 export function gameIframe(f){
