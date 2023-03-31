@@ -30,7 +30,7 @@ document.body.append(NONE)
 export let ptrSuccess = Function.prototype, ptrFail = Function.prototype
 const ptrlock = () => new Promise((r, c) => {
 	const fs = document.documentElement.requestFullscreen()
-	if(fs instanceof Promise) fs.then(() => document.body.requestPointerLock());
+	if(fs instanceof Promise) fs.catch(()=>null).then(() => document.body.requestPointerLock());
 	else document.body.requestPointerLock()
 	ptrSuccess = r; ptrFail = c
 })
