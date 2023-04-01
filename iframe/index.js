@@ -3,12 +3,13 @@ import { DataWriter as DW, DataReader as DR } from "../data.js"
 import { stepEntity } from "./entity.js"
 import { blockEventDefs, blockEvents, getblock } from 'world'
 import { checkBlockPlacing } from "./pointer.js"
-import { button, buttons, drawPhase, renderLayer, uiLayer, W, H, W2, H2, SCALE, options, paused, _recalcDimensions, _renderPhases } from "api"
+import { button, buttons, drawPhase, renderLayer, uiLayer, W, H, W2, H2, SCALE, options, paused, _recalcDimensions, _renderPhases } from 'api'
+import { particles } from 'definitions'
 
 DataReader = DR
 DataWriter = DW
 
-let last = performance.now(), count = 1.1
+let last = performance.now(), count = 1.1, timeToFrame = 0
 t = Date.now()/1000%86400
 setInterval(function(){
 	eluStart()
@@ -68,8 +69,8 @@ document.body.append(c.canvas)
 
 
 export function frame(){
-	eluStart()
 	const now = performance.now()
+	eluStart()
 	dt += ((now - lastFrame) / 1000 * options.speed - dt) / (count = min(count ** 1.03, 60))
 	if(dt > .3)count = 1.1, dt = .3
 	t += (now - lastFrame) / 1000 * options.speed
@@ -121,6 +122,7 @@ export function frame(){
 			default: console.error('Invalid coordinate space: ' + phase.coordSpace)
 		}
 	}
+	timeToFrame = performance.now() - now
 }
 drawPhase(200, (c, w, h) => {
 	const hitboxes = buttons.has(KEYS.SYMBOL) ^ renderBoxes
@@ -186,10 +188,10 @@ uiLayer(1000, (c, w, h) => {
 	c.textAlign = 'left'
 	let y = h - 1
 	for(const t of `Paper Minecraft ${VERSION}
-FPS: ${round(1/dt)}, ELU: ${min(99.9,elusmooth/10*TPS).toFixed(1).padStart(4,"0")}%
-Ch: ${map.size}, E: ${entities.size}, N: ${document.all.length}
+FPS: ${round(1/dt)} (${timeToFrame.toFixed(2).padStart(5,'0')}ms), ELU: ${min(100,elusmooth*100).toFixed(1).padStart(4,"0")}%
+Ch: ${map.size}, E: ${entities.size}, P: ${particles.size}
 XY: ${me.x.toFixed(3)} / ${me.y.toFixed(3)}
-${floor(me.x) & 63} ${floor(me.y) & 63} in ${floor(me.x) >> 6} ${floor(me.y) >> 6}
+ChXY: ${floor(me.x) & 63} ${floor(me.y) & 63} in ${floor(me.x) >> 6} ${floor(me.y) >> 6}
 Looking at: ${floor(pointer.x + me.x)|0} ${floor(pointer.y + me.y + me.head)|0}
 Facing: ${(me.f >= 0 ? 'R ' : 'L ') + (90 - abs(me.f / PI2 * 360)).toFixed(1).padStart(5, '\u2007')} (${(me.f / PI2 * 360).toFixed(1)})
 `.slice(0, -1).split('\n')){

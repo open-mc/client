@@ -162,7 +162,7 @@ export class Particle{
 	}
 	render(c){}
 }
-const particles = new Set
+export const particles = new Set
 
 renderLayer(300, c => {
 	let tx = 0, ty = 0

@@ -1,8 +1,14 @@
 <details> <summary> <h1 style="display:inline-block"> The Future </h1> </summary>
 
-## Alpha 8 (what's next)
+## Alpha 9
 
-Todo: better explosions
+Todo: chests
+
+</details>
+
+# Alpha 8 (current)
+
+- better explosions
 
 Todo: Player movement checks
 
@@ -14,9 +20,7 @@ Todo: animated textures (water + lava)
 
 Todo: water + lava cut textures for surface (and flowing variants)
 
-</details>
-
-## Alpha 7 (current)
+## Alpha 7
 
 - The end
 - TNT and a few entities
@@ -26,7 +30,7 @@ Todo: water + lava cut textures for surface (and flowing variants)
 - Hitting entities
 - Explosions
 
-# Alpha 6
+## Alpha 6
 
 - Sprinting
 - Random sound events
@@ -38,7 +42,7 @@ Todo: water + lava cut textures for surface (and flowing variants)
 - Item dropping when breaking blocks
 - Diamond pickaxe (breaks certain blocks 25x faster)
 
-# Alpha 5
+## Alpha 5
 
 - Block break and place sound
 - Refactor to classes
@@ -46,32 +50,32 @@ Todo: water + lava cut textures for surface (and flowing variants)
 - Walk and fall sounds
 - Nether generator
 
-# Alpha 4
+## Alpha 4
 
 - Crouching
 - Items render in your hand
 - Multiplayer inventory (rewritten from scratch)
 - Multitude of bugs fixed
 
-# Alpha 3
+## Alpha 3
 
 - Canvas + iframe rewrite
 - Nicer server menu
 - Account authentification
 
-# Alpha 2
+## Alpha 2
 
 - Inventory & items (local only)
 - Entity-block collision
 - Pretty skies
 
-# Alpha 1
+## Alpha 1
 
 - Player model, (no collision yet)
 - Multiplayer entitites
 - Pause and options menu
 
-# Alpha 0
+## Alpha 0
 
 - Very crude chunk loading mechanism
 - A few natural blocks
