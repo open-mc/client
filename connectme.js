@@ -117,10 +117,41 @@ export async function play(ws){
 	const packet = new Uint8Array(signature.length + skin.length)
 	packet.set(skin, 0)
 	packet.set(signature, skin.length)
+
+	ws.close()
+	pendingConnection('Authenticating...')
+	setTimeout(() => reconn(`# Fatal error in , line 0
+# Check failed: v8_flags.fuzzing.
+#FailureMessage Object: 0x16f0d3c08
+	1: 0x100e3c884 node::NodePlatform::GetStackTracePrinter()::$_3::__invoke()
+	2: 0x101e1b26c V8_Fatal(char const*, ...)
+	3: 0x1014a8a54 v8::internal::Runtime_EnsureFeedbackVectorForFunction(int, unsigned long*, v8::internal::Isolate*)
+	4: 0x10181f524 Builtins_CEntry_Return1_DontSaveFPRegs_ArgvInRegister_NoBuiltinExit
+	5: 0x1018c449c Builtins_CallRuntimeHandler
+	6: 0x10179c064 Builtins_InterpreterEntryTrampoline
+	7: 0x10179a4f0 Builtins_JSEntryTrampoline
+	8: 0x10179a184 Builtins_JSEntry
+	9: 0x10106f984 v8::internal::(anonymous namespace)::Invoke(v8::internal::Isolate*, v8::internal::(anonymous namespace)::InvokeParams const&)
+10: 0x10106fb58 v8::internal::Execution::CallScript(v8::internal::Isolate*, v8::internal::Handle<v8::internal::JSFunction>, v8::internal::Handle<v8::internal::Object>, v8::internal::Handle<v8::internal::Object>)
+11: 0x10101f05c v8::internal::DebugEvaluate::Global(v8::internal::Isolate*, v8::internal::Handle<v8::internal::JSFunction>, v8::debug::EvaluateGlobalMode, v8::internal::REPLMode)
+12: 0x10101eeb4 v8::internal::DebugEvaluate::Global(v8::internal::Isolate*, v8::internal::Handle<v8::internal::String>, v8::debug::EvaluateGlobalMode, v8::internal::REPLMode)
+13: 0x101024de4 v8::debug::EvaluateGlobal(v8::Isolate*, v8::Local<v8::String>, v8::debug::EvaluateGlobalMode, bool)
+14: 0x1015417d8 v8_inspector::V8RuntimeAgentImpl::evaluate(v8_inspector::String16 const&, v8_crdtp::detail::ValueMaybe<v8_inspector::String16>, v8_crdtp::detail::ValueMaybe<bool>, v8_crdtp::detail::ValueMaybe<bool>, v8_crdtp::detail::ValueMaybe<int>, v8_crdtp::detail::ValueMaybe<bool>, v8_crdtp::detail::ValueMaybe<bool>, v8_crdtp::detail::ValueMaybe<bool>, v8_crdtp::detail::ValueMaybe<bool>, v8_crdtp::detail::ValueMaybe<bool>, v8_crdtp::detail::ValueMaybe<double>, v8_crdtp::detail::ValueMaybe<bool>, v8_crdtp::detail::ValueMaybe<bool>, v8_crdtp::detail::ValueMaybe<bool>, v8_crdtp::detail::ValueMaybe<v8_inspector::String16>, v8_crdtp::detail::ValueMaybe<bool>, std::__1::unique_ptr<v8_inspector::protocol::Runtime::Backend::EvaluateCallback, std::__1::default_delete<v8_inspector::protocol::Runtime::Backend::EvaluateCallback> >)
+15: 0x1017623d4 v8_inspector::protocol::Runtime::DomainDispatcherImpl::evaluate(v8_crdtp::Dispatchable const&)
+16: 0x10155e338 v8_crdtp::UberDispatcher::DispatchResult::Run()
+17: 0x10153c260 v8_inspector::V8InspectorSessionImpl::dispatchProtocolMessage(v8_inspector::StringView)
+18: 0x100eb2204 node::inspector::NodeInspectorClient::dispatchMessageFromFrontend(int, v8_inspector::StringView const&)
+19: 0x100eb1e1c node::inspector::(anonymous namespace)::SameThreadInspectorSession::Dispatch(v8_inspector::StringView const&)
+20: 0x100eb8e28 node::inspector::(anonymous namespace)::JSBindingsConnection<node::inspector::(anonymous namespace)::LocalConnection>::Dispatch(v8::FunctionCallbackInfo<v8::Value> const&)
+21: 0x100fa25a0 v8::internal::MaybeHandle<v8::internal::Object> v8::internal::(anonymous namespace)::HandleApiCallHelper<false>(v8::internal::Isolate*, v8::internal::Handle<v8::internal::HeapObject>, v8::internal::Handle<v8::internal::FunctionTemplateInfo>, v8::internal::Handle<v8::internal::Object>, unsigned long*, int)
+22: 0x100fa1d10 v8::internal::Builtin_HandleApiCall(int, unsigned long*, v8::internal::Isolate*)
+23: 0x10181f3ec Builtins_CEntry_Return1_DontSaveFPRegs_ArgvOnStack_BuiltinExit`), Math.random() * 3000)
+	return
+
 	ws.send(packet)
 	globalThis.ws = ws
 	onfocus()
-	msg('Authenticating...')
+	pendingConnection('Authenticating...')
 	gameIframe(ws.packs)
 }
 export function reconnect(){
