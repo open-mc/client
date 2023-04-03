@@ -7,8 +7,8 @@ import { Item } from 'definitions'
 
 const BREAKING = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].mutmap(x => terrainPng.at(x, 15))
 
-const skyPng = Texture('/cli/sky.png')
-const stars = Texture('/cli/stars.png').pattern()
+const skyPng = Texture('/vanilla/sky.png')
+const stars = Texture('/vanilla/stars.png').pattern()
 const sun = skyPng.crop(128, 64, 32, 32), moons = [
 	skyPng.crop(128, 0, 32, 32),
 	skyPng.crop(160, 0, 32, 32),
@@ -114,9 +114,9 @@ renderLayer(150, c => {
 	c.globalCompositeOperation = 'source-over'
 })
 
-const hotbar = Texture('/cli/hotbar.png')
-const selected = Texture('/cli/slot.png')
-const inventory = Texture('/cli/inv.png')
+const hotbar = Texture('/vanilla/hotbar.png')
+const selected = Texture('/vanilla/slot.png')
+const inventory = Texture('/vanilla/inv.png')
 
 uiLayer(1000, (c, w, h) => {
 	let hotBarLeft = w / 2 - hotbar.w/2

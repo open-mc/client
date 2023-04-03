@@ -2,7 +2,7 @@ import { particlePng } from "./defs.js"
 import { renderItem } from "./effects.js"
 import { Entities, Entity, Item, Items, Particle, Blocks } from 'definitions'
 
-const meInterface = Texture('/cli/meint.png')
+const meInterface = Texture('/vanilla/meint.png')
 
 Entities.player = class extends Entity{
 	static alive = true
@@ -196,7 +196,7 @@ Entities.tnt = class extends Entity{
 		}
 	}
 }
-const endercrystal = Texture('/cli/endercrystal.png')
+const endercrystal = Texture('/vanilla/endercrystal.png')
 const endCrystalWiregrid = endercrystal.crop(32,16,16,16)
 const endCrystalCore = endercrystal.crop(96,16,16,16)
 Entities.end_crystal = class extends Entity{
