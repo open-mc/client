@@ -1,17 +1,19 @@
 import { getblock } from 'world'
 
 const groundDrag = .0000244
-const airDrag = 0.667
+const airDrag = 0.06
+const yDrag = 0.667
+
 export function stepEntity(e){
 	e.prestep()
 	e.state = (e.state & 0xffff) | (e.state << 8 & 0xff000000) | fastCollision(e, e.dx * dt, e.dy * dt) << 16
 	if(e.state & 1)e.dy = 0
 	else{
 		e.dy += dt * gy * e.gy
-		e.dy = e.dy * airDrag ** dt
+		e.dy = e.dy * yDrag ** dt
 		e.dx += dt * gx * e.gx
 	}
-	e.dx = e.dx * groundDrag ** dt
+	e.dx = e.dx * (e.state & 0x10000 ? groundDrag : airDrag) ** dt
 	if(e == me || dt > 1/30)e.ix = e.x, e.iy = e.y
 	else{
 		//TODO: make interpolation entirely dx/dy based

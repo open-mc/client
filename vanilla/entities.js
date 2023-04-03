@@ -152,6 +152,7 @@ Entities.item = class extends Entity{
 	item = null
 	static width = 0.125
 	static height = 0.25
+	static head = 0
 	static savedata = {item: Item}
 	render(c){
 		c.translate(0, sin(t*2)/12+.15)

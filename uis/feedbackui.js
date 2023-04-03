@@ -18,9 +18,9 @@ const feedbackui = UI('menu',
 	Label('Feedback'),
 	Label('Consider joining our discord!').attr('onclick', 'window.open("https://discord.gg/NUUwFNUHkf", "_blank")').attr('style', 'cursor:pointer;text-decoration:underline'),
 	input = Input('long', 'Write your feedback').attr('class', 'tall'),
-	Row(bug = Btn('Bug', selectBug, 'small disabled'), suggestion = Btn('Suggestion', selectSuggestion, 'small')),
+	Row(bug = Btn('Bug', selectBug, 'disabled'), suggestion = Btn('Suggestion', selectSuggestion)),
 	Spacer(20),
-	Row(Btn('Back', pause, 'small'), send = Btn('Send', submit, 'small disabled'))
+	Row(Btn('Back', pause), send = Btn('Send', submit, 'disabled'))
 )
 
 feedback.esc = pause
