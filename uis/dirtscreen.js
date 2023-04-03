@@ -9,7 +9,6 @@ const message = UI('dirtbg',
 	reconnectBtn = Row(Btn('Back', serverlist), Btn('Reconnect', reconnect)),
 	Spacer(100)
 )
-label.style = 'text-overflow:unset;width:100%;text-align:left;overflow:scroll;height:auto;'
 export function msg(txt, code = 15){
 	label.className = `s${code >> 4} c${code & 15}`
 	label.textContent = txt
