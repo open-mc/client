@@ -23,16 +23,28 @@ function sensitivityChange(a = options.sensitivity){
 	options.sensitivity = a
 	return [a > 0.005 ? a < 0.995 ? 'Sensitivity: '+Math.floor(9 ** a * 10 / 3) / 10 +'x' : 'Sensitivity: HYPERSPEED!!!' : 'Sensitivity: *yawn*', a]
 }
-let clickNode, ffxNode
+
+const cameraOptions = ['Dynamic', 'Follow Pointer', 'Follow player', 'Page']
+function renderCamMode(){
+	camNode.textContent = 'Camera: ' + cameraOptions[options.camera]
+}
+function camChange(){
+	options.camera = (options.camera + 1) % 4
+	renderCamMode()
+}
+
+let clickNode, ffxNode, camNode
 const controlssui = UI('menu',
 	Label('Options'),
-	Row(clickNode = Btn('', clickChange, 'small'), ffxNode = Btn('', ffxChange, 'small')),
+	camNode = Btn('', camChange),
+	Row(clickNode = Btn('', clickChange), ffxNode = Btn('', ffxChange)),
 	Scale(sensitivityChange),
 	Spacer(20),
-	Row(Btn('Back', pause, 'small'), Btn('Other options', optionsScreen, 'small'))
+	Row(Btn('Back', pause), Btn('General settings', optionsScreen))
 )
 controlssui.esc = pause
 
+renderCamMode()
 renderClick()
 renderFfx()
 export function controlsScreen(){

@@ -11,7 +11,7 @@ let af3Node
 const ui = UI('menu',
 	Label('Advanced Options'),
 	Scale(speedChange),
-	af3Node = Btn('Open debug automatically: '+(options.autof3 ? 'YES' : 'NO'), () => af3Node.text = 'Open debug automatically: '+((options.autof3 = !options.autof3) ? 'YES' : 'NO'), 'small'),
+	af3Node = Btn('Open debug automatically: '+(options.autof3 ? 'YES' : 'NO'), () => af3Node.text = 'Open debug automatically: '+((options.autof3 = !options.autof3) ? 'YES' : 'NO')),
 	Spacer(20),
 	Btn('Back', optionsScreen)
 )

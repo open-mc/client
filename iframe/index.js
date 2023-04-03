@@ -128,8 +128,8 @@ drawPhase(200, (c, w, h) => {
 	const hitboxes = buttons.has(KEYS.SYMBOL) ^ renderBoxes
 	c.setTransform(1,0,0,1,0,h)
 	c.lineWidth = 0.0625 * SCALE
-	c.strokeStyle = '#f80'
-	c.fillStyle = '#ff0'
+	c.strokeStyle = '#06f'
+	c.fillStyle = '#08f'
 	for(const chunk of map.values()){
 		const x0 = round(ifloat((chunk.x << 6) - cam.x + W2) * SCALE)
 		const x1 = round(ifloat((chunk.x + 1 << 6) - cam.x + W2) * SCALE)
@@ -148,14 +148,15 @@ drawPhase(200, (c, w, h) => {
 			c.strokeRect(x0, -y0, x1 - x0, y0 - y1)
 		}
 	}
-	if(abs(cam.x) <= W2 + 0.0625 && hitboxes){
-		c.fillStyle = '#f00'
+	c.fillStyle = '#00f'
+	if(abs(cam.x) <= W2 + 0.0625 && hitboxes)
 		c.fillRect((W2-cam.x-0.0625)*SCALE,0,0.125*SCALE,-h)
-	}
-	if(abs(cam.y) <= H2 + 0.0625 && hitboxes){
-		c.fillStyle = '#f00'
+	if(abs(cam.y) <= H2 + 0.0625 && hitboxes)
 		c.fillRect(0,(cam.y-H2-0.0625)*SCALE,w,0.125*SCALE)
-	}
+	if(abs(ifloat(cam.x + 2147483648)) <= W2 + 0.0625 && hitboxes)
+		c.fillRect(ifloat(W2-cam.x+2147483648-0.0625)*SCALE,0,0.125*SCALE,-h)
+	if(abs(ifloat(cam.y + 2147483648)) <= H2 + 0.0625 && hitboxes)
+		c.fillRect(0,ifloat(cam.y+2147483648-H2-0.0625)*SCALE,w,0.125*SCALE)
 })
 drawPhase(300, (c, w, h) => {
 	for(const ev of blockEvents.values()){
@@ -169,13 +170,27 @@ drawPhase(100, (c, w, h) => {
 	for(const entity of entities.values()){
 		if(!entity.render)continue
 		c.setTransform(SCALE, 0, 0, -SCALE, ifloat(entity.ix - cam.x + W2) * SCALE, ifloat(cam.y - H2 - entity.iy) * SCALE + h)
+		entity.render(c)
+		c.setTransform(SCALE, 0, 0, -SCALE, ifloat(entity.ix - cam.x + W2) * SCALE, ifloat(cam.y - H2 - entity.iy) * SCALE + h)
 		if(hitboxes){
+			if(entity.head){
+				c.fillStyle = '#fc0'
+				const L = entity == me ? sqrt(pointer.x * pointer.x + pointer.y * pointer.y) : 0.8
+				c.push()
+					c.translate(0, entity.head)
+					c.rotate(-entity.f)
+					c.fillRect(-0.015625,-0.015625,0.03125,L)
+					c.translate(0,L); c.rotate(PI * 1.25)
+					c.fillRect(-0.015625,-0.015625,0.03125,0.2)
+					c.fillRect(-0.015625,-0.015625,0.2,0.03125)
+				c.pop()
+				c.fillStyle = '#f00'
+				c.fillRect(-entity.width + 0.0625, entity.head - 0.03125, entity.width*2 - 0.125, 0.0625)
+			}
 			c.strokeStyle = '#fff'
 			c.lineWidth = 0.0625
 			c.strokeRect(-entity.width + 0.03125, 0.03125, entity.width * 2 - 0.0625, entity.height - 0.0625)
-			c.strokeStyle = '#000'
 		}
-		entity.render(c)
 	}
 })
 renderLayer(400, c => {

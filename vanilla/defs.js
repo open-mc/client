@@ -1,7 +1,7 @@
 import { audioSet, lava, water } from "./effects.js"
-export const terrainPng = Texture("/cli/terrain.png")
-export const itemsPng = Texture("/cli/items.png")
-export const particlePng = Texture("/cli/particles.png")
+export const terrainPng = Texture("/vanilla/terrain.png")
+export const itemsPng = Texture("/vanilla/items.png")
+export const particlePng = Texture("/vanilla/particles.png")
 
 import { Blocks, Items, Block, Item } from 'definitions'
 
