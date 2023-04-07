@@ -123,6 +123,8 @@ export async function play(ws){
 	pendingConnection('Authenticating...')
 	gameIframe(ws.packs)
 }
+const urlServer = location.search.slice(1)
+if(urlServer) preconnect(urlServer, play)
 export function reconnect(){
 	if(!lastIp)return
 	preconnect(lastIp, play)

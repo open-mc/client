@@ -203,11 +203,11 @@ uiLayer(1000, (c, w, h) => {
 	c.textAlign = 'left'
 	let y = h - 1
 	for(const t of `Paper Minecraft ${VERSION}
-FPS: ${round(1/dt)} (${timeToFrame.toFixed(2).padStart(5,' ')}ms)
-ELU: ${min(100,elusmooth*100).toFixed(1).padStart(4,' ')}%${performance.memory ? ', MEM: '+(performance.memory.usedJSHeapSize/1048576).toFixed(1)+'MB' : ''}
+FPS: ${round(1/dt)} (${timeToFrame.toFixed(2).padStart(5,'\u2007')}ms)
+ELU: ${min(100,elusmooth*100).toFixed(1).padStart(4,'\u2007')}%${performance.memory ? ', MEM: '+(performance.memory.usedJSHeapSize/1048576).toFixed(1)+'MB' : ''}
 Ch: ${map.size}, E: ${entities.size}, P: ${particles.size}
 XY: ${me.x.toFixed(3)} / ${me.y.toFixed(3)}
-ChXY: ${(floor(me.x) & 63).padStart(2,' ')} ${(floor(me.y) & 63).padStart(2,' ')} in ${floor(me.x) >> 6} ${floor(me.y) >> 6}
+ChXY: ${(floor(me.x) & 63).toString().padStart(2,'\u2007')} ${(floor(me.y) & 63).toString().padStart(2,'\u2007')} in ${floor(me.x) >> 6} ${floor(me.y) >> 6}
 Looking at: ${floor(pointer.x + me.x)|0} ${floor(pointer.y + me.y + me.head)|0}
 Facing: ${(me.f >= 0 ? 'R' : 'L') + (90 - abs(me.f / PI2 * 360)).toFixed(1).padStart(5, '\u2007')} (${(me.f / PI2 * 360).toFixed(1)})
 `.slice(0, -1).split('\n')){
