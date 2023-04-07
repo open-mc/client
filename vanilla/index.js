@@ -254,7 +254,7 @@ onpacket(32, buf => {
 	if(!e) return
 	while(buf.left){
 		const slot = buf.byte()
-		if(slot > 127)e.items[slot] = Item.decode(buf)
+		if(slot > 127)e.items[slot&127] = Item.decode(buf)
 		else e.inv[slot] = Item.decode(buf)
 	}
 })
