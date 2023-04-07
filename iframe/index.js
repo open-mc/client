@@ -203,7 +203,8 @@ uiLayer(1000, (c, w, h) => {
 	c.textAlign = 'left'
 	let y = h - 1
 	for(const t of `Paper Minecraft ${VERSION}
-FPS: ${round(1/dt)} (${timeToFrame.toFixed(2).padStart(5,'0')}ms), ELU: ${min(100,elusmooth*100).toFixed(1).padStart(4,"0")}%
+FPS: ${round(1/dt)} (${timeToFrame.toFixed(2).padStart(5,'0')}ms)
+ELU: ${min(100,elusmooth*100).toFixed(1).padStart(4,"0")}%${performance.memory ? ', MEM: '+(performance.memory.usedJSHeapSize/1048576).toFixed(1)+'MB' : ''}
 Ch: ${map.size}, E: ${entities.size}, P: ${particles.size}
 XY: ${me.x.toFixed(3)} / ${me.y.toFixed(3)}
 ChXY: ${floor(me.x) & 63} ${floor(me.y) & 63} in ${floor(me.x) >> 6} ${floor(me.y) >> 6}

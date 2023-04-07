@@ -9,8 +9,6 @@ export class Chunk{
 		this.tiles = []
 		this.entities = new Set()
 		this.ctx = null
-		this.r1 = 0
-		this.r2 = 0
 		//read buffer palette
 		let palettelen = (x >>> 26) + (y >>> 26) * 64 + 1
 		let id = buf.short()
