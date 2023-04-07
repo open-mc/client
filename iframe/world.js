@@ -42,7 +42,7 @@ export function removeEntity(e){
 const playerLoadCb = []
 export const onPlayerLoad = cb => playerLoadCb.push(cb)
 const SPEEDOFSOUND = 340
-sound = function(fn, x, y, vol = 1, pitch = 1){
+export function sound(fn, x, y, vol = 1, pitch = 1){
 	if(!me) return
 	x = ifloat(x - me.x - .5); y = ifloat(y - me.y + me.head - .5)
 	const dist = sqrt(x * x + y * y)
@@ -52,7 +52,7 @@ sound = function(fn, x, y, vol = 1, pitch = 1){
 	// "Fix" the inputs x and y by normalizing them with `/ dist`
 	const speed = (me.dx * x + me.dy * y) / dist
 	// For 2d, the inverse square law becomes the inverse linear law
-	fn(vol * 2 / (dist + 1), pitch * max(SPEEDOFSOUND / 100, speed + SPEEDOFSOUND) / SPEEDOFSOUND, min(1, max(-1, x / 16)))
+	fn(vol * 2 / (dist + 1), pitch * max(SPEEDOFSOUND / 20, speed + SPEEDOFSOUND) / SPEEDOFSOUND, min(1, max(-1, x / 16)))
 }
 
 export const blockEvents = new Map

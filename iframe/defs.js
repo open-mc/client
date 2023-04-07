@@ -1,5 +1,5 @@
 import { renderLayer } from 'api'
-import { getblock } from 'world'
+import { getblock, sound } from 'world'
 import { registerTypes } from '../data.js'
 
 export class Block{

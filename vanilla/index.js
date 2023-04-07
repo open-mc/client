@@ -131,7 +131,6 @@ uiLayer(1000, (c, w, h) => {
 		c.translate(1.25, 0)
 	}
 	c.pop()
-
 	const action = invAction
 	invAction = 0
 	if(!invInterface) return
