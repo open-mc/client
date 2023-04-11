@@ -1,4 +1,4 @@
-import { renderLayer } from 'api'
+import { renderLayer, options } from 'api'
 import { getblock, sound } from 'world'
 import { registerTypes } from '../data.js'
 
@@ -106,7 +106,7 @@ export class Particle{
 		this.x = x; this.y = y
 		this.dx = dx; this.dy = dy
 		this.ddx = ddx; this.ddy = ddy
-		particles.add(this)
+		if(particles.size < options.maxParticles) particles.add(this)
 	}
 	step(){
 		this.dx += this.ddx * dt; this.dy += this.ddy * dt

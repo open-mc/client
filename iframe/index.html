@@ -153,8 +153,8 @@
 			return this
 		}}
 	})
-	const Can = (w = 100, h = 100) => {
-		const c = document.createElement('canvas').getContext('2d')
+	const Can = (w = 100, h = 100, cpu = false) => {
+		const c = document.createElement('canvas').getContext('2d', {willReadFrequently: cpu})
 		c.canvas.width = c.w = w; c.canvas.height = c.h = h
 		//Possible consideration: filling the array with
 		c.transforms = []

@@ -245,7 +245,7 @@ class BlastParticle extends Particle{
 		c.image(secondCanvas, -this.size/2, -this.size/2, this.size, this.size)
 	}
 }
-const secondCanvas = Can(8,8)
+const secondCanvas = Can(8,8, true)
 secondCanvas.setTransform(1,0,0,-1,0,8)
 class AshParticle extends Particle{
 	constructor(x, y){

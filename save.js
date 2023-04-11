@@ -34,7 +34,8 @@ const defaults = {
 	click: true,
 	ffx: 1,
 	autof3: false,
-	notifs: 1
+	notifs: 1,
+	maxParticles: 1000
 }
 const optionListeners = {}
 for(const k in defaults){
