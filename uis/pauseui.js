@@ -8,10 +8,16 @@ import { serverlist } from "./serverlist.js"
 const pauseui = UI('menu',
 	Label('Game menu'),
 	Btn('Back to Game', hideUI),
-	Row(Btn('Options', optionsScreen), Btn('Feedback', feedback)),
-	Row(Btn('Controls', controlsScreen), Btn('Credits', () => open('https://github.com/open-mc/client/blob/preview/CREDITS.md','_blank'))),
+	Row(Btn('Options', optionsScreen), Btn('Server Page', () => {
+		const { protocol, host } = new URL(ws.url)
+		open(protocol.replace('ws','http')+'//'+host,'_blank')
+	})),
+	Row(Btn('Controls', controlsScreen), Btn('Feedback', feedback)),
 	Btn('Disconnect', serverlist),
-	Div('', Label('Changelog').attr('style', 'height:unset;line-height:unset').attr('onclick', "window.open('https://github.com/open-mc/client/blob/main/CHANGELOG.md','_blank')")).attr('style', 'position: absolute; bottom: 2rem; display: flex; right: 2rem; text-decoration: underline; opacity: 0.4; font-size: 7rem; cursor: pointer')
+	Div('',
+		Label('Credits').attr('style', 'height:unset;line-height:unset').attr('onclick', "window.open('https://github.com/open-mc/client/blob/main/CREDITS.md','_blank')"),
+		Label('Changelog').attr('style', 'height:unset;line-height:unset').attr('onclick', "window.open('https://github.com/open-mc/client/blob/main/CHANGELOG.md','_blank')")
+	).attr('style', 'position: absolute; bottom: 2rem; display: flex; right: 2rem; text-decoration: underline; opacity: 0.4; font-size: 7rem; cursor: pointer')
 )
 pauseui.esc = hideUI
 

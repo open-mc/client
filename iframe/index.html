@@ -153,8 +153,8 @@
 			return this
 		}}
 	})
-	const Can = (w = 100, h = 100) => {
-		const c = document.createElement('canvas').getContext('2d')
+	const Can = (w = 100, h = 100, cpu = false) => {
+		const c = document.createElement('canvas').getContext('2d', {willReadFrequently: cpu})
 		c.canvas.width = c.w = w; c.canvas.height = c.h = h
 		//Possible consideration: filling the array with
 		c.transforms = []
@@ -183,7 +183,7 @@ const _txtr = class Texture{
 	crop(x, y, w, h){ return new _txtr(this.canvas, this.x + x, this.y + y, w, h) }
 	at(x, y){ return new _txtr(this.canvas, this.x + x * TEX_SIZE, this.y + y * TEX_SIZE, TEX_SIZE, TEX_SIZE) }
 	pattern(rep = ''){
-		if(this._pattern)return this._pattern
+		if(this._pattern) return this._pattern
 		const c = document.createElement('canvas')
 		const ctx = c.getContext('2d')
 		if(this.canvas.complete === false){
@@ -201,7 +201,7 @@ const _txtr = class Texture{
 	}
 }
 const Texture = src => {
-	if(_filecache[src])return _filecache[src]
+	if(_filecache[src]) return _filecache[src]
 	const i = new Image()
 	i.crossOrigin = 'anonymous'
 	i.src = src
@@ -269,24 +269,22 @@ const Audio = (src, bg = false) => {
 		}
 	}
 }
-	let blockevent
-	let music, sound
 	let send, onpacket, download, listen
 	let loading = 1, loaded = null, dt = 1 / 60, pointer
 	let t = 0, TPS = 20, map = new Map(), entities = new Map()
 	let meid = -1, r = 0, me = null
 	let ticks = 0, world = '', gx = 0, gy = 0
-	let cam = {x: 0, y: 0, z: 2}, mx = 0, my = 0
+	const cam = {x: 0, y: 0, z: 2}
+	let mx = 0, my = 0
 	let DataReader, DataWriter
 	const nul = new Array(1000).fill(null)
 	Array.null = len => {
-		if(len <= 1000)return nul.slice(0, len)
+		if(len <= 1000) return nul.slice(0, len)
 		let a = new Array(len)
-		for(let i = len; i > 0; i--)a[i] = null
+		while(len > 0) a[--len] = null
 		return a
 	}
 	Function.returns = v => () => v
-	const VERSION = 'alpha 7'
 </script>
 <script type="module">
 	import "./bitfield.js"

@@ -1,5 +1,5 @@
-import { renderLayer } from 'api'
-import { getblock } from 'world'
+import { renderLayer, options } from 'api'
+import { getblock, sound } from 'world'
 import { registerTypes } from '../data.js'
 
 export class Block{
@@ -9,11 +9,11 @@ export class Block{
 	static climbable = false
 	static gooeyness = 0
 	static breaktime = 3
-	place(x, y){
+	3(buf, x, y){
 		if(this.placeSounds.length)
 			sound(this.placeSounds[Math.floor(Math.random() * this.placeSounds.length)], x, y, 1, 0.8)
 	}
-	break(x, y){
+	2(buf, x, y){
 		if(this.placeSounds.length)
 			sound(this.placeSounds[Math.floor(Math.random() * this.placeSounds.length)], x, y, 1, 0.8)
 		blockBreak(this, x, y)
@@ -41,10 +41,10 @@ export class Item{
 	static model = 0
 	static decode(buf, target){
 		const count = buf.getUint8(buf.i++)
-		if(!count)return null
+		if(!count) return null
 		const item = ItemIDs[buf.getUint16(buf.i)]
 		buf.i += 2
-		if(!item)return null
+		if(!item) return null
 		if(!target)target = item(count)
 		else target.count = count, Object.setPrototypeOf(target, Object.getPrototypeOf(item))
 		target.name = buf.string()
@@ -87,7 +87,6 @@ export class Entity{
 		}else this.blocksWalked = this.dy < -10 ? 1.7 : 1.68
 	}
 	tick(){}
-	event(i){}
 	sound(a,b=1,c=1){sound(a, this.ix-.5, this.iy-.5+this.head, b, c)}
 	static width = 0.5
 	static height = 1
@@ -106,7 +105,7 @@ export class Particle{
 		this.x = x; this.y = y
 		this.dx = dx; this.dy = dy
 		this.ddx = ddx; this.ddy = ddy
-		particles.add(this)
+		if(particles.size < options.maxParticles) particles.add(this)
 	}
 	step(){
 		this.dx += this.ddx * dt; this.dy += this.ddy * dt

@@ -1,13 +1,13 @@
-const musicdict = {}
+export const musicdict = {}
 
 function choose(theme){
-	if(!theme || !(theme in musicdict))return null
+	if(!theme || !(theme in musicdict)) return null
 	return musicdict[theme][Math.floor(Math.random() * musicdict[theme].length)]
 }
 
 let currentTheme = '', current = null, currentStop = null
 export function queue(theme){
-	if(currentTheme == (currentTheme = theme))return
+	if(currentTheme == (currentTheme = theme)) return
 	next()
 }
 function next(){
@@ -19,9 +19,4 @@ function next(){
 	//try choosing twice
 	if(current == (current = choose(currentTheme)))current = choose(currentTheme)
 	if(current) currentStop = current(1, 1, 0, 0, undefined, next)
-}
-
-music = (theme, ...srcs) => {
-	const arr = musicdict[theme] || (musicdict[theme] = [])
-	for(const src of srcs) arr.push(Audio(src, true))
 }

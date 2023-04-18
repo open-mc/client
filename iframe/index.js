@@ -1,10 +1,11 @@
-import { playerControls, renderBoxes, renderF3 } from "./controls.js"
+import { playerControls } from "./controls.js"
 import { DataWriter as DW, DataReader as DR } from "../data.js"
 import { stepEntity } from "./entity.js"
-import { blockEventDefs, blockEvents, getblock } from 'world'
+import { gridEvents, gridEventMap, getblock } from 'world'
 import { checkBlockPlacing } from "./pointer.js"
-import { button, buttons, drawPhase, renderLayer, uiLayer, W, H, W2, H2, SCALE, options, paused, _recalcDimensions, _renderPhases } from 'api'
+import { button, buttons, drawPhase, renderLayer, uiLayer, W, H, W2, H2, SCALE, options, paused, _recalcDimensions, _renderPhases, renderBoxes, renderF3 } from 'api'
 import { particles } from 'definitions'
+import { VERSION } from "./v.js"
 
 DataReader = DR
 DataWriter = DW
@@ -19,7 +20,7 @@ setInterval(function(){
 	elusmooth += (elu / (dt || 1) - elusmooth) / count
 	last = now
 	elu = 0
-	if(!me)return
+	if(!me) return
 	let ticked = 0
 	while(dt > update){
 		dt -= update
@@ -31,18 +32,16 @@ setInterval(function(){
 	last -= dt
 })
 
-const sendDelay = 1 //send packet every 4 ticks
+const sendDelay = 1 //send packet every tick
 function tick(){ //20 times a second
 	if(dt < 1/20000)dt = 1/20000
-	if(ticks % sendDelay == 0 && me && me._id > -1){
+	packet: if(ticks % sendDelay == 0 && me && me._id > -1){
 		let buf = new DataWriter()
 		buf.byte(4)
 		buf.byte(r)
 		buf.double(me.x)
 		buf.double(me.y)
 		buf.short(me.state)
-		buf.float(me.dx)
-		buf.float(me.dy)
 		checkBlockPlacing(buf)
 		send(buf)
 	}
@@ -71,12 +70,11 @@ document.body.append(c.canvas)
 export function frame(){
 	const now = performance.now()
 	eluStart()
-	dt += ((now - lastFrame) / 1000 * options.speed - dt) / (count = min(count ** 1.03, 60))
-	if(dt > .3)count = 1.1, dt = .3
+	dt += (min(300, now - lastFrame) / 1000 * options.speed - dt) / 20
 	t += (now - lastFrame) / 1000 * options.speed
 	lastFrame = now
 	requestAnimationFrame(frame)
-	if(!me || me._id == -1)return
+	if(!me || me._id == -1) return
 	playerControls()
 	for(const entity of entities.values())stepEntity(entity)
 	const tzoom = (me.state & 4 ? -0.13 : 0) * ((1 << options.ffx) - 1) + 1
@@ -159,9 +157,9 @@ drawPhase(200, (c, w, h) => {
 		c.fillRect(0,ifloat(cam.y+2147483648-H2-0.0625)*SCALE,w,0.125*SCALE)
 })
 drawPhase(300, (c, w, h) => {
-	for(const ev of blockEvents.values()){
-		c.setTransform(SCALE, 0, 0, -SCALE, ifloat(ev[0] - cam.x + W2) * SCALE, ifloat(cam.y - H2 - ev[1]) * SCALE + h)
-		if(!map.has((ev[0]>>>6)+(ev[1]>>>6)*67108864) || !(ev[3] = blockEventDefs[ev[2]&0xff](c, ev[0], ev[1], ev[3])))blockEvents.delete(ev[2]/256>>>0)
+	for(const ev of gridEventMap.values()){
+		c.setTransform(SCALE, 0, 0, -SCALE, ifloat(ev.x - cam.x + W2) * SCALE, ifloat(cam.y - H2 - ev.y) * SCALE + h)
+		if(!map.has((ev.x>>>6)+(ev.y>>>6)*67108864) || ev(c))gridEventMap.delete(ev.i)
 	}
 })
 
@@ -194,21 +192,22 @@ drawPhase(100, (c, w, h) => {
 	}
 })
 renderLayer(400, c => {
-	if(paused)return
+	if(paused) return
 	pointer.drawPointer(c)
 })
 
 uiLayer(1000, (c, w, h) => {
-	if(renderF3 == buttons.has(KEYS.SYMBOL))return
+	if(renderF3 == buttons.has(KEYS.SYMBOL)) return
 	c.textAlign = 'left'
 	let y = h - 1
 	for(const t of `Paper Minecraft ${VERSION}
-FPS: ${round(1/dt)} (${timeToFrame.toFixed(2).padStart(5,'0')}ms), ELU: ${min(100,elusmooth*100).toFixed(1).padStart(4,"0")}%
+FPS: ${round(1/dt)} (${timeToFrame.toFixed(2).padStart(5,'\u2007')}ms)
+ELU: ${min(100,elusmooth*100).toFixed(1).padStart(4,'\u2007')}%${performance.memory ? ', MEM: '+(performance.memory.usedJSHeapSize/1048576).toFixed(1)+'MB' : ''}
 Ch: ${map.size}, E: ${entities.size}, P: ${particles.size}
 XY: ${me.x.toFixed(3)} / ${me.y.toFixed(3)}
-ChXY: ${floor(me.x) & 63} ${floor(me.y) & 63} in ${floor(me.x) >> 6} ${floor(me.y) >> 6}
+ChXY: ${(floor(me.x) & 63).toString().padStart(2,'\u2007')} ${(floor(me.y) & 63).toString().padStart(2,'\u2007')} in ${floor(me.x) >> 6} ${floor(me.y) >> 6}
 Looking at: ${floor(pointer.x + me.x)|0} ${floor(pointer.y + me.y + me.head)|0}
-Facing: ${(me.f >= 0 ? 'R ' : 'L ') + (90 - abs(me.f / PI2 * 360)).toFixed(1).padStart(5, '\u2007')} (${(me.f / PI2 * 360).toFixed(1)})
+Facing: ${(me.f >= 0 ? 'R' : 'L') + (90 - abs(me.f / PI2 * 360)).toFixed(1).padStart(5, '\u2007')} (${(me.f / PI2 * 360).toFixed(1)})
 `.slice(0, -1).split('\n')){
 		let {top, bottom, width} = c.measure(t)
 		top = top * 10 + 1; bottom = bottom * 10 + 1; width = width * 10 + 2; y -= top + bottom

@@ -1,12 +1,15 @@
 import { particlePng } from "./defs.js"
-import { renderItem } from "./effects.js"
-import { Entities, Entity, Item, Items, Particle, Blocks } from 'definitions'
+import { renderItem, renderItemCount } from "./effects.js"
+import { Entities, Entity, Item, Particle, Blocks } from 'definitions'
+import { renderF3 } from 'api'
 
 const meInterface = Texture('/vanilla/meint.png')
 
+
+const skinCan = Can(28, 12)
 Entities.player = class extends Entity{
 	static alive = true
-	inv = Array.null(37)
+	inv = Array.null(36)
 	items = [null, null, null, null, null, null]
 	health = 20
 	selected = 0
@@ -46,7 +49,7 @@ Entities.player = class extends Entity{
 			c.rotate(-angle - .5 + extraAngle)
 			c.translate(0.2,-0.8)
 			c.scale(0.4,0.4)
-			renderItem(c, this.inv[this.selected], false)
+			renderItem(c, this.inv[this.selected], true)
 			c.scale(2.5,2.5)
 			c.translate(-0.2,0.8)
 			c.image(this.textures.arm1, -0.125, -0.625, 0.25, 0.75)
@@ -68,7 +71,7 @@ Entities.player = class extends Entity{
 			c.rotate(-angle + extraAngle)
 			c.translate(0.2,-0.8)
 			c.scale(0.4,0.4)
-			renderItem(c, this.inv[this.selected], false)
+			renderItem(c, this.inv[this.selected], true)
 			c.scale(2.5,2.5)
 			c.translate(-0.2,0.8)
 			c.image(this.textures.arm1, -0.125, -0.625, 0.25, 0.75)
@@ -79,7 +82,7 @@ Entities.player = class extends Entity{
 		c.image(this.textures.head, -0.25, 0, 0.5, 0.5)
 	}
 	placed(){
-		const can = Can(28, 12)
+		const can = Can(33, 12)
 		const skinUnpacked = new ImageData(28, 12)
 		for(let i = 0; i < 336; i++){
 			skinUnpacked.data[i << 2] = this.skin[i * 3]
@@ -87,14 +90,20 @@ Entities.player = class extends Entity{
 			skinUnpacked.data[(i << 2) + 2] = this.skin[i * 3 + 2]
 			skinUnpacked.data[(i << 2) + 3] = 255
 		}
-		can.putImageData(skinUnpacked, 0, 0)
+		skinCan.putImageData(skinUnpacked, 0, 0)
+		can.drawImage(skinCan.canvas, 0, 0, 4, 12, 0, 0, 4, 12)
+		can.drawImage(skinCan.canvas, 4, 0, 4, 12, 5, 0, 4, 12)
+		can.drawImage(skinCan.canvas, 8, 0, 4, 12, 10, 0, 4, 12)
+		can.drawImage(skinCan.canvas, 12, 0, 4, 12, 15, 0, 4, 12)
+		can.drawImage(skinCan.canvas, 16, 0, 4, 12, 20, 0, 4, 12)
+		can.drawImage(skinCan.canvas, 20, 4, 8, 8, 25, 0, 8, 8)
 		this.textures = {
-			head: can.crop(20, 4, 8, 8),
+			head: can.crop(25, 0, 8, 8),
 			body: can.crop(0, 0, 4, 12),
-			arm1: can.crop(4, 0, 4, 12),
-			arm2: can.crop(8, 0, 4, 12),
-			leg1: can.crop(12, 0, 4, 12),
-			leg2: can.crop(16, 0, 4, 12)
+			arm1: can.crop(5, 0, 4, 12),
+			arm2: can.crop(10, 0, 4, 12),
+			leg1: can.crop(15, 0, 4, 12),
+			leg2: can.crop(20, 0, 4, 12)
 		}
 	}
 	static width = 0.3
@@ -117,8 +126,9 @@ Entities.player = class extends Entity{
 			c.pop()
 			c.translate(16, 2)
 			c.scale(16,16)
-			for(let i = 0; i < 4; i++){
-				renderItem(c, this.items[i], undefined, 0)
+			for(let i = 1; i < 5; i++){
+				renderItem(c, this.items[i])
+				renderItemCount(c, this.items[i])
 				const {x, y} = c.mouse()
 				if(y >= 0 && y < 1 && x >= -0.5 && x < .5){
 					c.fillStyle = '#fff'
@@ -131,7 +141,8 @@ Entities.player = class extends Entity{
 			}
 			c.translate(4.3125, -4.5)
 			{
-				renderItem(c, this.items[5], undefined, 0)
+				renderItem(c, this.items[5])
+				renderItemCount(c, this.items[5])
 				const {x, y} = c.mouse()
 				if(y >= 0 && y < 1 && x >= -0.5 && x < .5){
 					c.fillStyle = '#fff'
@@ -157,12 +168,31 @@ Entities.item = class extends Entity{
 	render(c){
 		c.translate(0, sin(t*2)/12+.15)
 		c.scale(0.3125, 0.3125)
-		renderItem(c, this.item, false, 0)
-	}
-	event(i){
-		if(i == 1){
-			this.sound(pop,0.2,random()*1.5+0.5)
+		renderItem(c, this.item)
+		c.push()
+		if(this.item.count > 1){
+			c.translate(0.4, 0.4)
+			renderItem(c, this.item)
 		}
+		if(this.item.count > 16){
+			c.translate(-0.8, -0.2)
+			renderItem(c, this.item)
+		}
+		if(this.item.count > 32){
+			c.translate(0.6, -0.4)
+			renderItem(c, this.item)
+		}
+		if(this.item.count > 48){
+			c.translate(-0.4, 0.1)
+			renderItem(c, this.item)
+		}
+		c.pop()
+		if(renderF3){
+			renderItemCount(c, this.item)
+		}
+	}
+	1(buf){
+		this.sound(pop,0.2,random()*1.5+0.5)
 	}
 }
 
@@ -185,16 +215,14 @@ Entities.tnt = class extends Entity{
 		c.fillRect(-0.5,0,1,1)
 		c.globalAlpha = 1
 	}
-	event(i){
-		if(i == 1)
-			this.sound(fuse)
-		else if(i == 2)
-			this.fusing = 1
-		else if(i == 3){
-			this.sound(explode[floor(random()*explode.length)])
-			for(let i = 0; i < 15; i++) new BlastParticle(this.x, this.y)
-			for(let i = 0; i < 30; i++) new AshParticle(this.x, this.y)
-		}
+	1(){
+		this.sound(fuse)
+	}	
+	2(){ this.fusing = 1 }
+	3(){
+		this.sound(explode[floor(random()*explode.length)])
+		for(let i = 0; i < 15; i++) new BlastParticle(this.x, this.y)
+		for(let i = 0; i < 30; i++) new AshParticle(this.x, this.y)
 	}
 }
 const endercrystal = Texture('/vanilla/endercrystal.png')
@@ -215,12 +243,10 @@ Entities.end_crystal = class extends Entity{
 		c.image(endCrystalWiregrid, -0.6, -0.6, 1.2, 1.2)
 		c.pop()
 	}
-	event(i){
-		if(i == 3){
-			this.sound(explode[floor(random()*explode.length)])
-			for(let i = 0; i < 15; i++) new BlastParticle(this.x, this.y)
-			for(let i = 0; i < 30; i++) new AshParticle(this.x, this.y)
-		}
+	3(){
+		this.sound(explode[floor(random()*explode.length)])
+		for(let i = 0; i < 15; i++) new BlastParticle(this.x, this.y)
+		for(let i = 0; i < 30; i++) new AshParticle(this.x, this.y)
 	}
 	static gx = 0
 	static gy = 0
@@ -245,7 +271,7 @@ class BlastParticle extends Particle{
 		c.image(secondCanvas, -this.size/2, -this.size/2, this.size, this.size)
 	}
 }
-const secondCanvas = Can(8,8)
+const secondCanvas = Can(8,8, true)
 secondCanvas.setTransform(1,0,0,-1,0,8)
 class AshParticle extends Particle{
 	constructor(x, y){

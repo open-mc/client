@@ -2,17 +2,17 @@ import { key } from "../events.js"
 import { hideUI, Input, showUI, ui, UI } from "../ui.js"
 let input
 const chatui = UI('noshade',
-	input = Input('text', '', { txt:/^[^/][^]*/y, c14:/\/\w*/y, c10:/\S+/y}).attr('id', 'chatbox')
+	input = Input('text', '', { txt: /^[^/][^]*/y, c7: /\/\w*/y, c11: /~|~?[+-]?(\d+(\.\d*)?|\.\d+)([Ee][+-]?\d+)?/y, c13: /["{\[]\S+/y, c10: /\S+/y,}).attr('id', 'chatbox')
 )
 key('t', () => {
-	if(ui)return
+	if(ui) return
 	showUI(chatui)
 	input.focus()
 	input.value = ''
 	chat.classList.add('focus')
 })
 key('/', () => {
-	if(ui)return
+	if(ui) return
 	showUI(chatui)
 	input.focus()
 	input.value = '/'
@@ -36,7 +36,7 @@ input.key = (key) => {
 		input.value = history[++hi] || tg
 	}else if(key == 'Enter'){
 		let v = input.value.trimEnd()
-		if(!v)return
+		if(!v) return
 		hi = history.push(v)
 		input.value = tg = ''
 		hideUI()

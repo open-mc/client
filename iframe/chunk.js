@@ -9,8 +9,6 @@ export class Chunk{
 		this.tiles = []
 		this.entities = new Set()
 		this.ctx = null
-		this.r1 = 0
-		this.r2 = 0
 		//read buffer palette
 		let palettelen = (x >>> 26) + (y >>> 26) * 64 + 1
 		let id = buf.short()
@@ -83,13 +81,13 @@ export class Chunk{
 		}
 	}
 	hide(){
-		if(!this.ctx)return
+		if(!this.ctx) return
 		canvasPool.push(this.ctx)
 		this.ctx.clearRect(0, 0, TEX_SIZE << 6, TEX_SIZE << 6)
 		this.ctx = null
 	}
 	draw(){
-		if(this.ctx)return
+		if(this.ctx) return
 		this.ctx = canvasPool.pop()
 		if(!this.ctx)this.ctx = Can(TEX_SIZE << 6, TEX_SIZE << 6)
 		for(let x = 0; x < 64; x++){

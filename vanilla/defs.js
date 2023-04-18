@@ -1,9 +1,10 @@
 import { audioSet, lava, water } from "./effects.js"
+import { sound } from 'world'
+import { Blocks, Items, Block, Item } from 'definitions'
 export const terrainPng = Texture("/vanilla/terrain.png")
 export const itemsPng = Texture("/vanilla/items.png")
 export const particlePng = Texture("/vanilla/particles.png")
 
-import { Blocks, Items, Block, Item } from 'definitions'
 
 
 Blocks.air = class extends Block{ static solid = false }
