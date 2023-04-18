@@ -1,8 +1,9 @@
-import { setblock, addEntity, removeEntity, blockEvents, blockEventDefs, blockEventIfns } from "world"
+import { setblock, addEntity, removeEntity, gridEventMap, gridEvents } from "world"
 import { Chunk } from "./chunk.js"
 import { queue } from "./sounds.js"
 import { moveEntity } from "./entity.js"
 import { EntityIDs, BlockIDs } from 'definitions'
+import { getblock } from "./world.js"
 
 function rubberPacket(data){
 	meid = data.uint32() + data.uint16() * 4294967296
@@ -53,13 +54,25 @@ function chunkDeletePacket(data){
 function blockSetPacket(buf){
 	while(buf.left){
 		const type = buf.byte()
-		if(type == 255) blockEvents.delete(buf.uint32())
-		else if(type > 0){
+		if(type == 255){
+			const type2 = buf.byte()
+			if(type2 == 255){
+				gridEventMap.delete(buf.uint32())
+				continue
+			}else if(type2 > 0){
+				const x = buf.int(), y = buf.int()
+				const id = buf.uint32()
+				if(!gridEvents[type2]) continue
+				const v = gridEvents[type2](buf, x, y)
+				v.x = x; v.y = y; v.i = id
+				gridEventMap.set(id, v)
+				continue
+			}
+		}
+		if(type > 0){
 			const x = buf.int(), y = buf.int()
-			const id = buf.uint32()
-			const v = blockEventIfns[type] ? blockEventIfns[type](x, y) : undefined
-			if(blockEventDefs[type])
-				blockEvents.set(id, [x, y, type+id*256, v])
+			const bl = getblock(x, y)
+			if(type in bl)bl[type](buf, x, y)
 		}else{
 			const x = buf.int(), y = buf.int()
 			const id = buf.short()
@@ -74,12 +87,10 @@ function entityPacket(buf){
 		let mv = buf.byte()
 		if(!mv){
 			const type = buf.byte()
-			if(!type)removeEntity(entities.get(buf.uint32() + buf.uint16() * 4294967296))
-			//else if(type == 255)entityEvents.delete(buf.uint32())
+			if(!type) removeEntity(entities.get(buf.uint32() + buf.uint16() * 4294967296))
 			else{
 				const e = entities.get(buf.uint32() + buf.uint16() * 4294967296)
-				//const id = buf.uint32()
-				if(e) e.event(type)
+				if(e && type in e) e[type](buf)
 			}
 			continue
 		}

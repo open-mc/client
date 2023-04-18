@@ -1,9 +1,10 @@
 import { Blocks } from 'definitions'
+import { musicdict } from './sounds.js'
 
 export function setblock(x, y, b){
 	const k = (x>>>6)+(y>>>6)*67108864
 	const ch = map.get(k)
-	if(!ch)return
+	if(!ch) return
 	const lx = x & 63
 	const ly = y & 63
 	const old = ch.tiles[lx + (ly << 6)]
@@ -55,10 +56,12 @@ export function sound(fn, x, y, vol = 1, pitch = 1){
 	fn(vol * 2 / (dist + 1), pitch * max(SPEEDOFSOUND / 20, speed + SPEEDOFSOUND) / SPEEDOFSOUND, min(1, max(-1, x / 16)))
 }
 
-export const blockEvents = new Map
-export const blockEventDefs = new Array(255)
-export const blockEventIfns = new Array(255)
-blockevent = (id, r, r2) => (blockEventDefs[id] = r, blockEventIfns[id] = r2)
+export const gridEventMap = new Map
+export const gridEvents = new Array(255)
+export const music = (theme, ...srcs) => {
+	const arr = musicdict[theme] || (musicdict[theme] = [])
+	for(const src of srcs) arr.push(Audio(src, true))
+}
 
 //export const entityEvents = new Map
 //export const entityEventDefs = new Array(255)

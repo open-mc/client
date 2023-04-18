@@ -15,13 +15,13 @@ async function getSkin(accept){
 	i.accept = accept
 	if(i.onchange)i.onchange()
 	i.click()
-	if(!await new Promise(r => i.onchange = r) || !i.files.length)return ''
+	if(!await new Promise(r => i.onchange = r) || !i.files.length) return ''
 	const img = new Image()
 	if((await new Promise(r => {
 		img.onload = r
 		img.onerror = r
 		img.src = URL.createObjectURL(i.files[0])
-	})).type == 'error')return 'Not an image!'
+	})).type == 'error') return 'Not an image!'
 	if(img.width == 64 && img.height == 64){
 		//body
 		ctx.drawImage(img, 16, 20, 4, 12, 0, 0, 4, 12)
@@ -60,13 +60,13 @@ const serverList = UI('dirtbg',
 	Label('Connect to a server:'),
 	Spacer(50),
 	Row(Btn('Select skin', btn => getSkin().then(a => {
-		if(!a)return
+		if(!a) return
 		btn.textContent = a
 		setTimeout(() => btn.textContent = 'Select skin', 2000)
 	})), Btn('Refresh', serverlist)).attr('style', 'align-self: stretch; justify-content: space-between; padding: 8rem'),
 	list = Div('serverlist'),
 	Spacer(20),
-	Row(input = Input('text', 'server ip'), addBtn = Btn('Add server', () => {if(input.value=='server ip')return input.value = 'very funny';else if(input.value=='very funny')return;addServer(input.value);input.value='';addBtn.disabled=true}, 'small disabled')),
+	Row(input = Input('text', 'server ip'), addBtn = Btn('Add server', () => {if(input.value=='server ip') return input.value = 'very funny';else if(input.value=='very funny') return;addServer(input.value);input.value='';addBtn.disabled=true}, 'small disabled')),
 	Label('Hosting a server').attr('style', 'position: absolute; bottom: 2rem; height: 13rem; right: 2rem; text-decoration: underline; opacity: 0.4; font-size: 7rem; cursor: pointer').attr('onclick', "window.open('https://github.com/open-mc/server','_blank')")
 )
 input.oninput = () => {addBtn.disabled = !input.value}

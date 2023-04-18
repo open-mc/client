@@ -33,18 +33,28 @@ function camChange(){
 	renderCamMode()
 }
 
-let clickNode, ffxNode, camNode
+function renderFsc(){
+	fscNode.textContent = 'Fullscreen: ' + (options.fsc ? 'YES' : 'NO')
+}
+function fscChange(){
+	options.fsc = 1 - options.fsc
+	renderFsc()
+}
+
+let clickNode, ffxNode, camNode, fscNode
 const controlssui = UI('menu',
 	Label('Options'),
 	camNode = Btn('', camChange),
 	Row(clickNode = Btn('', clickChange), ffxNode = Btn('', ffxChange)),
 	Scale(sensitivityChange),
+	fscNode = Btn('', fscChange),
 	Spacer(20),
 	Row(Btn('Back', pause), Btn('General settings', optionsScreen))
 )
 controlssui.esc = pause
 
 renderCamMode()
+renderFsc()
 renderClick()
 renderFfx()
 export function controlsScreen(){

@@ -81,13 +81,13 @@ export class Chunk{
 		}
 	}
 	hide(){
-		if(!this.ctx)return
+		if(!this.ctx) return
 		canvasPool.push(this.ctx)
 		this.ctx.clearRect(0, 0, TEX_SIZE << 6, TEX_SIZE << 6)
 		this.ctx = null
 	}
 	draw(){
-		if(this.ctx)return
+		if(this.ctx) return
 		this.ctx = canvasPool.pop()
 		if(!this.ctx)this.ctx = Can(TEX_SIZE << 6, TEX_SIZE << 6)
 		for(let x = 0; x < 64; x++){

@@ -3,12 +3,12 @@ import { pause } from "./pauseui.js"
 import { popup } from "./popup.js"
 
 function selectBug(){
-	if(bug.disabled)return
+	if(bug.disabled) return
 	bug.disabled = true
 	suggestion.disabled = false
 }
 function selectSuggestion(){
-	if(suggestion.disabled)return
+	if(suggestion.disabled) return
 	suggestion.disabled = true
 	bug.disabled = false
 }
@@ -27,7 +27,7 @@ feedback.esc = pause
 
 async function submit(){
 	const feedback = input.value
-	if(!feedback)return
+	if(!feedback) return
 	send.disabled = true
 	input.disabled = false
 	//send

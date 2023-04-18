@@ -29,7 +29,7 @@ document.body.append(NONE)
 
 export let ptrSuccess = Function.prototype, ptrFail = Function.prototype
 const ptrlock = () => new Promise((r, c) => {
-	const fs = document.documentElement.requestFullscreen()
+	const fs = options.fsc ? document.documentElement.requestFullscreen() : undefined
 	if(fs instanceof Promise) fs.catch(()=>null).then(() => document.body.requestPointerLock());
 	else document.body.requestPointerLock()
 	ptrSuccess = r; ptrFail = c
@@ -37,7 +37,7 @@ const ptrlock = () => new Promise((r, c) => {
 
 export let ui = null
 export async function hideUI(){
-	if(!ui)return
+	if(!ui) return
 	try{
 		await ptrlock()
 		ui.replaceWith(NONE)
@@ -111,7 +111,7 @@ export const Input = (type, placeholder, tokenizers = {txt:/[^]*/y}) => {
 	t.onkeydown = e=>{if(el.key)el.key(e.key,e.shiftKey)}
 	t.onselchange = t.oninput = () => {
 		let s = t.selectionStart, e = t.selectionEnd
-		if(s == t.os && e == t.oe)return
+		if(s == t.os && e == t.oe) return
 		t.os = s; t.oe = e
 		const {value} = t
 		let i = 0
@@ -180,7 +180,7 @@ export const Btn = (text, onclick, classes = '') => {
 	if(classes)btn.className = classes
 	btn.append(text)
 	btn.onclick = e => {
-		if(btn.disabled)return
+		if(btn.disabled) return
 		click()
 		e.stopPropagation()
 		onclick(btn)

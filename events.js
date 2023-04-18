@@ -3,14 +3,14 @@ import { pause } from "./uis/pauseui.js"
 import { ui, NONE, ptrFail, ptrSuccess } from "./ui.js"
 
 onkeydown = e => {
-	if(document.activeElement != document.body && e.key != 'Escape')return
+	if(document.activeElement != document.body && e.key != 'Escape') return
 	e.preventDefault()
 	if(e.repeat) return
 	if(cbs[e.key])for(const f of cbs[e.key])f()
 	if(win) keyMsg(e.keyCode)
 }
 onkeyup = e => {
-	if(document.activeElement != document.body && e.key != 'Escape')return
+	if(document.activeElement != document.body && e.key != 'Escape') return
 	else if(e.key == 'Escape'){
 		if(ignoreEsc){ignoreEsc = false; return}
 		if(ui && ui.esc) ui.esc()

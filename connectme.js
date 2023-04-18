@@ -4,6 +4,7 @@ import { msg, pendingConnection, reconn } from "./uis/dirtscreen.js"
 import { Btn, click, Div, Img, Label, ping, Row } from "./ui.js"
 import { servers, saveServers, storage, options } from "./save.js"
 import { destroyIframe, fwPacket, gameIframe } from "./iframe.js"
+import { PROTOCOL_VERSION } from "./iframe/v.js"
 let lastIp = null
 globalThis.ws = null
 
@@ -70,9 +71,9 @@ export function preconnect(ip, cb = Function.prototype){
 		ws.challenge = null
 		if(typeof data == 'string'){
 			const style = parseInt(data.slice(0,2), 16)
-			if(style == -1)return onerror(data.slice(2))
-			else if(style == -2)return onpending(data.slice(2))
-			if(style != style)return
+			if(style == -1) return onerror(data.slice(2))
+			else if(style == -2) return onpending(data.slice(2))
+			if(style != style) return
 			const box = chat.children[9] || document.createElement('div')
 			box.textContent = data.slice(2)
 			chat.insertAdjacentElement('afterbegin', box)
@@ -102,7 +103,7 @@ export function preconnect(ip, cb = Function.prototype){
 				node.remove()
 				saveServers()
 			},'tiny')),
-			motd = Label('connecting...').attr('style', 'opacity: 0.5')
+			motd = Label('Connecting...').attr('style', 'opacity: 0.5')
 		)
 	)
 	node.onclick = () => {click(); play(ws)}
@@ -112,11 +113,13 @@ export function preconnect(ip, cb = Function.prototype){
 }
 export async function play(ws){
 	lastIp = ws.url
-	if(!ws.challenge)return
+	if(!ws.challenge) return
 	const signature = await makeSign(ws.challenge)
-	const packet = new Uint8Array(signature.length + skin.length)
-	packet.set(skin, 0)
-	packet.set(signature, skin.length)
+	const packet = new Uint8Array(signature.length + skin.length + 2)
+	packet[0] = PROTOCOL_VERSION >> 8
+	packet[1] = PROTOCOL_VERSION
+	packet.set(skin, 2)
+	packet.set(signature, skin.length + 2)
 	ws.send(packet)
 	globalThis.ws = ws
 	onfocus()
@@ -126,11 +129,11 @@ export async function play(ws){
 const urlServer = location.search.slice(1)
 if(urlServer) preconnect(urlServer, play)
 export function reconnect(){
-	if(!lastIp)return
+	if(!lastIp) return
 	preconnect(lastIp, play)
 }
 export function finished(){
-	if(!ws)return
+	if(!ws) return
 	chat.innerHTML = ''
 	ws.onclose = Function.prototype
 	ws.close()

@@ -11,10 +11,10 @@
 		<script>
 			history.replaceState({}, '', '/')
 			async function gotKey(key){
-				if(!/[a-f0-9]{32}$/y.test(key))return false
+				if(!/[a-f0-9]{32}$/y.test(key)) return false
 				//Random old server
 				const [name, pub, priv, sig] = (await fetch('https://blobk.at:1024/' + key).then(a => a.text())).split('\n')
-				if(!name || !pub || !priv || !sig)return false
+				if(!name || !pub || !priv || !sig) return false
 				localStorage.pubKey = pub
 				localStorage.privKey = priv
 				localStorage.authSig = sig

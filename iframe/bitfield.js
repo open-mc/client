@@ -6,7 +6,7 @@ export class BitField extends Array{
 	}
 	unset(int){
 		let i = this.length
-		if((int >> 5) >= i)return
+		if((int >> 5) >= i) return
 		this[int >> 5] &= ~(1 << (int & 31))
 		while(i && !this[--i])this.pop()
 	}
@@ -17,11 +17,11 @@ export class BitField extends Array{
 		while(i && !this[--i])this.pop()
 	}
 	has(int){
-		if((int >> 5) >= this.length)return false
+		if((int >> 5) >= this.length) return false
 		return !!(this[int >> 5] & (1 << (int & 31)))
 	}
 	pop(int){
-		if((int >> 5) >= this.length)return false
+		if((int >> 5) >= this.length) return false
 		let i = int >> 5
 		const a = !!(this[i] ^ (this[i] &= ~(1 << (int & 31))))
 		if(i == this.length - 1) while(i >= 0 && !this[i--]) super.pop()

@@ -81,7 +81,7 @@ const onMsg = ({data}) => {
 		if(loading) return void msgQueue.push(data)
 		const packet = new DataReader(data)
 		const code = packet.byte()
-		if(!codes[code])return
+		if(!codes[code]) return
 		codes[code](packet)
 	}else if(typeof data == 'number'){
 		if(data >= 0){

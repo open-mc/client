@@ -124,7 +124,7 @@ onmousemove((dx, dy) => {
 	x += dx * 9 ** options.sensitivity / 3 / cam.z / TEX_SIZE
 	y += dy * 9 ** options.sensitivity / 3 / cam.z / TEX_SIZE
 	const ns = sqrt(x * x + y * y)
-	if(!ns)return x = y = 0
+	if(!ns) return x = y = 0
 	if(ns > s){
 		x /= ns
 		y /= ns

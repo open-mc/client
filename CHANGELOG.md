@@ -4,21 +4,27 @@
 
 Todo: chests
 
-</details>
-
-# Alpha 8 (current)
-
-- better explosions
-
-Todo: Player movement checks
-
-Todo: player health
-
-Todo: Ability to die and respawn
-
 Todo: animated textures (water + lava)
 
 Todo: water + lava cut textures for surface (and flowing variants)
+
+</details>
+
+# Alpha 8 (current working version)
+
+- Better explosions
+
+- Large number of bug fixes and QOL improvements
+
+- Better debug and hitbox views
+
+- Player movement checks
+
+Todo: Entity health, health animations
+
+Todo: Ability to die and respawn, dying animations
+
+Todo: Sugar cane
 
 ## Alpha 7
 

@@ -17,7 +17,7 @@ export function gameIframe(f){
 }
 
 onmessage = ({data, source}) => {
-	if(source && source != iframe.contentWindow)return
+	if(source && source != iframe.contentWindow) return
 	if(data === null){
 		win = iframe.contentWindow
 		for(const k in options) win.postMessage([k, options[k]], '*')
@@ -37,7 +37,7 @@ onmessage = ({data, source}) => {
 	}
 }
 document.body.onmousemove = ({movementX, movementY, clientX, clientY}) => {
-	if(!win)return
+	if(!win) return
 	if(ui){
 		win.postMessage([clientX, clientY], '*')
 		return
@@ -47,7 +47,7 @@ document.body.onmousemove = ({movementX, movementY, clientX, clientY}) => {
 }
 
 document.body.onwheel = ({deltaY}) => {
-	if(!win)return
+	if(!win) return
 	const movementScale = devicePixelRatio ** (globalThis.netscape ? 1 : /Opera|OPR\//.test(navigator.userAgent) ? -1 : 0)
 	win.postMessage([deltaY * movementScale], '*')
 }
@@ -59,18 +59,18 @@ export function destroyIframe(){
 }
 
 export const fwOption = (a, b) => {
-	if(!win)return void queue.push(fwOption, a)
+	if(!win) return
 	win.postMessage([a, b], '*')
 }
 listen(fwOption)
 
 export function fwPacket(a){
-	if(!win)return void queue.push(fwPacket, a)
+	if(!win) return void queue.push(fwPacket, a)
 	if(a.buffer)win.postMessage(a.buffer, '*', [a.buffer])
 	else win.postMessage(a, '*')
 }
 
 export function keyMsg(a){
-	if(!win)return void queue.push(keyMsg, a)
+	if(!win) return void queue.push(keyMsg, a)
 	win.postMessage(a, '*')
 }

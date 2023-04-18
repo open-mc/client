@@ -1,8 +1,8 @@
 import { terrainPng } from "./defs.js"
-import { renderItem } from "./effects.js"
+import { renderItem, renderItemCount } from "./effects.js"
 import "./entities.js"
-import { button, W2, H2, uiLayer, renderLayer, onpause, pause, paused } from 'api'
-import { getblock } from 'world'
+import { button, W2, H2, uiLayer, renderLayer, onpause, pause, paused, renderUI } from 'api'
+import { getblock, gridEvents } from 'world'
 import { Item } from 'definitions'
 
 const BREAKING = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].mutmap(x => terrainPng.at(x, 15))
@@ -96,7 +96,7 @@ const cloudLayers = [
 ]
 
 renderLayer(150, c => {
-	if(world != 'overworld')return
+	if(world != 'overworld') return
 	for(const {y, h, s, o, a} of cloudLayers){
 		c.globalCompositeOperation = o
 		c.globalAlpha = a
@@ -119,18 +119,21 @@ const selected = Texture('/vanilla/slot.png')
 const inventory = Texture('/vanilla/inv.png')
 
 uiLayer(1000, (c, w, h) => {
-	let hotBarLeft = w / 2 - hotbar.w/2
-	c.push()
-	c.translate(hotBarLeft, 5)
-	c.image(hotbar, 0, 0, hotbar.w, hotbar.h)
-	c.translate(11, 3)
-	c.scale(16, 16)
-	for(let i = 0; i < 9; i++){
-		renderItem(c, me.inv[i], undefined, 0)
-		if(i == me.selected) c.image(selected, -0.75, -0.25, 1.5, 1.5)
-		c.translate(1.25, 0)
+	if(renderUI){
+		let hotBarLeft = w / 2 - hotbar.w/2
+		c.push()
+		c.translate(hotBarLeft, 5)
+		c.image(hotbar, 0, 0, hotbar.w, hotbar.h)
+		c.translate(11, 3)
+		c.scale(16, 16)
+		for(let i = 0; i < 9; i++){
+			renderItem(c, me.inv[i])
+			renderItemCount(c, me.inv[i])
+			if(i == me.selected) c.image(selected, -0.75, -0.25, 1.5, 1.5)
+			c.translate(1.25, 0)
+		}
+		c.pop()
 	}
-	c.pop()
 	const action = invAction
 	invAction = 0
 	if(!invInterface) return
@@ -148,7 +151,8 @@ uiLayer(1000, (c, w, h) => {
 	c.translate(16,8 - inventory.h)
 	c.scale(16,16)
 	for(let i = 0; i < 9; i++){
-		renderItem(c, me.inv[i], undefined, 0)
+		renderItem(c, me.inv[i])
+		renderItemCount(c, me.inv[i])
 		const {x, y} = c.mouse()
 		if(slot == -1 && y >= 0 && y < 1 && x >= -0.5 && x < .5){
 			c.fillStyle = '#fff'
@@ -161,7 +165,8 @@ uiLayer(1000, (c, w, h) => {
 	}
 	c.translate(-10.125, 1.375)
 	for(let i = 9; i < 36; i++){
-		renderItem(c, me.inv[i], undefined, 0)
+		renderItem(c, me.inv[i])
+		renderItemCount(c, me.inv[i])
 		const {x, y} = c.mouse()
 		if(y >= 0 && y < 1 && x >= -0.5 && x < .5 && slot == -1){
 			c.fillStyle = '#fff'
@@ -175,30 +180,30 @@ uiLayer(1000, (c, w, h) => {
 	}
 	if(action == 1 && slot > -1){
 		const items = slot > 127 ? invInterface.items : me.inv; slot &= 127
-		const t = items[slot], h = me.inv[36]
-		if(t && !h) me.inv[36] = t, items[slot] = null
-		else if(h && !t) items[slot] = h, me.inv[36] = null
+		const t = items[slot], h = me.items[0]
+		if(t && !h) me.items[0] = t, items[slot] = null
+		else if(h && !t) items[slot] = h, me.items[0] = null
 		else if(h && t && h.constructor == t.constructor && !h.savedata){
 			const add = min(h.count, t.maxStack - t.count)
-			if(!(h.count -= add))me.inv[36] = null
+			if(!(h.count -= add))me.items[0] = null
 			t.count += add
-		}else items[slot] = h, me.inv[36] = t
+		}else items[slot] = h, me.items[0] = t
 		const buf = new DataWriter()
 		buf.byte(32); buf.byte(slot | (items == me.inv ? 0 : 128))
 		send(buf)
 	}else if(action == 2 && slot > -1){
 		const items = slot > 127 ? invInterface.items : me.inv; slot &= 127
-		const t = items[slot], h = me.inv[36]
+		const t = items[slot], h = me.items[0]
 		if(t && !h){
-			me.inv[36] = t.constructor(t.count - (t.count >>= 1))
+			me.items[0] = t.constructor(t.count - (t.count >>= 1))
 			if(!t.count)items[slot] = null
 		}else if(h && !t){
 			items[slot] = h.constructor(1)
-			if(!--h.count)me.inv[36] = null
+			if(!--h.count)me.items[0] = null
 		}else if(h && t && h.constructor == t.constructor && !h.savedata && t.count < t.maxStack){
 			t.count++
-			if(!--h.count)me.inv[36] = null
-		}else items[slot] = h, me.inv[36] = t
+			if(!--h.count)me.items[0] = null
+		}else items[slot] = h, me.items[0] = t
 		const buf = new DataWriter()
 		buf.byte(33); buf.byte(slot | (items == me.inv ? 0 : 128))
 		send(buf)
@@ -207,7 +212,8 @@ uiLayer(1000, (c, w, h) => {
 	c.scale(16,16)
 	const {x, y} = c.mouse()
 	c.translate(x, y - .5)
-	renderItem(c, me.inv[36], undefined, 0)
+	renderItem(c, me.items[0])
+	renderItemCount(c, me.items[0])
 	c.pop()
 })
 /*
@@ -245,7 +251,7 @@ function closeInterface(){ pause(false) }
 
 onpacket(13, buf => {
 	const e = entities.get(buf.uint32() + buf.short() * 4294967296)
-	if(!e)return
+	if(!e) return
 	invInterface = e
 	interfaceId = buf.byte()
 })
@@ -265,7 +271,7 @@ onpacket(15, buf => {
 })
 
 button(KEYS.E, () => {
-	if(paused)return closeInterface()
+	if(paused) return closeInterface()
 	openEntity(me)
 })
 
@@ -275,22 +281,15 @@ button(KEYS.Q, () => {
 	send(buf)
 })
 
-blockevent(1, (c, x, y, state = 0) => {
-	const block = getblock(x, y)
-	c.globalCompositeOperation = 'multiply'
-	const item = me.inv[me.selected]
-	c.image(BREAKING[min(9, floor(state / (item ? item.breaktime(block) : block.breaktime) * 10)) || 0], 0, 0, 1, 1)
-	c.globalCompositeOperation = 'source-over'
-	if(floor(state * 5) != floor((state + dt) * 5))
-		if(block.punch) block.punch(x, y)
-	return state + dt
-})
-
-blockevent(3, undefined, (x, y) => {
-	const block = getblock(x, y)
-	if(block.place) block.place(x, y)
-})
-blockevent(2, undefined, (x, y) => {
-	const old = getblock(x, y)
-	if(old.break) old.break(x, y)
-})
+gridEvents[1] = (buf, x, y) => {
+	let time = 0
+	const toBreak = buf.float() / TPS
+	return c => {
+		const block = getblock(x, y)
+		c.globalCompositeOperation = 'multiply'
+		c.image(BREAKING[min(9, floor(time / toBreak * 10)) || 0], 0, 0, 1, 1)
+		c.globalCompositeOperation = 'source-over'
+		if(floor(time * 5) != floor((time += dt) * 5))
+			if(block.punch) block.punch(x, y)
+	}
+}

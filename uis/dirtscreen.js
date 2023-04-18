@@ -4,7 +4,7 @@ import { serverlist } from "./serverlist.js"
 
 let label, reconnectBtn
 const message = UI('dirtbg',
-	label = Label(''),
+	label = Label('').attr('style','overflow:visible'),
 	Spacer(100),
 	reconnectBtn = Row(Btn('Back', serverlist), Btn('Reconnect', reconnect)),
 	Spacer(100)
