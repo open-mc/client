@@ -2,7 +2,7 @@ import { key } from "../events.js"
 import { hideUI, Input, showUI, ui, UI } from "../ui.js"
 let input
 const chatui = UI('noshade',
-	input = Input('text', '', { txt: /^[^/][^]*/y, c7: /\/\w*/y, c11: /~|~?[+-]?(\d+(\.\d*)?|\.\d+)([Ee][+-]?\d+)?/y, c13: /["{\[]\S+/y, c10: /\S+/y,}).attr('id', 'chatbox')
+	input = Input('text', '', { msg: /^[^/][^]*/y, c7: /\/\w*/y, c11: /~|~?[+-]?(\d+(\.\d*)?|\.\d+)([Ee][+-]?\d+)?/y, c13: /"(?:[^\\"]|\\.)*"/y, c10: /[^"\s]\S*/y, c9: /"/u}).attr('id', 'chatbox')
 )
 key('t', () => {
 	if(ui) return

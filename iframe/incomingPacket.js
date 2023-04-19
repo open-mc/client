@@ -64,8 +64,10 @@ function blockSetPacket(buf){
 				const id = buf.uint32()
 				if(!gridEvents[type2]) continue
 				const v = gridEvents[type2](buf, x, y)
-				v.x = x; v.y = y; v.i = id
-				gridEventMap.set(id, v)
+				if(v){
+					v.x = x; v.y = y; v.i = id
+					gridEventMap.set(id, v)
+				}
 				continue
 			}
 		}

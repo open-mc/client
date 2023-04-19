@@ -1,6 +1,6 @@
-import { particlePng } from "./defs.js"
+import { particlePng, explode, AshParticle, BlastParticle } from "./defs.js"
 import { renderItem, renderItemCount } from "./effects.js"
-import { Entities, Entity, Item, Particle, Blocks } from 'definitions'
+import { Entities, Entity, Item, Blocks } from 'definitions'
 import { renderF3 } from 'api'
 
 const meInterface = Texture('/vanilla/meint.png')
@@ -194,10 +194,12 @@ Entities.item = class extends Entity{
 	1(buf){
 		this.sound(pop,0.2,random()*1.5+0.5)
 	}
+	2(buf){
+		this.item.count = buf.byte()
+	}
 }
 
 const fuse = Audio('/music/misc/fuse.mp3')
-const explode = [1,2,3,4].mutmap(a => Audio(`/music/misc/explode${a}.mp3`))
 
 
 Entities.tnt = class extends Entity{
@@ -250,43 +252,4 @@ Entities.end_crystal = class extends Entity{
 	}
 	static gx = 0
 	static gy = 0
-}
-
-const explodeParticles = [0,8,16,24,32,40,48,56,64,72,80,88,96,104,112].mutmap(a => particlePng.crop(a,80,8,8))
-const ashParticles = [0,8,16,24,32,40,48,56].mutmap(a => particlePng.crop(a,0,8,8))
-
-class BlastParticle extends Particle{
-	constructor(x, y){
-		super(false, random() / 4 + 0.5, x + random() * 4 - 2, y + random() * 4 - 2, 0, 0, 0, 0)
-		this.size = random() + 1
-		const a = floor(random() * 128 + 128)
-		this.fillStyle = `rgb(${a}, ${a}, ${a})`
-	}
-	render(c){
-		if(this.lifetime >= .5) return
-		secondCanvas.globalCompositeOperation = 'destination-atop'
-		secondCanvas.fillStyle = this.fillStyle
-		secondCanvas.fillRect(0,0,8,8)
-		secondCanvas.image(explodeParticles[floor(15 - this.lifetime * 30)], 0, 0, 8, 8)
-		c.image(secondCanvas, -this.size/2, -this.size/2, this.size, this.size)
-	}
-}
-const secondCanvas = Can(8,8, true)
-secondCanvas.setTransform(1,0,0,-1,0,8)
-class AshParticle extends Particle{
-	constructor(x, y){
-		const rx = random() * 4 - 2, ry = random() * 4 - 2
-		super(false, 79.9999, x + rx, y + ry, rx*3, ry*3, 0, 0)
-		this.size = random() / 2 + .5
-		const a = floor(random() * 128 + 128)
-		this.fillStyle = `rgb(${a}, ${a}, ${a})`
-	}
-	render(c){
-		secondCanvas.globalCompositeOperation = 'destination-atop'
-		secondCanvas.fillStyle = this.fillStyle
-		secondCanvas.fillRect(0,0,8,8)
-		secondCanvas.image(ashParticles[floor(this.lifetime / 10)], 0, 0, 8, 8)
-		c.image(secondCanvas, -this.size/2, -this.size/2, this.size, this.size)
-		if(random() < dt*10) this.lifetime -= 10
-	}
 }

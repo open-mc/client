@@ -26,6 +26,8 @@ Todo: Ability to die and respawn, dying animations
 
 Todo: Sugar cane
 
+Todo: Nether portal, end island
+
 ## Alpha 7
 
 - The end

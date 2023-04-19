@@ -1,11 +1,10 @@
 import { audioSet, lava, water } from "./effects.js"
 import { sound } from 'world'
-import { Blocks, Items, Block, Item } from 'definitions'
+import { Blocks, Items, Block, Item, Particle } from 'definitions'
 export const terrainPng = Texture("/vanilla/terrain.png")
 export const itemsPng = Texture("/vanilla/items.png")
 export const particlePng = Texture("/vanilla/particles.png")
-
-
+export const explode = [1,2,3,4].mutmap(a => Audio(`/music/misc/explode${a}.mp3`))
 
 Blocks.air = class extends Block{ static solid = false }
 Blocks.grass = class extends Block{
@@ -26,6 +25,11 @@ Blocks.stone = Stone
 Blocks.obsidian = class extends Stone{
 	static texture = terrainPng.at(5, 2)
 	static breaktime = 250
+}
+
+Blocks.glowing_obsidian = class extends Blocks.obsidian{
+	static breaktime = 500
+	static texture = terrainPng.at(5, 4)
 }
 Blocks.dirt = class extends Block{
 	static texture = terrainPng.at(2, 0)
@@ -185,6 +189,10 @@ Items.obsidian = class extends Item{
 	places(){ return Blocks.obsidian }
 	static texture = Blocks.obsidian.texture
 }
+Items.glowing_obsidian = class extends Items.obsidian{
+	places(){ return Blocks.glowing_obsidian }
+	static texture = Blocks.glowing_obsidian.texture
+}
 Items.netherrack = class extends Item{
 	places(){ return Blocks.netherrack }
 	static texture = Blocks.netherrack.texture
@@ -255,3 +263,44 @@ Items.red_sandstone = class extends Items.sandstone{}
 Items.cut_red_sandstone = class extends Items.sandstone{}
 Items.chiseled_red_sandstone = class extends Items.sandstone{}
 Items.smooth_red_sandstone = class extends Items.sandstone{}
+
+
+
+const explodeParticles = [0,8,16,24,32,40,48,56,64,72,80,88,96,104,112].mutmap(a => particlePng.crop(a,80,8,8))
+const ashParticles = [0,8,16,24,32,40,48,56].mutmap(a => particlePng.crop(a,0,8,8))
+
+export class BlastParticle extends Particle{
+	constructor(x, y){
+		super(false, random() / 4 + 0.5, x + random() * 4 - 2, y + random() * 4 - 2, 0, 0, 0, 0)
+		this.size = random() + 1
+		const a = floor(random() * 128 + 128)
+		this.fillStyle = `rgb(${a}, ${a}, ${a})`
+	}
+	render(c){
+		if(this.lifetime >= .5) return
+		secondCanvas.globalCompositeOperation = 'destination-atop'
+		secondCanvas.fillStyle = this.fillStyle
+		secondCanvas.fillRect(0,0,8,8)
+		secondCanvas.image(explodeParticles[floor(15 - this.lifetime * 30)], 0, 0, 8, 8)
+		c.image(secondCanvas, -this.size/2, -this.size/2, this.size, this.size)
+	}
+}
+const secondCanvas = Can(8,8, true)
+secondCanvas.setTransform(1,0,0,-1,0,8)
+export class AshParticle extends Particle{
+	constructor(x, y){
+		const rx = random() * 4 - 2, ry = random() * 4 - 2
+		super(false, 79.9999, x + rx, y + ry, rx*3, ry*3, 0, 0)
+		this.size = random() / 2 + .5
+		const a = floor(random() * 128 + 128)
+		this.fillStyle = `rgb(${a}, ${a}, ${a})`
+	}
+	render(c){
+		secondCanvas.globalCompositeOperation = 'destination-atop'
+		secondCanvas.fillStyle = this.fillStyle
+		secondCanvas.fillRect(0,0,8,8)
+		secondCanvas.image(ashParticles[floor(this.lifetime / 10)], 0, 0, 8, 8)
+		c.image(secondCanvas, -this.size/2, -this.size/2, this.size, this.size)
+		if(random() < dt*10) this.lifetime -= 10
+	}
+}

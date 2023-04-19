@@ -9,7 +9,7 @@ export class Block{
 	static climbable = false
 	static gooeyness = 0
 	static breaktime = 3
-	3(buf, x, y){
+	1(buf, x, y){
 		if(this.placeSounds.length)
 			sound(this.placeSounds[Math.floor(Math.random() * this.placeSounds.length)], x, y, 1, 0.8)
 	}

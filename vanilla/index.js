@@ -1,8 +1,8 @@
-import { terrainPng } from "./defs.js"
+import { AshParticle, BlastParticle, explode, terrainPng } from "./defs.js"
 import { renderItem, renderItemCount } from "./effects.js"
 import "./entities.js"
 import { button, W2, H2, uiLayer, renderLayer, onpause, pause, paused, renderUI } from 'api'
-import { getblock, gridEvents } from 'world'
+import { getblock, gridEvents, sound } from 'world'
 import { Item } from 'definitions'
 
 const BREAKING = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].mutmap(x => terrainPng.at(x, 15))
@@ -292,4 +292,11 @@ gridEvents[1] = (buf, x, y) => {
 		if(floor(time * 5) != floor((time += dt) * 5))
 			if(block.punch) block.punch(x, y)
 	}
+}
+
+gridEvents[3] = (_, x, y) => {
+	x += .5; y += .5
+	sound(explode[floor(random()*explode.length)], x, y)
+	for(let i = 0; i < 15; i++) new BlastParticle(x, y)
+	for(let i = 0; i < 30; i++) new AshParticle(x, y)
 }
