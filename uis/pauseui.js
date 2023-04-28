@@ -15,9 +15,10 @@ const pauseui = UI('menu',
 	Row(Btn('Controls', controlsScreen), Btn('Feedback', feedback)),
 	Btn('Disconnect', serverlist),
 	Div('',
-		Label('Credits').attr('style', 'height:unset;line-height:unset').attr('onclick', "window.open('https://github.com/open-mc/client/blob/main/CREDITS.md','_blank')"),
-		Label('Changelog').attr('style', 'height:unset;line-height:unset').attr('onclick', "window.open('https://github.com/open-mc/client/blob/main/CHANGELOG.md','_blank')")
-	).attr('style', 'position: absolute; bottom: 2rem; display: flex; right: 2rem; text-decoration: underline; opacity: 0.4; font-size: 7rem; cursor: pointer')
+		Label('Credits').attr('style', 'height:unset;cursor:pointer;line-height:unset').attr('onclick', "window.open('https://github.com/open-mc/client/blob/main/CREDITS.md','_blank')"),
+		Label(' / ').attr('style', 'height:unset;line-height:unset'),
+		Label('Changelog').attr('style', 'height:unset;cursor:pointer;line-height:unset').attr('onclick', "window.open('https://github.com/open-mc/client/blob/main/CHANGELOG.md','_blank')")
+	).attr('style', 'position: absolute; bottom: 2rem; display: flex; right: 2rem; opacity: 0.4; font-size: 10rem; cursor: pointer')
 )
 pauseui.esc = hideUI
 

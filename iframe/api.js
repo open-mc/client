@@ -64,7 +64,8 @@ export const button = (...keys) => {
 		(_cbs[key] || (_cbs[key] = [])).push(cb)
 }
 
-export const buttons = new BitField()
+buttons = new BitField()
+changed = new BitField()
 
 export const options = {}
 
@@ -76,8 +77,21 @@ export const listen = (...keys) => {
 	}
 }
 export let paused = false
-export const pause = paused => me && postMessage(!!paused, '*')
-export function _setPaused(b){paused = b}
+let customPaused = false
+export const pause = _paused => me && (paused != (_paused=!!_paused) || customPaused) && postMessage(_paused, '*')
+export function customPause(){
+	if(customPaused)return
+	fakePause(true)
+	customPaused = true
+	postMessage('custompause', '*')
+}
+export const quit = () => postMessage('quit', '*')
+
+export function fakePause(b = true){
+	paused = b
+	customPaused = false
+	for(const cb of _pauseCb) cb()
+}
 
 
 export let renderF3 = false, renderBoxes = false, renderUI = true

@@ -1,30 +1,60 @@
-import { particlePng, explode, AshParticle, BlastParticle } from "./defs.js"
+import { particlePng, explode, AshParticle, BlastParticle, hurt } from "./defs.js"
 import { renderItem, renderItemCount } from "./effects.js"
 import { Entities, Entity, Item, Blocks } from 'definitions'
 import { renderF3 } from 'api'
 
 const meInterface = Texture('/vanilla/meint.png')
 
+class LivingEntity extends Entity{
+	health = 20
+	hitTimer = 0
+	hurtTextures = null
+	textures = null
+	99(buf){
+		const oldHealth = this.health
+		this.health = buf.byte()
+		if(this.health < oldHealth){
+			this.sound(hurt[floor(random()*hurt.length)])
+		}
+		const fields = buf.byte()
+		if(fields & 1){
+			if(!this.hitTimer && !this.hurtTextures){
+				this.hurtTextures = {...this.textures}
+				for(const n in this.hurtTextures){
+					const t = this.hurtTextures[n]
+					this.hurtTextures[n] = t.crop(0,0,t.w,t.h)
+					// TODO
+				}
+			}
+			this.hitTimer = 0.5
+		}
+	}
+	render(c){
+		this.hitTimer -= dt
+		if(this.hitTimer < 0) this.hitTimer = 0
+		if(!this.health) c.scale(0,0)
+	}
+}
 
 const skinCan = Can(28, 12)
-Entities.player = class extends Entity{
+Entities.player = class extends LivingEntity{
 	static alive = true
 	inv = Array.null(36)
 	items = [null, null, null, null, null, null]
-	health = 20
 	selected = 0
 	skin = null
 	textures = null
 	render(c){
+		super.render(c)
 		if(!this.textures) return
 		const angle = (this.state & 3) == 2 ? sin(t * 4) * this.dx / 5 : sin(t * 12) * this.dx / 10, xs = this.f >= 0 ? 0.9 : -0.9, ys = this.name == 'Dinnerbone' || this.name == 'Grumm' ? -0.9 : 0.9
 		const extraAngle = this.state & 8 ? ((-5*t%1+1)%1)*((-5*t%1+1)%1)/3 : 0
-		if(this.name && this != me){
+		if(this.name && (renderF3 || this != me)){
 			c.textAlign = 'center'
-			const {width, top, bottom} = c.measure(this.name)
+			const {width, top, bottom} = c.measureText(this.name, 0.3)
 			c.fillStyle = '#000'
 			c.globalAlpha = 0.2
-			c.fillRect(width * -0.15 - 0.05, this.height + 0.15 - 0.05, width * 0.3 + 0.1, (bottom + top) * 0.3 + 0.1)
+			c.fillRect(width * -0.5 - 0.05, this.height + 0.15 - 0.05, width + 0.1, bottom + top + 0.1)
 			c.globalAlpha = 1
 			c.fillStyle = '#fff'
 			c.fillText(this.name, 0, this.height + 0.15 + bottom * 0.3, 0.3)
@@ -81,7 +111,8 @@ Entities.player = class extends Entity{
 		c.rotate(PI/2-abs(this.f))
 		c.image(this.textures.head, -0.25, 0, 0.5, 0.5)
 	}
-	placed(){
+	place(){
+		super.place()
 		const can = Can(33, 12)
 		const skinUnpacked = new ImageData(28, 12)
 		for(let i = 0; i < 336; i++){
@@ -166,6 +197,7 @@ Entities.item = class extends Entity{
 	static head = 0
 	static savedata = {item: Item}
 	render(c){
+		if(!this.item) return
 		c.translate(0, sin(t*2)/12+.15)
 		c.scale(0.3125, 0.3125)
 		renderItem(c, this.item)

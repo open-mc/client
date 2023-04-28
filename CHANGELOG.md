@@ -20,9 +20,9 @@ Todo: water + lava cut textures for surface (and flowing variants)
 
 - Player movement checks
 
-Todo: Entity health, health animations
+- Entity health, Ability to die and respawn
 
-Todo: Ability to die and respawn, dying animations
+Todo: health animations, dying animations
 
 Todo: Sugar cane
 
@@ -31,11 +31,11 @@ Todo: Nether portal, end island
 ## Alpha 7
 
 - The end
-- TNT and a few entities
+- TNT and a few entityMap
 - Changelog + credits
 - Camera effect option + leftclick/rightclick option
 - A few more items / blocks
-- Hitting entities
+- Hitting entityMap
 - Explosions
 
 ## Alpha 6
@@ -45,7 +45,7 @@ Todo: Nether portal, end island
 - Water and lava movement drag
 - Item consuming
 - Break times
-- Item entities
+- Item entityMap
 - Server side physics
 - Item dropping when breaking blocks
 - Diamond pickaxe (breaks certain blocks 25x faster)

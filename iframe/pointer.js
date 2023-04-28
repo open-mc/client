@@ -1,6 +1,6 @@
 import { setblock, onPlayerLoad, getblock } from './world.js'
 import './controls.js'
-import { button, onmousemove, W2, H2, options, paused, buttons } from 'api'
+import { button, onmousemove, W2, H2, options, paused, renderUI } from 'api'
 
 export let x = 2, y = 0
 export let bx = 0, by = 0, bpx = 0, bpy = 0
@@ -9,6 +9,7 @@ export const REACH = 10
 export const effectiveReach = () => max(1, min(REACH, min(W2, H2) * 1.5 - 1.5))
 let lastPlace = 0
 export function drawPointer(c){
+	if(!renderUI) return
 	c.beginPath()
 	c.rect(ifloat(x + me.x - cam.x) - .3, ifloat(y + me.head + me.y - cam.y) - .03125, .6, .0625)
 	c.rect(ifloat(x + me.x - cam.x) - .03125, ifloat(y + me.head + me.y - cam.y) - .3, .0625, .6)
@@ -21,7 +22,6 @@ export function drawPointer(c){
 	bpx = NaN, bpy = NaN
 	const reach = sqrt(x * x + y * y)
 	let d = 0, px = me.x - bx, py = me.y + me.head - by
-	me.f = atan2(x, y)
 	const dx = sin(me.f), dy = cos(me.f)
 	while(d < reach){
 		if(getblock(bx, by).solid)break
@@ -100,7 +100,7 @@ export function checkBlockPlacing(buf){
 			a: for(const ch of [map.get(xa+ya*67108864), map.get(x1+ya*67108864), map.get(xa+y1*67108864), map.get(x1+y1*67108864)]) if(ch)for(const e of ch.entities)
 				if(e.y < yp && e.y + e.height > yp && e.x - e.width < xp && e.x + e.width > xp){
 					// Found entity
-					id = e._id
+					id = e.netId
 					break a
 				}
 			didHit = true
@@ -113,6 +113,7 @@ export function checkBlockPlacing(buf){
 export let blockbreakx = NaN, blockbreaky = NaN
 button(LBUTTON, RBUTTON, () => {lastPlace = 0})
 onmousemove((dx, dy) => {
+	if(!me) return
 	if(paused){
 		const upscale = options.guiScale * 2
 		mx = dx * devicePixelRatio; my = dy * devicePixelRatio
@@ -136,14 +137,13 @@ onmousemove((dx, dy) => {
 		cam.x += (x - oldx) / 3
 		cam.y += (y - oldy) / 3
 	}
+	me.f = atan2(x, y)
 })
-export const resetPointer = (f) => {
+export const reset = (f) => {
 	let r = min(4, REACH)
 	x = sin(f) * r
 	y = cos(f) * r
 }
-
-onPlayerLoad(() => resetPointer(me.f))
 
 // I am flabbergasted this is even possible
 import * as ptr from "./pointer.js"

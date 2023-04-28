@@ -1,4 +1,4 @@
-import { button, onwheel, buttons, listen, options, paused } from "api"
+import { button, onwheel, paused } from "api"
 import { EPSILON } from "./entity.js"
 import { getblock } from 'world'
 

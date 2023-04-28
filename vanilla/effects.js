@@ -1,6 +1,16 @@
 import { music } from 'world'
 export const audioSet = (name, variant, count) => Array.from({length: count}, (_, i) => Audio('/music/'+name+'/'+variant+(i+1)+'.mp3'))
 
+export const click = Audio('/img/click.mp3')
+
+export const icons = Texture('/vanilla/icons.png')
+const btns = Texture('/img/button.png')
+export const uiButtons = {
+	large: btns.crop(124,20,200,20),
+	largeSelected: btns.crop(124,40,200,20),
+	largeDisabled: btns.crop(124,0,200,20)
+}
+
 music('overworld',
 	"/music/calm1.mp3",
 	"/music/calm2.mp3",
@@ -52,13 +62,14 @@ export function renderItem(c, item, respectModel = false){
 }
 
 export function renderItemCount(c, item){
-	const count = item?.count ?? 1
+	if(!item) return
+	const count = item.count
 	if(count != 1){
 		c.textBaseline = 'alphabetic'
 		c.textAlign = 'right'
 		c.fillStyle = '#000'
 		c.fillText(count + '', 0.56, -0.06, 0.6)
-		c.fillStyle = count === (count & 127) ? '#fff' : '#e44'
+		c.fillStyle = count === (count & 255) ? '#fff' : '#e44'
 		c.fillText(count + '', 0.5, 0, 0.6)
 	}
 }

@@ -22,24 +22,6 @@ export function getblock(x, y){
 	return ch ? ch.tiles[(x & 63) + ((y & 63) << 6)] : Blocks.air()
 }
 
-export function addEntity(e){
-	entities.set(e._id, e)
-	if(meid === e._id){
-		if(!me)postMessage(false, '*')
-		me = e
-		cam.x = me.ix = me.x
-		cam.y = me.iy = me.y
-		for(const cb of playerLoadCb) cb(me)
-	}
-}
-export function removeEntity(e){
-	if(!e) return
-	entities.delete(e._id)
-	if(e == me) me._id = -1
-	if(e.chunk) e.chunk.entities.delete(e)
-	if(e.removed) e.removed()
-}
-
 const playerLoadCb = []
 export const onPlayerLoad = cb => playerLoadCb.push(cb)
 const SPEEDOFSOUND = 340
@@ -67,3 +49,5 @@ export const music = (theme, ...srcs) => {
 //export const entityEventDefs = new Array(255)
 //export const entityEventIfns = new Array(255)
 //entityevent = (id, r, r2) => (entityEventDefs[id] = r, entityEventIfns[id] = r2)
+
+export { onpacket } from './incomingPacket.js'

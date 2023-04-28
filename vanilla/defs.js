@@ -5,6 +5,7 @@ export const terrainPng = Texture("/vanilla/terrain.png")
 export const itemsPng = Texture("/vanilla/items.png")
 export const particlePng = Texture("/vanilla/particles.png")
 export const explode = [1,2,3,4].mutmap(a => Audio(`/music/misc/explode${a}.mp3`))
+export const hurt = [1,2,3].mutmap(a => Audio(`/music/misc/hurt${a}.mp3`))
 
 Blocks.air = class extends Block{ static solid = false }
 Blocks.grass = class extends Block{

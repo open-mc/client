@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!-- Safari, fuck you! -->
 <script async src="https://ga.jspm.io/npm:es-module-shims@1.7.0/dist/es-module-shims.js"></script>
-<script type="importmap" id="iMap">
+<script type="importmap">
 {"imports": {
 	"api": "./api.js",
 	"world": "./world.js",
@@ -45,19 +45,17 @@
 		 * An alternative solution that I may implement later is to modify the transformation matrix,
 		 * and coordinates be adjusted individually for each operation (including .rect(), .circle(), ...)
 		 */
-		const _fillTxt = C.fillText, _strokeTxt = C.strokeText, {set: setFillStyle, get: getFillStyle} = Object.getOwnPropertyDescriptor(C, 'fillStyle'),{set: setStrokeStyle, get: getStrokeStyle} = Object.getOwnPropertyDescriptor(C, 'strokeStyle')
+		const _fillTxt = C.fillText, _strokeTxt = C.strokeText, _measureTxt = C.measureText, {set: setFillStyle, get: getFillStyle} = Object.getOwnPropertyDescriptor(C, 'fillStyle'),{set: setStrokeStyle, get: getStrokeStyle} = Object.getOwnPropertyDescriptor(C, 'strokeStyle')
 		C.setFillStyle = setFillStyle; C.getFillStyle = getFillStyle
 		C.setStrokeStyle = setStrokeStyle; C.getStrokeStyle = getStrokeStyle
 		C.fillText = function(t, x, y, s, maxW = 2147483647){
-			s *= .001
-			const S = 1/s
+			const S = 1/(s *= .001)
 			this.scale(s, -s)
 			_fillTxt.call(this, t, x*S, -y*S, maxW*S)
 			this.scale(S,-S)
 		}
 		C.strokeText = function(t, x, y, s, maxW = 2147483647){
-			s *= .001
-			const S = 1/s
+			const S = 1/(s *= .001)
 			this.scale(s, -s)
 			_strokeTxt.call(this, t, x*S, -y*S, maxW*S)
 			this.scale(S,-S)
@@ -82,12 +80,12 @@
 				this.scale(-1,-1)
 			}
 		}
-		C.measure = function(txt){
-			const {actualBoundingBoxLeft: left, actualBoundingBoxRight: right, actualBoundingBoxAscent: top, actualBoundingBoxDescent: bottom, width} = this.measureText(txt)
-			return {left: left / 1000, right: right / 1000, top: top / 1000, bottom: bottom / 1000, width: width / 1000}
+		C.measureText = function(txt, s = 1){
+			const {actualBoundingBoxLeft: left, actualBoundingBoxRight: right, actualBoundingBoxAscent: top, actualBoundingBoxDescent: bottom, width} = _measureTxt.call(this, txt)
+			return {left: left * s / 1000, right: right * s / 1000, top: top * s / 1000, bottom: bottom * s / 1000, width: width * s / 1000}
 		}
 		C.push = function(){
-			//V8 says we can avoid allocation because the object does not escape. We extract props and add them directly to the array, avoiding the super expensive DOMMatrix object allocation. If you try and touch the following line, you better be sleeping with one eye open...
+			//V8 says we can avoid allocation because the object does not escape this line. We extract props and add them directly to the array, avoiding the super expensive DOMMatrix heap allocation. If you try and touch the following line, you better be sleeping with one eye open...
 			const {a, b, c, d, e, f} = this.getTransform()
 			this.transforms.push(f, e, d, c, b, a)
 		}
@@ -100,10 +98,8 @@
 		}
 		C.mouse = function(){
 			const {a, b, c, d, e, f} = this.getTransform()
+			// Divide by matrix
 			const det = a * d - b * c
-			// x y 1
-			// a c e -> x
-			// b d f -> y
 			return {
 				x: mx * d / det - mx * c / det + (c * f - d * e) / det,
 				y: my * a / det - my * b / det + (b * e - a * f) / det
@@ -269,9 +265,9 @@ const Audio = (src, bg = false) => {
 		}
 	}
 }
-	let send, onpacket, download, listen
+	let send, download, listen, buttons, changed
 	let loading = 1, loaded = null, dt = 1 / 60, pointer
-	let t = 0, TPS = 20, map = new Map(), entities = new Map()
+	let t = 0, TPS = 20, map = new Map(), entityMap = new Map()
 	let meid = -1, r = 0, me = null
 	let ticks = 0, world = '', gx = 0, gy = 0
 	const cam = {x: 0, y: 0, z: 2}
@@ -298,12 +294,4 @@ const Audio = (src, bg = false) => {
 	import "./world.js"
 	import "./index.js"
 	import "../data.js"
-
-	const c = Can()
-	const { requestAnimationFrame } = globalThis
-	void function frame(){
-
-		requestAnimationFrame(frame)
-	}()
-	
 </script>

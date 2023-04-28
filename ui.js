@@ -23,7 +23,7 @@ HTMLElement.prototype.attr = function(a, b){this.setAttribute(a, b); return this
 
 for(const n of [HTMLCollection, NodeList])Object.setPrototypeOf(n.prototype, Array.prototype)
 
-export const NONE = document.createComment('')
+export const NONE = new Comment()
 NONE.esc = hideUI
 document.body.append(NONE)
 
@@ -61,16 +61,16 @@ document.onselectionchange = () => {
 	}
 }
 const earr = [''], fnode = document.createElement('f')
-function newnode(v, k, t){
+function newnode(v, k, text){
 	let n = v.children[v.i++]
 	if(n){
-		n.textContent = t
+		n.textContent = text
 		n.className = k
 		return n
 	}
 	n = fnode.cloneNode(true)
 	n.className = k
-	n.textContent = t
+	n.textContent = text
 	v.append(n)
 	return n
 }

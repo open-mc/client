@@ -1,6 +1,15 @@
 import { renderLayer, options } from 'api'
 import { getblock, sound } from 'world'
 import { registerTypes } from '../data.js'
+import * as pointer from './pointer.js'
+
+export function foundMe(e){
+	if(!me)postMessage(false, '*')
+	me = e
+	cam.x = me.ix = me.x
+	cam.y = me.iy = me.y
+	pointer.reset(e.f)
+}
 
 export class Block{
 	static placeSounds = []; static stepSounds = []
@@ -53,7 +62,7 @@ export class Item{
 	}
 	static encode(buf, v){
 		if(buf.i > buf.cur.byteLength - 3)buf.allocnew();
-		if(!v){buf.cur.setUint8(buf.i++, 0); return}
+		if(!v || !v.count){buf.cur.setUint8(buf.i++, 0); return}
 		buf.cur.setUint8(buf.i++, v.count)
 		buf.cur.setUint16(buf.i, v.id); buf.i += 2
 		buf.string(v.name)
@@ -62,15 +71,15 @@ export class Item{
 }
 registerTypes({Item})
 export class Entity{
-	constructor(x,y){
-		this.ix = this.x = x
-		this.iy = this.y = y
-		this.dx = this.dy = 0
-		this.state = 0
-		this.age = 0
-		this.f = PI / 2
-		this.blocksWalked = 0
-	}
+	blocksWalked = 0
+	ix = 0; x = 0
+	iy = 0; y = 0
+	dx = 0; dy = 0
+	chunk = null
+	netId = 0
+	state = 0
+	age = 0
+	f = PI / 2
 	prestep(){
 		const { gooeyness } = getblock(floor(this.x), floor(this.dy > 0 ? this.y : this.y + this.height / 4))
 		if(gooeyness) this.dx *= (1 - gooeyness), this.dy *= (1 - gooeyness)
@@ -86,7 +95,16 @@ export class Entity{
 			}
 		}else this.blocksWalked = this.dy < -10 ? 1.7 : 1.68
 	}
-	tick(){}
+	place(){
+		entityMap.set(this.netId, this)
+		this.ix = this.x; this.iy = this.y
+		if(meid === this.netId && me != this) foundMe(this)
+	}
+	remove(){
+		entityMap.delete(this.netId)
+		this.netId = -1
+		if(this.chunk) this.chunk.entities.delete(this)
+	}
 	sound(a,b=1,c=1){sound(a, this.ix-.5, this.iy-.5+this.head, b, c)}
 	static width = 0.5
 	static height = 1
@@ -165,10 +183,10 @@ export const particles = new Set
 
 renderLayer(300, c => {
 	let tx = 0, ty = 0
-	for(const p of particles){
-		c.translate(-(tx - (tx = ifloat(p.x - cam.x))), -(ty - (ty = ifloat(p.y - cam.y))))
-		p.render(c)
-		p.step()
+	for(const particle of particles){
+		c.translate(-(tx - (tx = ifloat(particle.x - cam.x))), -(ty - (ty = ifloat(particle.y - cam.y))))
+		particle.render(c)
+		particle.step()
 	}
 })
 
@@ -192,15 +210,15 @@ export function blockBreak(block, x, y){
 
 export function stepParticles(block, e){
 	for(let i = 0; i < 4; i++){
-		const p = new BlockParticle(block, i, e.x - .5, e.y)
-		p.dy /= 2; p.dx -= e.dx / 2; p.ddx = e.dx / 2; p.lifetime /= 2
+		const particle = new BlockParticle(block, i, e.x - .5, e.y)
+		particle.dy /= 2; particle.dx -= e.dx / 2; particle.ddx = e.dx / 2; particle.lifetime /= 2
 	}
 }
 
 export function punchParticles(block, x, y){
 	const s = (random() * 256) | 0
-	let p = new BlockParticle(block, s&15, x, y)
-	p.dy /= 2; p.lifetime /= 2; p.physical = false; p.ddy /= 2
-	p = new BlockParticle(block, s>>4, x, y)
-	p.dy /= 2; p.lifetime /= 2; p.physical = false; p.ddy /= 2
+	let particle = new BlockParticle(block, s&15, x, y)
+	particle.dy /= 2; particle.lifetime /= 2; particle.physical = false; particle.ddy /= 2
+	particle = new BlockParticle(block, s>>4, x, y)
+	particle.dy /= 2; particle.lifetime /= 2; particle.physical = false; particle.ddy /= 2
 }
