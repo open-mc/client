@@ -169,6 +169,15 @@ Blocks.gold_block = MineralBlock
 Blocks.emerald_block = MineralBlock
 Blocks.diamond_block = MineralBlock
 
+Blocks.fire = class extends Block{
+	solid = false
+	static texture = terrainPng.at(15, 1)
+}
+
+Blocks.portal = class extends Block{
+	static texture = terrainPng.at(14, 1)
+}
+
 
 Items.oak_log = class extends Item{
 	places(){ return Blocks.oak_log }

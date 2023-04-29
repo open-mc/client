@@ -57,6 +57,7 @@ const onMsg = ({data}) => {
 			Thing.savedatahistory = a.map(jsonToType)
 			Thing.__constructor = Thing
 			Thing.constructor = List[Thing.id] = Dict[name] = Dict == Blocks && !Thing.savedata ? function a(){return a} : a => new Thing(a)
+			Thing.constructor.prototype = Thing.prototype
 			if(Thing.init) Thing.init()
 
 			// Copy static props to prototype
@@ -69,8 +70,8 @@ const onMsg = ({data}) => {
 				proto = Object.getPrototypeOf(proto)
 			}while(proto.prototype && !Object.hasOwn(proto.prototype, 'prototype'))
 			if(Dict == Blocks && !Thing.savedata)
-				Object.setPrototypeOf(List[Thing.id], Thing.prototype)
-				Object.defineProperties(List[Thing.id], Object.getOwnPropertyDescriptors(new Thing))
+				Object.setPrototypeOf(Thing.constructor, Thing.prototype)
+				Object.defineProperties(Thing.constructor, Object.getOwnPropertyDescriptors(new Thing))
 		}
 	}else if(data instanceof ArrayBuffer){
 		if(loading) return void msgQueue.push(data)

@@ -25,7 +25,8 @@ function clockPacket(data){
 function chunkPacket(buf){
 	const chunk = new Chunk(buf)
 	const k = (chunk.x&67108863)+(chunk.y&67108863)*67108864
-	if(map.has(k))trashtrap.add(k)
+	const {ref} = map.get(k) || chunk
+	chunk.ref = ref + 1
 	map.set(k, chunk)
 	while(buf.left){
 		let e = EntityIDs[0]()
@@ -40,16 +41,15 @@ function chunkPacket(buf){
 		chunk.entities.add(e)
 	}
 }
-const trashtrap = new Set()
 function chunkDeletePacket(data){
 	while(data.left){
 		const cx = data.int(), cy = data.int()
 		const k = (cx&67108863)+(cy&67108863)*67108864
-		if(trashtrap.has(k)){trashtrap.delete(k);continue}
 		const chunk = map.get(k)
-		chunk.hide()
-		map.delete(k)
-		//for(const e of chunk.entities)removeEntity(e)
+		if(!--chunk.ref){
+			chunk.hide()
+			map.delete(k)
+		}
 	}
 }
 function blockSetPacket(buf){
@@ -95,11 +95,11 @@ function entityPacket(buf){
 			if(mv & 64){
 				mv |= 256
 				e = EntityIDs[buf.short()]()
-				e.netId=id
+				e.netId = id
 				e.age = buf.double()
 				buf.read(e.savedata, e)
 			}else throw 'Not supposed to happen!'
-		}else if(mv & 64)Object.setPrototypeOf(e, EntityIDs[buf.short()].prototype), buf.read(e.savedata, e)
+		}else if(mv & 64)Object.setPrototypeOf(e, EntityIDs[buf.short()].prototype), e.age = buf.double(), buf.read(e.savedata, e)
 		if(mv & 1)if(abs(e.x - (e.x = buf.double())) > 16 || e == me)e.ix = e.x
 		if(mv & 2)if(abs(e.y - (e.y = buf.double())) > 16 || e == me)e.iy = e.y
 		if(mv & 4)e.dx = buf.float(), e.dy = buf.float()

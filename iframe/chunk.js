@@ -5,6 +5,7 @@ export class Chunk{
 		const x = buf.int(), y = buf.int()
 		this.x = x << 6 >> 6
 		this.y = y << 6 >> 6
+		this.ref = 0
 		this.tiles = []
 		this.entities = new Set()
 		this.ctx = null

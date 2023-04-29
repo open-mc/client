@@ -22,11 +22,11 @@ Todo: water + lava cut textures for surface (and flowing variants)
 
 - Entity health, Ability to die and respawn
 
-Todo: health animations, dying animations
+Todo: Nether portal, end island
 
 Todo: Sugar cane
 
-Todo: Nether portal, end island
+Todo: health animations, dying animations
 
 ## Alpha 7
 

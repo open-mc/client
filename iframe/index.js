@@ -5,7 +5,7 @@ import { gridEvents, gridEventMap, getblock } from 'world'
 import { checkBlockPlacing } from "./pointer.js"
 import { button, drawPhase, renderLayer, uiLayer, W, H, W2, H2, SCALE, options, paused, _recalcDimensions, _renderPhases, renderBoxes, renderF3 } from 'api'
 import { particles } from 'definitions'
-import { VERSION } from "./v.js"
+import { VERSION } from "../v.js"
 
 DataReader = DR
 DataWriter = DW
@@ -218,9 +218,11 @@ Facing: ${(me.f >= 0 ? 'R' : 'L') + (90 - abs(me.f / PI2 * 360)).toFixed(1).padS
 	const mex = floor(me.x) >> 3 & 6, mexi = (floor(me.x) & 15) / 16
 	y = h - 1
 	c.textAlign = 'right'
+	const lookingAt = getblock(floor(pointer.x + me.x), floor(pointer.y + me.y + me.head))
 	for(const t of `Tick ${ticks}, Day ${floor((ticks+6000)/24000)}, Time ${floor((ticks/1000+6)%24).toString().padStart(2,'0')}:${(floor((ticks/250)%4)*15).toString().padStart(2,'0')}
 Dimension: ${world}
 Biome: ${me.chunk ? round(me.chunk.biomes[mex] * (1 - mexi) + me.chunk.biomes[mex+2] * mexi) : 0}/${me.chunk ? round(me.chunk.biomes[mex+1] * (1 - mexi) + me.chunk.biomes[mex+3] * mexi) : 0}
+Looking at: ${lookingAt.className+(lookingAt.savedata?' {...}':'')} (${lookingAt.id})
 `.slice(0, -1).split('\n')){
 		let {top, bottom, width} = c.measureText(t, 10)
 		top++; bottom++; width += 2; y -= top + bottom

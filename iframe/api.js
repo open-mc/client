@@ -68,6 +68,7 @@ buttons = new BitField()
 changed = new BitField()
 
 export const options = {}
+globalThis.options = options
 
 export const listen = (...keys) => {
 	const cb = keys.pop()

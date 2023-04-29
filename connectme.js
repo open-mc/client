@@ -4,7 +4,7 @@ import { msg, pendingConnection, reconn } from "./uis/dirtscreen.js"
 import { Btn, click, Div, Img, Label, ping, Row } from "./ui.js"
 import { servers, saveServers, storage, options } from "./save.js"
 import { destroyIframe, fwPacket, gameIframe } from "./iframe.js"
-import { PROTOCOL_VERSION } from "./iframe/v.js"
+import { PROTOCOL_VERSION } from "./v.js"
 let lastIp = null
 globalThis.ws = null
 
