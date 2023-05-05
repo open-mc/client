@@ -102,3 +102,8 @@ button(KEYS.F3, () => {
 	if(buttons.has(KEYS.ALT) || buttons.has(KEYS.MOD)) renderBoxes = !renderBoxes
 	else renderF3 = !renderF3
 })
+
+export const codes = new Array(256)
+
+export const onpacket = (c, cb) => codes[c] = cb
+export const send = buf => postMessage(buf.build ? buf.build().buffer : buf.buffer || buf, '*')

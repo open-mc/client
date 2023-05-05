@@ -56,6 +56,7 @@ async function getSkin(accept){
 
 let list, input, addBtn
 const serverList = UI('dirtbg',
+	Spacer(20),
 	Label('Welcome, ' + storage.name + '!').attr('style', 'color: #E92'),
 	Label('Connect to a server:'),
 	Spacer(50),
@@ -67,6 +68,7 @@ const serverList = UI('dirtbg',
 	list = Div('serverlist'),
 	Spacer(20),
 	Row(input = Input('text', 'server ip'), addBtn = Btn('Add server', () => {if(input.value=='server ip') return input.value = 'very funny';else if(input.value=='very funny') return;addServer(input.value);input.value='';addBtn.disabled=true}, 'small disabled')),
+	Spacer(20),
 	Label('Hosting a server').attr('style', 'position: absolute; bottom: 2rem; height: 15rem; right: 2rem; opacity: 0.4; font-size: 10rem; cursor: pointer').attr('onclick', "window.open('https://github.com/open-mc/server','_blank')")
 )
 input.oninput = () => {addBtn.disabled = !input.value}

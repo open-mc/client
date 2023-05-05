@@ -1,10 +1,9 @@
-import { setblock, gridEventMap, gridEvents } from "world"
+import { getblock, setblock, gridEventMap, gridEvents, map, entityMap } from 'world'
 import { Chunk } from "./chunk.js"
 import { queue } from "./sounds.js"
 import { moveEntity } from "./entity.js"
-import { EntityIDs, BlockIDs } from 'definitions'
-import { getblock } from "./world.js"
-import { foundMe } from "./defs.js"
+import { BlockIDs, EntityIDs, foundMe } from 'definitions'
+import { codes } from 'api'
 
 function rubberPacket(data){
 	meid = data.uint32() + data.uint16() * 4294967296
@@ -114,7 +113,7 @@ function entityPacket(buf){
 		moveEntity(e)
 	}
 }
-export const codes = Object.assign(new Array(256), {
+Object.assign(codes, {
 	1: rubberPacket,
 	2: dimPacket,
 	3: clockPacket,
@@ -123,5 +122,3 @@ export const codes = Object.assign(new Array(256), {
 	17: chunkDeletePacket,
 	20: entityPacket,
 })
-
-export const onpacket = (c, cb) => codes[c] = cb

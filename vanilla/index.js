@@ -1,14 +1,14 @@
 import { AshParticle, BlastParticle, explode, terrainPng } from "./defs.js"
 import { uiButtons, icons, renderItem, renderItemCount, click } from "./effects.js"
 import "./entities.js"
-import { button, W2, H2, uiLayer, renderLayer, onpause, pause, paused, renderUI, customPause, quit } from 'api'
-import { getblock, gridEvents, sound, onpacket } from 'world'
+import { button, W2, uiLayer, renderLayer, onpause, pause, paused, renderUI, customPause, quit, onpacket, send } from 'api'
+import { getblock, gridEvents, sound, entityMap, pointer } from 'world'
 import { Item } from 'definitions'
+const { Texture } = loader(import.meta)
 
 const BREAKING = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].mutmap(x => terrainPng.at(x, 15))
-
-const skyPng = Texture('/vanilla/sky.png')
-const stars = Texture('/vanilla/stars.png').pattern()
+const skyPng = Texture('sky.png')
+const stars = Texture('stars.png').pattern()
 const sun = skyPng.crop(128, 64, 32, 32), moons = [
 	skyPng.crop(128, 0, 32, 32),
 	skyPng.crop(160, 0, 32, 32),
@@ -114,9 +114,9 @@ renderLayer(150, c => {
 	c.globalCompositeOperation = 'source-over'
 })
 
-const hotbar = Texture('/vanilla/hotbar.png')
-const selected = Texture('/vanilla/slot.png')
-const inventory = Texture('/vanilla/inv.png')
+const hotbar = Texture('hotbar.png')
+const selected = Texture('slot.png')
+const inventory = Texture('inv.png')
 
 const heart = icons.crop(52,0,9,9), halfHeart = icons.crop(61,0,9,9)
 const heartEmpty = icons.crop(16,0,9,9)

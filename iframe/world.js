@@ -1,5 +1,6 @@
 import { Blocks } from 'definitions'
 import { musicdict } from './sounds.js'
+export const map = new Map, entityMap = new Map()
 
 export function setblock(x, y, b){
 	const k = (x>>>6)+(y>>>6)*67108864
@@ -40,14 +41,9 @@ export function sound(fn, x, y, vol = 1, pitch = 1){
 
 export const gridEventMap = new Map
 export const gridEvents = new Array(255)
-export const music = (theme, ...srcs) => {
+export const music = (theme, ...audios) => {
 	const arr = musicdict[theme] || (musicdict[theme] = [])
-	for(const src of srcs) arr.push(Audio(src, true))
+	arr.push(...audios)
 }
 
-//export const entityEvents = new Map
-//export const entityEventDefs = new Array(255)
-//export const entityEventIfns = new Array(255)
-//entityevent = (id, r, r2) => (entityEventDefs[id] = r, entityEventIfns[id] = r2)
-
-export { onpacket } from './incomingPacket.js'
+export * as pointer from './pointer.js'

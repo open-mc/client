@@ -1,8 +1,6 @@
-import { BitField } from './bitfield.js'
 import { DataReader, jsonToType } from '../data.js'
-import { codes } from './incomingPacket.js'
 import { frame } from './index.js'
-import { options, listen, _cbs, _mouseMoveCb, _pauseCb, _wheelCb, _optionListeners, fakePause } from 'api'
+import { options, listen, _cbs, _mouseMoveCb, _pauseCb, _wheelCb, _optionListeners, fakePause, codes } from 'api'
 import { Blocks, Items, Entities, BlockIDs, ItemIDs, EntityIDs, Block, Item, Entity } from 'definitions'
 import 'world'
 
@@ -91,5 +89,4 @@ for(const data of [msgQueue, msgQueue = []][0]) onMsg({data})
 addEventListener('message', onMsg)
 onmessage = null
 
-send = buf => postMessage(buf.build ? buf.build().buffer : buf.buffer || buf, '*')
 download = blob => postMessage(blob, '*')

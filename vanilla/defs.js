@@ -1,11 +1,13 @@
 import { audioSet, lava, water } from "./effects.js"
 import { sound } from 'world'
 import { Blocks, Items, Block, Item, Particle } from 'definitions'
-export const terrainPng = Texture("/vanilla/terrain.png")
-export const itemsPng = Texture("/vanilla/items.png")
-export const particlePng = Texture("/vanilla/particles.png")
-export const explode = [1,2,3,4].mutmap(a => Audio(`/music/misc/explode${a}.mp3`))
-export const hurt = [1,2,3].mutmap(a => Audio(`/music/misc/hurt${a}.mp3`))
+const {Audio, Texture} = loader(import.meta)
+
+export const terrainPng = Texture("terrain.png")
+export const itemsPng = Texture("items.png")
+export const particlePng = Texture("particles.png")
+export const explode = [1,2,3,4].mutmap(a => Audio(`sound/misc/explode${a}.mp3`))
+export const hurt = [1,2,3].mutmap(a => Audio(`sound/misc/hurt${a}.mp3`))
 
 Blocks.air = class extends Block{ static solid = false }
 Blocks.grass = class extends Block{
@@ -71,23 +73,27 @@ Blocks.sand = class extends Block{
 	static stepSounds = audioSet('sand', 'step', 5)
 }
 Blocks.water = class extends Block{
-	static texture = terrainPng.at(13, 12)
+	static texture = terrainPng.at(13, 13)
 	static solid = false
 	static climbable = true
-	static gooeyness = 0.07
+	static gooeyness = 0.15
 	random(x, y){
 		const r = random()
-		if(r < .1)
+		if(r < .025)
 			sound(water.ambient[0], x, y, 1, 1)
-		else if(r < .2)
-			sound(water.ambient[1], x, y, 1, 1)	
+		else if(r < .05)
+			sound(water.ambient[1], x, y, 1, 1)
 	}
 }
 Blocks.lava = class extends Blocks.water{
-	static texture = terrainPng.at(13, 14)
+	static texture = terrainPng.at(13, 15)
 	static gooeyness = 0.5
 	random(x, y){
-		sound(random() < .05 ? lava.ambient : lava.pop, x, y, 1, 1)
+		const r = random()
+		if(r < .015)
+			sound(lava.ambient, x, y, 1, 1)
+		else if(r < .25)
+			sound(lava.pop, x, y, 1, 1)
 	}
 }
 Blocks.sandstone = class extends Stone{
@@ -172,12 +178,19 @@ Blocks.diamond_block = MineralBlock
 Blocks.fire = class extends Block{
 	solid = false
 	static texture = terrainPng.at(15, 1)
+	static placeSounds = [Audio('sound/misc/ignite.mp3')]
 }
 
 Blocks.portal = class extends Block{
+	static solid = false
 	static texture = terrainPng.at(14, 1)
 }
 
+Blocks.sugar_cane = class extends Block{
+	static breaktime = 0
+	static placeSounds = Blocks.grass.placeSounds
+	static texture = terrainPng.crop(144,64,16,16)
+}
 
 Items.oak_log = class extends Item{
 	places(){ return Blocks.oak_log }
@@ -214,6 +227,10 @@ Items.grass = class extends Item{
 Items.dirt = class extends Item{
 	places(){ return Blocks.dirt }
 	static texture = Blocks.dirt.texture
+}
+Items.sugar_cane = class extends Item{
+	places(){ return Blocks.sugar_cane }
+	static texture = itemsPng.crop(16,256,16,16)
 }
 
 class Tool extends Item{

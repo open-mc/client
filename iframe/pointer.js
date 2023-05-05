@@ -1,4 +1,4 @@
-import { setblock, onPlayerLoad, getblock } from './world.js'
+import { setblock, onPlayerLoad, getblock, map } from 'world'
 import './controls.js'
 import { button, onmousemove, W2, H2, options, paused, renderUI } from 'api'
 
@@ -146,5 +146,4 @@ export const reset = (f) => {
 }
 
 // I am flabbergasted this is even possible
-import * as ptr from "./pointer.js"
-pointer = ptr
+import * as pointer from "./pointer.js"

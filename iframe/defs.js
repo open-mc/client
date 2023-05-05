@@ -1,5 +1,5 @@
 import { renderLayer, options } from 'api'
-import { getblock, sound } from 'world'
+import { getblock, sound, entityMap } from 'world'
 import { registerTypes } from '../data.js'
 import * as pointer from './pointer.js'
 
@@ -20,22 +20,22 @@ export class Block{
 	static breaktime = 3
 	1(buf, x, y){
 		if(this.placeSounds.length)
-			sound(this.placeSounds[Math.floor(Math.random() * this.placeSounds.length)], x, y, 1, 0.8)
+			sound(this.placeSounds[floor(random() * this.placeSounds.length)], x, y, 1, 0.8)
 	}
 	2(buf, x, y){
 		if(this.placeSounds.length)
-			sound(this.placeSounds[Math.floor(Math.random() * this.placeSounds.length)], x, y, 1, 0.8)
+			sound(this.placeSounds[floor(random() * this.placeSounds.length)], x, y, 1, 0.8)
 		blockBreak(this, x, y)
 	}
 	punch(x, y){
 		if(this.stepSounds.length)
-			sound(this.stepSounds[Math.floor(Math.random() * this.stepSounds.length)], x, y, 0.1375, 0.5)
+			sound(this.stepSounds[floor(random() * this.stepSounds.length)], x, y, 0.1375, 0.5)
 		punchParticles(this, x, y)
 	}
 	walk(x, y, e){
 		if(!e.alive) return
 		if(this.stepSounds.length)
-			sound(this.stepSounds[Math.floor(Math.random() * this.stepSounds.length)], x, y, 0.15, 1)
+			sound(this.stepSounds[floor(random() * this.stepSounds.length)], x, y, 0.15, 1)
 		if((e.state & 0x1010000) == 0x10000 || (e.state & 4)) stepParticles(this, e)
 	}
 	fall(x, y){
@@ -105,7 +105,7 @@ export class Entity{
 		this.netId = -1
 		if(this.chunk) this.chunk.entities.delete(this)
 	}
-	sound(a,b=1,c=1){sound(a, this.ix-.5, this.iy-.5+this.head, b, c)}
+	sound(a,b=1,c=1){ sound(a, this.ix-.5, this.iy-.5+this.head, b, c) }
 	static width = 0.5
 	static height = 1
 	static head = .5
@@ -116,6 +116,8 @@ export class Entity{
 
 export const Blocks = {}, Items = {}, Entities = {}
 export const BlockIDs = [], ItemIDs = [], EntityIDs = []
+
+Object.assign(globalThis, {Blocks, Items, Entities, BlockIDs, ItemIDs, EntityIDs})
 
 export class Particle{
 	constructor(physical, lifetime, x, y, dx, dy, ddx = gx, ddy = gy){

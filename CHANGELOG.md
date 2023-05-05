@@ -2,11 +2,13 @@
 
 ## Alpha 9
 
-Todo: chests
+Todo: Chests
 
 Todo: animated textures (water + lava)
 
-Todo: water + lava cut textures for surface (and flowing variants)
+Todo: water + lava flowing variants and shapes
+
+Todo: crops, farmland, trees
 
 </details>
 
@@ -22,7 +24,9 @@ Todo: water + lava cut textures for surface (and flowing variants)
 
 - Entity health, Ability to die and respawn
 
-Todo: Nether portal, end island
+Todo: Nether and end portal
+
+Todo: End island
 
 Todo: Sugar cane
 

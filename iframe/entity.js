@@ -1,4 +1,4 @@
-import { getblock } from 'world'
+import { getblock, map } from 'world'
 
 const groundDrag = .0000244
 const airDrag = 0.06

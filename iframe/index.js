@@ -1,9 +1,9 @@
 import { playerControls } from "./controls.js"
 import { DataWriter as DW, DataReader as DR } from "../data.js"
 import { stepEntity } from "./entity.js"
-import { gridEvents, gridEventMap, getblock } from 'world'
-import { checkBlockPlacing } from "./pointer.js"
-import { button, drawPhase, renderLayer, uiLayer, W, H, W2, H2, SCALE, options, paused, _recalcDimensions, _renderPhases, renderBoxes, renderF3 } from 'api'
+import { gridEvents, gridEventMap, getblock, entityMap, map } from 'world'
+import * as pointer from "./pointer.js"
+import { button, drawPhase, renderLayer, uiLayer, W, H, W2, H2, SCALE, options, paused, _recalcDimensions, _renderPhases, renderBoxes, renderF3, send } from 'api'
 import { particles } from 'definitions'
 import { VERSION } from "../v.js"
 
@@ -40,15 +40,13 @@ function tick(){ //20 times a second
 		buf.double(me.x)
 		buf.double(me.y)
 		buf.short(me.state)
-		checkBlockPlacing(buf)
+		pointer.checkBlockPlacing(buf)
 		send(buf)
 	}
 	ticks++
-	if(random() < .25){
-		const x = floor(me.x + random() * 16 - 8), y = floor(me.y + random() * 16 - 8)
-		const randomBlock = getblock(x, y)
-		if(randomBlock.random) randomBlock.random(x, y)
-	}
+	const x = floor(me.x + random() * 16 - 8), y = floor(me.y + random() * 16 - 8)
+	const randomBlock = getblock(x, y)
+	if(randomBlock.random) randomBlock.random(x, y)
 	for(const e of entityMap.values()) if(e.tick) e.tick()
 }
 let lastFrame = performance.now(), elusmooth = 0

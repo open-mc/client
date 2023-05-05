@@ -196,78 +196,85 @@ const _txtr = class Texture{
 		return this
 	}
 }
-const Texture = src => {
-	if(_filecache[src]) return _filecache[src]
-	const i = new Image()
-	i.crossOrigin = 'anonymous'
-	i.src = src
-	loading++
-	const t = new _txtr(i, 0, 0, 0, 0)
-	i.onload = i.onerror = () => (i.onload=i.onerror=null,t.w=i.width,t.h=i.height,--loading||loaded())
-	return t
-}
 const _actx = new AudioContext()
 const _bgGain = _actx.createGain()
 _bgGain.connect(_actx.destination)
 let _volume = 0
-const Audio = (src, bg = false) => {
-	let buf = null
-	return function play(vol = 1, pitch = 1, pan = 0, start = 0, end = NaN, ends = true){
-		if(buf === null){
-			buf = []
-			fetch(src, {credentials: 'omit', priority: 'low'}).then(a => a.arrayBuffer()).then(a => _actx.decodeAudioData(a, b => {
-				const l = buf; buf = b
-				for(let i = 0; i < l.length; i++) l[i][0] = play(...l[i])
-			}))
-		}
-		if(Array.isArray(buf)){
-			const a = [vol,pitch,pan,start,end,ends]
-			buf.push(a)
-			return () => {
+const loader = (meta) => {
+	const folder = meta.url.slice(0, meta.url.lastIndexOf('/') + 1)
+	return {
+		Texture(src){
+			src = folder + src
+			if(_filecache[src]) return _filecache[src]
+			const i = new Image()
+			i.crossOrigin = 'anonymous'
+			i.src = src
+			loading++
+			const t = new _txtr(i, 0, 0, 0, 0)
+			i.onload = i.onerror = () => (i.onload=i.onerror=null,t.w=i.width,t.h=i.height,--loading||loaded())
+			return t
+		},
+		Audio(src){
+			let buf = null
+			return function play(vol = 1, pitch = 1, pan = 0, start = 0, end = NaN, ends = true, bg = false){
+				if(buf === null){
+					buf = []
+					fetch(folder + src, {credentials: 'omit', priority: 'low'}).then(a => a.arrayBuffer()).then(a => _actx.decodeAudioData(a, b => {
+						const l = buf; buf = b
+						for(let i = 0; i < l.length; i++) l[i][0] = play(...l[i])
+					}))
+				}
 				if(Array.isArray(buf)){
-					const i = buf.indexOf(a)
-					if(i > -1) buf.splice(i, 1)
-				}else a[0]()
+					const a = [vol,pitch,pan,start,end,ends,bg]
+					buf.push(a)
+					return () => {
+						if(Array.isArray(buf)){
+							const i = buf.indexOf(a)
+							if(i > -1) buf.splice(i, 1)
+						}else a[0]()
+					}
+				}
+				const source = _actx.createBufferSource()
+				source.buffer = buf
+				if(bg) source.connect(_bgGain)
+				else{
+					let dest = _actx.destination
+					const volume = _volume * vol
+					if(volume != 1){
+						const gain = _actx.createGain()
+						gain.gain.value = volume
+						gain.connect(dest)
+						dest = gain
+					}
+					if(pan != 0){
+						const panner = _actx.createStereoPanner()
+						panner.pan.value = min(1, max(-1, pan))
+						panner.connect(dest)
+						dest = panner
+					}
+					source.playbackRate.value = pitch
+					source.connect(dest)
+				}
+				if(source.loop = !ends){
+					source.loopStart = start
+					if(end == end)source.loopEnd = end
+					source.start(0, start)
+				}else{
+					source.start(0, start, end == end ? end - start : buf.duration)
+					if(typeof ends == 'function') source.onended = ends
+				}
+				return () => {
+					source.onended = null
+					source.stop()
+				}
 			}
-		}
-		const source = _actx.createBufferSource()
-		source.buffer = buf
-		if(bg) source.connect(_bgGain)
-		else{
-			let dest = _actx.destination
-			const volume = _volume * vol
-			if(volume != 1){
-				const gain = _actx.createGain()
-				gain.gain.value = volume
-				gain.connect(dest)
-				dest = gain
-			}
-			if(pan != 0){
-				const panner = _actx.createStereoPanner()
-				panner.pan.value = min(1, max(-1, pan))
-				panner.connect(dest)
-				dest = panner
-			}
-			source.playbackRate.value = pitch
-			source.connect(dest)
-		}
-		if(source.loop = !ends){
-			source.loopStart = start
-			if(end == end)source.loopEnd = end
-			source.start(0, start)
-		}else{
-			source.start(0, start, end == end ? end - start : buf.duration)
-			if(typeof ends == 'function') source.onended = ends
-		}
-		return () => {
-			source.onended = null
-			source.stop()
-		}
+		},
+
 	}
 }
-	let send, download, listen, buttons, changed
+	let download, listen, buttons, changed
 	let loading = 1, loaded = null, dt = 1 / 60, pointer
-	let t = 0, TPS = 20, map = new Map(), entityMap = new Map()
+	let t = 0, TPS = 20
 	let meid = -1, r = 0, me = null
 	let ticks = 0, world = '', gx = 0, gy = 0
 	const cam = {x: 0, y: 0, z: 2}
@@ -287,11 +294,11 @@ const Audio = (src, bg = false) => {
 	import "./chunk.js"
 	import "./controls.js"
 	import "./entity.js"
-	import "./incomingPacket.js"
 	import "./ipc.js"
 	import "./pointer.js"
 	import "./sounds.js"
 	import "./world.js"
+	import "./incomingPacket.js"
 	import "./index.js"
 	import "../data.js"
 </script>

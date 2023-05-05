@@ -2,8 +2,9 @@ import { particlePng, explode, AshParticle, BlastParticle, hurt } from "./defs.j
 import { renderItem, renderItemCount } from "./effects.js"
 import { Entities, Entity, Item, Blocks } from 'definitions'
 import { renderF3 } from 'api'
+const {Audio, Texture} = loader(import.meta)
 
-const meInterface = Texture('/vanilla/meint.png')
+const meInterface = Texture('meint.png')
 
 class LivingEntity extends Entity{
 	health = 20
@@ -187,8 +188,7 @@ Entities.player = class extends LivingEntity{
 		return slot
 	}
 }
-
-const pop = Audio('/music/misc/pop.mp3')
+const pop = Audio('sound/misc/pop.mp3')
 
 Entities.item = class extends Entity{
 	item = null
@@ -231,7 +231,7 @@ Entities.item = class extends Entity{
 	}
 }
 
-const fuse = Audio('/music/misc/fuse.mp3')
+const fuse = Audio('sound/misc/fuse.mp3')
 
 
 Entities.tnt = class extends Entity{
@@ -259,7 +259,7 @@ Entities.tnt = class extends Entity{
 		for(let i = 0; i < 30; i++) new AshParticle(this.x, this.y)
 	}
 }
-const endercrystal = Texture('/vanilla/endercrystal.png')
+const endercrystal = Texture('endercrystal.png')
 const endCrystalWiregrid = endercrystal.crop(32,16,16,16)
 const endCrystalCore = endercrystal.crop(96,16,16,16)
 Entities.end_crystal = class extends Entity{

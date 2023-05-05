@@ -104,6 +104,7 @@ label{
 	text-overflow: ellipsis;
   white-space: pre;
   overflow: hidden;
+	flex-shrink: 0;
 }
 btn{
 	display: block;
