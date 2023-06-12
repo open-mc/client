@@ -48,13 +48,13 @@
 		const _fillTxt = C.fillText, _strokeTxt = C.strokeText, _measureTxt = C.measureText, {set: setFillStyle, get: getFillStyle} = Object.getOwnPropertyDescriptor(C, 'fillStyle'),{set: setStrokeStyle, get: getStrokeStyle} = Object.getOwnPropertyDescriptor(C, 'strokeStyle')
 		C.setFillStyle = setFillStyle; C.getFillStyle = getFillStyle
 		C.setStrokeStyle = setStrokeStyle; C.getStrokeStyle = getStrokeStyle
-		C.fillText = function(t, x, y, s, maxW = 2147483647){
+		C.fillText = function(t, x, y, s, maxW = 1e99){
 			const S = 1/(s *= .001)
 			this.scale(s, -s)
 			_fillTxt.call(this, t, x*S, -y*S, maxW*S)
 			this.scale(S,-S)
 		}
-		C.strokeText = function(t, x, y, s, maxW = 2147483647){
+		C.strokeText = function(t, x, y, s, maxW = 1e99){
 			const S = 1/(s *= .001)
 			this.scale(s, -s)
 			_strokeTxt.call(this, t, x*S, -y*S, maxW*S)
@@ -149,10 +149,9 @@
 			return this
 		}}
 	})
-	const Can = (w = 100, h = 100, cpu = false) => {
-		const c = document.createElement('canvas').getContext('2d', {willReadFrequently: cpu})
+	const Can = (w = 100, h = 100, opt) => {
+		const c = document.createElement('canvas').getContext('2d', typeof opt == 'boolean' ? {willReadFrequently: opt} : opt)
 		c.canvas.width = c.w = w; c.canvas.height = c.h = h
-		//Possible consideration: filling the array with
 		c.transforms = []
 		c.x = c.y = 0
 		return c
@@ -283,7 +282,7 @@ const loader = (meta) => {
 	const nul = new Array(1000).fill(null)
 	Array.null = len => {
 		if(len <= 1000) return nul.slice(0, len)
-		let a = new Array(len)
+		const a = new Array(len)
 		while(len > 0) a[--len] = null
 		return a
 	}

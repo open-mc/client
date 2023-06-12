@@ -2,13 +2,15 @@
 
 ## Alpha 9
 
-Todo: Chests
+Todo: Chests, furnaces
 
 Todo: animated textures (water + lava)
 
 Todo: water + lava flowing variants and shapes
 
 Todo: crops, farmland, trees
+
+Todo: crafting, smelting
 
 </details>
 
@@ -24,22 +26,26 @@ Todo: crops, farmland, trees
 
 - Entity health, Ability to die and respawn
 
-Todo: Nether and end portal
+- Sugar cane & grass spreading
+
+- Nether portal
+
+Todo: End portal
 
 Todo: End island
 
-Todo: Sugar cane
-
 Todo: health animations, dying animations
+
+Todo: Custom terrain generators
 
 ## Alpha 7
 
 - The end
-- TNT and a few entityMap
+- TNT and a few entities
 - Changelog + credits
 - Camera effect option + leftclick/rightclick option
 - A few more items / blocks
-- Hitting entityMap
+- Hitting entities
 - Explosions
 
 ## Alpha 6
@@ -49,7 +55,7 @@ Todo: health animations, dying animations
 - Water and lava movement drag
 - Item consuming
 - Break times
-- Item entityMap
+- Item entities
 - Server side physics
 - Item dropping when breaking blocks
 - Diamond pickaxe (breaks certain blocks 25x faster)

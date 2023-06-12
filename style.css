@@ -235,3 +235,8 @@ iframe{
 	height: 100%;
 	z-index: -1;
 }
+
+hr{
+	visibility: hidden;
+	flex: 1;
+}

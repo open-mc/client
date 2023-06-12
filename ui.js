@@ -47,7 +47,7 @@ export async function hideUI(){
 }
 
 export function showUI(a = null){
-	//document.exitFullscreen()
+	if(a instanceof Element && document.fullscreenElement && (a.classList.contains('dirtbg') || !a.classList.contains('noshade'))) document.exitFullscreen()
 	document.exitPointerLock()
 	void (ui && ui.finish || Function.prototype)()
 	void (ui || NONE).replaceWith(ui = a || NONE)
@@ -188,9 +188,9 @@ export const Btn = (text, onclick, classes = '') => {
 	Object.setPrototypeOf(btn, BtnPrototype)
 	return btn
 }
-export const Row = (a, b) => {
+export const Row = (...a) => {
 	let row = document.createElement('row')
-	row.append(a); row.append(b)
+	row.append(...a)
 	return row
 }
 export const Label = (txt) => {

@@ -137,29 +137,93 @@ Blocks.tnt = class extends Block{
 Blocks.chest = class extends Block{}
 
 class Wool extends Block{
-	static texture = terrainPng.at(0, 4)
 	static tool = 'shears'
 	static breaktime = 1.2
 	static stepSounds = audioSet('wool', 'place', 4)
 	static breakSounds = this.stepSounds
 }
 
-Blocks.white_wool = Wool
-Blocks.light_grey_wool = Wool
-Blocks.grey_wool = Wool
-Blocks.black_wool = Wool
-Blocks.red_wool = Wool
-Blocks.orange_wool = Wool
-Blocks.yellow_wool = Wool
-Blocks.lime_wool = Wool
-Blocks.green_wool = Wool
-Blocks.cyan_wool = Wool
-Blocks.light_blue_wool = Wool
-Blocks.blue_wool = Wool
-Blocks.purple_wool = Wool
-Blocks.magenta_wool = Wool
-Blocks.pink_wool = Wool
-Blocks.brown_wool = Wool
+Blocks.white_wool = class extends Wool{ static texture = terrainPng.at(0, 4) }
+Blocks.light_grey_wool = class extends Wool{ static texture = terrainPng.at(1, 14) }
+Blocks.grey_wool = class extends Wool{ static texture = terrainPng.at(2, 7) }
+Blocks.black_wool = class extends Wool{ static texture = terrainPng.at(1, 7) }
+Blocks.red_wool = class extends Wool{ static texture = terrainPng.at(1, 8) }
+Blocks.orange_wool = class extends Wool{ static texture = terrainPng.at(2, 13) }
+Blocks.yellow_wool = class extends Wool{ static texture = terrainPng.at(2, 10) }
+Blocks.lime_wool = class extends Wool{ static texture = terrainPng.at(2, 9) }
+Blocks.green_wool = class extends Wool{ static texture = terrainPng.at(1, 9) }
+Blocks.cyan_wool = class extends Wool{ static texture = terrainPng.at(1, 13) }
+Blocks.light_blue_wool = class extends Wool{ static texture = terrainPng.at(2, 11) }
+Blocks.blue_wool = class extends Wool{ static texture = terrainPng.at(1, 11) }
+Blocks.purple_wool = class extends Wool{ static texture = terrainPng.at(1, 12) }
+Blocks.magenta_wool = class extends Wool{ static texture = terrainPng.at(2, 12) }
+Blocks.pink_wool = class extends Wool{ static texture = terrainPng.at(2, 8) }
+Blocks.brown_wool = class extends Wool{ static texture = terrainPng.at(1, 10) }
+
+Items.white_wool = class extends Item{
+	places(){ return Blocks.white_wool }
+	static texture = terrainPng.at(0, 4)
+}
+Items.light_grey_wool = class extends Item{
+	places(){ return Blocks.light_grey_wool }
+	static texture = terrainPng.at(1, 14)
+}
+Items.grey_wool = class extends Item{
+	places(){ return Blocks.grey_wool }
+	static texture = terrainPng.at(2, 7)
+}
+Items.black_wool = class extends Item{
+	places(){ return Blocks.black_wool }
+	static texture = terrainPng.at(1, 7)
+}
+Items.red_wool = class extends Item{
+	places(){ return Blocks.red_wool }
+	static texture = terrainPng.at(1, 8)
+}
+Items.orange_wool = class extends Item{
+	places(){ return Blocks.orange_wool }
+	static texture = terrainPng.at(2, 13)
+}
+Items.yellow_wool = class extends Item{
+	places(){ return Blocks.yellow_wool }
+	static texture = terrainPng.at(2, 10)
+}
+Items.lime_wool = class extends Item{
+	places(){ return Blocks.lime_wool }
+	static texture = terrainPng.at(2, 9)
+}
+Items.green_wool = class extends Item{
+	places(){ return Blocks.green_wool }
+	static texture = terrainPng.at(1, 9)
+}
+Items.cyan_wool = class extends Item{
+	places(){ return Blocks.cyan_wool }
+	static texture = terrainPng.at(1, 13)
+}
+Items.light_blue_wool = class extends Item{
+	places(){ return Blocks.light_blue_wool }
+	static texture = terrainPng.at(2, 11)
+}
+Items.blue_wool = class extends Item{
+	places(){ return Blocks.blue_wool }
+	static texture = terrainPng.at(1, 11)
+}
+Items.purple_wool = class extends Item{
+	places(){ return Blocks.purple_wool }
+	static texture = terrainPng.at(1, 12)
+}
+Items.magenta_wool = class extends Item{
+	places(){ return Blocks.magenta_wool }
+	static texture = terrainPng.at(2, 12)
+}
+Items.pink_wool = class extends Item{
+	places(){ return Blocks.pink_wool }
+	static texture = terrainPng.at(2, 8)
+}
+Items.brown_wool = class extends Item{
+	places(){ return Blocks.brown_wool }
+	static texture = terrainPng.at(1, 10)
+}
 
 Blocks.dragon_egg = class extends Block{}
 
@@ -175,15 +239,37 @@ Blocks.gold_block = MineralBlock
 Blocks.emerald_block = MineralBlock
 Blocks.diamond_block = MineralBlock
 
+const fireAmbient = Audio('sound/fire/ambient.mp3'), portalAmbient = Audio('sound/portal/ambient.mp3')
+
 Blocks.fire = class extends Block{
 	solid = false
 	static texture = terrainPng.at(15, 1)
-	static placeSounds = [Audio('sound/misc/ignite.mp3')]
+	static placeSounds = [Audio('sound/fire/ignite.mp3')]
+	random(x, y){
+		sound(fireAmbient, x, y, random() + 1, random() * 0.7 + 0.3)
+	}
 }
 
 Blocks.portal = class extends Block{
 	static solid = false
 	static texture = terrainPng.at(14, 1)
+	random(x, y){
+		sound(portalAmbient, x, y, 0.5, random() * 0.4 + 0.8)
+	}
+}
+
+Blocks.end_portal = class extends Block{
+	static solid = false
+	static texture = terrainPng.at(11, 7)
+}
+
+Blocks.end_portal_frame = class extends Block{
+	static texture = terrainPng.at(12, 7)
+	static breaktime = Infinity
+}
+Blocks.filled_end_portal_frame = class extends Block{
+	static texture = terrainPng.at(13, 7)
+	static breaktime = Infinity
 }
 
 Blocks.sugar_cane = class extends Block{

@@ -3,6 +3,7 @@ import { frame } from './index.js'
 import { options, listen, _cbs, _mouseMoveCb, _pauseCb, _wheelCb, _optionListeners, fakePause, codes } from 'api'
 import { Blocks, Items, Entities, BlockIDs, ItemIDs, EntityIDs, Block, Item, Entity } from 'definitions'
 import 'world'
+import { Chunk } from './chunk.js'
 
 loaded = () => {
 	for(const data of msgQueue)onMsg({data})
@@ -25,7 +26,13 @@ const onMsg = ({data}) => {
 			return
 		}
 		// import scripts
-		Promise.all(data.slice(3).map(a => import(a))).then(() => {
+		const classes = [{}, Chunk], list = data[3].split('\n')
+		for(let i = 0; i < classes.length; i++){
+			const h = (list[i]||'{}').split(' ')
+			classes[i].savedata = jsonToType(h.pop())
+			classes[i].savedatahistory = h.mutmap(jsonToType)
+		}
+		Promise.all(data.slice(4).map(a => import(a))).then(() => {
 			// done importing
 			let i
 			i = 0; for(const b of data[0].split('\n'))funcify(b, i++, Blocks)

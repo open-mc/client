@@ -37,6 +37,8 @@ class LivingEntity extends Entity{
 	}
 }
 
+const portalEnter = Audio('sound/portal/enter.mp3'), portalExit = Audio('sound/portal/exit.mp3')
+
 const skinCan = Can(28, 12)
 Entities.player = class extends LivingEntity{
 	static alive = true
@@ -187,6 +189,9 @@ Entities.player = class extends LivingEntity{
 		}
 		return slot
 	}
+	50(){
+		this.sound(portalExit, 0.25, random() * 0.4 + 0.8)
+	}
 }
 const pop = Audio('sound/misc/pop.mp3')
 
@@ -199,7 +204,7 @@ Entities.item = class extends Entity{
 	render(c){
 		if(!this.item) return
 		c.translate(0, sin(t*2)/12+.15)
-		c.scale(0.3125, 0.3125)
+		c.scale(0.36, 0.36)
 		renderItem(c, this.item)
 		c.push()
 		if(this.item.count > 1){

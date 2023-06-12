@@ -27,18 +27,6 @@ function chunkPacket(buf){
 	const {ref} = map.get(k) || chunk
 	chunk.ref = ref + 1
 	map.set(k, chunk)
-	while(buf.left){
-		let e = EntityIDs[0]()
-		e.x = buf.double(); e.y = buf.double()
-		e.netId = buf.uint32() + buf.short() * 4294967296
-		e.name = buf.string(); e.state = buf.short()
-		e.dx = buf.float(); e.dy = buf.float()
-		e.f = buf.float(); e.age = buf.double()
-		e.chunk = chunk
-		buf.read(e.savedatahistory[buf.flint()] || e.savedata, e)
-		e.place()
-		chunk.entities.add(e)
-	}
 }
 function chunkDeletePacket(data){
 	while(data.left){

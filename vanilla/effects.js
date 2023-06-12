@@ -34,7 +34,7 @@ music('nether',
 	Audio('sound/nether4.mp3')
 )
 
-music('end', 'sound/end.mp3')
+music('end', Audio('sound/end.mp3'))
 
 export const lava = {
 	ambient: Audio('sound/lava/ambient.mp3'),

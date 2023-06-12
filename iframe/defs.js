@@ -80,11 +80,11 @@ export class Entity{
 	state = 0
 	age = 0
 	f = PI / 2
-	prestep(){
+	preupdate(){
 		const { gooeyness } = getblock(floor(this.x), floor(this.dy > 0 ? this.y : this.y + this.height / 4))
 		if(gooeyness) this.dx *= (1 - gooeyness), this.dy *= (1 - gooeyness)
 	}
-	step(){
+	update(){
 		this.blocksWalked += abs(this.dx * dt)
 		if((this.state & 0x10000) && !(this.state & 2)){
 			if(this.blocksWalked >= 1.7){

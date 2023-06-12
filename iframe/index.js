@@ -5,7 +5,7 @@ import { gridEvents, gridEventMap, getblock, entityMap, map } from 'world'
 import * as pointer from "./pointer.js"
 import { button, drawPhase, renderLayer, uiLayer, W, H, W2, H2, SCALE, options, paused, _recalcDimensions, _renderPhases, renderBoxes, renderF3, send } from 'api'
 import { particles } from 'definitions'
-import { VERSION } from "../v.js"
+import { VERSION } from "../version.js"
 
 DataReader = DR
 DataWriter = DW
@@ -58,7 +58,7 @@ export let zoom_correction = 0
 let camMovingX = false, camMovingY = false
 
 
-const c = Can(0, 0)
+const c = Can(0, 0, {alpha: false, desynchronized: true})
 c.canvas.style = 'width: 100%; height: 100%; position: fixed; top: 0; left: 0; z-index: 0;'
 document.body.append(c.canvas)
 
@@ -74,7 +74,7 @@ export function frame(){
 	playerControls()
 	for(const entity of entityMap.values())stepEntity(entity)
 	const tzoom = (me.state & 4 ? -0.13 : 0) * ((1 << options.ffx) - 1) + 1
-	cam.z = sqrt(sqrt(cam.z * cam.z * cam.z * 2 ** (options.zoom * 5 - 1) * devicePixelRatio * tzoom))
+	cam.z = sqrt(sqrt(cam.z * cam.z * cam.z * 2 ** (options.zoom * 7 - 3) * devicePixelRatio * tzoom))
 	_recalcDimensions(c)
 	c.transforms.length = 0
 	c.imageSmoothingEnabled = false

@@ -58,8 +58,9 @@ let list, input, addBtn
 const serverList = UI('dirtbg',
 	Spacer(20),
 	Label('Welcome, ' + storage.name + '!').attr('style', 'color: #E92'),
+	Spacer(20),
 	Label('Connect to a server:'),
-	Spacer(50),
+	Spacer(30),
 	Row(Btn('Select skin', btn => getSkin().then(a => {
 		if(!a) return
 		btn.textContent = a
