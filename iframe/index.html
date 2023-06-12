@@ -79,6 +79,7 @@
 				this.drawImage(img.canvas, img.x + ix, img.y + iy, ow, oh, -x, -y, -w, -h)
 				this.scale(-1,-1)
 			}
+			if(this.trace) this.rect(x, y, w, h)
 		}
 		C.measureText = function(txt, s = 1){
 			const {actualBoundingBoxLeft: left, actualBoundingBoxRight: right, actualBoundingBoxAscent: top, actualBoundingBoxDescent: bottom, width} = _measureTxt.call(this, txt)
@@ -110,6 +111,8 @@
 		C.resize = function(w, h){
 			this.canvas.width = this.w = w
 			this.canvas.height = this.h = h
+			this.trace = false
+			this.transforms.length = 0
 		}
 		C.crop = function(x, y, w, h){ return new _txtr(this.canvas, x, y, w, h) }
 	})(CanvasRenderingContext2D.prototype)
@@ -154,6 +157,7 @@
 		c.canvas.width = c.w = w; c.canvas.height = c.h = h
 		c.transforms = []
 		c.x = c.y = 0
+		c.trace = 0
 		return c
 	}
 	const {random, abs, min, max, round, floor, ceil, ifloat, fclamp, sqrt, cbrt, atan2, sign, sin, cos, tan, PI, PI2 = PI * 2, imul } = Math

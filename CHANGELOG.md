@@ -34,7 +34,7 @@ Todo: crafting, smelting
 
 - Multiple terrain generators
 
-Todo: health animations, dying animations
+- Hit animations, dying animations
 
 ## Alpha 7
 
