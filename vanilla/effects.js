@@ -1,36 +1,48 @@
 import { music } from 'world'
-export const audioSet = (name, variant, count) => Array.from({length: count}, (_, i) => Audio('/music/'+name+'/'+variant+(i+1)+'.mp3'))
+const {Audio, Texture} = loader(import.meta)
+
+export const audioSet = (path, count) => Array.from({length: count}, (_, i) => Audio('sound/'+path+(i+1)+'.mp3'))
+
+export const click = Audio('../img/click.mp3')
+
+export const icons = Texture('icons.png')
+const btns = Texture('../img/button.png')
+export const uiButtons = {
+	large: btns.crop(124,20,200,20),
+	largeSelected: btns.crop(124,40,200,20),
+	largeDisabled: btns.crop(124,0,200,20)
+}
 
 music('overworld',
-	"/music/calm1.mp3",
-	"/music/calm2.mp3",
-	"/music/calm3.mp3",
-	"/music/hal1.mp3",
-	"/music/hal2.mp3",
-	"/music/hal3.mp3",
-	"/music/hal4.mp3",
-	"/music/nuance1.mp3",
-	"/music/nuance2.mp3",
-	"/music/piano1.mp3",
-	"/music/piano2.mp3",
-	"/music/piano3.mp3"
+	Audio("sound/calm1.mp3"),
+	Audio("sound/calm2.mp3"),
+	Audio("sound/calm3.mp3"),
+	Audio("sound/hal1.mp3"),
+	Audio("sound/hal2.mp3"),
+	Audio("sound/hal3.mp3"),
+	Audio("sound/hal4.mp3"),
+	Audio("sound/nuance1.mp3"),
+	Audio("sound/nuance2.mp3"),
+	Audio("sound/piano1.mp3"),
+	Audio("sound/piano2.mp3"),
+	Audio("sound/piano3.mp3")
 )
 music('nether',
-	'/music/nether1.mp3',
-	'/music/nether2.mp3',
-	'/music/nether3.mp3',
-	'/music/nether4.mp3'
+	Audio('sound/nether1.mp3'),
+	Audio('sound/nether2.mp3'),
+	Audio('sound/nether3.mp3'),
+	Audio('sound/nether4.mp3')
 )
 
-music('end', '/music/end.mp3')
+music('end', Audio('sound/end.mp3'))
 
 export const lava = {
-	ambient: Audio('/music/lava/ambient.mp3'),
-	pop: Audio('/music/lava/pop.mp3')
+	ambient: Audio('sound/lava/ambient.mp3'),
+	pop: Audio('sound/lava/pop.mp3')
 }
 
 export const water = {
-	ambient: [Audio('/music/water/ambient1.mp3'), Audio('/music/water/ambient2.mp3')],
+	ambient: [Audio('sound/water/ambient1.mp3'), Audio('sound/water/ambient2.mp3')],
 }
 
 export function renderItem(c, item, respectModel = false){
@@ -52,13 +64,14 @@ export function renderItem(c, item, respectModel = false){
 }
 
 export function renderItemCount(c, item){
-	const count = item?.count ?? 1
+	if(!item) return
+	const count = item.count
 	if(count != 1){
 		c.textBaseline = 'alphabetic'
 		c.textAlign = 'right'
 		c.fillStyle = '#000'
 		c.fillText(count + '', 0.56, -0.06, 0.6)
-		c.fillStyle = count === (count & 127) ? '#fff' : '#e44'
+		c.fillStyle = count === (count & 255) ? '#fff' : '#e44'
 		c.fillText(count + '', 0.5, 0, 0.6)
 	}
 }

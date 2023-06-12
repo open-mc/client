@@ -1,24 +1,27 @@
 import { audioSet, lava, water } from "./effects.js"
 import { sound } from 'world'
 import { Blocks, Items, Block, Item, Particle } from 'definitions'
-export const terrainPng = Texture("/vanilla/terrain.png")
-export const itemsPng = Texture("/vanilla/items.png")
-export const particlePng = Texture("/vanilla/particles.png")
-export const explode = [1,2,3,4].mutmap(a => Audio(`/music/misc/explode${a}.mp3`))
+const {Audio, Texture} = loader(import.meta)
+
+export const terrainPng = Texture("terrain.png")
+export const itemsPng = Texture("items.png")
+export const particlePng = Texture("particles.png")
+export const explode = [1,2,3,4].mutmap(a => Audio(`sound/misc/explode${a}.mp3`))
+export const hurt = [1,2,3].mutmap(a => Audio(`sound/misc/hurt${a}.mp3`))
 
 Blocks.air = class extends Block{ static solid = false }
 Blocks.grass = class extends Block{
 	static texture = terrainPng.at(3, 0)
 	static breaktime = 1.5
 	static tool = 'shovel'
-	static placeSounds = audioSet('grass', 'place', 4)
-	static stepSounds = audioSet('grass', 'step', 6)
+	static placeSounds = audioSet('grass/place', 4)
+	static stepSounds = audioSet('grass/step', 6)
 }
 class Stone extends Block{
 	static tool = 'pick'
 	static texture = terrainPng.at(1, 0)
-	static placeSounds = audioSet('stone', 'place', 4)
-	static stepSounds = audioSet('stone', 'step', 6)
+	static placeSounds = audioSet('stone/place', 4)
+	static stepSounds = audioSet('stone/step', 6)
 	static breaktime = 7.5
 }
 Blocks.stone = Stone
@@ -35,8 +38,8 @@ Blocks.dirt = class extends Block{
 	static texture = terrainPng.at(2, 0)
 	static breaktime = 1
 	static tool = 'shovel'
-	static placeSounds = audioSet('dirt', 'place', 4)
-	static stepSounds = audioSet('dirt', 'step', 4)
+	static placeSounds = audioSet('dirt/place', 4)
+	static stepSounds = audioSet('dirt/step', 4)
 }
 Blocks.bedrock = class extends Stone{
 	static texture = terrainPng.at(1, 1)
@@ -44,8 +47,8 @@ Blocks.bedrock = class extends Stone{
 	static tool = 'pick'
 }
 class Wood extends Block{
-	static placeSounds = audioSet('wood', 'place', 4)
-	static stepSounds = audioSet('wood', 'step', 6)
+	static placeSounds = audioSet('wood/place', 4)
+	static stepSounds = audioSet('wood/step', 6)
 	static tool = 'axe'
 	static breaktime = 5
 }
@@ -66,27 +69,31 @@ Blocks.jungle_planks = class extends Planks{}
 
 Blocks.sand = class extends Block{
 	static texture = terrainPng.at(2, 1)
-	static placeSounds = audioSet('sand', 'place', 4)
-	static stepSounds = audioSet('sand', 'step', 5)
+	static placeSounds = audioSet('sand/place', 4)
+	static stepSounds = audioSet('sand/step', 5)
 }
 Blocks.water = class extends Block{
-	static texture = terrainPng.at(13, 12)
+	static texture = terrainPng.at(13, 13)
 	static solid = false
 	static climbable = true
-	static gooeyness = 0.07
+	static gooeyness = 0.15
 	random(x, y){
 		const r = random()
-		if(r < .1)
+		if(r < .025)
 			sound(water.ambient[0], x, y, 1, 1)
-		else if(r < .2)
-			sound(water.ambient[1], x, y, 1, 1)	
+		else if(r < .05)
+			sound(water.ambient[1], x, y, 1, 1)
 	}
 }
 Blocks.lava = class extends Blocks.water{
-	static texture = terrainPng.at(13, 14)
+	static texture = terrainPng.at(13, 15)
 	static gooeyness = 0.5
 	random(x, y){
-		sound(random() < .05 ? lava.ambient : lava.pop, x, y, 1, 1)
+		const r = random()
+		if(r < .015)
+			sound(lava.ambient, x, y, 1, 1)
+		else if(r < .25)
+			sound(lava.pop, x, y, 1, 1)
 	}
 }
 Blocks.sandstone = class extends Stone{
@@ -113,8 +120,8 @@ Blocks.netherrack = class extends Block{
 	static breaktime = 2
 	static texture = terrainPng.at(7, 6)
 	static tool = 'pick'
-	static placeSounds = audioSet('netherrack', 'place', 6)
-	static stepSounds = audioSet('netherrack', 'step', 6)
+	static placeSounds = audioSet('netherrack/place', 6)
+	static stepSounds = audioSet('netherrack/step', 6)
 }
 Blocks.quartz_ore = class extends Blocks.netherrack{
 	static texture = terrainPng.at(6, 6)
@@ -127,32 +134,104 @@ Blocks.tnt = class extends Block{
 	static placeSounds = Blocks.grass.placeSounds
 }
 
+Blocks.endstone = class extends Block{
+	static breaktime = 15
+	static texture = terrainPng.at(7, 4)
+	static tool = 'pick'
+	static placeSounds = Blocks.stone.placeSounds
+	static stepSounds = Blocks.stone.stepSounds
+}
+
 Blocks.chest = class extends Block{}
 
 class Wool extends Block{
-	static texture = terrainPng.at(0, 4)
 	static tool = 'shears'
 	static breaktime = 1.2
-	static stepSounds = audioSet('wool', 'place', 4)
+	static stepSounds = audioSet('wool/place', 4)
 	static breakSounds = this.stepSounds
 }
 
-Blocks.white_wool = Wool
-Blocks.light_grey_wool = Wool
-Blocks.grey_wool = Wool
-Blocks.black_wool = Wool
-Blocks.red_wool = Wool
-Blocks.orange_wool = Wool
-Blocks.yellow_wool = Wool
-Blocks.lime_wool = Wool
-Blocks.green_wool = Wool
-Blocks.cyan_wool = Wool
-Blocks.light_blue_wool = Wool
-Blocks.blue_wool = Wool
-Blocks.purple_wool = Wool
-Blocks.magenta_wool = Wool
-Blocks.pink_wool = Wool
-Blocks.brown_wool = Wool
+Blocks.white_wool = class extends Wool{ static texture = terrainPng.at(0, 4) }
+Blocks.light_grey_wool = class extends Wool{ static texture = terrainPng.at(1, 14) }
+Blocks.grey_wool = class extends Wool{ static texture = terrainPng.at(2, 7) }
+Blocks.black_wool = class extends Wool{ static texture = terrainPng.at(1, 7) }
+Blocks.red_wool = class extends Wool{ static texture = terrainPng.at(1, 8) }
+Blocks.orange_wool = class extends Wool{ static texture = terrainPng.at(2, 13) }
+Blocks.yellow_wool = class extends Wool{ static texture = terrainPng.at(2, 10) }
+Blocks.lime_wool = class extends Wool{ static texture = terrainPng.at(2, 9) }
+Blocks.green_wool = class extends Wool{ static texture = terrainPng.at(1, 9) }
+Blocks.cyan_wool = class extends Wool{ static texture = terrainPng.at(1, 13) }
+Blocks.light_blue_wool = class extends Wool{ static texture = terrainPng.at(2, 11) }
+Blocks.blue_wool = class extends Wool{ static texture = terrainPng.at(1, 11) }
+Blocks.purple_wool = class extends Wool{ static texture = terrainPng.at(1, 12) }
+Blocks.magenta_wool = class extends Wool{ static texture = terrainPng.at(2, 12) }
+Blocks.pink_wool = class extends Wool{ static texture = terrainPng.at(2, 8) }
+Blocks.brown_wool = class extends Wool{ static texture = terrainPng.at(1, 10) }
+
+Items.white_wool = class extends Item{
+	places(){ return Blocks.white_wool }
+	static texture = terrainPng.at(0, 4)
+}
+Items.light_grey_wool = class extends Item{
+	places(){ return Blocks.light_grey_wool }
+	static texture = terrainPng.at(1, 14)
+}
+Items.grey_wool = class extends Item{
+	places(){ return Blocks.grey_wool }
+	static texture = terrainPng.at(2, 7)
+}
+Items.black_wool = class extends Item{
+	places(){ return Blocks.black_wool }
+	static texture = terrainPng.at(1, 7)
+}
+Items.red_wool = class extends Item{
+	places(){ return Blocks.red_wool }
+	static texture = terrainPng.at(1, 8)
+}
+Items.orange_wool = class extends Item{
+	places(){ return Blocks.orange_wool }
+	static texture = terrainPng.at(2, 13)
+}
+Items.yellow_wool = class extends Item{
+	places(){ return Blocks.yellow_wool }
+	static texture = terrainPng.at(2, 10)
+}
+Items.lime_wool = class extends Item{
+	places(){ return Blocks.lime_wool }
+	static texture = terrainPng.at(2, 9)
+}
+Items.green_wool = class extends Item{
+	places(){ return Blocks.green_wool }
+	static texture = terrainPng.at(1, 9)
+}
+Items.cyan_wool = class extends Item{
+	places(){ return Blocks.cyan_wool }
+	static texture = terrainPng.at(1, 13)
+}
+Items.light_blue_wool = class extends Item{
+	places(){ return Blocks.light_blue_wool }
+	static texture = terrainPng.at(2, 11)
+}
+Items.blue_wool = class extends Item{
+	places(){ return Blocks.blue_wool }
+	static texture = terrainPng.at(1, 11)
+}
+Items.purple_wool = class extends Item{
+	places(){ return Blocks.purple_wool }
+	static texture = terrainPng.at(1, 12)
+}
+Items.magenta_wool = class extends Item{
+	places(){ return Blocks.magenta_wool }
+	static texture = terrainPng.at(2, 12)
+}
+Items.pink_wool = class extends Item{
+	places(){ return Blocks.pink_wool }
+	static texture = terrainPng.at(2, 8)
+}
+Items.brown_wool = class extends Item{
+	places(){ return Blocks.brown_wool }
+	static texture = terrainPng.at(1, 10)
+}
 
 Blocks.dragon_egg = class extends Block{}
 
@@ -168,6 +247,45 @@ Blocks.gold_block = MineralBlock
 Blocks.emerald_block = MineralBlock
 Blocks.diamond_block = MineralBlock
 
+const fireAmbient = Audio('sound/fire/ambient.mp3'), portalAmbient = Audio('sound/portal/ambient.mp3')
+
+Blocks.fire = class extends Block{
+	solid = false
+	static texture = terrainPng.at(15, 1)
+	static placeSounds = [Audio('sound/fire/ignite.mp3')]
+	random(x, y){
+		sound(fireAmbient, x, y, random() + 1, random() * 0.7 + 0.3)
+	}
+}
+
+Blocks.portal = class extends Block{
+	static solid = false
+	static texture = terrainPng.at(14, 1)
+	random(x, y){
+		sound(portalAmbient, x, y, 0.5, random() * 0.4 + 0.8)
+	}
+}
+Blocks.end_portal = class extends Block{
+	static solid = false
+	static texture = terrainPng.at(14, 0)
+}
+
+Blocks.end_portal_frame = class extends Block{
+	static texture = terrainPng.at(9, 0)
+	static breaktime = Infinity
+	static placeSounds = Blocks.stone.placeSounds
+}
+Blocks.filled_end_portal_frame = class extends Block{
+	static texture = terrainPng.at(10, 0)
+	static breaktime = Infinity
+	static placeSounds = audioSet('portal/eye', 3)
+}
+
+Blocks.sugar_cane = class extends Block{
+	static breaktime = 0
+	static placeSounds = Blocks.grass.placeSounds
+	static texture = terrainPng.crop(144,64,16,16)
+}
 
 Items.oak_log = class extends Item{
 	places(){ return Blocks.oak_log }
@@ -204,6 +322,10 @@ Items.grass = class extends Item{
 Items.dirt = class extends Item{
 	places(){ return Blocks.dirt }
 	static texture = Blocks.dirt.texture
+}
+Items.sugar_cane = class extends Item{
+	places(){ return Blocks.sugar_cane }
+	static texture = itemsPng.crop(16,256,16,16)
 }
 
 class Tool extends Item{
@@ -264,7 +386,19 @@ Items.cut_red_sandstone = class extends Items.sandstone{}
 Items.chiseled_red_sandstone = class extends Items.sandstone{}
 Items.smooth_red_sandstone = class extends Items.sandstone{}
 
+Items.end_portal_frame = class extends Item{
+	static texture = terrainPng.at(9, 0)
+	places(){ return Blocks.end_portal_frame }
+}
 
+Items.eye_of_ender = class extends Item{
+	static texture = itemsPng.at(1, 10)
+}
+
+Items.endstone = class extends Item{
+	static texture = terrainPng.at(7, 4)
+	places(){ return Blocks.endstone }
+}
 
 const explodeParticles = [0,8,16,24,32,40,48,56,64,72,80,88,96,104,112].mutmap(a => particlePng.crop(a,80,8,8))
 const ashParticles = [0,8,16,24,32,40,48,56].mutmap(a => particlePng.crop(a,0,8,8))

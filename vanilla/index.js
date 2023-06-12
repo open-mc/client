@@ -1,14 +1,14 @@
 import { AshParticle, BlastParticle, explode, terrainPng } from "./defs.js"
-import { renderItem, renderItemCount } from "./effects.js"
+import { uiButtons, icons, renderItem, renderItemCount, click } from "./effects.js"
 import "./entities.js"
-import { button, W2, H2, uiLayer, renderLayer, onpause, pause, paused, renderUI } from 'api'
-import { getblock, gridEvents, sound } from 'world'
+import { button, W2, uiLayer, renderLayer, onpause, pause, paused, renderUI, customPause, quit, onpacket, send } from 'api'
+import { getblock, gridEvents, sound, entityMap, pointer } from 'world'
 import { Item } from 'definitions'
+const { Texture } = loader(import.meta)
 
 const BREAKING = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].mutmap(x => terrainPng.at(x, 15))
-
-const skyPng = Texture('/vanilla/sky.png')
-const stars = Texture('/vanilla/stars.png').pattern()
+const skyPng = Texture('sky.png')
+const stars = Texture('stars.png').pattern()
 const sun = skyPng.crop(128, 64, 32, 32), moons = [
 	skyPng.crop(128, 0, 32, 32),
 	skyPng.crop(160, 0, 32, 32),
@@ -114,10 +114,16 @@ renderLayer(150, c => {
 	c.globalCompositeOperation = 'source-over'
 })
 
-const hotbar = Texture('/vanilla/hotbar.png')
-const selected = Texture('/vanilla/slot.png')
-const inventory = Texture('/vanilla/inv.png')
+const hotbar = Texture('hotbar.png')
+const selected = Texture('slot.png')
+const inventory = Texture('inv.png')
 
+const heart = icons.crop(52,0,9,9), halfHeart = icons.crop(61,0,9,9)
+const heartEmpty = icons.crop(16,0,9,9)
+
+const btnW = uiButtons.large.w
+
+let respawnClicked = false
 uiLayer(1000, (c, w, h) => {
 	if(renderUI){
 		let hotBarLeft = w / 2 - hotbar.w/2
@@ -132,8 +138,64 @@ uiLayer(1000, (c, w, h) => {
 			if(i == me.selected) c.image(selected, -0.75, -0.25, 1.5, 1.5)
 			c.translate(1.25, 0)
 		}
+		c.peek()
+		c.translate(hotBarLeft, 5 + hotbar.h + 1)
+		const wiggle = me.health < 5 ? (t*24&2)-1 : 0
+		for(let h = 0; h < 20; h+=2){
+			const x = h*4, y = (wiggle * ((h&2)-1) + 1) / 2
+			c.image(heartEmpty,x,y,9,9)
+			if(me.health>h+1) c.image(heart,x,y,9,9)
+			else if(me.health>h) c.image(halfHeart,x,y,9,9)
+		}
 		c.pop()
 	}
+	if(!me.health){
+		const h3 = h / 3
+		c.fillStyle = '#f005'
+		c.fillRect(0, 0, w, h)
+		c.textAlign = 'center'
+		c.fillStyle = '#333'
+		c.fillText('You died!', w / 2 + 4, h3*2 - 4, 40)
+		c.fillStyle = '#fff'
+		c.fillText('You died!', w / 2, h3*2, 40)
+		const {x: mx, y: my} = c.mouse()
+		const selectedBtn = mx >= (w - btnW) / 2 && mx < (w + btnW) / 2 ?
+			my >= h3 && my < h3 + 20 ? 1
+			: my >= h3 - 30 && my < h3 - 10 ? -1
+			: 0
+		: 0
+		if(!respawnClicked){
+			customPause()
+			c.image(uiButtons.large, (w - btnW) / 2, h3)
+			c.fillStyle = '#333'
+			c.fillText('Respawn', w / 2 + 1, h3 + 6, 10)
+			c.fillStyle = selectedBtn == 1 ? '#fff' : '#999'
+			c.fillText('Respawn', w / 2, h3 + 7, 10)
+
+			c.image(uiButtons.large, (w - btnW) / 2, h3 - 30)
+			c.fillStyle = '#333'
+			c.fillText('Rage quit', w / 2 + 1, h3 - 24, 10)
+			c.fillStyle = selectedBtn == -1 ? '#fff' : '#999'
+			c.fillText('Rage quit', w / 2, h3 - 23, 10)
+			if(changed.has(LBUTTON) && !buttons.has(LBUTTON)){
+				if(selectedBtn == 1){
+					click()
+					respawnClicked = true
+					const buf = new DataWriter()
+					buf.byte(5)
+					send(buf)
+					pause(false)
+				}else if(selectedBtn == -1) respawnClicked = true, quit()
+			}
+		}else{
+			c.fillStyle = '#333'
+			c.fillText('Hang on...', w / 2 + 1, h3 - 1, 10)
+			c.fillStyle = '#fff'
+			c.fillText('Hang on...', w / 2, h3, 10)
+		}
+		return
+	}else respawnClicked = false
+
 	const action = invAction
 	invAction = 0
 	if(!invInterface) return
@@ -243,20 +305,20 @@ function openEntity(e){
 	pause(true)
 	const buf = new DataWriter()
 	buf.byte(13)
-	buf.int(e._id)
-	buf.short((e._id / 4294967296) | 0)
+	buf.int(e.netId)
+	buf.short((e.netId / 4294967296) | 0)
 	send(buf)
 }
 function closeInterface(){ pause(false) }
 
 onpacket(13, buf => {
-	const e = entities.get(buf.uint32() + buf.short() * 4294967296)
+	const e = entityMap.get(buf.uint32() + buf.short() * 4294967296)
 	if(!e) return
 	invInterface = e
 	interfaceId = buf.byte()
 })
 onpacket(32, buf => {
-	const e = entities.get(buf.uint32() + buf.short() * 4294967296)
+	const e = entityMap.get(buf.uint32() + buf.short() * 4294967296)
 	if(!e) return
 	while(buf.left){
 		const slot = buf.byte()
@@ -265,7 +327,7 @@ onpacket(32, buf => {
 	}
 })
 onpacket(15, buf => {
-	const e = entities.get(buf.uint32() + buf.short() * 4294967296)
+	const e = entityMap.get(buf.uint32() + buf.short() * 4294967296)
 	if(!e) return
 	e.selected = buf.byte()
 })

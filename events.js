@@ -19,7 +19,7 @@ onkeyup = e => {
 	if(win) keyMsg(~e.keyCode)
 	e.preventDefault()
 }
-onmousedown = e => void(win && (!ui || ui == NONE) && keyMsg(e.button))
+onmousedown = e => void(win && (!ui || (ui instanceof Comment)) && keyMsg(e.button))
 onmouseup = e => void(win && keyMsg(~e.button))
 
 const cbs = {}

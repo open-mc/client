@@ -1,41 +1,36 @@
-import { addEntity } from 'world'
 import { BlockIDs, EntityIDs } from 'definitions'
 const canvasPool = []
 export class Chunk{
 	constructor(buf){
-		const x = buf.int(), y = buf.int()
-		this.x = x << 6 >> 6
-		this.y = y << 6 >> 6
+		this.x = buf.int() << 6 >> 6
+		this.y = buf.int() << 6 >> 6
+		this.ref = 0
 		this.tiles = []
 		this.entities = new Set()
 		this.ctx = null
 		//read buffer palette
-		let palettelen = (x >>> 26) + (y >>> 26) * 64 + 1
-		let id = buf.short()
-		while(id){
-			const e = EntityIDs[id](buf.short() / 1024 + (this.x << 6), buf.short() / 1024 + (this.y << 6))
-			e._id = buf.uint32() + buf.uint16() * 4294967296
+		let palettelen = buf.short() + 1
+		let id
+		while((id = buf.short()) != 65535){
+			const e = EntityIDs[id]()
+			e.x = buf.short() / 1024 + (this.x << 6)
+			e.y = buf.short() / 1024 + (this.y << 6)
+			e.netId = buf.uint32() + buf.uint16() * 4294967296
 			e.name = buf.string(); e.state = buf.short()
 			e.dx = buf.float(); e.dy = buf.float()
 			e.f = buf.float(); e.age = buf.double()
 			e.chunk = this
 			if(e.savedata)buf.read(e.savedatahistory[buf.flint()] || e.savedata, e)
-			addEntity(e)
+			e.place()
 			this.entities.add(e)
-			if(e.placed)e.placed()
-			id = buf.short()
 		}
 		this.biomes = [buf.byte(), buf.byte(), buf.byte(), buf.byte(), buf.byte(), buf.byte(), buf.byte(), buf.byte(), buf.byte(), buf.byte()]
 		let palette = []
-		let i = 0
-		for(;i<palettelen;i++){
-			palette.push(BlockIDs[buf.short()])
-		}
-		let j = 0; i = 11 + i * 2
+		if(palettelen<1024)for(let i = 0;i<palettelen;i++) palette.push(BlockIDs[buf.short()])
 		if(palettelen<2){
-			for(;j<4096;j++)this.tiles.push(palette[0])
+			for(let j=0;j<4096;j++)this.tiles.push(palette[0])
 		}else if(palettelen == 2){
-			for(;j<512;j++){
+			for(let j=0;j<512;j++){
 				const byte = buf.byte()
 				this.tiles.push(palette[byte&1])
 				this.tiles.push(palette[(byte>>1)&1])
@@ -47,7 +42,7 @@ export class Chunk{
 				this.tiles.push(palette[byte>>7])
 			}
 		}else if(palettelen <= 4){
-			for(;j<1024;j++){
+			for(let j=0;j<1024;j++){
 				const byte = buf.byte()
 				this.tiles.push(palette[byte&3])
 				this.tiles.push(palette[(byte>>2)&3])
@@ -55,24 +50,26 @@ export class Chunk{
 				this.tiles.push(palette[byte>>6])
 			}
 		}else if(palettelen <= 16){
-			for(;j<2048;j++){
+			for(let j=0;j<2048;j++){
 				const byte = buf.byte()
 				this.tiles.push(palette[byte&15])
 				this.tiles.push(palette[(byte>>4)])
 			}
 		}else if(palettelen <= 256){
-			for(;j<4096;j++){
+			for(let j=0;j<4096;j++){
 				this.tiles.push(palette[buf.byte()])
 			}
-		}else{
-			for(;j<6144;j+=3){
+		}else if(palettelen < 1024){
+			for(let j=0;j<6144;j+=3){
 				let byte2
 				this.tiles.push(palette[buf.byte() + (((byte2 = buf.byte())&0x0F)<<8)])
 				this.tiles.push(palette[buf.byte() + ((byte2&0xF0)<<4)])
 			}
+		}else for(let j=0;j<4096;j++){
+			this.tiles.push(BlockIDs[buf.short()])
 		}
-		//parse block entities
-		for(j=0;j<4096;j++){
+		//parse block entityMap
+		for(let j=0;j<4096;j++){
 			const block = this.tiles[j]
 			if(!block){this.tiles[j] = Blocks.air; continue}
 			if(!block.savedata)continue
@@ -80,6 +77,7 @@ export class Chunk{
 			this.tiles[j] = buf.read(block.savedatahistory[buf.flint()] || block.savedata, block())
 		}
 	}
+	static savedatahistory = []
 	hide(){
 		if(!this.ctx) return
 		canvasPool.push(this.ctx)

@@ -64,9 +64,11 @@ export const button = (...keys) => {
 		(_cbs[key] || (_cbs[key] = [])).push(cb)
 }
 
-export const buttons = new BitField()
+buttons = new BitField()
+changed = new BitField()
 
 export const options = {}
+globalThis.options = options
 
 export const listen = (...keys) => {
 	const cb = keys.pop()
@@ -76,8 +78,21 @@ export const listen = (...keys) => {
 	}
 }
 export let paused = false
-export const pause = paused => me && postMessage(!!paused, '*')
-export function _setPaused(b){paused = b}
+let customPaused = false
+export const pause = _paused => me && (paused != (_paused=!!_paused) || customPaused) && postMessage(_paused, '*')
+export function customPause(){
+	if(customPaused)return
+	fakePause(true)
+	customPaused = true
+	postMessage('custompause', '*')
+}
+export const quit = () => postMessage('quit', '*')
+
+export function fakePause(b = true){
+	paused = b
+	customPaused = false
+	for(const cb of _pauseCb) cb()
+}
 
 
 export let renderF3 = false, renderBoxes = false, renderUI = true
@@ -87,3 +102,8 @@ button(KEYS.F3, () => {
 	if(buttons.has(KEYS.ALT) || buttons.has(KEYS.MOD)) renderBoxes = !renderBoxes
 	else renderF3 = !renderF3
 })
+
+export const codes = new Array(256)
+
+export const onpacket = (c, cb) => codes[c] = cb
+export const send = buf => postMessage(buf.build ? buf.build().buffer : buf.buffer || buf, '*')

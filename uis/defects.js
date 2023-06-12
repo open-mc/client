@@ -60,6 +60,8 @@ if(navigator.userAgent.toLowerCase().includes('firefox')) defects.firefox = fals
 if(matchMedia("not (pointer: fine)").matches)defects.mobile = true
 
 export function start(){
+	const loading = document.getElementById('loading')
+	if(loading) loading.remove()
 	if(!storage.shownDefects && (defects.firefox || defects.safari || defects.m1)){
 		showUI(UI('dirtbg',
 			Label('Notice about your current environment').attr('style', 'font-size:12rem'),

@@ -4,7 +4,7 @@ import { msg, pendingConnection, reconn } from "./uis/dirtscreen.js"
 import { Btn, click, Div, Img, Label, ping, Row } from "./ui.js"
 import { servers, saveServers, storage, options } from "./save.js"
 import { destroyIframe, fwPacket, gameIframe } from "./iframe.js"
-import { PROTOCOL_VERSION } from "./iframe/v.js"
+import { PROTOCOL_VERSION } from "./version.js"
 let lastIp = null
 globalThis.ws = null
 
@@ -98,11 +98,23 @@ export function preconnect(ip, cb = Function.prototype){
 	const node = Row(
 		icon = Img('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAJCAYAAADgkQYQAAAAAXNSR0IArs4c6QAAACZJREFUKFNjZCACMBKhhoEGijo6Ov5XVFQwotMg59DAOny+JMo6AMVLDArhBOpkAAAAAElFTkSuQmCC'),
 		Div('',
-			Row(name = Label(displayIp),Btn('x', () => {
-				servers.splice(node.parentElement.children.indexOf(node), 1)
-				node.remove()
-				saveServers()
-			},'tiny')),
+			Row(
+				name = Label(displayIp),
+				Btn('^', () => {
+					const i = node.parentElement.children.indexOf(node)
+					if(!i) return
+					const s = servers[i]
+					servers[i] = servers[i-1]
+					servers[i-1] = s
+					node.parentElement.insertBefore(node, node.parentElement.children[i-1])
+					saveServers()
+				},'tiny').attr('style','line-height:2.2'), // Omg 2.2 reference??
+				Btn('x', () => {
+					servers.splice(node.parentElement.children.indexOf(node), 1)
+					node.remove()
+					saveServers()
+				},'tiny')
+			),
 			motd = Label('Connecting...').attr('style', 'opacity: 0.5')
 		)
 	)
@@ -141,4 +153,5 @@ export function finished(){
 	notifs = 0
 	onfocus()
 	destroyIframe()
+	
 }

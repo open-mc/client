@@ -23,7 +23,7 @@ HTMLElement.prototype.attr = function(a, b){this.setAttribute(a, b); return this
 
 for(const n of [HTMLCollection, NodeList])Object.setPrototypeOf(n.prototype, Array.prototype)
 
-export const NONE = document.createComment('')
+export const NONE = new Comment()
 NONE.esc = hideUI
 document.body.append(NONE)
 
@@ -47,7 +47,7 @@ export async function hideUI(){
 }
 
 export function showUI(a = null){
-	//document.exitFullscreen()
+	if(a instanceof Element && document.fullscreenElement && (a.classList.contains('dirtbg') || !a.classList.contains('noshade'))) document.exitFullscreen()
 	document.exitPointerLock()
 	void (ui && ui.finish || Function.prototype)()
 	void (ui || NONE).replaceWith(ui = a || NONE)
@@ -61,16 +61,16 @@ document.onselectionchange = () => {
 	}
 }
 const earr = [''], fnode = document.createElement('f')
-function newnode(v, k, t){
+function newnode(v, k, text){
 	let n = v.children[v.i++]
 	if(n){
-		n.textContent = t
+		n.textContent = text
 		n.className = k
 		return n
 	}
 	n = fnode.cloneNode(true)
 	n.className = k
-	n.textContent = t
+	n.textContent = text
 	v.append(n)
 	return n
 }
@@ -188,9 +188,9 @@ export const Btn = (text, onclick, classes = '') => {
 	Object.setPrototypeOf(btn, BtnPrototype)
 	return btn
 }
-export const Row = (a, b) => {
+export const Row = (...a) => {
 	let row = document.createElement('row')
-	row.append(a); row.append(b)
+	row.append(...a)
 	return row
 }
 export const Label = (txt) => {

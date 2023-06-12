@@ -1,11 +1,11 @@
-import { getblock } from 'world'
+import { getblock, map } from 'world'
 
 const groundDrag = .0000244
 const airDrag = 0.06
 const yDrag = 0.667
 
 export function stepEntity(e){
-	e.prestep()
+	e.preupdate?.()
 	e.state = (e.state & 0xffff) | (e.state << 8 & 0xff000000) | fastCollision(e, e.dx * dt, e.dy * dt) << 16
 	if(e.state & 1)e.dy = 0
 	else{
@@ -22,8 +22,8 @@ export function stepEntity(e){
 		//if(tf == tf)e.f = ((e.f+(((tf-e.f)%PI2+PI2+PI)%PI2-PI)*dt*20)%PI2+PI2+PI)%PI2-PI
 	}
 	moveEntity(e)
-	e.step()
 	e.age += dt * TPS
+	e.update?.()
 }
 export function moveEntity(e){
 	const ch = map.get((floor(e.x) >>> 6) + (floor(e.y) >>> 6) * 67108864) || null

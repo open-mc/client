@@ -15,8 +15,9 @@ function guiChange(){
 	renderScale()
 }
 function zoomChange(a = options.zoom){
-	const z = 2 ** ((options.zoom = Math.round(a * 5) / 5) * 5 - 1)
-	return [z<16?'Zoom: '+z/2:'Zoom: SUPER', options.zoom]
+	a = Math.round(a * 14)
+	const z = 2 ** ((options.zoom = a / 14) * 7 - 4)
+	return [z<16?'Zoom: '+z.toPrecision(1+a%2):'Zoom: SUPER', options.zoom]
 }
 
 function soundChange(a = options.sound){
