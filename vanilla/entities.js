@@ -37,7 +37,7 @@ class LivingEntity extends Entity{
 	}
 }
 
-const portalEnter = Audio('sound/portal/enter.mp3'), portalExit = Audio('sound/portal/exit.mp3')
+const portalEnter = Audio('sound/portal/enter.mp3'), portalExit = Audio('sound/portal/exit.mp3'), endPortalMake = Audio('sound/portal/end.mp3')
 
 const skinCan = Can(28, 12)
 Entities.player = class extends LivingEntity{
@@ -191,6 +191,10 @@ Entities.player = class extends LivingEntity{
 	}
 	50(){
 		this.sound(portalExit, 0.25, random() * 0.4 + 0.8)
+	}
+	52(){
+		// Heard portal open
+		this.sound(endPortalMake)
 	}
 }
 const pop = Audio('sound/misc/pop.mp3')

@@ -28,15 +28,13 @@ Todo: crafting, smelting
 
 - Sugar cane & grass spreading
 
-- Nether portal
+- Nether & End portal
 
-Todo: End portal
+- End island
 
-Todo: End island
+- Multiple terrain generators
 
 Todo: health animations, dying animations
-
-Todo: Custom terrain generators
 
 ## Alpha 7
 

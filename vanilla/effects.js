@@ -1,7 +1,7 @@
 import { music } from 'world'
 const {Audio, Texture} = loader(import.meta)
 
-export const audioSet = (name, variant, count) => Array.from({length: count}, (_, i) => Audio('sound/'+name+'/'+variant+(i+1)+'.mp3'))
+export const audioSet = (path, count) => Array.from({length: count}, (_, i) => Audio('sound/'+path+(i+1)+'.mp3'))
 
 export const click = Audio('../img/click.mp3')
 
