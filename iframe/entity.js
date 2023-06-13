@@ -16,10 +16,8 @@ export function stepEntity(e){
 	e.dx = e.dx * (e.state & 0x10000 ? groundDrag : airDrag) ** dt
 	if(e == me || dt > 1/30)e.ix = e.x, e.iy = e.y
 	else{
-		//TODO: make interpolation entirely dx/dy based
 		e.ix += ifloat(e.x - e.ix) * dt * 20
 		e.iy += ifloat(e.y - e.iy) * dt * 20
-		//if(tf == tf)e.f = ((e.f+(((tf-e.f)%PI2+PI2+PI)%PI2-PI)*dt*20)%PI2+PI2+PI)%PI2-PI
 	}
 	moveEntity(e)
 	e.age += dt * TPS

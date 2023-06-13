@@ -2,19 +2,24 @@ import { Blocks } from 'definitions'
 import { musicdict } from './sounds.js'
 export const map = new Map, entityMap = new Map()
 
+export const cam = {x: 0, y: 0, z: 2}
+
 export function setblock(x, y, b){
 	const k = (x>>>6)+(y>>>6)*67108864
 	const ch = map.get(k)
 	if(!ch) return
 	const lx = x & 63
 	const ly = y & 63
-	const old = ch.tiles[lx + (ly << 6)]
-	ch.tiles[lx + (ly << 6)] = b
-	i: if(ch.ctx){
-		const t = b.texture
+	const chI = lx + (ly << 6)
+	const old = ch.tiles[chI]
+	ch.tiles[chI] = b
+	if(ch.ctx){
+		const {texture, render} = b
 		ch.ctx.clearRect(lx * TEX_SIZE, (63 - ly) * TEX_SIZE, TEX_SIZE, TEX_SIZE)
-		if(!t)break i
-		if(b.texture)ch.ctx.drawImage(t.canvas,t.x,t.y,t.w,t.h,lx*TEX_SIZE,(63-ly)*TEX_SIZE,TEX_SIZE,TEX_SIZE)
+		let i = ch.rerenders.indexOf(chI)
+		if((i == -1) & (render != undefined)) ch.rerenders.push(chI)
+		else if((i > -1) & (render == undefined)) ch.rerenders.splice(i, 1)
+		if(texture) ch.ctx.drawImage(texture.canvas,texture.x,texture.y,texture.w,texture.h,lx*TEX_SIZE,(63-ly)*TEX_SIZE,TEX_SIZE,TEX_SIZE)
 	}
 }
 export function getblock(x, y){
@@ -47,3 +52,4 @@ export const music = (theme, ...audios) => {
 }
 
 export * as pointer from './pointer.js'
+

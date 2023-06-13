@@ -1,5 +1,4 @@
 import { BitField } from "./bitfield.js"
-
 export const _cbs = []
 export const _mouseMoveCb = []
 export const _wheelCb = []
@@ -9,8 +8,8 @@ export const _optionListeners = {}
 
 export let W2 = 0, H2 = 0, W = 0, H = 0, SCALE = 1
 
-export function _recalcDimensions(c){
-	SCALE = cam.z * TEX_SIZE
+export function _recalcDimensions(c, camZ){
+	SCALE = camZ * TEX_SIZE
 	W2 = (W = round(visualViewport.width * visualViewport.scale * devicePixelRatio)) / SCALE / 2
 	H2 = (H = round(visualViewport.height * visualViewport.scale * devicePixelRatio)) / SCALE / 2
 	if(W != c.canvas.width || H != c.canvas.height) c.canvas.width = W, c.canvas.height = H

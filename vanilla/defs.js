@@ -1,5 +1,5 @@
 import { audioSet, lava, water } from "./effects.js"
-import { sound } from 'world'
+import { sound, cam } from 'world'
 import { Blocks, Items, Block, Item, Particle } from 'definitions'
 const {Audio, Texture} = loader(import.meta)
 
@@ -265,9 +265,41 @@ Blocks.portal = class extends Block{
 		sound(portalAmbient, x, y, 0.5, random() * 0.4 + 0.8)
 	}
 }
+const epo = Texture('endportaloverlay.png')
+const endPortalOverlays = [
+	epo.crop(0,0,64,256),
+	epo.crop(64,0,64,256),
+	epo.crop(128,0,64,256),
+	epo.crop(192,0,64,256)
+]
+function rot_off_transform(p, rot, off, x, y){
+	const a = cos(rot) / 16, b = sin(rot) / 16
+	p.setPatternTransform(a, b, -b, a, b*off-x, -a*off-y)
+}
 Blocks.end_portal = class extends Block{
 	static solid = false
 	static texture = terrainPng.at(14, 0)
+	render(c, x, y){
+		x -= cam.x; y -= cam.y
+		c.globalCompositeOperation = 'lighter'
+		rot_off_transform(endPortalOverlays[0], PI/3, t, x, y)
+		c.fillPattern(endPortalOverlays[0])
+		c.fillRect(0,0,1,0.75)
+		c.globalAlpha = 0.9
+		rot_off_transform(endPortalOverlays[1], PI/2, t, x, y)
+		c.fillPattern(endPortalOverlays[1])
+		c.fillRect(0,0,1,0.75)
+		c.globalAlpha = 0.5
+		rot_off_transform(endPortalOverlays[2], -PI/4, t, x, y)
+		c.fillPattern(endPortalOverlays[2])
+		c.fillRect(0,0,1,0.75)
+		c.globalAlpha = 0.4
+		rot_off_transform(endPortalOverlays[3], PI, t, x, y)
+		c.fillPattern(endPortalOverlays[3])
+		c.fillRect(0,0,1,0.75)
+		c.globalAlpha = 1
+		c.globalCompositeOperation = 'source-over'
+	}
 }
 
 Blocks.end_portal_frame = class extends Block{

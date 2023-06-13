@@ -76,6 +76,7 @@ export class Chunk{
 			//decode data
 			this.tiles[j] = buf.read(block.savedatahistory[buf.flint()] || block.savedata, block())
 		}
+		this.rerenders = []
 	}
 	static savedatahistory = []
 	hide(){
@@ -83,6 +84,7 @@ export class Chunk{
 		canvasPool.push(this.ctx)
 		this.ctx.clearRect(0, 0, TEX_SIZE << 6, TEX_SIZE << 6)
 		this.ctx = null
+		this.rerenders.length = 0
 	}
 	draw(){
 		if(this.ctx) return
@@ -90,9 +92,10 @@ export class Chunk{
 		if(!this.ctx)this.ctx = Can(TEX_SIZE << 6, TEX_SIZE << 6)
 		for(let x = 0; x < 64; x++){
 			for(let y = 0; y < 64; y++){
-				const t = this.tiles[x|(y<<6)].texture
-				if(!t)continue
-				this.ctx.drawImage(t.canvas,t.x,t.y,t.w,t.h,x*TEX_SIZE,(63-y)*TEX_SIZE,TEX_SIZE,TEX_SIZE)
+				const {texture, render} = this.tiles[x|(y<<6)]
+				if(render) this.rerenders.push(x|(y<<6))
+				if(texture)
+					this.ctx.drawImage(texture.canvas,texture.x,texture.y,texture.w,texture.h,x*TEX_SIZE,(63-y)*TEX_SIZE,TEX_SIZE,TEX_SIZE)
 			}
 		}
 	}

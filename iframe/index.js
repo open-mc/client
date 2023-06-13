@@ -1,7 +1,7 @@
 import { playerControls } from "./controls.js"
 import { DataWriter as DW, DataReader as DR } from "../data.js"
 import { stepEntity } from "./entity.js"
-import { gridEvents, gridEventMap, getblock, entityMap, map } from 'world'
+import { gridEvents, gridEventMap, getblock, entityMap, map, cam } from 'world'
 import * as pointer from "./pointer.js"
 import { button, drawPhase, renderLayer, uiLayer, W, H, W2, H2, SCALE, options, paused, _recalcDimensions, _renderPhases, renderBoxes, renderF3, send } from 'api'
 import { particles } from 'definitions'
@@ -75,7 +75,7 @@ export function frame(){
 	for(const entity of entityMap.values())stepEntity(entity)
 	const tzoom = (me.state & 4 ? -0.13 : 0) * ((1 << options.ffx) - 1) + 1
 	cam.z = sqrt(sqrt(cam.z * cam.z * cam.z * 2 ** (options.zoom * 7 - 3) * devicePixelRatio * tzoom))
-	_recalcDimensions(c)
+	_recalcDimensions(c, cam.z)
 	c.transforms.length = 0
 	c.imageSmoothingEnabled = false
 	if(!me) return
@@ -122,26 +122,40 @@ export function frame(){
 drawPhase(200, (c, w, h) => {
 	const hitboxes = buttons.has(KEYS.SYMBOL) ^ renderBoxes
 	c.setTransform(1,0,0,1,0,h)
-	c.lineWidth = 0.0625 * SCALE
-	c.strokeStyle = '#06f'
-	c.fillStyle = '#08f'
 	for(const chunk of map.values()){
-		const x0 = round(ifloat((chunk.x << 6) - cam.x + W2) * SCALE)
-		const x1 = round(ifloat((chunk.x + 1 << 6) - cam.x + W2) * SCALE)
-		const y0 = round(ifloat((chunk.y << 6) - cam.y + H2) * SCALE)
-		const y1 = round(ifloat((chunk.y + 1 << 6) - cam.y + H2) * SCALE)
+		const cxs = chunk.x << 6, cys = chunk.y << 6
+		const x0 = round(ifloat(cxs - cam.x + W2) * SCALE)
+		const x1 = round(ifloat(cxs + 64 - cam.x + W2) * SCALE)
+		const y0 = round(ifloat(cys - cam.y + H2) * SCALE)
+		const y1 = round(ifloat(cys + 64 - cam.y + H2) * SCALE)
 		if(x1 <= 0 || y1 <= 0 || x0 >= w || y0 >= h){ chunk.hide(); continue }
 		if(!chunk.ctx)chunk.draw()
-		c.drawImage(chunk.ctx.canvas, 0, 0, TEX_SIZE << 6, TEX_SIZE << 6, x0, -y0, x1 - x0, y0 - y1)
-		if(hitboxes){
-			c.globalAlpha = cam.z / 16
-			for(let i = 0.125; i < 1; i += 0.125)
-				c.fillRect(x0 + (x1 - x0) * i - 0.015625 * SCALE, -y0, 0.03125 * SCALE, y0 - y1)
-			for(let i = 0.125; i < 1; i += 0.125)
-				c.fillRect(x0, (y0 - y1) * i - y0 - 0.015625 * SCALE, x1 - x0, 0.03125 * SCALE)
-			c.globalAlpha = 1
-			c.strokeRect(x0, -y0, x1 - x0, y0 - y1)
+		c.push()
+		c.translate(x0,-y0)
+		c.scale((x1-x0)/64,(y0-y1)/64)
+		c.image(chunk.ctx, 0, 0, 64, 64)
+		if(SCALE>12){
+			c.push()
+			for(const i of chunk.rerenders){
+				c.translate(i&63,i>>6)
+				chunk.tiles[i].render(c, cxs|(i&63),cys|(i>>6))
+				c.peek()
+			}
+			c.pop()
 		}
+		if(hitboxes){
+			c.lineWidth = 0.0625
+			c.strokeStyle = '#06f'
+			c.fillStyle = '#08f'
+			c.globalAlpha = cam.z / 16
+			for(let i = 8; i < 64; i += 8)
+				c.fillRect(i - 0.015625, 0, 0.03125, 64)
+			for(let i = 8; i < 64; i += 8)
+				c.fillRect(0, i - 0.015625, 64, 0.03125)
+			c.globalAlpha = 1
+			c.strokeRect(0,0,64,64)
+		}
+		c.pop()
 	}
 	c.fillStyle = '#00f'
 	if(abs(cam.x) <= W2 + 0.0625 && hitboxes)

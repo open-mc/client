@@ -1,5 +1,5 @@
 import { renderLayer, options } from 'api'
-import { getblock, sound, entityMap } from 'world'
+import { getblock, sound, entityMap, cam } from 'world'
 import { registerTypes } from '../data.js'
 import * as pointer from './pointer.js'
 

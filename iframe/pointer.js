@@ -1,4 +1,4 @@
-import { setblock, onPlayerLoad, getblock, map } from 'world'
+import { setblock, onPlayerLoad, getblock, map, cam } from 'world'
 import './controls.js'
 import { button, onmousemove, W2, H2, options, paused, renderUI } from 'api'
 

@@ -2,13 +2,13 @@ import { AshParticle, BlastParticle, explode, terrainPng } from "./defs.js"
 import { uiButtons, icons, renderItem, renderItemCount, click } from "./effects.js"
 import "./entities.js"
 import { button, W2, uiLayer, renderLayer, onpause, pause, paused, renderUI, customPause, quit, onpacket, send } from 'api'
-import { getblock, gridEvents, sound, entityMap, pointer } from 'world'
+import { getblock, gridEvents, sound, entityMap, pointer, cam } from 'world'
 import { Item } from 'definitions'
 const { Texture } = loader(import.meta)
 
 const BREAKING = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].mutmap(x => terrainPng.at(x, 15))
 const skyPng = Texture('sky.png')
-const stars = Texture('stars.png').pattern()
+const stars = Texture('stars.png')
 const sun = skyPng.crop(128, 64, 32, 32), moons = [
 	skyPng.crop(128, 0, 32, 32),
 	skyPng.crop(160, 0, 32, 32),
@@ -18,8 +18,8 @@ const sun = skyPng.crop(128, 64, 32, 32), moons = [
 	skyPng.crop(160, 32, 32, 32),
 	skyPng.crop(192, 32, 32, 32),
 	skyPng.crop(224, 32, 32, 32)
-], cloudMap = skyPng.crop(128, 127, 128, 1).pattern('repeat')
-const endSky = skyPng.crop(128,128,128,128).pattern('repeat')
+], cloudMap = skyPng.crop(128, 127, 128, 1)
+const endSky = skyPng.crop(128,128,128,128)
 uiLayer(-100, (c, w, h) => {
 	if(world == 'overworld'){
 		const reach = pointer.effectiveReach()
@@ -38,7 +38,7 @@ uiLayer(-100, (c, w, h) => {
 		const xo = wspan * ((time + 12600) % 24000 / 8400 - .5) - 20 - reach/4 - pointer.x*cam.z/16
 		const yo = h/2 + 6 + h/3 * sin(((time + 12600) % 24000 / 8400 - .5) * PI) - pointer.y*cam.z/16
 		c.translate(xo, yo)
-		c.fillStyle = stars
+		c.fillPattern(stars)
 		c.fill()
 		c.translate(-xo, -yo)
 		gradient = c.createLinearGradient(0, 0, 0, h)
@@ -69,7 +69,7 @@ uiLayer(-100, (c, w, h) => {
 		c.fillRect(0, 0, w, h)
 	}else if(world == 'end'){
 		c.globalAlpha = 0.15
-		c.fillStyle = endSky
+		c.fillPattern(endSky)
 		c.fillRect(0, 0, w, h)
 		c.globalAlpha = 1
 	}
@@ -105,7 +105,7 @@ renderLayer(150, c => {
 		const x = (t * s - cam.x) % (384 * h)
 		c.translate(x, 0)
 		c.scale(h * 3, h * 3)
-		c.fillStyle = cloudMap
+		c.fillPattern(cloudMap)
 		c.fill()
 		c.scale(1 / (h * 3), 1 / (h * 3))
 		c.translate(-x, 0)

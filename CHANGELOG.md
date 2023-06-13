@@ -1,20 +1,30 @@
 <details> <summary> <h1 style="display:inline-block"> The Future </h1> </summary>
 
-## Alpha 9
+Beta 1.0
 
-Todo: Chests, furnaces
-
-Todo: animated textures (water + lava)
-
-Todo: water + lava flowing variants and shapes
-
-Todo: crops, farmland, trees
-
-Todo: crafting, smelting
+Excitement awaits...
 
 </details>
 
-# Alpha 8 (current working version)
+## Alpha 9 (current preview version)
+
+Todo: Chests, furnaces
+
+Todo: Animated textures (water + lava)
+
+Todo: Water + lava flowing
+
+Todo: Crops, farmland, trees
+
+Todo: Crafting, smelting
+
+Todo: Flying permission
+
+Todo: Fall & fire damage
+
+Todo: fancy blocks
+
+# Alpha 8
 
 - Better explosions
 

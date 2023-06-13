@@ -106,8 +106,12 @@
 				y: my * a / det - my * b / det + (b * e - a * f) / det
 			}
 		}
-		Object.defineProperty(C, 'fillStyle', {get: getFillStyle, set(a){this.setFillStyle(a._pattern||a)}})
-		Object.defineProperty(C, 'strokeStyle', {get: getStrokeStyle, set(a){this.setStrokeStyle(a._pattern||a)}})
+		C.fillPattern = function(a){
+			this.fillStyle = a._pattern ?? a.pattern()
+		}
+		C.strokePattern = function(a){
+			this.strokeStyle = a._pattern ?? a.pattern()
+		}
 		C.resize = function(w, h){
 			this.canvas.width = this.w = w
 			this.canvas.height = this.h = h
@@ -181,22 +185,20 @@ const _txtr = class Texture{
 	constructor(img, x, y, w, h){ this.canvas = img; this.x = x; this.y = y; this.w = w; this.h = h; this._pattern = null }
 	crop(x, y, w, h){ return new _txtr(this.canvas, this.x + x, this.y + y, w, h) }
 	at(x, y){ return new _txtr(this.canvas, this.x + x * TEX_SIZE, this.y + y * TEX_SIZE, TEX_SIZE, TEX_SIZE) }
-	pattern(rep = ''){
+	pattern(){
 		if(this._pattern) return this._pattern
 		const c = document.createElement('canvas')
 		const ctx = c.getContext('2d')
 		if(this.canvas.complete === false){
-			this.canvas.addEventListener('load', () => {
-				c.width = this.w; c.height = this.h
-				ctx.drawImage(this.canvas, this.x, this.y, this.w, this.h, 0, 0, this.w, this.h)
-				this._pattern = ctx.createPattern(c, rep)
-			})
+			throw 'Texture not loaded yet!'
 		}else{
 			c.width = this.w; c.height = this.h
 			ctx.drawImage(this.canvas, this.x, this.y, this.w, this.h, 0, 0, this.w, this.h)
-			this._pattern = ctx.createPattern(c, rep)
+			return this._pattern = ctx.createPattern(c, 'repeat')
 		}
-		return this
+	}
+	setPatternTransform(a,b,c,d,e,f){
+		this.pattern().setTransform({a, b, c, d, e, f})
 	}
 }
 const _actx = new AudioContext()
@@ -280,7 +282,6 @@ const loader = (meta) => {
 	let t = 0, TPS = 20
 	let meid = -1, r = 0, me = null
 	let ticks = 0, world = '', gx = 0, gy = 0
-	const cam = {x: 0, y: 0, z: 2}
 	let mx = 0, my = 0
 	let DataReader, DataWriter
 	const nul = new Array(1000).fill(null)
