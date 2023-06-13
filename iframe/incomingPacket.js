@@ -23,7 +23,7 @@ function clockPacket(data){
 }
 function chunkPacket(buf){
 	const chunk = new Chunk(buf)
-	const k = (chunk.x&67108863)+(chunk.y&67108863)*67108864
+	const k = (chunk.x&0x3FFFFFF)+(chunk.y&0x3FFFFFF)*0x4000000
 	const {ref} = map.get(k) || chunk
 	chunk.ref = ref + 1
 	map.set(k, chunk)
@@ -31,7 +31,7 @@ function chunkPacket(buf){
 function chunkDeletePacket(data){
 	while(data.left){
 		const cx = data.int(), cy = data.int()
-		const k = (cx&67108863)+(cy&67108863)*67108864
+		const k = (cx&0x3FFFFFF)+(cy&0x3FFFFFF)*0x4000000
 		const chunk = map.get(k)
 		if(!--chunk.ref){
 			chunk.hide()

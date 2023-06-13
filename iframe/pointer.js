@@ -46,8 +46,8 @@ export function drawPointer(c){
 	if(!getblock(bpx + 1, bpy).solid && !getblock(bpx - 1, bpy).solid && !getblock(bpx, bpy + 1).solid && !getblock(bpx, bpy - 1).solid){
 		bpx = bpy = NaN
 	}else{
-		let x = bpx - 32 >>> 6, y = bpy - 32 >>> 6, x1 = x + 1 & 67108863, y1 = y + 1 & 67108863
-		a: for(const ch of [map.get(x+y*67108864), map.get(x1+y*67108864), map.get(x+y1*67108864), map.get(x1+y1*67108864)])
+		let x = bpx - 32 >>> 6, y = bpy - 32 >>> 6, x1 = x + 1 & 0x3FFFFFF, y1 = y + 1 & 0x3FFFFFF
+		a: for(const ch of [map.get(x+y*0x4000000), map.get(x1+y*0x4000000), map.get(x+y1*0x4000000), map.get(x1+y1*0x4000000)])
 			if(ch)for(const e of ch.entities)
 				if(e.y < bpy + 1 && e.y + e.height > bpy && e.x - e.width < bpx + 1 && e.x + e.width > bpx){
 					//Don't allow placing because there is an entity in the way
@@ -96,8 +96,8 @@ export function checkBlockPlacing(buf){
 		const hitBtnDown = buttons.has(options.click ? RBUTTON : LBUTTON) && !paused
 		if(hitBtnDown && !didHit){
 			const xp = me.x + x, yp = me.y + me.head + y
-			const xa = xp - 32 >>> 6, ya = yp - 32 >>> 6, x1 = xa + 1 & 67108863, y1 = ya + 1 & 67108863
-			a: for(const ch of [map.get(xa+ya*67108864), map.get(x1+ya*67108864), map.get(xa+y1*67108864), map.get(x1+y1*67108864)]) if(ch)for(const e of ch.entities)
+			const xa = xp - 32 >>> 6, ya = yp - 32 >>> 6, x1 = xa + 1 & 0x3FFFFFF, y1 = ya + 1 & 0x3FFFFFF
+			a: for(const ch of [map.get(xa+ya*0x4000000), map.get(x1+ya*0x4000000), map.get(xa+y1*0x4000000), map.get(x1+y1*0x4000000)]) if(ch)for(const e of ch.entities)
 				if(e.y < yp && e.y + e.height > yp && e.x - e.width < xp && e.x + e.width > xp){
 					// Found entity
 					id = e.netId

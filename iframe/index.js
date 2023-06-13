@@ -170,7 +170,7 @@ drawPhase(200, (c, w, h) => {
 drawPhase(300, (c, w, h) => {
 	for(const ev of gridEventMap.values()){
 		c.setTransform(SCALE, 0, 0, -SCALE, ifloat(ev.x - cam.x + W2) * SCALE, ifloat(cam.y - H2 - ev.y) * SCALE + h)
-		if(!map.has((ev.x>>>6)+(ev.y>>>6)*67108864) || ev(c))gridEventMap.delete(ev.i)
+		if(!map.has((ev.x>>>6)+(ev.y>>>6)*0x4000000) || ev(c))gridEventMap.delete(ev.i)
 	}
 })
 

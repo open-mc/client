@@ -5,7 +5,7 @@ export const map = new Map, entityMap = new Map()
 export const cam = {x: 0, y: 0, z: 2}
 
 export function setblock(x, y, b){
-	const k = (x>>>6)+(y>>>6)*67108864
+	const k = (x>>>6)+(y>>>6)*0x4000000
 	const ch = map.get(k)
 	if(!ch) return
 	const lx = x & 63
@@ -23,7 +23,7 @@ export function setblock(x, y, b){
 	}
 }
 export function getblock(x, y){
-	const k = (x>>>6)+(y>>>6)*67108864
+	const k = (x>>>6)+(y>>>6)*0x4000000
 	const ch = map.get(k)
 	return ch ? ch.tiles[(x & 63) + ((y & 63) << 6)] : Blocks.air()
 }

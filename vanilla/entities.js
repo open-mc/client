@@ -193,13 +193,13 @@ Entities.player = class extends LivingEntity{
 		}
 		return slot
 	}
-	50(){
-		this.sound(portalExit, 0.25, random() * 0.4 + 0.8)
-	}
 	52(){
 		// Heard portal open
 		this.sound(endPortalMake)
 	}
+}
+Entity[50] = function(){
+	this.sound(portalExit, 0.25, random() * 0.4 + 0.8)
 }
 const pop = Audio('sound/misc/pop.mp3')
 
