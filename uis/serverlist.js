@@ -10,7 +10,7 @@ const ctx = document.createElement('canvas').getContext('2d', {willReadFrequentl
 ctx.width = 28
 ctx.height = 12
 const skin16 = new Uint16Array(skin.buffer)
-for(let i = 0; i < 504; i++) skin16[i] = storage.skin.charCodeAt(i)
+for(let i = 0; i < 1008; i+=2) skin[i] = storage.skin.charCodeAt(i>>1), skin[i+1] = storage.skin.charCodeAt(i>>1)>>8
 async function getSkin(accept){
 	i.accept = accept
 	if(i.onchange)i.onchange()

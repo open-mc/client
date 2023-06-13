@@ -14,13 +14,14 @@ class LivingEntity extends Entity{
 	99(buf){
 		const oldHealth = this.health
 		this.health = buf.byte()
+		const fields = buf.byte()
 		if(this.health < oldHealth){
 			this.sound(hurt[floor(random()*hurt.length)])
-		}
-		const fields = buf.byte()
-		if(fields & 1){
-			if(this.health) this.hitTimer = this.health ? 0.5 : 1
-			else this.hitTimer = 1, this.f = this.dx >= 0 ? PI/2 : PI/-2
+
+			if(fields & 1){
+				if(this.health) this.hitTimer = this.health ? 0.5 : 1
+				else this.hitTimer = 1, this.f = this.dx >= 0 ? PI/2 : PI/-2
+			}
 		}
 	}
 	render(c){
@@ -193,13 +194,13 @@ Entities.player = class extends LivingEntity{
 		}
 		return slot
 	}
-	52(){
-		// Heard portal open
-		this.sound(endPortalMake)
-	}
 }
 Entity[50] = function(){
 	this.sound(portalExit, 0.25, random() * 0.4 + 0.8)
+}
+Entity[52] = function(){
+	// Heard portal open
+	this.sound(endPortalMake)
 }
 const pop = Audio('sound/misc/pop.mp3')
 

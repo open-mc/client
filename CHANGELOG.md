@@ -22,7 +22,7 @@ Todo: Flying permission
 
 Todo: Fall & fire damage
 
-Todo: fancy blocks
+Todo: Fancy blocks
 
 # Alpha 8
 

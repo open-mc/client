@@ -68,7 +68,7 @@ export class Chunk{
 		}else for(let j=0;j<4096;j++){
 			this.tiles.push(BlockIDs[buf.short()])
 		}
-		//parse block entityMap
+		//parse block entities
 		for(let j=0;j<4096;j++){
 			const block = this.tiles[j]
 			if(!block){this.tiles[j] = Blocks.air; continue}
