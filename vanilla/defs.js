@@ -318,6 +318,12 @@ Blocks.sugar_cane = class extends Block{
 	static placeSounds = Blocks.grass.placeSounds
 	static texture = terrainPng.crop(144,64,16,16)
 }
+Blocks.pumpkin_leaf = class extends Block{
+	
+}
+Blocks.pumpkin_leaf1 = class extends Blocks.pumpkin_leaf{ }
+Blocks.pumpkin_leaf2 = class extends Blocks.pumpkin_leaf{ }
+Blocks.pumpkin_leaf3 = class extends Blocks.pumpkin_leaf{ }
 
 Items.oak_log = class extends Item{
 	places(){ return Blocks.oak_log }
