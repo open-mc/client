@@ -36,7 +36,7 @@ export class Block{
 		if(!e.alive) return
 		if(this.stepSounds.length)
 			sound(this.stepSounds[floor(random() * this.stepSounds.length)], x, y, 0.15, 1)
-		if((e.state & 0x1010000) == 0x10000 || (e.state & 4)) stepParticles(this, e)
+		if(((e.state & 0x10000) && !(e._state & 0x10000)) || (e.state & 4)) stepParticles(this, e)
 	}
 	fall(x, y){
 		if(this.stepSounds.length)
@@ -71,30 +71,21 @@ export class Item{
 }
 registerTypes({Item})
 export class Entity{
-	blocksWalked = 0
 	ix = 0; x = 0
 	iy = 0; y = 0
 	dx = 0; dy = 0
+	impactDx = 0; impactDy = 0
 	chunk = null
 	netId = 0
 	state = 0
 	age = 0
+	flags = 0
 	f = PI / 2
 	preupdate(){
 		const { gooeyness } = getblock(floor(this.x), floor(this.dy > 0 ? this.y : this.y + this.height / 4))
 		if(gooeyness) this.dx *= (1 - gooeyness), this.dy *= (1 - gooeyness)
 	}
-	update(){
-		this.blocksWalked += abs(this.dx * dt)
-		if((this.state & 0x10000) && !(this.state & 2)){
-			if(this.blocksWalked >= 1.7){
-				this.blocksWalked = 0
-				const x = floor(this.x + this.dx * dt), y = ceil(this.y) - 1
-				const block = getblock(x, y)
-				if(block.walk) block.walk(x, y, this)
-			}
-		}else this.blocksWalked = this.dy < -10 ? 1.7 : 1.68
-	}
+	update(){}
 	place(){
 		entityMap.set(this.netId, this)
 		this.ix = this.x; this.iy = this.y

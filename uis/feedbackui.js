@@ -1,6 +1,6 @@
-import { Btn, Input, Label, Row, showUI, Spacer, UI } from "../ui.js"
-import { pause } from "./pauseui.js"
-import { popup } from "./popup.js"
+import { Btn, Input, Label, Row, showUI, Spacer, UI } from '../ui.js'
+import { pause } from './pauseui.js'
+import { popup } from './popup.js'
 
 function selectBug(){
 	if(bug.disabled) return

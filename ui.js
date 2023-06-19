@@ -1,4 +1,4 @@
-import { options } from "./save.js"
+import { options } from './save.js'
 
 let defaultUI
 export function setDefaultUI(fn){defaultUI = fn}

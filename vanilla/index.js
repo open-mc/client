@@ -1,5 +1,5 @@
-import { AshParticle, BlastParticle, explode, terrainPng } from "./defs.js"
-import { uiButtons, icons, renderItem, renderItemCount, click } from "./effects.js"
+import { AshParticle, BlastParticle, explode, terrainPng } from './defs.js'
+import { uiButtons, icons, renderItem, renderItemCount, click } from './effects.js'
 import "./entities.js"
 import { button, W2, uiLayer, renderLayer, onpause, pause, paused, renderUI, customPause, quit, onpacket, send } from 'api'
 import { getblock, gridEvents, sound, entityMap, pointer, cam } from 'world'
@@ -76,10 +76,8 @@ uiLayer(-100, (c, w, h) => {
 })
 uiLayer(500, (c, w, h) => {
 	if(world == 'nether'){
-		c.fillStyle = '#400000'
-		c.globalAlpha = 0.2
+		c.fillStyle = '#40000033'
 		c.fillRect(0, 0, w, h)
-		c.globalAlpha = 1
 	}
 })
 
@@ -151,7 +149,7 @@ uiLayer(1000, (c, w, h) => {
 	}
 	if(!me.health){
 		const h3 = h / 3
-		c.fillStyle = '#f005'
+		c.fillStyle = '#f003'
 		c.fillRect(0, 0, w, h)
 		c.textAlign = 'center'
 		c.fillStyle = '#333'

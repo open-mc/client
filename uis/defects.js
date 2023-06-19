@@ -1,6 +1,6 @@
-import { storage } from "../save.js"
-import { Btn, Label, Row, showUI, Spacer, UI } from "../ui.js"
-import { serverlist } from "./serverlist.js"
+import { storage } from '../save.js'
+import { Btn, Label, Row, showUI, Spacer, UI } from '../ui.js'
+import { serverlist } from './serverlist.js'
 
 // Web technologies are a mess * ** [citation needed]
 // Here we aim to detect and warn the user about an L browser, advising them to use a more based browser

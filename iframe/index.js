@@ -1,11 +1,11 @@
-import { playerControls } from "./controls.js"
-import { DataWriter as DW, DataReader as DR } from "../data.js"
-import { stepEntity } from "./entity.js"
+import { playerControls } from './controls.js'
+import { DataWriter as DW, DataReader as DR } from '../data.js'
+import { meImpact, stepEntity } from './entity.js'
 import { gridEvents, gridEventMap, getblock, entityMap, map, cam } from 'world'
-import * as pointer from "./pointer.js"
+import * as pointer from './pointer.js'
 import { button, drawPhase, renderLayer, uiLayer, W, H, W2, H2, SCALE, options, paused, _recalcDimensions, _renderPhases, renderBoxes, renderF3, send } from 'api'
 import { particles } from 'definitions'
-import { VERSION } from "../version.js"
+import { VERSION } from '../version.js'
 
 DataReader = DR
 DataWriter = DW
@@ -33,13 +33,15 @@ setInterval(function(){
 const sendDelay = 1 //send packet every tick
 function tick(){ //20 times a second
 	if(dt < 1/20000)dt = 1/20000
-	packet: if(ticks % sendDelay == 0 && me && me.netId > -1){
+	if(ticks % sendDelay == 0 && me && me.netId > -1){
 		let buf = new DataWriter()
 		buf.byte(4)
 		buf.byte(r)
 		buf.double(me.x)
 		buf.double(me.y)
 		buf.short(me.state)
+		buf.float(meImpact.dx); buf.float(meImpact.dy)
+		meImpact.dx = meImpact.dy = 0
 		pointer.checkBlockPlacing(buf)
 		send(buf)
 	}
@@ -62,7 +64,7 @@ const c = Can(0, 0, {alpha: false, desynchronized: true})
 c.canvas.style = 'width: 100%; height: 100%; position: fixed; top: 0; left: 0; z-index: 0;'
 document.body.append(c.canvas)
 
-
+globalThis.cam = cam
 export function frame(){
 	const now = performance.now()
 	eluStart()
@@ -107,11 +109,16 @@ export function frame(){
 		if(me.y > cam.y + H2)cam.y += H2*2
 		if(me.y < cam.y - H2)cam.y -= H2*2
 	}
+	cam.rot = max(0, cam.rot - dt)
 	c.font = '1000px mc'
 	for(const phase of _renderPhases){
 		switch(phase.coordSpace){
 			case 'none': phase(c, W, H); break
-			case 'world': c.setTransform(SCALE, 0, 0, -SCALE, W2 * SCALE, H - H2 * SCALE); phase(c); break
+			case 'world':
+				c.setTransform(SCALE, 0, 0, -SCALE, W2 * SCALE, H - H2 * SCALE)
+				c.rotate(-cam.rot)
+				phase(c)
+				break
 			case 'ui': const s = options.guiScale * devicePixelRatio * 2; c.setTransform(s, 0, 0, -s, 0, H); phase(c, W /  s, H /  s); break
 			default: console.error('Invalid coordinate space: ' + phase.coordSpace)
 		}
@@ -121,7 +128,9 @@ export function frame(){
 }
 drawPhase(200, (c, w, h) => {
 	const hitboxes = buttons.has(KEYS.SYMBOL) ^ renderBoxes
-	c.setTransform(1,0,0,1,0,h)
+	c.setTransform(1,0,0,1,W2*SCALE,h-H2*SCALE)
+	c.rotate(cam.rot)
+	c.translate(-W2*SCALE,H2*SCALE)
 	for(const chunk of map.values()){
 		const cxs = chunk.x << 6, cys = chunk.y << 6
 		const x0 = round(ifloat(cxs - cam.x + W2) * SCALE)
@@ -178,9 +187,13 @@ drawPhase(100, (c, w, h) => {
 	const hitboxes = buttons.has(KEYS.SYMBOL) ^ renderBoxes
 	for(const entity of entityMap.values()){
 		if(!entity.render)continue
-		c.setTransform(SCALE, 0, 0, -SCALE, ifloat(entity.ix - cam.x + W2) * SCALE, ifloat(cam.y - H2 - entity.iy) * SCALE + h)
+		c.setTransform(SCALE, 0, 0, -SCALE, W2 * SCALE, h - H2 * SCALE)
+		c.rotate(-cam.rot)
+		c.translate(ifloat(entity.ix - cam.x), ifloat(entity.iy - cam.y))
 		entity.render(c)
-		c.setTransform(SCALE, 0, 0, -SCALE, ifloat(entity.ix - cam.x + W2) * SCALE, ifloat(cam.y - H2 - entity.iy) * SCALE + h)
+		c.setTransform(SCALE, 0, 0, -SCALE, W2 * SCALE, h - H2 * SCALE)
+		c.rotate(-cam.rot)
+		c.translate(ifloat(entity.ix - cam.x), ifloat(entity.iy - cam.y))
 		if(hitboxes){
 			if(entity.head){
 				c.fillStyle = '#fc0'

@@ -18,9 +18,9 @@ Todo: Crops, farmland, trees
 
 Todo: Crafting, smelting
 
-Todo: Flying permission
+- Flying permission
 
-Todo: Fall & fire damage
+- Fall & fire damage
 
 - Fancy block rendering
 

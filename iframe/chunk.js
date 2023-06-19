@@ -2,8 +2,8 @@ import { BlockIDs, EntityIDs } from 'definitions'
 const canvasPool = []
 export class Chunk{
 	constructor(buf){
-		this.x = buf.int() << 6 >> 6
-		this.y = buf.int() << 6 >> 6
+		this.x = buf.int()
+		this.y = buf.int()
 		this.ref = 0
 		this.tiles = []
 		this.entities = new Set()

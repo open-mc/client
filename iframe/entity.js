@@ -6,7 +6,8 @@ const yDrag = 0.667
 
 export function stepEntity(e){
 	e.preupdate?.()
-	e.state = (e.state & 0xffff) | (e.state << 8 & 0xff000000) | fastCollision(e, e.dx * dt, e.dy * dt) << 16
+	e._state = e.state
+	e.state = e.state & 0xffff | fastCollision(e, e.dx * dt, e.dy * dt) << 16
 	if(e.state & 1)e.dy = 0
 	else{
 		e.dy += dt * gy * e.gy
@@ -27,9 +28,10 @@ export function moveEntity(e){
 	const ch = map.get((floor(e.x) >>> 6) + (floor(e.y) >>> 6) * 0x4000000) || null
 	if(ch != e.chunk)e.chunk&&e.chunk.entities.delete(e), e.chunk = ch, ch&&ch.entities.add(e)
 }
-
+export let meImpact = {dx: 0, dy: 0}
 export const EPSILON = .0001
 function fastCollision(e, dx, dy){
+	e.impactDx = e.impactDy = 0
 	let flags = 0
 	const x0 = floor(e.x - e.width + EPSILON), x1 = ceil(e.x + e.width - EPSILON)
 	y: if(dy > 0){
@@ -39,6 +41,8 @@ function fastCollision(e, dx, dy){
 				const ys = y - (getblock(x, y - 1).solid || false)
 				if(ys == y || ys < e.y + e.height - EPSILON)continue
 				e.y = min(ys - e.height, e.y + dy)
+				e.impactDy = e.dy
+				if(e == me && abs(meImpact.dy) < e.dy) meImpact.dy = e.dy
 				e.dy = 0
 				break y
 			}
@@ -51,6 +55,8 @@ function fastCollision(e, dx, dy){
 				const ys = y + (getblock(x, y).solid || false)
 				if(ys == y || ys > e.y + EPSILON)continue
 				e.y = max(ys, e.y + dy)
+				e.impactDy = dy
+				if(e == me && abs(meImpact.dy) < -e.dy) meImpact.dy = e.dy
 				e.dy = 0
 				flags |= 1
 				break y
@@ -66,6 +72,8 @@ function fastCollision(e, dx, dy){
 				const xs = x - (getblock(x - 1, y).solid || false)
 				if(xs == x || xs < e.x + e.width - EPSILON)continue
 				e.x = min(xs - e.width, e.x + dx)
+				e.impactDx = dx
+				if(e == me && abs(meImpact.dx) < e.dx) meImpact.dx = e.dx
 				e.dx = 0
 				break x
 			}
@@ -78,6 +86,8 @@ function fastCollision(e, dx, dy){
 				const xs = x + (getblock(x, y).solid || false)
 				if(xs == x || xs > e.x - e.width + EPSILON)continue
 				e.x = max(xs + e.width, e.x + dx)
+				e.impactDx = e.dx
+				if(e == me && abs(meImpact.dx) < -e.dx) meImpact.dx = e.dx
 				e.dx = 0
 				break x
 			}

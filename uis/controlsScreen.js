@@ -1,7 +1,7 @@
-import { pause } from "./pauseui.js"
-import { options } from "../save.js"
-import { Btn, Label, Row, Scale, showUI, Spacer, UI } from "../ui.js"
-import { optionsScreen } from "./options.js"
+import { pause } from './pauseui.js'
+import { options } from '../save.js'
+import { Btn, Label, Row, Scale, showUI, Spacer, UI } from '../ui.js'
+import { optionsScreen } from './options.js'
 
 function renderClick(){
 	clickNode.text = options.click ? 'Left click: place' : 'Left click: break'

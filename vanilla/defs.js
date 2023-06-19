@@ -1,4 +1,4 @@
-import { audioSet, lava, water } from "./effects.js"
+import { audioSet, lava, water } from './effects.js'
 import { sound, cam } from 'world'
 import { Blocks, Items, Block, Item, Particle } from 'definitions'
 const {Audio, Texture} = loader(import.meta)
@@ -340,6 +340,10 @@ Items.sandstone = class extends Item{
 Items.stone = class extends Item{
 	places(){ return Blocks.stone }
 	static texture = Blocks.stone.texture
+}
+Items.bedrock = class extends Item{
+	places(){ return Blocks.bedrock }
+	static texture = Blocks.bedrock.texture
 }
 Items.obsidian = class extends Item{
 	places(){ return Blocks.obsidian }

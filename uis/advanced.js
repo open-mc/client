@@ -1,6 +1,6 @@
-import { options } from "../save.js"
-import { Btn, Label, Scale, showUI, Spacer, UI } from "../ui.js"
-import { optionsScreen } from "./options.js"
+import { options } from '../save.js'
+import { Btn, Label, Scale, showUI, Spacer, UI } from '../ui.js'
+import { optionsScreen } from './options.js'
 
 function speedChange(a = options.speed/4){
 	if(a > 0.24 && a < 0.26)a = 0.25

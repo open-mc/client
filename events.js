@@ -1,6 +1,6 @@
-import { keyMsg, win } from "./iframe.js"
-import { pause } from "./uis/pauseui.js"
-import { ui, NONE, ptrFail, ptrSuccess } from "./ui.js"
+import { keyMsg, win } from './iframe.js'
+import { pause } from './uis/pauseui.js'
+import { ui, NONE, ptrFail, ptrSuccess } from './ui.js'
 
 onkeydown = e => {
 	if(document.activeElement != document.body && e.key != 'Escape') return

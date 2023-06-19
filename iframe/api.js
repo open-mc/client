@@ -1,4 +1,4 @@
-import { BitField } from "./bitfield.js"
+import { BitField } from './bitfield.js'
 export const _cbs = []
 export const _mouseMoveCb = []
 export const _wheelCb = []

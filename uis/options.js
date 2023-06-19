@@ -1,8 +1,8 @@
-import { pause } from "./pauseui.js"
-import { options } from "../save.js"
-import { Btn, Label, Row, Scale, ScaleSmall, showUI, Spacer, UI } from "../ui.js"
-import { advancedOptionsScreen } from "./advanced.js"
-import { controlsScreen } from "./controlsScreen.js"
+import { pause } from './pauseui.js'
+import { options } from '../save.js'
+import { Btn, Label, Row, Scale, ScaleSmall, showUI, Spacer, UI } from '../ui.js'
+import { advancedOptionsScreen } from './advanced.js'
+import { controlsScreen } from './controlsScreen.js'
 
 function renderScale(){
 	guiNode.textContent = 'GUI scale: ' + options.guiScale

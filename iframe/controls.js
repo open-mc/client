@@ -1,5 +1,5 @@
 import { button, onwheel, paused } from 'api'
-import { EPSILON } from "./entity.js"
+import { EPSILON } from './entity.js'
 import { getblock } from 'world'
 
 export const playerControls = () => {
@@ -31,7 +31,7 @@ let lastPressUp = 0, lastPressRight = 0, lastPressLeft = 0
 button(KEYS.UP, KEYS.W, KEYS.SPACE, () => {
 	if(paused) return
 	if(lastPressUp > t - .3){
-		me.state ^= 1
+		if(perms>=3)me.state ^= 1
 		lastPressUp = 0
 	}else lastPressUp = t
 })

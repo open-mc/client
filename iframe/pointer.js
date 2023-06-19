@@ -146,4 +146,4 @@ export const reset = (f) => {
 }
 
 // I am flabbergasted this is even possible
-import * as pointer from "./pointer.js"
+import * as pointer from './pointer.js'

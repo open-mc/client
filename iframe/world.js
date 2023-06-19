@@ -2,7 +2,7 @@ import { Blocks } from 'definitions'
 import { musicdict } from './sounds.js'
 export const map = new Map, entityMap = new Map()
 
-export const cam = {x: 0, y: 0, z: 2}
+export const cam = {x: 0, y: 0, z: 2, rot: 0}
 
 export function setblock(x, y, b){
 	const k = (x>>>6)+(y>>>6)*0x4000000

@@ -1,7 +1,7 @@
 import { getblock, setblock, gridEventMap, gridEvents, map, entityMap } from 'world'
-import { Chunk } from "./chunk.js"
-import { queue } from "./sounds.js"
-import { moveEntity } from "./entity.js"
+import { Chunk } from './chunk.js'
+import { queue } from './sounds.js'
+import { moveEntity } from './entity.js'
 import { BlockIDs, EntityIDs, foundMe } from 'definitions'
 import { codes } from 'api'
 
@@ -11,6 +11,7 @@ function rubberPacket(data){
 	if(e && (e != me)) foundMe(e)
 	r = data.byte()
 	TPS = data.float()
+	perms = data.byte()
 }
 function dimPacket(data){
 	queue(world = data.string())
@@ -21,6 +22,7 @@ function dimPacket(data){
 function clockPacket(data){
 	ticks = data.double()
 }
+globalThis.map = map
 function chunkPacket(buf){
 	const chunk = new Chunk(buf)
 	const k = (chunk.x&0x3FFFFFF)+(chunk.y&0x3FFFFFF)*0x4000000
@@ -90,7 +92,7 @@ function entityPacket(buf){
 		if(mv & 1)if(abs(e.x - (e.x = buf.double())) > 16 || e == me)e.ix = e.x
 		if(mv & 2)if(abs(e.y - (e.y = buf.double())) > 16 || e == me)e.iy = e.y
 		if(mv & 4)e.dx = buf.float(), e.dy = buf.float()
-		if(mv & 8)e.f = buf.float(), e.state = buf.short()
+		if(mv & 8)e.f = buf.float(), e.state = buf.int()
 		if(mv & 16)e.name = buf.string()
 		if(mv & 32){
 			let id

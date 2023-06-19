@@ -1,10 +1,15 @@
-import { particlePng, explode, AshParticle, BlastParticle, hurt } from "./defs.js"
-import { renderItem, renderItemCount } from "./effects.js"
+import { particlePng, explode, AshParticle, BlastParticle, hurt } from './defs.js'
+import { renderItem, renderItemCount } from './effects.js'
 import { Entities, Entity, Item, Blocks } from 'definitions'
 import { renderF3 } from 'api'
+import { getblock, cam } from 'world'
 const {Audio, Texture} = loader(import.meta)
 
 const meInterface = Texture('meint.png')
+
+const damageSounds = [
+	null, Audio('sound/fire/extinguish.mp3')
+]
 
 class LivingEntity extends Entity{
 	health = 20
@@ -16,13 +21,15 @@ class LivingEntity extends Entity{
 		this.health = buf.byte()
 		const fields = buf.byte()
 		if(this.health < oldHealth){
+			if(this == me) cam.rot = 0.15
 			this.sound(hurt[floor(random()*hurt.length)])
-
 			if(fields & 1){
-				if(this.health) this.hitTimer = this.health ? 0.5 : 1
-				else this.hitTimer = 1, this.f = this.dx >= 0 ? PI/2 : PI/-2
+				if(this.health) this.hitTimer = 0.5
+				else this.hitTimer = 1, this.flags = this.flags & -2 | (this.dx>=0)
 			}
 		}
+		const d = damageSounds[fields >> 2]
+		if(d) this.sound(d,0.5,2)
 	}
 	render(c){
 		this.hitTimer -= dt
@@ -41,13 +48,20 @@ class LivingEntity extends Entity{
 		}
 		if(ys < 0) c.translate(0, this.height)
 		c.scale(xs, ys)
-
-		if(!this.health) c.rotate(PI/-2 * (1 - this.hitTimer*this.hitTimer) * sign(this.f))
-		if(this.hitTimer) c.trace = true, c.beginPath()
+		if(!this.health) c.rotate(PI * (this.hitTimer*this.hitTimer - 1) * ((this.flags&1) - .5) * xs)
 	}
-	overlayFill(){
-		c.fillStyle = '#f008'
-		c.fill()
+	blocksWalked = 0
+	update(){
+		super.update()
+		this.blocksWalked += abs(this.dx * dt)
+		if((this.state & 0x10000) && !(this.state & 2)){
+			if(this.blocksWalked >= 1.7){
+				this.blocksWalked = 0
+				const x = floor(this.x + this.dx * dt), y = ceil(this.y) - 1
+				const block = getblock(x, y)
+				if(block.walk) block.walk(x, y, this)
+			}
+		}else this.blocksWalked = this.dy < -10 ? 1.7 : 1.68
 	}
 }
 
@@ -67,19 +81,20 @@ Entities.player = class extends LivingEntity{
 		const angle = (this.state & 3) == 2 ? sin(t * 4) * this.dx / 5 : sin(t * 12) * this.dx / 10
 		const extraAngle = this.state & 8 ? ((-5*t%1+1)%1)*((-5*t%1+1)%1)/3 : 0
 		c.scale(0.9,0.9)
+		if(this.hitTimer) c.beginPath()
 		if(this.state & 2){
 			c.translate(0.2, 1.2)
 			c.rotate(angle - .5)
-			c.image(this.textures.arm2, -0.125, -0.625, 0.25, 0.75)
+			c.imageTrace(this.textures.arm2, -0.125, -0.625, 0.25, 0.75)
 			c.rotate(-angle + .5)
 			c.translate(-0.3,-0.45)
 			c.rotate(-angle)
-			c.image(this.textures.leg2, -0.125, -0.75, 0.25, 0.75)
+			c.imageTrace(this.textures.leg2, -0.125, -0.75, 0.25, 0.75)
 			c.rotate(angle - .5)
-			c.image(this.textures.body, -0.125, -0.125, 0.25, 0.75)
+			c.imageTrace(this.textures.body, -0.125, -0.125, 0.25, 0.75)
 			c.rotate(0.5)
 			c.rotate(angle)
-			c.image(this.textures.leg1, -0.125, -0.75, 0.25, 0.75)
+			c.imageTrace(this.textures.leg1, -0.125, -0.75, 0.25, 0.75)
 			c.rotate(-angle)
 			c.translate(0.3, 0.45)
 			c.rotate(-angle - .5 + extraAngle)
@@ -88,20 +103,20 @@ Entities.player = class extends LivingEntity{
 			renderItem(c, this.inv[this.selected], true)
 			c.scale(2.5,2.5)
 			c.translate(-0.2,0.8)
-			c.image(this.textures.arm1, -0.125, -0.625, 0.25, 0.75)
+			c.imageTrace(this.textures.arm1, -0.125, -0.625, 0.25, 0.75)
 			c.rotate(angle + .5 - extraAngle)
 		}else{
 			c.translate(0, 1.375)
 			c.rotate(angle)
-			c.image(this.textures.arm2, -0.125, -0.625, 0.25, 0.75)
+			c.imageTrace(this.textures.arm2, -0.125, -0.625, 0.25, 0.75)
 			c.rotate(-angle)
 			c.translate(0,-0.625)
 			c.rotate(-angle)
-			c.image(this.textures.leg2, -0.125, -0.75, 0.25, 0.75)
+			c.imageTrace(this.textures.leg2, -0.125, -0.75, 0.25, 0.75)
 			c.rotate(angle)
-			c.image(this.textures.body, -0.125, 0, 0.25, 0.75)
+			c.imageTrace(this.textures.body, -0.125, 0, 0.25, 0.75)
 			c.rotate(angle)
-			c.image(this.textures.leg1, -0.125, -0.75, 0.25, 0.75)
+			c.imageTrace(this.textures.leg1, -0.125, -0.75, 0.25, 0.75)
 			c.rotate(-angle)
 			c.translate(0, 0.625)
 			c.rotate(-angle + extraAngle)
@@ -110,14 +125,14 @@ Entities.player = class extends LivingEntity{
 			renderItem(c, this.inv[this.selected], true)
 			c.scale(2.5,2.5)
 			c.translate(-0.2,0.8)
-			c.image(this.textures.arm1, -0.125, -0.625, 0.25, 0.75)
+			c.imageTrace(this.textures.arm1, -0.125, -0.625, 0.25, 0.75)
 			c.rotate(angle - extraAngle)
 			c.translate(0,0.115)
 		}
 		c.rotate(PI/2-abs(this.f))
-		c.image(this.textures.head, -0.25, 0, 0.5, 0.5)
+		c.imageTrace(this.textures.head, -0.25, 0, 0.5, 0.5)
 
-		if(c.trace) c.trace = false, c.fillStyle = '#f004', c.fill()
+		if(this.hitTimer) c.fillStyle = '#f004', c.fill()
 	}
 	place(){
 		super.place()
@@ -148,6 +163,10 @@ Entities.player = class extends LivingEntity{
 	static width = 0.3
 	get height(){return this.state & 2 ? 1.5 : 1.8}
 	get head(){return this.state & 2 ? 1.4 : 1.6}
+	update(){
+		super.update()
+		if(this==me&&perms<3)this.state&=-2
+	}
 	drawInterface(id, c){
 		let slot = -1
 		// x=0, y=0 => left middle
