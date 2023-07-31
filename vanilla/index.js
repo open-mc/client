@@ -147,7 +147,7 @@ uiLayer(1000, (c, w, h) => {
 		}
 		c.pop()
 	}
-	if(!me.health){
+	if(me.state&0x8000){
 		const h3 = h / 3
 		c.fillStyle = '#f003'
 		c.fillRect(0, 0, w, h)

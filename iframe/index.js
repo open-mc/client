@@ -127,7 +127,7 @@ export function frame(){
 	changed.clear()
 }
 drawPhase(200, (c, w, h) => {
-	const hitboxes = buttons.has(KEYS.SYMBOL) ^ renderBoxes
+	const hitboxes = buttons.has(KEYS.SYMBOL) | renderBoxes
 	c.setTransform(1,0,0,1,W2*SCALE,h-H2*SCALE)
 	c.rotate(cam.rot)
 	c.translate(-W2*SCALE,H2*SCALE)
@@ -184,7 +184,7 @@ drawPhase(300, (c, w, h) => {
 })
 
 drawPhase(100, (c, w, h) => {
-	const hitboxes = buttons.has(KEYS.SYMBOL) ^ renderBoxes
+	const hitboxes = buttons.has(KEYS.SYMBOL) | renderBoxes
 	for(const entity of entityMap.values()){
 		if(!entity.render)continue
 		c.setTransform(SCALE, 0, 0, -SCALE, W2 * SCALE, h - H2 * SCALE)
@@ -221,7 +221,7 @@ renderLayer(400, c => {
 })
 
 uiLayer(1000, (c, w, h) => {
-	if(renderF3 == buttons.has(KEYS.SYMBOL)) return
+	if(!renderF3 && !buttons.has(KEYS.SYMBOL)) return
 	c.textAlign = 'left'
 	let y = h - 1
 	for(const t of `Paper Minecraft ${VERSION}
