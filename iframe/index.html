@@ -19,7 +19,7 @@
 <script>
 	delete window.localStorage; delete window.sessionStorage
 	document.fonts.forEach(font => font.load())
-	onmessage = ({data}) => msgQueue.push(data)
+	onmessage = ({data,origin}) => origin!='null'&&msgQueue.push(data)
 	const postMessage = parent.postMessage.bind(parent)
 	let msgQueue = []
 	parent.postMessage(null, '*')
