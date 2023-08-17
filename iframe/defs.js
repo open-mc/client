@@ -1,6 +1,6 @@
 import { renderLayer, options } from 'api'
 import { getblock, sound, entityMap, cam } from 'world'
-import { registerTypes } from '../data.js'
+import { registerTypes } from 'https://unpkg.com/dataproto/index.js'
 import * as pointer from './pointer.js'
 
 export function foundMe(e){

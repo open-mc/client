@@ -272,7 +272,6 @@ const loader = (meta) => {
 	let meid = -1, r = 0, me = null, perms = 2
 	let ticks = 0, world = '', gx = 0, gy = 0
 	let mx = 0, my = 0
-	let DataReader, DataWriter
 	const nul = new Array(1000).fill(null)
 	Array.null = len => {
 		if(len <= 1000) return nul.slice(0, len)
@@ -293,5 +292,5 @@ const loader = (meta) => {
 	import "./world.js"
 	import "./incomingPacket.js"
 	import "./index.js"
-	import "../data.js"
+	import "https://unpkg.com/dataproto/index.js"
 </script>

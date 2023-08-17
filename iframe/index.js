@@ -1,5 +1,5 @@
 import { playerControls } from './controls.js'
-import { DataWriter as DW, DataReader as DR } from '../data.js'
+import { DataWriter, DataReader } from 'https://unpkg.com/dataproto/index.js'
 import { meImpact, stepEntity } from './entity.js'
 import { gridEvents, gridEventMap, getblock, entityMap, map, cam } from 'world'
 import * as pointer from './pointer.js'
@@ -7,8 +7,6 @@ import { button, drawPhase, renderLayer, uiLayer, W, H, W2, H2, SCALE, options, 
 import { particles } from 'definitions'
 import { VERSION } from '../version.js'
 
-DataReader = DR
-DataWriter = DW
 
 let last = performance.now(), count = 1.1, timeToFrame = 0
 t = Date.now()/1000%86400

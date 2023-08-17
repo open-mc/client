@@ -1,4 +1,4 @@
-import { DataReader, jsonToType } from '../data.js'
+import { DataReader, jsonToType } from 'https://unpkg.com/dataproto/index.js'
 import { frame } from './index.js'
 import { options, listen, _cbs, _mouseMoveCb, _pauseCb, _wheelCb, _optionListeners, fakePause, codes } from 'api'
 import { Blocks, Items, Entities, BlockIDs, ItemIDs, EntityIDs, Block, Item, Entity } from 'definitions'

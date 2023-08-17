@@ -1,4 +1,4 @@
-import { DataReader, decoder } from './data.js'
+import { DataReader, decoder } from 'https://unpkg.com/dataproto/index.js'
 import "./uis/chat.js"
 import { msg, pendingConnection, reconn } from './uis/dirtscreen.js'
 import { Btn, click, Div, Img, Label, ping, Row } from './ui.js'
@@ -65,6 +65,8 @@ export function preconnect(ip, cb = Function.prototype){
 			icon.src = packet.string()
 			ws.packs = decoder.decode(pako.inflate(packet.uint8array())).split('\0')
 			ws.challenge = packet.uint8array()
+			const host = decoder.decode(ws.challenge.subarray(0, ws.challenge.indexOf(0))).toLowerCase()
+			if(host != ip.replace(/\w+:\/\//y,'').toLowerCase()) ws.close() // mitm attack
 			cb(ws)
 			return
 		}
