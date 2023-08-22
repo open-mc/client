@@ -51,28 +51,50 @@ async function getSkin(accept){
 		skin[i * 3 + 2] = data[(i << 2) + 2]
 	}
 	storage.skin = String.fromCharCode.apply(null, skin16)
+	drawSkin()
 	return 'Done!'
 }
-
-let list, input, addBtn
+const skinCtx = document.createElement('canvas').getContext('2d')
+skinCtx.canvas.width = skinCtx.canvas.height = 8
+function drawSkin(){
+	const head = new ImageData(8, 8)
+	for(let i = 396, j = 0; j < 256; i+=3,j+=4){
+		if(!(i%84))i+=60
+		head.data[j] = skin[i]
+		head.data[j+1] = skin[i+1]
+		head.data[j+2] = skin[i+2]
+		head.data[j+3] = 255
+	}
+	skinCtx.putImageData(head,0,0)
+}
+drawSkin()
+let list, input, addBtn, logoutBtn
 const serverList = UI('dirtbg',
 	Spacer(20),
-	Label('Welcome, ' + storage.name + '!').attr('style', 'color: #E92'),
+	Row(skinCtx.canvas.attr('style','height:100%'), Label(storage.name).attr('style', 'color: #E92'), logoutBtn = Label('(log out)').attr('style', 'opacity:0.3;text-decoration:underline;font-size:0.75em;line-height:22rem;cursor:pointer')),
 	Spacer(20),
 	Label('Connect to a server:'),
 	Spacer(30),
-	Row(Btn('Select skin', btn => getSkin().then(a => {
-		if(!a) return
-		btn.textContent = a
-		setTimeout(() => btn.textContent = 'Select skin', 2000)
-	})), Btn('Refresh', serverlist)).attr('style', 'align-self: stretch; justify-content: space-between; padding: 8rem'),
+	Row(
+		Btn('Select skin', btn => getSkin().then(a => {
+			if(!a) return
+			btn.textContent = a
+			setTimeout(() => btn.textContent = 'Select skin', 2000)
+		})),
+		Spacer.grow(1),
+		Btn('Hosting a server', () => window.open('https://github.com/open-mc/server','_blank')),
+		Btn('Refresh', serverlist)
+	).attr('style', 'align-self: stretch; justify-content: space-between; padding: 8rem'),
 	list = Div('serverlist'),
 	Spacer(20),
 	Row(input = Input('text', 'server ip'), addBtn = Btn('Add server', () => {if(input.value=='server ip') return input.value = 'very funny';else if(input.value=='very funny') return;addServer(input.value);input.value='';addBtn.disabled=true}, 'small disabled')),
-	Spacer(20),
-	Label('Hosting a server').attr('style', 'position: absolute; bottom: 2rem; height: 15rem; right: 2rem; opacity: 0.4; font-size: 10rem; cursor: pointer').attr('onclick', "window.open('https://github.com/open-mc/server','_blank')")
+	Spacer(20)
 )
 input.oninput = () => {addBtn.disabled = !input.value}
+logoutBtn.onclick = () => {
+	storage.name = storage.privKey = storage.pubKey = storage.authSig = ''
+	location+=''
+}
 
 serverList.finish = () => {
 	for(const node of [...list.children]) node.end()

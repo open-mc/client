@@ -53,7 +53,8 @@ export function preconnect(ip, cb = Function.prototype){
 	let ws
 	try{
 		ws = new WebSocket(`${ip}/${storage.name}/${encodeURIComponent(storage.pubKey)}/${encodeURIComponent(storage.authSig)}`)
-	}catch(e){ws = {close(){this.onclose&&this.onclose()}}}
+		ws.ip = ip
+	}catch(e){ws = {close(){this.onclose&&this.onclose()},ip}}
 	ws.challenge = null
 	ws.binaryType = 'arraybuffer'
 	let timeout = setTimeout(ws.close.bind(ws), 5000)
@@ -66,7 +67,7 @@ export function preconnect(ip, cb = Function.prototype){
 			ws.packs = decoder.decode(pako.inflate(packet.uint8array())).split('\0')
 			ws.challenge = packet.uint8array()
 			const host = decoder.decode(ws.challenge.subarray(0, ws.challenge.indexOf(0))).toLowerCase()
-			if(host != ip.replace(/\w+:\/\//y,'').toLowerCase()) ws.close() // mitm attack
+			if(host != ip.replace(/\w+:\/\//y,'').toLowerCase()) return void ws.close() // mitm attack
 			cb(ws)
 			return
 		}
@@ -126,7 +127,7 @@ export function preconnect(ip, cb = Function.prototype){
 	return node
 }
 export async function play(ws){
-	lastIp = ws.url
+	lastIp = ws.ip
 	if(!ws.challenge) return
 	const signature = await makeSign(ws.challenge)
 	const packet = new Uint8Array(signature.length + skin.length + 2)
@@ -155,5 +156,4 @@ export function finished(){
 	notifs = 0
 	onfocus()
 	destroyIframe()
-	
 }

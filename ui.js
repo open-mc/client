@@ -209,8 +209,13 @@ export const UI = (cl, ...els) => {
 }
 
 export const Spacer = (a) => {
-	let space = document.createElement('div')
+	const space = document.createElement('div')
 	space.style.flexBasis = a + 'rem'
+	return space
+}
+Spacer.grow = (a=1) => {
+	const space = document.createElement('div')
+	space.style.flexGrow = a
 	return space
 }
 

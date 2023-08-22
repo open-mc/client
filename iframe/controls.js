@@ -63,6 +63,8 @@ button(KEYS.NUM_9, () => {me.selected = 8})
 let cummulative = 0
 onwheel(dy => {
 	cummulative += dy
-	if(cummulative > 60) me.selected = (me.selected + 1) % 9, cummulative = 0
-	else if(cummulative < -60) me.selected = (me.selected + 8) % 9, cummulative = 0
+	if(cummulative > 60)
+		me.selected = (me.selected + 1) % 9, cummulative = 0
+	else if(cummulative < -60)
+		me.selected = (me.selected + 8) % 9, cummulative = 0
 })

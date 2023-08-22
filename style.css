@@ -100,7 +100,7 @@ label{
 	display: block;
 	text-align: center;
 	height: 20rem;
-	line-height: 18rem;
+	line-height: 20rem;
 	text-overflow: ellipsis;
   white-space: pre;
   overflow: hidden;
@@ -111,7 +111,7 @@ btn{
 	text-align: center;
 	height: 20rem;
 	width: 200rem;
-	line-height: 18rem;
+	line-height: 19rem;
 	background: url('./img/button.png') right center/324rem no-repeat;
 	cursor: pointer;
 	flex-shrink: 0;
