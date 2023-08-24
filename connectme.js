@@ -103,6 +103,9 @@ export function preconnect(ip, cb = Function.prototype){
 		Div('',
 			Row(
 				name = Label(displayIp),
+				Btn('...', () => {
+					window.open(ip.replace('ws', 'http'), '_blank')
+				},'tiny').attr('style','line-height:1.5'),
 				Btn('^', () => {
 					const i = node.parentElement.children.indexOf(node)
 					if(!i) return
@@ -111,7 +114,7 @@ export function preconnect(ip, cb = Function.prototype){
 					servers[i-1] = s
 					node.parentElement.insertBefore(node, node.parentElement.children[i-1])
 					saveServers()
-				},'tiny').attr('style','line-height:2.2'), // Omg 2.2 reference??
+				},'tiny').attr('style','line-height:2.2'),
 				Btn('x', () => {
 					servers.splice(node.parentElement.children.indexOf(node), 1)
 					node.remove()
