@@ -1,7 +1,7 @@
 import { playerControls } from './controls.js'
 import { DataWriter, DataReader } from 'https://unpkg.com/dataproto/index.js'
 import { meImpact, stepEntity } from './entity.js'
-import { gridEvents, gridEventMap, getblock, entityMap, map, cam } from 'world'
+import { gridEvents, gridEventMap, getblock, entityMap, map, cam, server } from 'world'
 import * as pointer from './pointer.js'
 import { button, drawPhase, renderLayer, uiLayer, W, H, W2, H2, SCALE, options, paused, _recalcDimensions, _renderPhases, renderBoxes, renderF3, send } from 'api'
 import { particles } from 'definitions'
@@ -253,6 +253,67 @@ Looking at: ${lookingAt.className+(lookingAt.savedata?' {...}':'')} (${lookingAt
 		c.fillRect(w - width - 1, y, width, top + bottom)
 		c.fillStyle = '#fff'
 		c.fillText(t, w - 2, y + bottom, 10, w/1-3);
+	}
+})
+const {Texture} = loader(import.meta)
+const icons = Texture('/vanilla/icons.png')
+const heart = icons.crop(52,0,9,9), halfHeart = icons.crop(61,0,9,9)
+const heartEmpty = icons.crop(16,0,9,9)
+const pingIcons = icons.crop(0,16,10,24)
+
+const colors = ['#000', '#a00', '#0a0', '#fa0', '#00a', '#a0a', '#0aa', '#aaa', '#555', '#f55', '#5f5', '#ff5', '#55f', '#f5f', '#5ff', '#fff']
+const shadowColors = ['#0000004', '#2a0000', '#002a00', '#2a2a00', '#00002a', '#2a002a', '#002a2a', '#2a2a2a', '#15151544', '#3f1515', '#153f15', '#3f3f15', '#15153f', '#3f153f', '#153f3f', '#3f3f3f']
+CanvasRenderingContext2D.prototype.styledText = function(S,t,x,y,s){
+	this.fillStyle = shadowColors[S&15]
+	this.fillText(t,x+1,y-1,s)
+	this.fillStyle = colors[S&15]
+	this.fillText(t,x,y,s)
+}
+
+uiLayer(999, (c, w, h) => {
+	if(!buttons.has(KEYS.TAB)) return
+	const columns = Math.max(1, Math.floor((w - 60) / 82))
+	let y = h - 25
+	for(const line of server.title.split('\n')){
+		c.textAlign = 'center'
+		c.fillStyle = '#0004'
+		c.fillRect(25, y-14, w-50, 14)
+		c.styledText(parseInt(line.slice(0, 2), 16) & 255, line.slice(2), w/2, y-13, 12)
+		y -= 14
+	}
+	let i = 0
+	c.textAlign = 'left'
+	c.fillStyle = '#0004'
+	c.fillRect(25, y-10, w-50, 10)
+	y -= 9
+	const lastRow = server.players.length-server.players.length%columns, short = columns-server.players.length%columns
+	for(const {name, skin, health, ping} of server.players){
+		const x = w / 2 - columns * 41 - 1 + (i % columns) * 82 + (i>=lastRow)*short*41
+		if(!(i%columns)){
+			y -= 10
+			c.fillStyle = '#0004'
+			c.fillRect(25, y-1, w-50, 10)
+		}
+		i++
+		c.fillStyle = '#8884'
+		c.fillRect(x, y, 80, 8)
+		c.image(skin, x, y)
+		c.fillStyle = shadowColors[15]
+		c.fillText(name, x + 10, y, 8)
+		c.fillStyle = colors[15]
+		c.styledText(15, name, x + 9, y + 1, 8)
+		const cl = ping < 25 ? 0 : ping < 60 ? 1 : ping < 300 ? 2 : ping < 1000 ? 3 : 4
+		c.image(pingIcons, x+70, y, 10, 7, 0, cl*8, 10, 7)
+	}
+	c.fillStyle = '#0004'
+	c.fillRect(25, y-13, w-50, 12)
+	y -= 11
+	for(const line of server.sub.split('\n')){
+		c.textAlign = 'center'
+		c.fillStyle = '#0004'
+		c.fillRect(25, y-12, w-50, 10)
+		c.styledText(parseInt(line.slice(0, 2), 16) & 255, line.slice(2), w/2, y-9, 8)
+		y -= 10
 	}
 })
 

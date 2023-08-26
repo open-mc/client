@@ -6,7 +6,7 @@ import 'world'
 import { Chunk } from './chunk.js'
 
 loaded = () => {
-	for(const data of msgQueue)onMsg({data})
+	for(const data of msgQueue) try{ onMsg({data}) }catch(e){console.error(e)}
 	msgQueue = null
 }
 listen('music', () => _bgGain.gain.value = options.music * options.music)
@@ -92,7 +92,8 @@ const onMsg = ({data}) => {
 		}else buttons.unset(~data), changed.set(~data)
 	}else if(typeof data == 'boolean') fakePause(data)
 }
-for(const data of [msgQueue, msgQueue = []][0]) onMsg({data})
+const m = msgQueue; msgQueue = []
+for(const data of m) try{ onMsg({data}) }catch(e){console.error(e)}
 addEventListener('message', onMsg)
 onmessage = null
 

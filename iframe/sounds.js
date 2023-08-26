@@ -13,10 +13,8 @@ export function queue(theme){
 function next(){
 	if(current){ currentStop() }
 	if(Math.random() > 0.75){
-		setTimeout(next, 120e3) //1 min
-		return
-	}
-	//try choosing twice
-	if(current == (current = choose(currentTheme)))current = choose(currentTheme)
+		current = () => clearTimeout.bind(undefined, setTimeout(next, 60e3*(Math.random()+1)))
+		
+	}else if(current == (current = choose(currentTheme)))current = choose(currentTheme)
 	if(current) currentStop = current(1, 1, 0, 0, undefined, next, true)
 }

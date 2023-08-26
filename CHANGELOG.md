@@ -10,23 +10,27 @@ Excitement awaits...
 
 Todo: Chests, furnaces
 
-Todo: Crafting, smelting
-
 Todo: Animated textures (water + lava)
 
 Todo: Water + lava flowing
 
 Todo: Crops & farmland
 
-Todo: Trees
+Todo: Saplings & tree growing
 
-- Flying permission
+Todo: block shapes
+
+- Flying permission, /op
 
 - Fall & fire damage
 
 - Camera shake & death messages
 
 - Fancy block rendering
+
+- Tab menu
+
+- Bug fixes & QOL improvements
 
 # Alpha 8
 

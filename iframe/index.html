@@ -194,11 +194,12 @@ const _actx = new AudioContext()
 const _bgGain = _actx.createGain()
 _bgGain.connect(_actx.destination)
 let _volume = 0
+const createTexture = (i,x=0,y=0,w=i.width,h=i.height) => new _txtr(i,x,y,w,h)
 const loader = (meta) => {
 	const folder = meta.url.slice(0, meta.url.lastIndexOf('/') + 1)
 	return {
 		Texture(src){
-			src = folder + src
+			src = src[0] == '/' ? src : folder + src
 			if(_filecache[src]) return _filecache[src]
 			const i = new Image()
 			i.crossOrigin = 'anonymous'

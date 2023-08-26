@@ -1,4 +1,4 @@
-import { getblock, setblock, gridEventMap, gridEvents, map, entityMap } from 'world'
+import { getblock, setblock, gridEventMap, gridEvents, map, entityMap, server } from 'world'
 import { Chunk } from './chunk.js'
 import { queue } from './sounds.js'
 import { moveEntity } from './entity.js'
@@ -103,10 +103,34 @@ function entityPacket(buf){
 		moveEntity(e)
 	}
 }
+
+function serverPacket(buf){
+	server.title = buf.string()
+	server.sub = buf.string()
+	if(!buf.left) return
+	let l = buf.flint()
+	const pr = []
+	while(l--){
+		const name = buf.string()
+		const skinBuf = buf.uint8array(192)
+		const health = buf.byte(), ping = buf.short()
+		const d = new ImageData(8, 8), {data} = d
+		for(let i = 0, j = 0; i < 256; i+=4, j+=3){
+			data[i] = skinBuf[j]
+			data[i|1] = skinBuf[j+1]
+			data[i|2] = skinBuf[j+2]
+			data[i|3] = 255
+		}
+		pr.push(createImageBitmap(d).then(img => ({name, health, ping, skin: createTexture(img)})))
+	}
+	Promise.all(pr).then(a => server.players = a)
+}
+
 Object.assign(codes, {
 	1: rubberPacket,
 	2: dimPacket,
 	3: clockPacket,
+	4: serverPacket,
 	8: blockSetPacket,
 	16: chunkPacket,
 	17: chunkDeletePacket,

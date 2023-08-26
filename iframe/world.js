@@ -1,6 +1,11 @@
 import { Blocks } from 'definitions'
 import { musicdict } from './sounds.js'
 export const map = new Map, entityMap = new Map()
+export const server = {
+	title: '',
+	sub: '',
+	players: []
+}
 
 export const cam = {x: 0, y: 0, z: 2, rot: 0}
 
@@ -52,4 +57,3 @@ export const music = (theme, ...audios) => {
 }
 
 export * as pointer from './pointer.js'
-
