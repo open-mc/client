@@ -96,12 +96,18 @@ export function frame(){
 			if(camMovingY)cam.y = ifloat(cam.y + (dy - sign(dy)*(reach/4+0.25)) * dt * 7)
 		}
 	}else if(options.camera == 1){
+		const dx = ifloat(me.x + pointer.x - cam.x), dy = ifloat(me.y + pointer.y + me.head - cam.y)
+		if(abs(dx) > 64) cam.x += dx
+		else cam.x += dx * dt
+		if(abs(dy) > 64) cam.y += dy
+		else cam.y += dy * dt
+	}else if(options.camera == 2){
 		cam.x = me.x + pointer.x
 		cam.y = me.y + me.head + pointer.y
-	}else if(options.camera == 2){
+	}else if(options.camera == 3){
 		cam.x = me.x
 		cam.y = me.y + me.head / 2
-	}else if(options.camera == 3){
+	}else if(options.camera == 4){
 		if(me.x > cam.x + W2)cam.x += W2*2
 		if(me.x < cam.x - W2)cam.x -= W2*2
 		if(me.y > cam.y + H2)cam.y += H2*2
@@ -123,6 +129,9 @@ export function frame(){
 	}
 	timeToFrame = performance.now() - now
 	changed.clear()
+	delta.mx = delta.my = 0
+	delta.jlx = delta.jly = 0
+	delta.jrx = delta.jry = 0
 }
 drawPhase(200, (c, w, h) => {
 	const hitboxes = buttons.has(KEYS.SYMBOL) | renderBoxes

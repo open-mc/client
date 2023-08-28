@@ -93,8 +93,8 @@
 			// Divide by matrix
 			const det = a * d - b * c
 			return {
-				x: mx * d / det - mx * c / det + (c * f - d * e) / det,
-				y: my * a / det - my * b / det + (b * e - a * f) / det
+				x: cursor.mx * d / det - cursor.mx * c / det + (c * f - d * e) / det,
+				y: cursor.my * a / det - cursor.my * b / det + (b * e - a * f) / det
 			}
 		}
 		C.fillPattern = function(a){
@@ -166,6 +166,8 @@ const LBUTTON = 0, RBUTTON = 2, MBUTTON = 1, KEYS = {
 	F5: 116, F6: 117, F7: 118, F8: 119, F9: 120, F10: 121, F11: 122, F12: 123, MINUS: 189,
 	PLUS: 187, OPENBR: 219, CLOSEBR: 221, SEMICOLON: 186, APOS: 222, BACKSLASH: 220, COMMA: 188,
 	DOT: 190, SLASH: 191
+}, GAMEPAD = {
+	A: 256, B: 257, X: 258, Y: 259, LB: 260, RB: 261, LT: 262, RT: 263, UP: 268, DOWN: 269, LEFT: 270, RIGHT: 271
 }
 Object.freeze(KEYS)
 
@@ -267,7 +269,7 @@ const loader = (meta) => {
 
 	}
 }
-	let download, listen, buttons, changed
+	let download, listen, buttons, changed, delta, cursor
 	let loading = 1, loaded = null, dt = 1 / 60, pointer
 	let t = 0, TPS = 20
 	let meid = -1, r = 0, me = null, perms = 2
@@ -280,7 +282,6 @@ const loader = (meta) => {
 		while(len > 0) a[--len] = null
 		return a
 	}
-	Function.returns = v => () => v
 </script>
 <script type="module">
 	import "./bitfield.js"

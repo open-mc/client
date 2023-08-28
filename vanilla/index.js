@@ -175,15 +175,16 @@ uiLayer(1000, (c, w, h) => {
 			c.fillText('Rage quit', w / 2 + 1, h3 - 24, 10)
 			c.fillStyle = selectedBtn == -1 ? '#fff' : '#999'
 			c.fillText('Rage quit', w / 2, h3 - 23, 10)
-			if(changed.has(LBUTTON) && !buttons.has(LBUTTON)){
-				if(selectedBtn == 1){
-					click()
-					respawnClicked = true
-					const buf = new DataWriter()
-					buf.byte(5)
-					send(buf)
-					pause(false)
-				}else if(selectedBtn == -1) respawnClicked = true, quit()
+			if((changed.has(LBUTTON) && !buttons.has(LBUTTON) && selectedBtn == 1) || (changed.has(GAMEPAD.A) && !buttons.has(GAMEPAD.A))){
+				click()
+				respawnClicked = true
+				const buf = new DataWriter()
+				buf.byte(5)
+				send(buf)
+				pause(false)
+			}else if((changed.has(LBUTTON) && !buttons.has(LBUTTON) && selectedBtn == -1) || (changed.has(GAMEPAD.MENU) && !buttons.has(GAMEPAD.MENU))){
+				respawnClicked = true
+				quit()
 			}
 		}else{
 			c.fillStyle = '#333'
@@ -330,12 +331,12 @@ onpacket(15, buf => {
 	e.selected = buf.byte()
 })
 
-button(KEYS.E, () => {
+button(KEYS.E, GAMEPAD.X, () => {
 	if(paused) return closeInterface()
 	openEntity(me)
 })
 
-button(KEYS.Q, () => {
+button(KEYS.Q, GAMEPAD.Y, GAMEPAD.DOWN, () => {
 	const buf = new DataWriter()
 	buf.byte(34)
 	send(buf)

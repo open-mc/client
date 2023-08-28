@@ -1,6 +1,6 @@
 import { DataReader, jsonToType } from 'https://unpkg.com/dataproto/index.js'
 import { frame } from './index.js'
-import { options, listen, _cbs, _mouseMoveCb, _pauseCb, _wheelCb, _optionListeners, fakePause, codes } from 'api'
+import { options, listen, _cbs, _mouseMoveCb, _joypadMoveCbs, _pauseCb, _wheelCb, _optionListeners, fakePause, codes, paused } from 'api'
 import { Blocks, Items, Entities, BlockIDs, ItemIDs, EntityIDs, Block, Item, Entity } from 'definitions'
 import 'world'
 import { Chunk } from './chunk.js'
@@ -19,7 +19,26 @@ const onMsg = ({data}) => {
 			if(typeof a == 'string'){
 				options[a] = b
 				if(_optionListeners[a]) for(const f of _optionListeners[a]) f(b)
-			}else for(const cb of _mouseMoveCb) cb(a, b)
+			}else if(me){
+				if(paused){
+					delta.mx = -(cursor.mx - (cursor.mx = a * devicePixelRatio))
+					delta.my = -(cursor.my - (cursor.my = b * devicePixelRatio))
+				}else{
+					delta.mx = a; delta.my = b
+					for(const cb of _mouseMoveCb) cb(a, b)
+				}
+			}
+			return
+		}else if(data.length == 3){
+			const [id, dx, dy] = data
+			if(id == 0){
+				delta.jlx = -(cursor.jlx - (cursor.jlx = dx))
+				delta.jly = -(cursor.jly - (cursor.jly = dy))
+			}else if(id == 1){
+				delta.jrx = -(cursor.jrx - (cursor.jrx = dx))
+				delta.jry = -(cursor.jry - (cursor.jry = dy))
+			}
+			if(Object.hasOwn(_joypadMoveCbs, id)) for(const cb of _joypadMoveCbs[id]) cb(dx, dy, id)
 			return
 		}else if(data.length == 1){
 			for(const cb of _wheelCb) cb(data[0])

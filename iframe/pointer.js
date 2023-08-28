@@ -1,6 +1,6 @@
 import { setblock, onPlayerLoad, getblock, map, cam } from 'world'
 import './controls.js'
-import { button, onmousemove, W2, H2, options, paused, renderUI } from 'api'
+import { button, onmousemove, onjoypad, W2, H2, options, paused, renderUI } from 'api'
 
 export let x = 2, y = 0
 export let bx = 0, by = 0, bpx = 0, bpy = 0
@@ -8,6 +8,30 @@ export const REACH = 10
 
 export const effectiveReach = () => max(1, min(REACH, min(W2, H2) * 1.5 - 1.5))
 let lastPlace = 0
+let jrx = 0, jry = 0
+drawPhase(-1000, () => {
+	a: if(options.joy == 0){
+		if(cursor.jrx || cursor.jry) pointerMoved(cursor.jrx * 100, cursor.jry * 100)
+	}else if(options.joy == 1){
+		const reach = effectiveReach()
+		if(cursor.jrx || cursor.jry){
+			void({jrx, jry} = cursor)
+			const ns = sqrt(jrx * jrx + jry * jry)*reach
+			if(ns < 1) jrx/=ns, jry/=ns
+		}else{
+			const ns = sqrt(jrx * jrx + jry * jry)*reach
+			if(ns) jrx/=ns, jry/=ns
+			else break a
+		}
+		x += (jrx * reach - x) / 3; y += (jry * reach - y) / 3
+	}
+	if(options.camera == 0){
+		cam.x += (x - oldx) / 3
+		cam.y += (y - oldy) / 3
+	}
+	oldx = x; oldy = y
+	if(x||y)me.f = atan2(x, y)
+})
 export function drawPointer(c){
 	if(!renderUI) return
 	c.beginPath()
@@ -79,13 +103,15 @@ export function drawPointer(c){
 }
 let didHit = false
 export function checkBlockPlacing(buf){
-	if(buttons.has(options.click ? LBUTTON : RBUTTON) && t > lastPlace + .12 && !paused){
+	const hasP = buttons.has(options.click ? LBUTTON : RBUTTON) || buttons.has(options.click ? GAMEPAD.LT : GAMEPAD.RT)
+	const hasB = buttons.has(options.click ? RBUTTON : LBUTTON) || buttons.has(options.click ? GAMEPAD.RT : GAMEPAD.LT)
+	if(hasP && t > lastPlace + .12 && !paused){
 		let b = me.inv[me.selected]
 		if(b && bpx == bpx && b.places && (b = b.places())) setblock(bpx, bpy, b)
 		buf.byte(me.selected)
 		buf.float(x); buf.float(y)
 		lastPlace = t
-	}else if(buttons.has(options.click ? RBUTTON : LBUTTON) && bx == bx && !paused){
+	}else if(hasB && bx == bx && !paused){
 		buf.byte(me.selected | 128)
 		buf.float(x); buf.float(y)
 		blockbreakx = bx; blockbreaky = by
@@ -93,7 +119,7 @@ export function checkBlockPlacing(buf){
 	}else{
 		buf.byte(me.selected); buf.float(NaN); buf.float(me.f)
 		let id = 281474976710655 // -1
-		const hitBtnDown = buttons.has(options.click ? RBUTTON : LBUTTON) && !paused
+		const hitBtnDown = hasB && !paused
 		if(hitBtnDown && !didHit){
 			const xp = me.x + x, yp = me.y + me.head + y
 			const xa = xp - 32 >>> 6, ya = yp - 32 >>> 6, x1 = xa + 1 & 0x3FFFFFF, y1 = ya + 1 & 0x3FFFFFF
@@ -111,16 +137,11 @@ export function checkBlockPlacing(buf){
 	}
 }
 export let blockbreakx = NaN, blockbreaky = NaN
-button(LBUTTON, RBUTTON, () => {lastPlace = 0})
-onmousemove((dx, dy) => {
-	if(!me) return
-	if(paused){
-		const upscale = options.guiScale * 2
-		mx = dx * devicePixelRatio; my = dy * devicePixelRatio
-		return
-	}
-	const oldx = x, oldy = y
-	const reach = pointer.effectiveReach()
+button(LBUTTON, RBUTTON, GAMEPAD.LT, GAMEPAD.RT, () => {lastPlace = 0})
+let oldx = 0, oldy = 0
+export function pointerMoved(dx, dy){
+	jrx = jry = 0
+	const reach = effectiveReach()
 	const s = min(reach, sqrt(x * x + y * y))
 	x += dx * 9 ** options.sensitivity / 3 / cam.z / TEX_SIZE
 	y += dy * 9 ** options.sensitivity / 3 / cam.z / TEX_SIZE
@@ -133,17 +154,14 @@ onmousemove((dx, dy) => {
 		x *= vec
 		y *= vec
 	}
-	if(options.camera == 0){
-		cam.x += (x - oldx) / 3
-		cam.y += (y - oldy) / 3
-	}
-	me.f = atan2(x, y)
-})
+}
+onmousemove(pointerMoved)
 export const reset = (f) => {
 	let r = min(4, REACH)
-	x = sin(f) * r
-	y = cos(f) * r
+	x = oldx = sin(f) * r
+	y = oldy = cos(f) * r
 }
 
 // I am flabbergasted this is even possible
 import * as pointer from './pointer.js'
+import { drawPhase } from './api.js'

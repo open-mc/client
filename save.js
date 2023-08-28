@@ -29,14 +29,15 @@ const defaults = {
 	sound: 0.75,
 	music: 0.75,
 	sensitivity: 0.5,
-	camera: 2,
+	camera: 0,
 	fsc: 1,
 	speed: 1,
 	click: true,
 	ffx: 1,
 	autof3: 0,
 	notifs: 1,
-	maxParticles: 1000
+	maxParticles: 1000,
+	joy: 0
 }
 const optionListeners = {}
 for(const k in defaults){

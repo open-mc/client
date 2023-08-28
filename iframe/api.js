@@ -1,6 +1,7 @@
 import { BitField } from './bitfield.js'
 export const _cbs = []
 export const _mouseMoveCb = []
+export const _joypadMoveCbs = {}
 export const _wheelCb = []
 export const _pauseCb = []
 export const _renderPhases = []
@@ -56,6 +57,7 @@ export function drawPhase(prio, fn){
 export const onwheel = cb => _wheelCb.push(cb)
 export const onpause = cb => _pauseCb.push(cb)
 export const onmousemove = cb => _mouseMoveCb.push(cb)
+export const onjoypad = (i, cb) => (_joypadMoveCbs[i]??=[]).push(cb)
 
 export const button = (...keys) => {
 	const cb = keys.pop()
@@ -65,6 +67,8 @@ export const button = (...keys) => {
 
 buttons = new BitField()
 changed = new BitField()
+delta = {mx: 0, my: 0, jlx: 0, jly: 0, jrx: 0, jry: 0}
+cursor = {...delta}
 
 export const options = {}
 globalThis.options = options

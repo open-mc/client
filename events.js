@@ -22,6 +22,34 @@ onkeyup = e => {
 onmousedown = e => void(win && (!ui || (ui instanceof Comment)) && keyMsg(e.button))
 onmouseup = e => void(win && keyMsg(~e.button))
 
+let gamepadButtons = new Set, odxs = [0,0], odys = [0,0], dxs = odxs.slice(0), dys = odys.slice(0)
+requestAnimationFrame(function checkInputs(){
+	dxs.fill(0), dys.fill(0)
+	for(const d of navigator.getGamepads()){
+		if(!d || d.mapping != 'standard') continue
+		globalThis.d=d
+		let i = 256
+		for(const b of d.buttons){
+			if(b.pressed || b == 1){
+				if(!gamepadButtons.has(i))
+					gamepadButtons.add(i), keyMsg(i)
+			}else if(gamepadButtons.has(i))
+				gamepadButtons.delete(i), keyMsg(~i)
+			i++
+		}
+		dxs[0] += d.axes[0], dys[0] -= d.axes[1], dxs[1] += d.axes[2], dys[1] -= d.axes[3]
+	}
+	// Normalize to min(|vec|, 1) then send
+	for(let i = 0; i < 2; i++){
+		let d = dxs[i]*dxs[i]+dys[i]*dys[i]
+		if(d > 1) d = Math.sqrt(d), dxs[i] /= d, dys[i] /= d
+		if(dxs[i] == odxs[i] && dys[i] == odys[i]) continue
+		keyMsg([i, dxs[i], dys[i]])
+	}
+	void([odxs, odys, dxs, dys] = [dxs, dys, odxs, odys])
+	requestAnimationFrame(checkInputs)
+})
+
 const cbs = {}
 export function key(key, handler){
 	const keyname = key.toLowerCase()
@@ -30,7 +58,7 @@ export function key(key, handler){
 }
 
 // Don't prompt if live server or local server
-window.onbeforeunload = () => (location.host != '127.0.0.1' && location.host != 'localhost' &&
+window.onbeforeunload = () => (location.host != '127.0.0.1' && location.host != 'localhost' && ws &&
 	![].find.call(document.body.childNodes, a =>
 		a instanceof Comment && a.data.trim() == 'Code injected by live-server')) || undefined
 HTMLElement.prototype.requestFullscreen = HTMLElement.prototype.requestFullscreen || Function.prototype //Safari fullscreen is broken

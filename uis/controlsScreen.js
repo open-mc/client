@@ -2,6 +2,7 @@ import { pause } from './pauseui.js'
 import { options } from '../save.js'
 import { Btn, Label, Row, Scale, showUI, Spacer, UI } from '../ui.js'
 import { optionsScreen } from './options.js'
+import { controllerScreen } from './controllerScreen.js'
 
 function renderClick(){
 	clickNode.text = options.click ? 'Left click: place' : 'Left click: break'
@@ -24,7 +25,7 @@ function sensitivityChange(a = options.sensitivity){
 	return [a > 0.005 ? a < 0.995 ? 'Sensitivity: '+Math.floor(9 ** a * 10 / 3) / 10 +'x' : 'Sensitivity: HYPERSPEED!!!' : 'Sensitivity: *yawn*', a]
 }
 
-const cameraOptions = ['Dynamic', 'Follow Pointer', 'Follow player', 'Page']
+const cameraOptions = ['Dynamic', 'Follow smooth', 'Follow Pointer', 'Follow player', 'Page']
 function renderCamMode(){
 	camNode.textContent = 'Camera: ' + cameraOptions[options.camera]
 }
@@ -43,13 +44,13 @@ function fscChange(){
 
 let clickNode, ffxNode, camNode, fscNode
 const controlssui = UI('menu',
-	Label('Options'),
+	Label('Controls'),
 	camNode = Btn('', camChange),
 	Row(clickNode = Btn('', clickChange), ffxNode = Btn('', ffxChange)),
 	Scale(sensitivityChange),
 	fscNode = Btn('', fscChange),
 	Spacer(20),
-	Row(Btn('Back', pause), Btn('General settings', optionsScreen))
+	Row(Btn('Back', pause), Btn('Controller', controllerScreen))
 )
 controlssui.esc = pause
 
