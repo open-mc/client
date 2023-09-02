@@ -12,7 +12,8 @@ loaded = () => {
 listen('music', () => _bgGain.gain.value = options.music * options.music)
 listen('sound', () => _volume = options.sound)
 
-const onMsg = ({data}) => {
+const onMsg = ({data,origin}) => {
+	if(origin=='null') return
 	if(Array.isArray(data)){
 		if(data.length == 2){
 			const [a, b] = data
