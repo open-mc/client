@@ -69,8 +69,15 @@ Blocks.jungle_planks = class extends Planks{}
 
 Blocks.sand = class extends Block{
 	static texture = terrainPng.at(2, 1)
+	static breaktime = 1
 	static placeSounds = audioSet('sand/place', 4)
 	static stepSounds = audioSet('sand/step', 5)
+}
+Blocks.glass = class extends Block{
+	static breaktime = 0.6
+	static texture = terrainPng.at(1, 3)
+	static placeSounds = Blocks.stone.placeSounds
+	static stepSounds = Blocks.stone.stepSounds
 }
 Blocks.water = class extends Block{
 	static texture = terrainPng.at(13, 13)
@@ -278,6 +285,7 @@ function rot_off_transform(p, rot, off, x, y){
 }
 Blocks.end_portal = class extends Block{
 	static solid = false
+	static blockShape = [0, 0, 1, 0.75]
 	static texture = terrainPng.at(14, 0)
 	render(c, x, y){
 		x -= cam.x; y -= cam.y
@@ -306,15 +314,16 @@ Blocks.end_portal_frame = class extends Block{
 	static texture = terrainPng.at(9, 0)
 	static breaktime = Infinity
 	static placeSounds = Blocks.stone.placeSounds
+	static blockShape = [0, 0, 1, 13/16]
 }
-Blocks.filled_end_portal_frame = class extends Block{
+Blocks.filled_end_portal_frame = class extends Blocks.end_portal_frame{
 	static texture = terrainPng.at(10, 0)
-	static breaktime = Infinity
 	static placeSounds = audioSet('portal/eye', 3)
 }
 
 Blocks.sugar_cane = class extends Block{
 	static breaktime = 0
+	static blockShape = []
 	static placeSounds = Blocks.grass.placeSounds
 	static texture = terrainPng.crop(144,64,16,16)
 }
@@ -340,6 +349,10 @@ Items.sandstone = class extends Item{
 Items.stone = class extends Item{
 	places(){ return Blocks.stone }
 	static texture = Blocks.stone.texture
+}
+Items.glass = class extends Item{
+	places(){ return Blocks.glass }
+	static texture = terrainPng.at(1, 3)
 }
 Items.bedrock = class extends Item{
 	places(){ return Blocks.bedrock }

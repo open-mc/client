@@ -54,7 +54,7 @@ class LivingEntity extends Entity{
 	update(){
 		super.update()
 		this.blocksWalked += abs(this.dx * dt)
-		if((this.state & 0x10000) && !(this.state & 2)){
+		if((this.impactDy < 0) && !(this.state & 2)){
 			if(this.blocksWalked >= 1.7){
 				this.blocksWalked = 0
 				const x = floor(this.x + this.dx * dt), y = ceil(this.y) - 1
@@ -257,6 +257,7 @@ Entities.item = class extends Entity{
 		}
 	}
 	1(buf){
+		if(!this.item) return
 		this.sound(pop,0.2,random()*1.5+0.5)
 		this.item.count = buf.byte()
 	}

@@ -102,7 +102,7 @@ export let renderF3 = false, renderBoxes = false, renderUI = true
 listen('autof3', () => {renderF3 = !!options.autof3; renderBoxes = options.autof3 > 1})
 button(KEYS.F1, () => {renderUI = !renderUI})
 button(KEYS.F3, () => {
-	if(buttons.has(KEYS.ALT) || buttons.has(KEYS.MOD)) renderBoxes = !renderBoxes
+	if(buttons.has(KEYS.ALT) | buttons.has(KEYS.SHIFT) | buttons.has(KEYS.MOD)) renderBoxes = !renderBoxes
 	else renderF3 = !renderF3
 })
 

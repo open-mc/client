@@ -36,7 +36,7 @@ export class Block{
 		if(!e.alive) return
 		if(this.stepSounds.length)
 			sound(this.stepSounds[floor(random() * this.stepSounds.length)], x, y, 0.15, 1)
-		if(((e.state & 0x10000) && !(e._state & 0x10000)) || (e.state & 4)) stepParticles(this, e)
+		if((e.impactDy < 0 && !(e.state & 0x10000)) || (e.state & 4)) stepParticles(this, e)
 	}
 	fall(x, y){
 		if(this.stepSounds.length)

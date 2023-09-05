@@ -40,9 +40,9 @@ export const playerControls = () => {
 	if(U){
 		if(climbable) me.dy = (me.dy + 3) / 2
 		else if((me.state & 1)) me.dy = 5
-		else if(me.state & 0x10000)me.dy = 9
+		else if(me.impactDy < 0)me.dy = 9
 	}
-	if((me.state & 0x10000) && (me.state & 2)){
+	if((me.impactDy < 0) && (me.state & 2)){
 		const x = me.x + (me.dx > 0 ? -me.width + EPSILON * 2 : me.width - EPSILON * 2)
 		if(getblock(floor(x), floor(me.y - .001)).solid && !getblock(floor(x + me.dx * dt), floor(me.y - .001)).solid){
 			me.dx = 0

@@ -32,12 +32,15 @@ function chunkPacket(buf){
 }
 function chunkDeletePacket(data){
 	while(data.left){
-		const cx = data.int(), cy = data.int()
-		const k = (cx&0x3FFFFFF)+(cy&0x3FFFFFF)*0x4000000
+		const cx = data.int() & 0x3FFFFFF, cy = data.int() & 0x3FFFFFF
+		const k = cx+cy*0x4000000
 		const chunk = map.get(k)
 		if(!--chunk.ref){
 			chunk.hide()
 			map.delete(k)
+			for(const v of gridEventMap.values()){
+				if(v.x>>>6 == cx && v.y>>>6 == cy) gridEventMap.delete(v.i)
+			}
 		}
 	}
 }
