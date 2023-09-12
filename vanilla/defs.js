@@ -1,6 +1,8 @@
 import { audioSet, lava, water } from './effects.js'
 import { sound, cam } from 'world'
 import { Blocks, Items, Block, Item, Particle } from 'definitions'
+import { slabify, upperslabify } from './blockshapes.js'
+
 const {Audio, Texture} = loader(import.meta)
 
 export const terrainPng = Texture("terrain.png")
@@ -66,6 +68,24 @@ Blocks.spruce_planks = class extends Planks{}
 Blocks.dark_oak_planks = class extends Planks{}
 Blocks.acacia_planks = class extends Planks{}
 Blocks.jungle_planks = class extends Planks{}
+
+Blocks.oak_planks_slab = slabify(Blocks.oak_planks)
+Blocks.oak_planks_upper_slab = upperslabify(Blocks.oak_planks)
+
+Blocks.birch_planks_slab = slabify(Blocks.birch_planks)
+Blocks.birch_planks_upper_slab = upperslabify(Blocks.birch_planks)
+
+Blocks.spruce_planks_slab = slabify(Blocks.spruce_planks)
+Blocks.spruce_planks_upper_slab = upperslabify(Blocks.spruce_planks)
+
+Blocks.dark_oak_planks_slab = slabify(Blocks.dark_oak_planks)
+Blocks.dark_oak_planks_upper_slab = upperslabify(Blocks.dark_oak_planks)
+
+Blocks.acacia_planks_slab = slabify(Blocks.acacia_planks)
+Blocks.acacia_planks_upper_slab = upperslabify(Blocks.acacia_planks)
+
+Blocks.jungle_planks_slab = slabify(Blocks.jungle_planks)
+Blocks.jungle_planks_upper_slab = upperslabify(Blocks.jungle_planks)
 
 Blocks.sand = class extends Block{
 	static texture = terrainPng.at(2, 1)
