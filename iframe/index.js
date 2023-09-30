@@ -1,7 +1,7 @@
 import { playerControls } from './controls.js'
 import { DataWriter, DataReader } from 'https://unpkg.com/dataproto/index.js'
 import { meImpact, stepEntity } from './entity.js'
-import { gridEvents, gridEventMap, getblock, entityMap, map, cam, server } from 'world'
+import { gridEventMap, getblock, entityMap, map, cam, server } from 'world'
 import * as pointer from './pointer.js'
 import { button, drawPhase, renderLayer, uiLayer, W, H, W2, H2, SCALE, options, paused, _recalcDimensions, _renderPhases, renderBoxes, renderF3, send } from 'api'
 import { particles } from 'definitions'

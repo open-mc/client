@@ -1,9 +1,10 @@
 import { setblock, onPlayerLoad, getblock, map, cam } from 'world'
 import './controls.js'
 import { button, onmousemove, onjoypad, W2, H2, options, paused, renderUI } from 'api'
+import { drawPhase } from './api.js'
 
 export let x = 2, y = 0
-export let bx = 0, by = 0, bpx = 0, bpy = 0
+export let bx = 0, by = 0, bpx = 0, bpy = 0, bpfx = 0, bpfy = 0
 export const REACH = 10
 
 export const effectiveReach = () => max(1, min(REACH, min(W2, H2) * 1.5 - 1.5))
@@ -32,6 +33,7 @@ drawPhase(-1000, () => {
 	oldx = x; oldy = y
 	if(x||y)me.f = atan2(x, y)
 })
+export const DEFAULT_BLOCKSHAPE = [0, 0, 1, 1]
 export function drawPointer(c){
 	if(!renderUI) return
 	c.beginPath()
@@ -44,13 +46,32 @@ export function drawPointer(c){
 	bx = floor(me.x)
 	by = floor(me.y + me.head)
 	bpx = NaN, bpy = NaN
+	let bppx = NaN, bppy = NaN
 	const reach = sqrt(x * x + y * y)
 	let d = 0, px = me.x - bx, py = me.y + me.head - by
 	const dx = sin(me.f), dy = cos(me.f)
-	while(d < reach){
-		if(getblock(bx, by).solid)break
-		bpx = bx
-		bpy = by
+	a: while(d < reach){
+		const {solid, blockShape = DEFAULT_BLOCKSHAPE} = getblock(bx, by)
+		if(solid){
+			for(let i = 0; i < blockShape.length; i += 4){
+				const x0 = blockShape[i], x1 = blockShape[i+2], y0 = blockShape[i+1], y1 = blockShape[i+3]
+				if(dx > 0 && px <= x0){
+					const iy = py + (dy / dx) * (x0-px)
+					if(iy >= y0 && iy <= y1) break a
+				}else if(dx < 0 && px >= x1){
+					const iy = py + (dy / dx) * (x1-px)
+					if(iy >= y0 && iy <= y1) break a
+				}
+				if(dy > 0 && py <= y0){
+					const ix = px + (dx / dy) * (y0-py)
+					if(ix >= x0 && ix <= x1) break a
+				}else if(dy < 0 && py >= y1){
+					const ix = px + (dx / dy) * (y1-py)
+					if(ix >= x0 && ix <= x1) break a
+				}
+			}
+		}
+		bppx = bpx; bppy = bpy; bpx = bx; bpy = by
 		if(dx > 0){
 			const iy = py + dy * (1 - px) / dx
 			if(iy >= 0 && iy <= 1){bx++; d += (1 - px) / dx; px = 0; py = iy; continue}
@@ -66,37 +87,65 @@ export function drawPointer(c){
 			if(ix >= 0 && ix <= 1){by--; d += -py / dy; py = 1; px = ix; continue}
 		}
 	}
-	if(d >= reach) bx = by = NaN
+	if(d >= reach){
+		const {solid, blockShape} = getblock(bpx, bpy)
+		if(solid && blockShape && blockShape.length == 0){
+			px -= bpx - bx; py -= bpy - by
+			bx = bpx; by = bpy; bpx = bppx; bpy = bppy
+			if(bpx > bx) px = 1
+			else if(bpx < bx) px = 0
+			else if(bpy > by) py = 1
+			else if(bpy < by) py = 0
+			px -= bpx - bx; py -= bpy - by; bpfx = px; bpfy = py
+		}else{
+			px = (me.x + x) % 1; py = (me.y + me.head + y) % 1
+			px -= bpx - bx; py -= bpy - by; bpfx = px; bpfy = py
+			bx = by = NaN
+		}
+	}else px -= bpx - bx, py -= bpy - by, bpfx = px, bpfy = py
+	if(getblock(bpx, bpy).solid) bpx = bpy = bpfx = bpfy = NaN
 	if(!getblock(bpx + 1, bpy).solid && !getblock(bpx - 1, bpy).solid && !getblock(bpx, bpy + 1).solid && !getblock(bpx, bpy - 1).solid){
-		bpx = bpy = NaN
+		bpx = bpy = bpfx = bpfy = NaN
 	}else{
 		let x = bpx - 32 >>> 6, y = bpy - 32 >>> 6, x1 = x + 1 & 0x3FFFFFF, y1 = y + 1 & 0x3FFFFFF
 		a: for(const ch of [map.get(x+y*0x4000000), map.get(x1+y*0x4000000), map.get(x+y1*0x4000000), map.get(x1+y1*0x4000000)])
 			if(ch)for(const e of ch.entities)
 				if(e.y < bpy + 1 && e.y + e.height > bpy && e.x - e.width < bpx + 1 && e.x + e.width > bpx){
 					//Don't allow placing because there is an entity in the way
-					bpx = bpy = NaN
+					bpx = bpy = bpfx = bpfy = NaN
 					break a
 				}
-		c.lineWidth = 0.0625
+		c.lineWidth = 0.125
 		c.strokeStyle = '#000'
 		c.fillStyle = '#000'
 		c.globalAlpha = 0.5
-		const xd = ifloat(bx-cam.x), yd = ifloat(by-cam.y)
-		c.strokeRect(xd + 0.03125, yd + 0.03125, 0.9375, 0.9375)
-		
-		if(bpx > bx){
-			c.fillRect(xd + 1, yd, 0.125, 0.0625)
-			c.fillRect(xd + 1, yd + 0.9375, 0.125, 0.0625)
-		}else if(bpx < bx){
-			c.fillRect(xd - 0.125, yd, 0.125, 0.0625)
-			c.fillRect(xd - 0.125, yd + 0.9375, 0.125, 0.0625)
-		}else if(bpy > by){
-			c.fillRect(xd, yd + 1, 0.0625, 0.125)
-			c.fillRect(xd + 0.9375, yd + 1, 0.0625, 0.125)
-		}else if(bpy < by){
-			c.fillRect(xd, yd - 0.125, 0.0625, 0.125)
-			c.fillRect(xd + 0.9375, yd - 0.125, 0.0625, 0.125)
+		let {blockShape = DEFAULT_BLOCKSHAPE} = getblock(bx, by)
+		if(bx == bx && by == by){
+			c.translate(ifloat(bx-cam.x), ifloat(by-cam.y))
+			c.save()
+			c.beginPath()
+			if(blockShape.length == 0) blockShape = DEFAULT_BLOCKSHAPE
+			for(let i = 0; i < blockShape.length; i += 4){
+				const x0 = blockShape[i], x1 = blockShape[i+2], y0 = blockShape[i+1], y1 = blockShape[i+3]
+				c.rect(x0, y0, x1-x0, y1-y0)
+				if(bpx > bx){
+					c.rect(x1, y0, 0.125, 0.0625)
+					c.rect(x1, y1 - 0.0625, 0.125, 0.0625)
+				}else if(bpx < bx){
+					c.rect(x0 - 0.125, y0, 0.125, 0.0625)
+					c.rect(x0 - 0.125, y1 - 0.0625, 0.125, 0.0625)
+				}else if(bpy > by){
+					c.rect(x0, y1, 0.0625, 0.125)
+					c.rect(x1 - 0.0625, y1, 0.0625, 0.125)
+				}else if(bpy < by){
+					c.rect(x0, y0 - 0.125, 0.0625, 0.125)
+					c.rect(x1 - 0.0625, y0 - 0.125, 0.0625, 0.125)
+				}
+			}
+			c.clip()
+			c.stroke()
+			c.closePath()
+			c.restore()
 		}
 		c.globalAlpha = 1
 	}
@@ -107,7 +156,7 @@ export function checkBlockPlacing(buf){
 	const hasB = buttons.has(options.click ? RBUTTON : LBUTTON) || buttons.has(options.click ? GAMEPAD.RT : GAMEPAD.LT)
 	if(hasP && t > lastPlace + .12 && !paused){
 		let b = me.inv[me.selected]
-		if(b && bpx == bpx && b.places && (b = b.places())) setblock(bpx, bpy, b)
+		if(b && bpx == bpx && b.places && (b = b.places(bpfx, bpfy))) setblock(bpx, bpy, b)
 		buf.byte(me.selected)
 		buf.float(x); buf.float(y)
 		lastPlace = t
@@ -161,7 +210,6 @@ export const reset = (f) => {
 	x = oldx = sin(f) * r
 	y = oldy = cos(f) * r
 }
-
-// I am flabbergasted this is even possible
-import * as pointer from './pointer.js'
-import { drawPhase } from './api.js'
+export const set = (_x, _y) => {
+	x = _x; y = _y
+}

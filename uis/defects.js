@@ -8,7 +8,7 @@ const defects = {
 	/**
 	 *  Safari is a defect. It should not exist, it is an abomination. I don't even know where to start
 	 * No canvas support
-	 * No pattern fill NEAREST_NEIGHBOUR support (blurry clouds)
+	 * No pattern fill nearest neighbour support (blurry clouds)
 	 * Almost all metrics are rounded to integers, completely butchering pretty much any scaled-up css art
 	 * as well as canvas metrics with methods like .measureText()
 	 * Page zoom does not properly update devicePixelRatio,

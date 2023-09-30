@@ -2,7 +2,7 @@ import { particlePng, explode, AshParticle, BlastParticle, hurt } from './defs.j
 import { renderItem, renderItemCount } from './effects.js'
 import { Entities, Entity, Item, Blocks } from 'definitions'
 import { renderF3 } from 'api'
-import { getblock, cam } from 'world'
+import { getblock, cam, pointer } from 'world'
 const {Audio, Texture} = loader(import.meta)
 
 const meInterface = Texture('meint.png')
@@ -16,6 +16,7 @@ class LivingEntity extends Entity{
 	hitTimer = 0
 	hurtTextures = null
 	textures = null
+	static stepHeight = 0.5
 	99(buf){
 		const oldHealth = this.health
 		this.health = buf.byte()

@@ -48,6 +48,7 @@
 		const _fillTxt = C.fillText, _strokeTxt = C.strokeText, _measureTxt = C.measureText, {set: setFillStyle, get: getFillStyle} = Object.getOwnPropertyDescriptor(C, 'fillStyle'),{set: setStrokeStyle, get: getStrokeStyle} = Object.getOwnPropertyDescriptor(C, 'strokeStyle')
 		C.setFillStyle = setFillStyle; C.getFillStyle = getFillStyle
 		C.setStrokeStyle = setStrokeStyle; C.getStrokeStyle = getStrokeStyle
+		C.defaultTransform = function(){this.setTransform(1,0,0,-1,0,this.h)}
 		C.fillText = function(t, x, y, s, maxW = 1e99){
 			const S = 1/(s *= .001)
 			this.scale(s, -s)
@@ -109,6 +110,7 @@
 			this.transforms.length = 0
 		}
 		C.crop = function(x, y, w, h){ return new _txtr(this.canvas, x, y, w, h) }
+		C.texture = function(){ return new _txtr(this.canvas, 0, 0, this.canvas.width, this.canvas.height) }
 	})(CanvasRenderingContext2D.prototype)
 	Math.fclamp = (a, b = 1) => a < 0 ? 0 : (a > b ? b : a)
 	Math.ifloat = x => {
@@ -139,7 +141,7 @@
 			this.length = i
 			return this
 		}},
-		mutmap: {enumerable: false, value(fn){
+		mmap: {enumerable: false, value(fn){
 			const len = this.length
 			for(let i = 0; i < len; i++)
 				this[i] = fn(this[i])
@@ -172,6 +174,7 @@ const LBUTTON = 0, RBUTTON = 2, MBUTTON = 1, KEYS = {
 Object.freeze(KEYS)
 
 const _filecache = Object.create(null)
+const voidImg = new Image()
 const _txtr = class Texture{
 	constructor(img, x, y, w, h){ this.canvas = img; this.x = x; this.y = y; this.w = w; this.h = h; this._pattern = null }
 	crop(x, y, w, h){ return new _txtr(this.canvas, this.x + x, this.y + y, w, h) }
@@ -190,6 +193,19 @@ const _txtr = class Texture{
 	}
 	setPatternTransform(a,b,c,d,e,f){
 		this.pattern().setTransform({a, b, c, d, e, f})
+	}
+	then(fn){
+		if(this.canvas.complete === false){
+			const t = new _txtr(voidImg, 0, 0, 0, 0)
+			this.canvas.addEventListener('load', () => {
+				const e = fn(this)
+				if(e.canvas.complete === false) e.then(e => {
+					t.canvas = e.canvas; t.x = e.x; t.y = e.y; t.w = e.w; t.h = e.h
+				})
+				t.canvas = e.canvas; t.x = e.x; t.y = e.y; t.w = e.w; t.h = e.h
+			})
+			return t
+		}else return fn(this)
 	}
 }
 const _actx = new AudioContext()

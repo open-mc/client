@@ -6,7 +6,7 @@ import { getblock, gridEvents, sound, entityMap, pointer, cam } from 'world'
 import { Item } from 'definitions'
 const { Texture } = loader(import.meta)
 
-const BREAKING = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].mutmap(x => terrainPng.at(x, 15))
+const BREAKING = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].mmap(x => terrainPng.at(x, 15))
 const skyPng = Texture('sky.png')
 const stars = Texture('stars.png')
 const sun = skyPng.crop(128, 64, 32, 32), moons = [
@@ -347,9 +347,13 @@ gridEvents[1] = (buf, x, y) => {
 	const toBreak = buf.float() / TPS
 	return c => {
 		const block = getblock(x, y)
-		c.globalCompositeOperation = 'multiply'
-		c.image(BREAKING[min(9, floor(time / toBreak * 10)) || 0], 0, 0, 1, 1)
-		c.globalCompositeOperation = 'source-over'
+		
+		c.save()
+			c.globalCompositeOperation = 'multiply'
+			block.trace(c)
+			c.clip()
+			c.image(BREAKING[min(9, floor(time / toBreak * 10)) || 0], 0, 0, 1, 1)
+		c.restore()
 		if(floor(time * 5) != floor((time += dt) * 5))
 			if(block.punch) block.punch(x, y)
 	}

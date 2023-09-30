@@ -50,7 +50,7 @@ const onMsg = ({data,origin}) => {
 		for(let i = 0; i < classes.length; i++){
 			const h = (list[i]||'{}').split(' ')
 			classes[i].savedata = jsonToType(h.pop())
-			classes[i].savedatahistory = h.mutmap(jsonToType)
+			classes[i].savedatahistory = h.mmap(jsonToType)
 		}
 		Promise.all(data.slice(4).map(a => import(a))).then(() => {
 			// done importing

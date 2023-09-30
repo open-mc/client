@@ -18,7 +18,7 @@ Todo: Crops & farmland
 
 Todo: Saplings & tree growing
 
-Todo: block shapes
+- Block shapes
 
 - Flying permission, /op
 

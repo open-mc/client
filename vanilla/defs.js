@@ -1,15 +1,15 @@
 import { audioSet, lava, water } from './effects.js'
 import { sound, cam } from 'world'
 import { Blocks, Items, Block, Item, Particle } from 'definitions'
-import { slabify, upperslabify } from './blockshapes.js'
+import { slabify, upperslabify, slabifyItem } from './blockshapes.js'
 
 const {Audio, Texture} = loader(import.meta)
 
 export const terrainPng = Texture("terrain.png")
 export const itemsPng = Texture("items.png")
 export const particlePng = Texture("particles.png")
-export const explode = [1,2,3,4].mutmap(a => Audio(`sound/misc/explode${a}.mp3`))
-export const hurt = [1,2,3].mutmap(a => Audio(`sound/misc/hurt${a}.mp3`))
+export const explode = [1,2,3,4].mmap(a => Audio(`sound/misc/explode${a}.mp3`))
+export const hurt = [1,2,3].mmap(a => Audio(`sound/misc/hurt${a}.mp3`))
 
 Blocks.air = class extends Block{ static solid = false }
 Blocks.grass = class extends Block{
@@ -362,6 +362,34 @@ Items.oak_planks = class extends Item{
 	places(){ return Blocks.oak_planks }
 	static texture = Blocks.oak_planks.texture
 }
+Items.birch_planks = class extends Item{
+	places(){ return Blocks.birch_planks }
+	static texture = Blocks.birch_planks.texture
+}
+Items.spruce_planks = class extends Item{
+	places(){ return Blocks.spruce_planks }
+	static texture = Blocks.spruce_planks.texture
+}
+Items.dark_oak_planks = class extends Item{
+	places(){ return Blocks.dark_oak_planks }
+	static texture = Blocks.dark_oak_planks.texture
+}
+Items.acacia_planks = class extends Item{
+	places(){ return Blocks.acacia_planks }
+	static texture = Blocks.acacia_planks.texture
+}
+Items.jungle_planks = class extends Item{
+	places(){ return Blocks.jungle_planks }
+	static texture = Blocks.jungle_planks.texture
+}
+
+Items.oak_planks_slab = slabifyItem(Items.oak_planks, Blocks.oak_planks)
+Items.birch_planks_slab = slabifyItem(Items.birch_planks, Blocks.birch_planks)
+Items.spruce_planks_slab = slabifyItem(Items.spruce_planks, Blocks.spruce_planks)
+Items.dark_oak_planks_slab = slabifyItem(Items.dark_oak_planks, Blocks.dark_oak_planks)
+Items.acacia_planks_slab = slabifyItem(Items.acacia_planks, Blocks.acacia_planks)
+Items.jungle_planks_slab = slabifyItem(Items.jungle_planks, Blocks.jungle_planks)
+
 Items.sandstone = class extends Item{
 	places(){ return Blocks.sandstone }
 	static texture = Blocks.sandstone.texture
@@ -475,8 +503,8 @@ Items.endstone = class extends Item{
 	places(){ return Blocks.endstone }
 }
 
-const explodeParticles = [0,8,16,24,32,40,48,56,64,72,80,88,96,104,112].mutmap(a => particlePng.crop(a,80,8,8))
-const ashParticles = [0,8,16,24,32,40,48,56].mutmap(a => particlePng.crop(a,0,8,8))
+const explodeParticles = [0,8,16,24,32,40,48,56,64,72,80,88,96,104,112].mmap(a => particlePng.crop(a,80,8,8))
+const ashParticles = [0,8,16,24,32,40,48,56].mmap(a => particlePng.crop(a,0,8,8))
 
 export class BlastParticle extends Particle{
 	constructor(x, y){
@@ -494,8 +522,8 @@ export class BlastParticle extends Particle{
 		c.image(secondCanvas, -this.size/2, -this.size/2, this.size, this.size)
 	}
 }
-const secondCanvas = Can(8,8, true)
-secondCanvas.setTransform(1,0,0,-1,0,8)
+const secondCanvas = Can(8,8,true)
+secondCanvas.defaultTransform()
 export class AshParticle extends Particle{
 	constructor(x, y){
 		const rx = random() * 4 - 2, ry = random() * 4 - 2
