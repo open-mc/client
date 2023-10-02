@@ -1,5 +1,5 @@
 import { finished } from './connectme.js'
-import { listen, options } from './save.js'
+import { listen, options, storage } from './save.js'
 import { UI, hideUI, showUI, ui } from './ui.js'
 import { pause } from './uis/pauseui.js'
 import { serverlist } from './uis/serverlist.js'
@@ -30,6 +30,7 @@ if(location.protocol == 'tauri:'){
 
 const queue = []; let files = null
 export function gameIframe(f){
+	if(storage.mods) f.push.apply(f, storage.mods.split('\n'))
 	files = f
 	destroyIframe()
 	document.body.append(iframe)

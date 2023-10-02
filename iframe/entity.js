@@ -32,25 +32,24 @@ export let meImpact = {dx: 0, dy: 0}
 export const EPSILON = .0001
 function fastCollision(e){
 	const dx = e.dx * dt, dy = e.dy * dt
-	const x0 = floor(e.x - e.width + EPSILON), xw = ceil(e.x + e.width - EPSILON) - x0 - 1
-	let y0 = floor(e.y + EPSILON), yh = ceil(e.y + e.height - EPSILON) - y0 - 1
-	const CLIMB = e.impactDy < 0 ? e.stepHeight ?? 0.01 : 0.01
+	const x0 = floor(e.x - e.width + EPSILON)
+	let y0 = floor(e.y + EPSILON)
+	const CLIMB = (e.impactDy < 0 ? e.stepHeight ?? 0.01 : 0.01)
 	e.impactDx = e.impactDy = 0
-
+	const xw = e.x + e.width - EPSILON - x0
 	y: if(dy > 0){
 		const ey = ceil(e.y + e.height + dy - EPSILON) - y0
-		for(let y = yh; y < ey; y++){
-			let ys = 2, ex0 = e.x - e.width + EPSILON - x0, ex1 = 1
-			for(let x = 0; x <= xw; x++){
-				if(x === xw) ex1 = e.x + e.width - x0 - xw
+		for(let y = ceil(e.y + e.height - EPSILON) - y0 - 1; y < ey; y++){
+			let ys = 2, ex0 = e.x - e.width + EPSILON - x0 + 1, ex1 = e.x + e.width - x0 - EPSILON + 1
+			for(let x = 0; x < xw; x++){
+				ex0 -= 1; ex1 -= 1
 				const {solid, blockShape} = getblock(x0 + x, y0 + y)
-				if(!solid) { ex0 = 0; continue }
+				if(!solid) continue
 				if(!blockShape){ ys = 0; break }
 				for(let i = 0; i < blockShape.length; i += 4){
 					if(ex0 >= blockShape[i+2] | ex1 <= blockShape[i]) continue
 					if(blockShape[i + 1] <= ys) ys = blockShape[i + 1]
 				}
-				ex0 = 0
 			}
 			const ty = ys + y + y0 - e.height
 			if((y === ey - 1 ? ty >= e.y + dy + EPSILON : ys > 1) || ty < e.y - EPSILON) continue
@@ -63,18 +62,17 @@ function fastCollision(e){
 		e.y = ifloat(e.y + dy)
 	}else if(dy < 0){
 		const ey = floor(e.y + dy + EPSILON) - 1 - y0
-		for(let y = 1; y > ey; y--){
-			let ys = -1, ex0 = e.x - e.width + EPSILON - x0, ex1 = 1
-			for(let x = 0; x <= xw; x++){
-				if(x === xw) ex1 = e.x + e.width - x0 - xw
+		for(let y = 0; y > ey; y--){
+			let ys = -1, ex0 = e.x - e.width + EPSILON - x0 + 1, ex1 = e.x + e.width - x0 - EPSILON + 1
+			for(let x = 0; x < xw; x++){
+				ex0 -= 1; ex1 -= 1
 				const {solid, blockShape} = getblock(x0 + x, y0 + y)
-				if(!solid) { ex0 = 0; continue }
+				if(!solid) continue
 				if(!blockShape){ ys = 1; break }
 				for(let i = 0; i < blockShape.length; i += 4){
 					if(ex0 >= blockShape[i+2] | ex1 <= blockShape[i]) continue
 					if(blockShape[i + 3] > ys) ys = blockShape[i + 3]
 				}
-				ex0 = 0
 			}
 			const ty = ys + y + y0
 			if((y === ey + 1 ? ty <= e.y + dy - EPSILON : ys < 0) || ty > e.y + EPSILON) continue
@@ -86,28 +84,28 @@ function fastCollision(e){
 		}
 		e.y = ifloat(e.y + dy)
 	}
-	y0 = floor(e.y + EPSILON), yh = ceil(e.y + e.height - EPSILON) - y0 - 1
+	y0 = floor(e.y + EPSILON)
 	x: if(dx > 0){
 		const ex = ceil(e.x + e.width + dx - EPSILON) - x0
-		for(let x = xw; x < ex; x++){
-			let xs = 2, ey0 = e.y + EPSILON - y0, ey1 = 1
+		for(let x = ceil(e.x + e.width - EPSILON) - x0 - 1; x < ex; x++){
+			let xs = 2, ey0 = e.y + EPSILON - y0 + 1
 			let climb = 0
-			for(let y = 0; y <= yh; y++){
-				if(y === yh) ey1 = e.y + e.height - y0 - yh
+			const yh = e.y + e.height - EPSILON - y0
+			for(let y = 0; y < yh + min(climb,CLIMB); y++){
+				ey0 -= 1
 				const {solid, blockShape} = getblock(x0 + x, y0 + y)
-				if(!solid) { ey0 = 0; continue }
-				if(!blockShape){ xs = 0; if(1-ey0>climb)climb=1-ey0; break }
+				if(!solid) continue
+				if(!blockShape){ xs = 0; if(1-ey0>climb)climb=1-ey0; continue }
 				for(let i = 0; i < blockShape.length; i += 4){
 					const c = blockShape[i+3] - ey0
 					if(c > climb) climb = c
-					if(c <= 0 | ey1 <= blockShape[i+1]) continue
+					if(c <= 0 || ey0+e.height-EPSILON-EPSILON <= blockShape[i+1]) continue
 					if(blockShape[i] <= xs) xs = blockShape[i]
 				}
-				ey0 -= 1
 			}
-			if(climb > 0 && climb <= CLIMB){
+			if(climb > 0 && climb < CLIMB){
 				e.y += climb
-				y0 = floor(e.y + EPSILON), yh = ceil(e.y + e.height - EPSILON) - y0 - 1
+				y0 = floor(e.y + EPSILON)
 				continue
 			}
 			const tx = xs + x + x0 - e.width
@@ -121,25 +119,25 @@ function fastCollision(e){
 		e.x = ifloat(e.x + dx)
 	}else if(dx < 0){
 		const ex = floor(e.x - e.width + dx + EPSILON) - 1 - x0
-		for(let x = 1; x > ex; x--){
-			let xs = -1, ey0 = e.y + EPSILON - y0, ey1 = 1
+		for(let x = 0; x > ex; x--){
+			let xs = -1, ey0 = e.y + EPSILON - y0 + 1
 			let climb = 0
-			for(let y = 0; y <= yh; y++){
-				if(y === yh) ey1 = e.y + e.height - y0 - yh
+			const yh = e.y + e.height - EPSILON - y0
+			for(let y = 0; y < yh + min(climb,CLIMB); y++){
+				ey0 -= 1
 				const {solid, blockShape} = getblock(x0 + x, y0 + y)
-				if(!solid) { ey0 = 0; continue }
-				if(!blockShape){ xs = 1; if(1-ey0>climb)climb=1-ey0; break }
+				if(!solid) continue
+				if(!blockShape){ xs = 1; if(1-ey0>climb)climb=1-ey0; continue }
 				for(let i = 0; i < blockShape.length; i += 4){
 					const c = blockShape[i+3] - ey0
 					if(c > climb) climb = c
-					if(c <= 0 | ey1 <= blockShape[i+1]) continue
+					if(c <= 0 || ey0+e.height-EPSILON-EPSILON <= blockShape[i+1]) continue
 					if(blockShape[i+2] >= xs) xs = blockShape[i+2]
 				}
-				ey0 -= 1
 			}
-			if(climb > 0 && climb <= CLIMB){
+			if(climb > 0 && climb < CLIMB){
 				e.y += climb
-				y0 = floor(e.y + EPSILON), yh = ceil(e.y + e.height - EPSILON) - y0 - 1
+				y0 = floor(e.y + EPSILON)
 				continue
 			}
 			const tx = xs + x + x0 + e.width

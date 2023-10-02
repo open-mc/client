@@ -68,19 +68,26 @@ function drawSkin(){
 	skinCtx.putImageData(head,0,0)
 }
 drawSkin()
-let list, input, addBtn, logoutBtn
+let list, input, addBtn
 const serverList = UI('dirtbg',
 	Spacer(20),
-	Row(skinCtx.canvas.attr('style','height:100%'), Label(storage.name).attr('style', 'color: #E92'), logoutBtn = Label('(log out)').attr('style', 'opacity:0.3;text-decoration:underline;font-size:0.75em;line-height:22rem;cursor:pointer')),
+	Row(Label('Welcome, '), skinCtx.canvas.attr('style','height:16rem;align-self:center'), Label(storage.name).attr('style', 'color: #E92')),
 	Spacer(20),
-	Label('Connect to a server:'),
-	Spacer(30),
 	Row(
 		Btn('Select skin', btn => getSkin().then(a => {
 			if(!a) return
 			btn.textContent = a
 			setTimeout(() => btn.textContent = 'Select skin', 2000)
 		})),
+		Btn('Log out', () => {
+			storage.name = storage.privKey = storage.pubKey = storage.authSig = ''
+			location+=''
+		})
+	),
+	Spacer(20),
+	Label('Connect to a server:'),
+	Spacer(30),
+	Row(
 		Spacer.grow(1),
 		Btn('Hosting a server', () => window.open('https://github.com/open-mc/server','_blank')),
 		Btn('Refresh', serverlist)
@@ -91,10 +98,6 @@ const serverList = UI('dirtbg',
 	Spacer(20)
 )
 input.oninput = () => {addBtn.disabled = !input.value}
-logoutBtn.onclick = () => {
-	storage.name = storage.privKey = storage.pubKey = storage.authSig = ''
-	location+=''
-}
 
 serverList.finish = () => {
 	for(const node of [...list.children]) node.end()

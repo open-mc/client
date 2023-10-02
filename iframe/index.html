@@ -117,6 +117,7 @@
 		let f = Math.floor(x)
 		return (f >> 0) + (x - f)
 	}
+	Math.ifloor = x => Math.floor(x) | 0
 	for(const n of [HTMLCollection, NodeList])Object.setPrototypeOf(n.prototype, Array.prototype)
 	Object.defineProperties(Array.prototype, {
 		winner: {enumerable: false, value(pred){
@@ -155,7 +156,7 @@
 		c.x = c.y = 0
 		return c
 	}
-	const {random, abs, min, max, round, floor, ceil, ifloat, fclamp, sqrt, cbrt, atan2, sign, sin, cos, tan, PI, PI2 = PI * 2, imul } = Math
+	const {random, abs, min, max, round, floor, ceil, ifloat, ifloor, fclamp, sqrt, cbrt, atan2, sign, sin, cos, tan, PI, PI2 = PI * 2, imul } = Math
 
 	const _mac = navigator.platform.startsWith('Mac')
 const LBUTTON = 0, RBUTTON = 2, MBUTTON = 1, KEYS = {
