@@ -1,57 +1,43 @@
 <details> <summary> <h1 style="display:inline-block"> The Future </h1> </summary>
 
-Beta 1.0
+## Beta 1.0
 
 Excitement awaits...
 
 </details>
 
-## Alpha 9 (current preview version)
+## Alpha 9 (current version)
 
 Todo: Chests, furnaces
 
-Todo: Animated textures (water + lava)
-
-Todo: Water + lava flowing
+Todo: Water + lava flowing physics
 
 Todo: Crops & farmland
 
 Todo: Saplings & tree growing
 
+Todo: Animated textures (water + lava)
+
+- Switch to LevelDB
 - Block shapes
-
 - Flying permission, /op
-
 - Fall & fire damage
-
 - Camera shake & death messages
-
 - Fancy block rendering
-
 - Tab menu
-
 - Bug fixes & QOL improvements
 
 # Alpha 8
 
 - Better explosions
-
 - Large number of bug fixes and QOL improvements
-
 - Better debug and hitbox views
-
 - Player movement checks
-
 - Entity health, Ability to die and respawn
-
 - Sugar cane & grass spreading
-
 - Nether & End portal
-
 - End island
-
 - Multiple terrain generators
-
 - Hit animations, dying animations
 
 ## Alpha 7
