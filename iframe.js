@@ -51,7 +51,7 @@ onmessage = ({data, source}) => {
 	}else if(data === true) showUI(null)
 	else if(data === false) hideUI()
 	else if(data == 'custompause') showUI(empty)
-	else if(data == 'quit')serverlist()
+	else if(data == 'quit') serverlist()
 	else if(data instanceof ArrayBuffer && globalThis.ws) ws.send(data)
 	else if(data instanceof Blob){
 		let d = new Date()

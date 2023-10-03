@@ -258,7 +258,6 @@ Entities.item = class extends Entity{
 		}
 	}
 	1(buf){
-		if(!this.item) return
 		this.sound(pop,0.2,random()*1.5+0.5)
 		this.item.count = buf.byte()
 	}

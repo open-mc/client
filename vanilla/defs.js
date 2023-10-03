@@ -304,8 +304,9 @@ function rot_off_transform(p, rot, off, x, y){
 	p.setPatternTransform(a, b, -b, a, b*off-x, -a*off-y)
 }
 Blocks.end_portal = class extends Block{
-	static solid = false
+	static solid = true
 	static blockShape = [0, 0, 1, 0.75]
+	static softness = 1
 	static texture = terrainPng.at(14, 0)
 	render(c, x, y){
 		x -= cam.x; y -= cam.y

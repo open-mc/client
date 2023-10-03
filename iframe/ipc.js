@@ -103,7 +103,12 @@ const onMsg = ({data,origin}) => {
 		const packet = new DataReader(data)
 		const code = packet.byte()
 		if(!codes[code]) return
-		codes[code](packet)
+		try{
+			codes[code](packet)
+		}catch(e){
+			console.error(e)
+			console.log(packet, packet.i)
+		}
 	}else if(typeof data == 'number'){
 		if(data >= 0){
 			buttons.set(data)

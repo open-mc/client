@@ -8,7 +8,6 @@ import { PROTOCOL_VERSION } from './version.js'
 let lastIp = null
 globalThis.ws = null
 
-
 export const skin = new Uint8Array(1008)
 
 async function makeSign(challenge){
@@ -46,10 +45,44 @@ const unencrypted = /^(localhost|127.0.0.1|0.0.0.0|\[::1\])$/i
 
 const pingRegex = new RegExp('@' + storage.name + '(?!\\w)', 'i')
 
+const TLD_MAP = {
+	anarchy: 'pp.ua',
+	smp: 'my.id',
+	play: 'de.com',
+	mc: 'web.tr',
+	'2d': 'gen.tr',
+	// Avoiding a few cheap TLDs due to aggressive internet filters
+}
+function hashCode(str, len){
+	const end = new Int32Array(len--)
+	for (let i = 0; i < str.length; i++){
+		let t = str.charCodeAt(i)
+		for(let j = len; j >= 0; j--){
+			end[j] = (t = (end[j]>>>0)*31 + t) | 0
+			t = Math.floor(t/0x100000000)
+		}
+	}
+	return end
+}
+function hashv4(domain){
+	const [a] = hashCode(domain.toLowerCase(), 1)
+	return (a>>>24)+'.'+(a>>>16&0xff)+'.'+(a>>>8&0xff)+'.'+(a&0xff)
+}
+const hex4 = a => '0123456789abcdef'[a>>12&15]+'0123456789abcdef'[a>>8&15]+'0123456789abcdef'[a>>4&15]+'0123456789abcdef'[a&15]
+function hashv6(domain){
+	const [a, b] = hashCode(domain.toLowerCase(), 2)
+	return '['+hex4(a>>>16)+':'+hex4(a&0xffff)+':'+hex4(b>>>16)+':'+hex4(b&0xffff)+'::1]'
+}
+function hashv8(domain){
+	const [a, b, c, d] = hashCode(domain.toLowerCase(), 4)
+	return '['+hex4(a>>>16)+':'+hex4(a&0xffff)+':'+hex4(b>>>16)+':'+hex4(b&0xffff)+':'+hex4(c>>>16)+':'+hex4(c&0xffff)+':'+hex4(d>>>16)+':'+hex4(d&0xffff)+']'
+}
+
 export function preconnect(ip, cb = Function.prototype){
 	const displayIp = ip
 	if(!/\w+:\/\//y.test(ip))ip = (location.protocol == 'http:' || unencrypted.test(ip) ? 'ws://' : 'wss://') + ip
 	if(!/:\d+$/.test(ip))ip += ':27277'
+	ip = ip.replace(/((?:[^./:;\\|{}[\]()@?#&^<>\s~`"']+\.)*[^./:;\\|{}[\]()@?#&^<>\s~`"']+)+\.(\w+(?=:))/, (_,d,a)=>a == 'hash' | a == 'hash4' ? hashv4(d) : a == 'hash6' ? hashv6(d) : a == 'hash8' ? hashv8(d) : (a in TLD_MAP) ? d+'-mc.'+TLD_MAP[a] : d+'.'+a)
 	let ws
 	try{
 		ws = new WebSocket(`${ip}/${storage.name}/${encodeURIComponent(storage.pubKey)}/${encodeURIComponent(storage.authSig)}`)
