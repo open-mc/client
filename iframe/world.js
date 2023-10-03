@@ -1,4 +1,4 @@
-import { Blocks } from 'definitions'
+import { Blocks, BlockIDs } from 'definitions'
 import { musicdict } from './sounds.js'
 export const map = new Map, entityMap = new Map()
 export const server = {
@@ -16,8 +16,12 @@ export function setblock(x, y, b){
 	const lx = x & 63
 	const ly = y & 63
 	const chI = lx + (ly << 6)
-	const old = ch.tiles[chI]
-	ch.tiles[chI] = b
+	let i = ch[chI]
+	const old = i==65535?chunk.tileData.get(chI):BlockIDs[i]
+	if(b.savedata){
+		ch[chI] = 65535
+		ch.tileData.set(chI, b)
+	}else ch[chI] = b.id
 	if(ch.ctx){
 		const {texture, render} = b
 		ch.ctx.clearRect(lx * TEX_SIZE, (63 - ly) * TEX_SIZE, TEX_SIZE, TEX_SIZE)
@@ -30,7 +34,9 @@ export function setblock(x, y, b){
 export function getblock(x, y){
 	const k = (x>>>6)+(y>>>6)*0x4000000
 	const ch = map.get(k)
-	return ch ? ch.tiles[(x & 63) + ((y & 63) << 6)] : Blocks.air()
+	const i = (x & 63) + ((y & 63) << 6)
+	const b = ch?ch[i]:0
+	return b==65535?ch.tileData.get(i):BlockIDs[b]
 }
 
 const playerLoadCb = []

@@ -154,7 +154,8 @@ drawPhase(200, (c, w, h) => {
 			c.push()
 			for(const i of chunk.rerenders){
 				c.translate(i&63,i>>6)
-				chunk.tiles[i].render(c, cxs|(i&63),cys|(i>>6))
+				const b = chunk[i]
+				void(b==65535?chunk.tileData.get(i):BlockIDs[b]).render(c, cxs|(i&63),cys|(i>>6))
 				c.peek()
 			}
 			c.pop()

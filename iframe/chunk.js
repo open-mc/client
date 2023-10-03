@@ -1,15 +1,18 @@
 import { BlockIDs, EntityIDs } from 'definitions'
 const canvasPool = []
-export class Chunk{
+export class Chunk extends Uint16Array{
 	constructor(buf){
+		super(4096)
+		this.tileData = new Map
 		this.x = buf.int()
 		this.y = buf.int()
 		this.ref = 0
-		this.tiles = []
 		this.entities = new Set()
 		this.ctx = null
+
+		const Schema = Chunk.savedatahistory[buf.flint()] || Chunk.savedata
 		//read buffer palette
-		let palettelen = buf.short() + 1
+		let palettelen = buf.byte() + 1 & 0xFF
 		let id
 		while((id = buf.short()) != 65535){
 			const e = EntityIDs[id]()
@@ -26,56 +29,47 @@ export class Chunk{
 		}
 		this.biomes = [buf.byte(), buf.byte(), buf.byte(), buf.byte(), buf.byte(), buf.byte(), buf.byte(), buf.byte(), buf.byte(), buf.byte()]
 		let palette = []
-		if(palettelen<1024)for(let i = 0;i<palettelen;i++) palette.push(BlockIDs[buf.short()])
-		if(palettelen<2){
-			for(let j=0;j<4096;j++)this.tiles.push(palette[0])
+		if(palettelen) for(let i = 0;i<palettelen;i++) palette.push(buf.short())
+		if(palettelen == 0){
+			const arr = buf.uint8array(8192)
+			this.set(new Uint16Array(arr.buffer, arr.byteOffset, arr.byteLength))
+		}else if(palettelen == 1){
+			for(let j=0;j<4096;j++)this[j] = palette[0]
 		}else if(palettelen == 2){
-			for(let j=0;j<512;j++){
+			for(let j=0;j<4096;j+=8){
 				const byte = buf.byte()
-				this.tiles.push(palette[byte&1])
-				this.tiles.push(palette[(byte>>1)&1])
-				this.tiles.push(palette[(byte>>2)&1])
-				this.tiles.push(palette[(byte>>3)&1])
-				this.tiles.push(palette[(byte>>4)&1])
-				this.tiles.push(palette[(byte>>5)&1])
-				this.tiles.push(palette[(byte>>6)&1])
-				this.tiles.push(palette[byte>>7])
+				this[j  ] = palette[byte&1]
+				this[j+1] = palette[(byte>>1)&1]
+				this[j+2] = palette[(byte>>2)&1]
+				this[j+3] = palette[(byte>>3)&1]
+				this[j+4] = palette[(byte>>4)&1]
+				this[j+5] = palette[(byte>>5)&1]
+				this[j+6] = palette[(byte>>6)&1]
+				this[j+7] = palette[byte>>7]
 			}
 		}else if(palettelen <= 4){
-			for(let j=0;j<1024;j++){
+			for(let j=0;j<4096;j+=4){
 				const byte = buf.byte()
-				this.tiles.push(palette[byte&3])
-				this.tiles.push(palette[(byte>>2)&3])
-				this.tiles.push(palette[(byte>>4)&3])
-				this.tiles.push(palette[byte>>6])
+				this[j  ] = palette[byte&3]
+				this[j+1] = palette[(byte>>2)&3]
+				this[j+2] = palette[(byte>>4)&3]
+				this[j+3] = palette[byte>>6]
 			}
 		}else if(palettelen <= 16){
-			for(let j=0;j<2048;j++){
+			for(let j=0;j<4096;j+=2){
 				const byte = buf.byte()
-				this.tiles.push(palette[byte&15])
-				this.tiles.push(palette[(byte>>4)])
+				this[j  ] = palette[byte&15]
+				this[j+1] = palette[(byte>>4)]
 			}
-		}else if(palettelen <= 256){
-			for(let j=0;j<4096;j++){
-				this.tiles.push(palette[buf.byte()])
-			}
-		}else if(palettelen < 1024){
-			for(let j=0;j<6144;j+=3){
-				let byte2
-				this.tiles.push(palette[buf.byte() + (((byte2 = buf.byte())&0x0F)<<8)])
-				this.tiles.push(palette[buf.byte() + ((byte2&0xF0)<<4)])
-			}
-		}else for(let j=0;j<4096;j++){
-			this.tiles.push(BlockIDs[buf.short()])
-		}
+		}else for(let j=0;j<4096;j++) this[j] = palette[buf.byte()]
 		//parse block entities
 		for(let j=0;j<4096;j++){
-			const block = this.tiles[j]
-			if(!block){this.tiles[j] = Blocks.air; continue}
+			const block = BlockIDs[this[j]]
 			if(!block.savedata)continue
-			//decode data
-			this.tiles[j] = buf.read(block.savedatahistory[buf.flint()] || block.savedata, block())
+			this[j] = 65535
+			this.tileData.set(j, buf.read(block.savedatahistory[buf.flint()] || block.savedata, block()))
 		}
+		buf.read(Schema, this)
 		this.rerenders = []
 	}
 	static savedatahistory = []
@@ -92,7 +86,8 @@ export class Chunk{
 		if(!this.ctx)this.ctx = Can(TEX_SIZE << 6, TEX_SIZE << 6)
 		for(let x = 0; x < 64; x++){
 			for(let y = 0; y < 64; y++){
-				const {texture, render} = this.tiles[x|(y<<6)]
+				const b = this[x|(y<<6)]
+				const {texture, render} = b==65535 ? this.tileData.get(x|(y<<6)) : BlockIDs[b]
 				if(render) this.rerenders.push(x|(y<<6))
 				if(texture)
 					this.ctx.drawImage(texture.canvas,texture.x,texture.y,texture.w,texture.h,x*TEX_SIZE,(63-y)*TEX_SIZE,TEX_SIZE,TEX_SIZE)
