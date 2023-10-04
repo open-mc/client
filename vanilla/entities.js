@@ -258,11 +258,15 @@ Entities.item = class extends Entity{
 		}
 	}
 	1(buf){
+		const c = buf.byte()
 		this.sound(pop,0.2,random()*1.5+0.5)
-		this.item.count = buf.byte()
+		if(!this.item) return
+		this.item.count = c
 	}
 	2(buf){
-		this.item.count = buf.byte()
+		const c = buf.byte()
+		if(!this.item) return
+		this.item.count = c
 	}
 }
 
