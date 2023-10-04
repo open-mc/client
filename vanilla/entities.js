@@ -1,6 +1,6 @@
 import { particlePng, explode, AshParticle, BlastParticle, hurt } from './defs.js'
 import { renderItem, renderItemCount } from './effects.js'
-import { Entities, Entity, Item, Blocks } from 'definitions'
+import { Entities, Entity, Item, Blocks, BlockIDs } from 'definitions'
 import { renderF3 } from 'api'
 import { getblock, cam, pointer } from 'world'
 const {Audio, Texture} = loader(import.meta)
@@ -270,9 +270,17 @@ Entities.item = class extends Entity{
 	}
 }
 
+Entities.falling_block = class extends Entity{
+	static width = 0.49
+	static height = 0.98
+	block = 0
+	render(c){
+		const {texture} = BlockIDs[this.block]
+		if(texture) c.image(texture, -0.5, 0, 1, 1)
+	}
+}
+
 const fuse = Audio('sound/misc/fuse.mp3')
-
-
 Entities.tnt = class extends Entity{
 	static width = 0.49
 	static height = 0.98

@@ -80,6 +80,7 @@ export class Item{
 	}
 }
 registerTypes({Item})
+//chunk exists
 export class Entity{
 	ix = 0; x = 0
 	iy = 0; y = 0
@@ -91,6 +92,14 @@ export class Entity{
 	age = 0
 	flags = 0
 	f = PI / 2
+	shouldSimulate(){
+		const x = floor(this.x)>>6, y = floor(this.y)>>6
+		if(!map.has((x&0x3FFFFFF)+(y&0x3FFFFFF)*0x4000000)) return false
+		const ox = (floor(this.x)>>>4&2)-1, oy = (floor(this.y)>>>4&2)-1
+		return map.has((x+ox&0x3FFFFFF)+(y&0x3FFFFFF)*0x4000000)
+			&& map.has((x&0x3FFFFFF)+(y+oy&0x3FFFFFF)*0x4000000)
+			&& map.has((x+ox&0x3FFFFFF)+(y+oy&0x3FFFFFF)*0x4000000)
+	}
 	preupdate(){
 		const { gooeyness } = getblock(floor(this.x), floor(this.dy > 0 ? this.y : this.y + this.height / 4))
 		if(gooeyness) this.dx *= (1 - gooeyness), this.dy *= (1 - gooeyness)

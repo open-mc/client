@@ -1,6 +1,6 @@
 import { Blocks, BlockIDs } from 'definitions'
 import { musicdict } from './sounds.js'
-export const map = new Map, entityMap = new Map()
+export const map = globalThis.map = new Map, entityMap = globalThis.entityMap = new Map()
 export const server = {
 	title: '',
 	sub: '',

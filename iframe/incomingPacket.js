@@ -22,7 +22,6 @@ function dimPacket(data){
 function clockPacket(data){
 	ticks = data.double()
 }
-globalThis.map = map
 function chunkPacket(buf){
 	const chunk = new Chunk(buf)
 	const k = (chunk.x&0x3FFFFFF)+(chunk.y&0x3FFFFFF)*0x4000000

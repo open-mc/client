@@ -1,7 +1,7 @@
 import { audioSet, lava, water } from './effects.js'
 import { sound, cam } from 'world'
 import { Blocks, Items, Block, Item, Particle } from 'definitions'
-import { slabify, upperslabify, slabifyItem } from './blockshapes.js'
+import { BlockShape, blockShaped, itemify, slabifyItem } from './blockshapes.js'
 
 const {Audio, Texture} = loader(import.meta)
 
@@ -13,7 +13,7 @@ export const hurt = [1,2,3].mmap(a => Audio(`sound/misc/hurt${a}.mp3`))
 
 Blocks.air = class extends Block{ static solid = false }
 Blocks.grass = class extends Block{
-	static texture = terrainPng.at(3, 0)
+	static texture = terrainPng.at(0, 0)
 	static breaktime = 1.5
 	static tool = 'shovel'
 	static placeSounds = audioSet('grass/place', 4)
@@ -43,6 +43,12 @@ Blocks.dirt = class extends Block{
 	static placeSounds = audioSet('dirt/place', 4)
 	static stepSounds = audioSet('dirt/step', 4)
 }
+Blocks.farmland = class extends Blocks.dirt{
+	static blockShape = [0, 0, 1, 0.9375]
+}
+Blocks.hydrated_farmland = class extends Blocks.dirt{
+	static blockShape = [0, 0, 1, 0.9375]
+}
 Blocks.bedrock = class extends Stone{
 	static texture = terrainPng.at(1, 1)
 	static breaktime = Infinity
@@ -55,37 +61,47 @@ class Wood extends Block{
 	static breaktime = 5
 }
 Blocks.oak_log = class extends Wood{
-	static texture = terrainPng.at(4, 1)
+	static texture = terrainPng.at(0, 13)
 }
 class Planks extends Wood{
 	static breaktime = 3
 }
 Blocks.oak_planks = class extends Planks{
-	static texture = terrainPng.at(4, 0)
+	static texture = terrainPng.at(1, 13)
 }
-Blocks.birch_planks = class extends Planks{}
-Blocks.spruce_planks = class extends Planks{}
-Blocks.dark_oak_planks = class extends Planks{}
-Blocks.acacia_planks = class extends Planks{}
-Blocks.jungle_planks = class extends Planks{}
+Blocks.birch_planks = class extends Planks{
+	static texture = terrainPng.at(3, 13)
+}
+Blocks.spruce_planks = class extends Planks{
+	static texture = terrainPng.at(5, 13)
+}
+Blocks.dark_oak_planks = class extends Planks{
+	static texture = terrainPng.at(7, 13)
+}
+Blocks.acacia_planks = class extends Planks{
+	static texture = terrainPng.at(9, 13)
+}
+Blocks.jungle_planks = class extends Planks{
+	static texture = terrainPng.at(11, 13)
+}
 
-Blocks.oak_planks_slab = slabify(Blocks.oak_planks)
-Blocks.oak_planks_upper_slab = upperslabify(Blocks.oak_planks)
+Blocks.oak_planks_slab = blockShaped(Blocks.oak_planks, BlockShape.SLAB)
+Blocks.oak_planks_upper_slab = blockShaped(Blocks.oak_planks, BlockShape.UPPER_SLAB)
 
-Blocks.birch_planks_slab = slabify(Blocks.birch_planks)
-Blocks.birch_planks_upper_slab = upperslabify(Blocks.birch_planks)
+Blocks.birch_planks_slab = blockShaped(Blocks.birch_planks, BlockShape.SLAB)
+Blocks.birch_planks_upper_slab = blockShaped(Blocks.birch_planks, BlockShape.UPPER_SLAB)
 
-Blocks.spruce_planks_slab = slabify(Blocks.spruce_planks)
-Blocks.spruce_planks_upper_slab = upperslabify(Blocks.spruce_planks)
+Blocks.spruce_planks_slab = blockShaped(Blocks.spruce_planks, BlockShape.SLAB)
+Blocks.spruce_planks_upper_slab = blockShaped(Blocks.spruce_planks, BlockShape.UPPER_SLAB)
 
-Blocks.dark_oak_planks_slab = slabify(Blocks.dark_oak_planks)
-Blocks.dark_oak_planks_upper_slab = upperslabify(Blocks.dark_oak_planks)
+Blocks.dark_oak_planks_slab = blockShaped(Blocks.dark_oak_planks, BlockShape.SLAB)
+Blocks.dark_oak_planks_upper_slab = blockShaped(Blocks.dark_oak_planks, BlockShape.UPPER_SLAB)
 
-Blocks.acacia_planks_slab = slabify(Blocks.acacia_planks)
-Blocks.acacia_planks_upper_slab = upperslabify(Blocks.acacia_planks)
+Blocks.acacia_planks_slab = blockShaped(Blocks.acacia_planks, BlockShape.SLAB)
+Blocks.acacia_planks_upper_slab = blockShaped(Blocks.acacia_planks, BlockShape.UPPER_SLAB)
 
-Blocks.jungle_planks_slab = slabify(Blocks.jungle_planks)
-Blocks.jungle_planks_upper_slab = upperslabify(Blocks.jungle_planks)
+Blocks.jungle_planks_slab = blockShaped(Blocks.jungle_planks, BlockShape.SLAB)
+Blocks.jungle_planks_upper_slab = blockShaped(Blocks.jungle_planks, BlockShape.UPPER_SLAB)
 
 Blocks.sand = class extends Block{
 	static texture = terrainPng.at(2, 1)
@@ -100,7 +116,7 @@ Blocks.glass = class extends Block{
 	static stepSounds = Blocks.stone.stepSounds
 }
 Blocks.water = class extends Block{
-	static texture = terrainPng.at(13, 13)
+	static texture = terrainPng.at(14, 15)
 	static solid = false
 	static climbable = true
 	static gooeyness = 0.15
@@ -124,7 +140,7 @@ Blocks.lava = class extends Blocks.water{
 	}
 }
 Blocks.sandstone = class extends Stone{
-	static texture = terrainPng.at(0, 12)
+	static texture = terrainPng.at(1, 11)
 	static breaktime = 4
 }
 Blocks.cut_sandstone = class extends Blocks.sandstone{}
@@ -178,89 +194,43 @@ class Wool extends Block{
 	static breakSounds = this.stepSounds
 }
 
-Blocks.white_wool = class extends Wool{ static texture = terrainPng.at(0, 4) }
+Blocks.white_wool = class extends Wool{ static texture = terrainPng.at(0, 14) }
 Blocks.light_grey_wool = class extends Wool{ static texture = terrainPng.at(1, 14) }
-Blocks.grey_wool = class extends Wool{ static texture = terrainPng.at(2, 7) }
-Blocks.black_wool = class extends Wool{ static texture = terrainPng.at(1, 7) }
-Blocks.red_wool = class extends Wool{ static texture = terrainPng.at(1, 8) }
-Blocks.orange_wool = class extends Wool{ static texture = terrainPng.at(2, 13) }
-Blocks.yellow_wool = class extends Wool{ static texture = terrainPng.at(2, 10) }
-Blocks.lime_wool = class extends Wool{ static texture = terrainPng.at(2, 9) }
-Blocks.green_wool = class extends Wool{ static texture = terrainPng.at(1, 9) }
-Blocks.cyan_wool = class extends Wool{ static texture = terrainPng.at(1, 13) }
-Blocks.light_blue_wool = class extends Wool{ static texture = terrainPng.at(2, 11) }
-Blocks.blue_wool = class extends Wool{ static texture = terrainPng.at(1, 11) }
-Blocks.purple_wool = class extends Wool{ static texture = terrainPng.at(1, 12) }
-Blocks.magenta_wool = class extends Wool{ static texture = terrainPng.at(2, 12) }
-Blocks.pink_wool = class extends Wool{ static texture = terrainPng.at(2, 8) }
-Blocks.brown_wool = class extends Wool{ static texture = terrainPng.at(1, 10) }
+Blocks.grey_wool = class extends Wool{ static texture = terrainPng.at(2, 14) }
+Blocks.black_wool = class extends Wool{ static texture = terrainPng.at(3, 14) }
+Blocks.red_wool = class extends Wool{ static texture = terrainPng.at(4, 14) }
+Blocks.orange_wool = class extends Wool{ static texture = terrainPng.at(5, 14) }
+Blocks.yellow_wool = class extends Wool{ static texture = terrainPng.at(6, 14) }
+Blocks.lime_wool = class extends Wool{ static texture = terrainPng.at(7, 14) }
+Blocks.green_wool = class extends Wool{ static texture = terrainPng.at(8, 14) }
+Blocks.cyan_wool = class extends Wool{ static texture = terrainPng.at(9, 14) }
+Blocks.light_blue_wool = class extends Wool{ static texture = terrainPng.at(10, 14) }
+Blocks.blue_wool = class extends Wool{ static texture = terrainPng.at(11, 14) }
+Blocks.purple_wool = class extends Wool{ static texture = terrainPng.at(12, 14) }
+Blocks.magenta_wool = class extends Wool{ static texture = terrainPng.at(13, 14) }
+Blocks.pink_wool = class extends Wool{ static texture = terrainPng.at(14, 14) }
+Blocks.brown_wool = class extends Wool{ static texture = terrainPng.at(15, 14) }
 
-Items.white_wool = class extends Item{
-	places(){ return Blocks.white_wool }
-	static texture = terrainPng.at(0, 4)
-}
-Items.light_grey_wool = class extends Item{
-	places(){ return Blocks.light_grey_wool }
-	static texture = terrainPng.at(1, 14)
-}
-Items.grey_wool = class extends Item{
-	places(){ return Blocks.grey_wool }
-	static texture = terrainPng.at(2, 7)
-}
-Items.black_wool = class extends Item{
-	places(){ return Blocks.black_wool }
-	static texture = terrainPng.at(1, 7)
-}
-Items.red_wool = class extends Item{
-	places(){ return Blocks.red_wool }
-	static texture = terrainPng.at(1, 8)
-}
-Items.orange_wool = class extends Item{
-	places(){ return Blocks.orange_wool }
-	static texture = terrainPng.at(2, 13)
-}
-Items.yellow_wool = class extends Item{
-	places(){ return Blocks.yellow_wool }
-	static texture = terrainPng.at(2, 10)
-}
-Items.lime_wool = class extends Item{
-	places(){ return Blocks.lime_wool }
-	static texture = terrainPng.at(2, 9)
-}
-Items.green_wool = class extends Item{
-	places(){ return Blocks.green_wool }
-	static texture = terrainPng.at(1, 9)
-}
-Items.cyan_wool = class extends Item{
-	places(){ return Blocks.cyan_wool }
-	static texture = terrainPng.at(1, 13)
-}
-Items.light_blue_wool = class extends Item{
-	places(){ return Blocks.light_blue_wool }
-	static texture = terrainPng.at(2, 11)
-}
-Items.blue_wool = class extends Item{
-	places(){ return Blocks.blue_wool }
-	static texture = terrainPng.at(1, 11)
-}
-Items.purple_wool = class extends Item{
-	places(){ return Blocks.purple_wool }
-	static texture = terrainPng.at(1, 12)
-}
-Items.magenta_wool = class extends Item{
-	places(){ return Blocks.magenta_wool }
-	static texture = terrainPng.at(2, 12)
-}
-Items.pink_wool = class extends Item{
-	places(){ return Blocks.pink_wool }
-	static texture = terrainPng.at(2, 8)
-}
-Items.brown_wool = class extends Item{
-	places(){ return Blocks.brown_wool }
-	static texture = terrainPng.at(1, 10)
-}
+Items.white_wool = itemify(Blocks.white_wool)
+Items.light_grey_wool = itemify(Blocks.light_grey_wool)
+Items.grey_wool = itemify(Blocks.grey_wool)
+Items.black_wool = itemify(Blocks.black_wool)
+Items.red_wool = itemify(Blocks.red_wool)
+Items.orange_wool = itemify(Blocks.orange_wool)
+Items.yellow_wool = itemify(Blocks.yellow_wool)
+Items.lime_wool = itemify(Blocks.lime_wool)
+Items.green_wool = itemify(Blocks.green_wool)
+Items.cyan_wool = itemify(Blocks.cyan_wool)
+Items.light_blue_wool = itemify(Blocks.light_blue_wool)
+Items.blue_wool = itemify(Blocks.blue_wool)
+Items.purple_wool = itemify(Blocks.purple_wool)
+Items.magenta_wool = itemify(Blocks.magenta_wool)
+Items.pink_wool = itemify(Blocks.pink_wool)
+Items.brown_wool = itemify(Blocks.brown_wool)
 
-Blocks.dragon_egg = class extends Block{}
+Blocks.dragon_egg = class extends Block{
+	static texture = terrainPng.at(15, 0)
+}
 
 Blocks.ice = class Ice extends Block{}
 Blocks.packed_ice = class extends Blocks.ice{}
@@ -354,6 +324,11 @@ Blocks.pumpkin_leaf = class extends Block{
 Blocks.pumpkin_leaf1 = class extends Blocks.pumpkin_leaf{ }
 Blocks.pumpkin_leaf2 = class extends Blocks.pumpkin_leaf{ }
 Blocks.pumpkin_leaf3 = class extends Blocks.pumpkin_leaf{ }
+
+Items.sand = class extends Item{
+	places(){ return Blocks.sand }
+	static texture = Blocks.sand.texture
+}
 
 Items.oak_log = class extends Item{
 	places(){ return Blocks.oak_log }
