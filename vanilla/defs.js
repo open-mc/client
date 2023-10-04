@@ -60,9 +60,13 @@ class Wood extends Block{
 	static tool = 'axe'
 	static breaktime = 5
 }
-Blocks.oak_log = class extends Wood{
-	static texture = terrainPng.at(0, 13)
-}
+Blocks.oak_log = class extends Wood{ static texture = terrainPng.at(0, 13) }
+Blocks.birch_log = class extends Wood{ static texture = terrainPng.at(2, 13) }
+Blocks.spruce_log = class extends Wood{ static texture = terrainPng.at(4, 13) }
+Blocks.dark_oak_log = class extends Wood{ static texture = terrainPng.at(6, 13) }
+Blocks.acacia_log = class extends Wood{ static texture = terrainPng.at(8, 13) }
+Blocks.jungle_log = class extends Wood{ static texture = terrainPng.at(10, 13) }
+
 class Planks extends Wood{
 	static breaktime = 3
 }
@@ -334,6 +338,27 @@ Items.oak_log = class extends Item{
 	places(){ return Blocks.oak_log }
 	static texture = Blocks.oak_log.texture
 }
+Items.birch_log = class extends Item{
+	places(){ return Blocks.birch_log }
+	static texture = Blocks.birch_log.texture
+}
+Items.spruce_log = class extends Item{
+	places(){ return Blocks.spruce_log }
+	static texture = Blocks.spruce_log.texture
+}
+Items.dark_oak_log = class extends Item{
+	places(){ return Blocks.dark_oak_log }
+	static texture = Blocks.dark_oak_log.texture
+}
+Items.acacia_log = class extends Item{
+	places(){ return Blocks.acacia_log }
+	static texture = Blocks.acacia_log.texture
+}
+Items.jungle_log = class extends Item{
+	places(){ return Blocks.jungle_log }
+	static texture = Blocks.jungle_log.texture
+}
+
 Items.oak_planks = class extends Item{
 	places(){ return Blocks.oak_planks }
 	static texture = Blocks.oak_planks.texture

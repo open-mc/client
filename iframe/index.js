@@ -116,16 +116,18 @@ export function frame(){
 	cam.rot = max(0, cam.rot - dt)
 	c.font = '1000px mc'
 	for(const phase of _renderPhases){
-		switch(phase.coordSpace){
-			case 'none': phase(c, W, H); break
-			case 'world':
-				c.setTransform(SCALE, 0, 0, -SCALE, W2 * SCALE, H - H2 * SCALE)
-				c.rotate(-cam.rot)
-				phase(c)
-				break
-			case 'ui': const s = options.guiScale * devicePixelRatio * 2; c.setTransform(s, 0, 0, -s, 0, H); phase(c, W /  s, H /  s); break
-			default: console.error('Invalid coordinate space: ' + phase.coordSpace)
-		}
+		try{
+			switch(phase.coordSpace){
+				case 'none': phase(c, W, H); break
+				case 'world':
+					c.setTransform(SCALE, 0, 0, -SCALE, W2 * SCALE, H - H2 * SCALE)
+					c.rotate(-cam.rot)
+					phase(c)
+					break
+				case 'ui': const s = options.guiScale * devicePixelRatio * 2; c.setTransform(s, 0, 0, -s, 0, H); phase(c, W /  s, H /  s); break
+				default: console.error('Invalid coordinate space: ' + phase.coordSpace)
+			}
+		}catch(e){console.error(e)}
 	}
 	timeToFrame = performance.now() - now
 	changed.clear()

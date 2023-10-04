@@ -275,7 +275,7 @@ Entities.falling_block = class extends Entity{
 	static height = 0.98
 	block = 0
 	render(c){
-		const {texture} = BlockIDs[this.block]
+		const {texture} = BlockIDs[this.block] ?? Blocks.air
 		if(texture) c.image(texture, -0.5, 0, 1, 1)
 	}
 }
