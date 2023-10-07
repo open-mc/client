@@ -48,7 +48,7 @@ export async function hideUI(){
 
 export function showUI(a = null){
 	if(a instanceof Element && document.fullscreenElement && (a.classList.contains('dirtbg') || !a.classList.contains('noshade'))) document.exitFullscreen()
-	document.exitPointerLock()
+	document.exitPointerLock?.()
 	void (ui && ui.finish || Function.prototype)()
 	void (ui || NONE).replaceWith(ui = a || NONE)
 }
@@ -194,7 +194,7 @@ export const Row = (...a) => {
 	return row
 }
 export const Label = (txt) => {
-	let label = document.createElement('label')
+	let label = document.createElement('span')
 	label.append(txt)
 	return label
 }

@@ -66,7 +66,7 @@ column{
 	margin: 2rem;
 	height: 54rem;
 }
-#serverlist label{
+#serverlist span{
 	flex-grow: 1;
 	text-align: left;
 }
@@ -83,6 +83,21 @@ column{
 	width: 48rem; height: 48rem; margin: 2rem;
 }
 
-::placeholder{
-	color: #8888;
+@media (orientation: portrait) and (max-width: 450px) {
+	#orientation{display: flex !important}
+}
+
+.serverlist > row{
+	padding: 8rem;
+}
+
+@media (max-height: 600px){
+	#serverlist img{
+		width: 40rem; height: 40rem;
+	}
+	#serverlist > row{ height: 46rem }
+	#serverlist{ padding: 3rem }
+	.serverlist > row{
+		padding: 4rem;
+	}
 }

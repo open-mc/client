@@ -68,35 +68,37 @@ function drawSkin(){
 	skinCtx.putImageData(head,0,0)
 }
 drawSkin()
-let list, input, addBtn
-const serverList = UI('dirtbg',
-	Spacer(20),
-	Row(Label('Welcome, '), skinCtx.canvas.attr('style','height:16rem;align-self:center'), Label(storage.name).attr('style', 'color: #E92')),
+let list, input, addBtn, selectSkinBtn, logoutBtn
+const serverList = UI('dirtbg serverlist',
 	Spacer(20),
 	Row(
-		Btn('Select skin', btn => getSkin().then(a => {
-			if(!a) return
-			btn.textContent = a
-			setTimeout(() => btn.textContent = 'Select skin', 2000)
-		})),
-		Btn('Log out', () => {
-			storage.name = storage.privKey = storage.pubKey = storage.authSig = ''
-			location+=''
-		})
+		Label('Welcome, '),
+		skinCtx.canvas.attr('style','height:16rem;align-self:center'),
+		Label(storage.name).attr('style', 'color: #E92'),
+		selectSkinBtn = Label('Select skin').attr('style', 'color: #888; text-decoration: underline; cursor: pointer'),
+		logoutBtn = Label('Log out').attr('style', 'color: #888; text-decoration: underline; cursor: pointer')
 	),
 	Spacer(20),
-	Label('Connect to a server:'),
-	Spacer(30),
 	Row(
+		Label('Connect to a server:'),
 		Spacer.grow(1),
 		Btn('Hosting a server', () => window.open('https://github.com/open-mc/server','_blank')),
 		Btn('Refresh', serverlist)
-	).attr('style', 'align-self: stretch; justify-content: space-between; padding: 8rem'),
+	).attr('style', 'align-self: stretch; justify-content: space-between; margin-left: 7rem'),
 	list = Div('serverlist'),
 	Spacer(20),
 	Row(input = Input('text', 'server ip'), addBtn = Btn('Add server', () => {if(input.value=='server ip') return input.value = 'very funny';else if(input.value=='very funny') return;addServer(input.value);input.value='';addBtn.disabled=true}, 'small disabled')),
 	Spacer(20)
 )
+selectSkinBtn.onclick = btn => getSkin().then(a => {
+	if(!a) return
+	btn.textContent = a
+	setTimeout(() => btn.textContent = 'Select skin', 2000)
+})
+logoutBtn.onclick = () => {
+	storage.name = storage.privKey = storage.pubKey = storage.authSig = ''
+	location+=''
+}
 input.oninput = () => {addBtn.disabled = !input.value}
 
 serverList.finish = () => {

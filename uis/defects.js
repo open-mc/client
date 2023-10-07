@@ -37,14 +37,14 @@ const defects = {
 	mobile: false
 }
 const M1 = `
-Your computer appears to be using an apple silicon chip, which is known to be experimental and not stable handling audio and textures`
+Your computer appears to be using an apple silicon chip, which is known to be experimental and not stable handling audio and textures.`
 // Fuck you, safari!
 const SAFARI = `
-You seem to be using safari, which has proven multiple times to\n(1) Not support even relatively standard and stable technologies\n(2) Be buggy, with countless defects developers have to work around and\n(3) Be significantly slower and less secure than other more popular browsers\nWe urge you, please, to use a different browser`
+You seem to be using safari, which has proven multiple times to\n(1) Not support even relatively standard and stable technologies\n(2) Be buggy, with countless defects developers have to work around and\n(3) Be significantly slower and less secure than other more popular browsers\nWe urge you, please, to use a different browser.`
 const FF = `
-You seem to be using firefox, meaning you may occasionally experience performance issues. If this becomes an issue, consider switching to chrome, chromium (for privacy enthusiasts) or opera`
+You seem to be using firefox, meaning you may occasionally experience performance issues. If this becomes an issue, consider switching to chrome, chromium (for privacy enthusiasts) or opera.`
 const MOBILE = `
-We currently provide no touch control support\nCome back on a desktop device`
+We currently provide no touch control support\nCome back on a desktop device.`
 const w = document.createElement("canvas").getContext("webgl"); w.width = w.height = 1
 const d = w.getExtension('WEBGL_debug_renderer_info')
 const g = d && w.getParameter(d.UNMASKED_RENDERER_WEBGL) || ""
@@ -64,12 +64,11 @@ export function start(){
 	if(loading) loading.remove()
 	if(!storage.shownDefects && (defects.firefox || defects.safari || defects.m1)){
 		showUI(UI('dirtbg',
-			Label('Notice about your current environment').attr('style', 'font-size:12rem'),
-			Spacer(30),
-			Label(((defects.safari ? SAFARI : '') + (defects.firefox ? FF : '') + (defects.m1 ? M1 : '') + (defects.mobile ? MOBILE : '')).slice(1)).attr('style', 'max-width: 50%; opacity: 0.7; height: auto; white-space: pre-wrap'),
-			Spacer(30),
-			Row(Btn('Don\'t warn again', () => (storage.shownDefects = true, serverlist())), Btn('Ok, proceed', serverlist)),
-			Spacer(30)
+			Label('Notice about your current environment').attr('style', 'font-size: 12rem; max-width: calc(100% - 20px); white-space: pre-wrap; height: auto'),
+			Spacer(25),
+			Label(((defects.safari ? SAFARI : '') + (defects.firefox ? FF : '') + (defects.m1 ? M1 : '') + (defects.mobile ? MOBILE : '')).slice(1)).attr('style', 'max-width: calc(100% - 20px); opacity: 0.7; height: auto; white-space: pre-wrap'),
+			Spacer(25),
+			Row(Btn('Don\'t warn again', () => (storage.shownDefects = true, serverlist())), Btn('Ok, proceed', serverlist))
 		))
 	}else serverlist()
 }

@@ -2,6 +2,7 @@ import { renderLayer, options } from 'api'
 import { getblock, sound, entityMap, cam } from 'world'
 import { registerTypes } from 'https://unpkg.com/dataproto/index.js'
 import * as pointer from './pointer.js'
+import { EPSILON } from './entity.js'
 
 export function foundMe(e){
 	if(!me)postMessage(false, '*')
@@ -145,11 +146,17 @@ export class Particle{
 			let dx = this.dx * dt, dy = this.dy * dt
 			const x = floor(this.x)
 			y: if(dy > 0){
-				const ey = ceil(this.y + dy) + 1
-				for(let y = ceil(this.y); y < ey; y++){
-					const ys = y - (getblock(x, y - 1).solid || false)
-					if(ys == y || ys < this.y)continue
-					this.y = min(ys, this.y + dy)
+				const ey = ceil(this.y + dy)
+				for(let y = floor(this.y); y < ey; y++){
+					const {solid, blockShape} = getblock(x, y)
+					if(!solid) continue
+					let ys = 2
+					if(blockShape) for(let i = 0; i < blockShape.length; i += 4){
+						if(blockShape[i]+x > this.x | blockShape[i+2]+x < this.x) continue
+						if(blockShape[i+1] <= ys) ys = blockShape[i+1]
+					}else ys = 0
+					if((y === ey - 1 ? ys + y >= this.y + dy + EPSILON : ys > 1) || ys + y < this.y - EPSILON) continue
+					this.y = ys + y - EPSILON
 					this.dy = 0
 					break y
 				}
@@ -157,9 +164,15 @@ export class Particle{
 			}else if(dy < 0){
 				const ey = floor(this.y + dy) - 1
 				for(let y = floor(this.y); y > ey; y--){
-					const ys = y + (getblock(x, y).solid || false)
-					if(ys == y || ys > this.y)continue
-					this.y = max(ys, this.y + dy)
+					const {solid, blockShape} = getblock(x, y)
+					if(!solid) continue
+					let ys = -1
+					if(blockShape) for(let i = 0; i < blockShape.length; i += 4){
+						if(blockShape[i]+x > this.x | blockShape[i+2]+x < this.x) continue
+						if(blockShape[i+3] > ys) ys = blockShape[i+3]
+					}else ys = 1
+					if((y === ey + 1 ? ys + y <= this.y + dy - EPSILON : ys < 0) || ys + y > this.y + EPSILON) continue
+					this.y = ys + y + EPSILON
 					this.dy = 0
 					break y
 				}
@@ -167,11 +180,17 @@ export class Particle{
 			}
 			const y = floor(this.y)
 			x: if(dx > 0){
-				const ex = ceil(this.x + dx) + 1
-				for(let x = ceil(this.x); x < ex; x++){
-					const xs = x - (getblock(x - 1, y).solid || false)
-					if(xs == x || xs < this.x)continue
-					this.x = min(xs, this.x + dx)
+				const ex = ceil(this.x + dx)
+				for(let x = floor(this.x); x < ex; x++){
+					const {solid, blockShape} = getblock(x, y)
+					if(!solid) continue
+					let xs = 2
+					if(blockShape) for(let i = 0; i < blockShape.length; i += 4){
+						if(blockShape[i+1]+y > this.y | blockShape[i+3]+y < this.y) continue
+						if(blockShape[i] <= xs) xs = blockShape[i]
+					}else xs = 0
+					if((x === ex - 1 ? xs + x >= this.x + dx + EPSILON : xs > 1) || xs + x < this.x - EPSILON) continue
+					this.x = xs + x - EPSILON
 					this.dx = 0
 					break x
 				}
@@ -179,9 +198,15 @@ export class Particle{
 			}else if(dx < 0){
 				const ex = floor(this.x + dx) - 1
 				for(let x = floor(this.x); x > ex; x--){
-					const xs = x + (getblock(x, y).solid || false)
-					if(xs == x || xs > this.x)continue
-					this.x = max(xs, this.x + dx)
+					const {solid, blockShape} = getblock(x, y)
+					if(!solid) continue
+					let xs = -1
+					if(blockShape) for(let i = 0; i < blockShape.length; i += 4){
+						if(blockShape[i+1]+y > this.y | blockShape[i+3]+y < this.y) continue
+						if(blockShape[i+2] > xs) xs = blockShape[i+2]
+					}else xs = 1
+					if((x === ex + 1 ? xs + x <= this.x + dx - EPSILON : xs < 0) || xs + x > this.x + EPSILON) continue
+					this.x = xs + x + EPSILON
 					this.dx = 0
 					break x
 				}

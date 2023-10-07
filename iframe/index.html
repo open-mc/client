@@ -178,7 +178,7 @@ Object.freeze(KEYS)
 const _filecache = Object.create(null)
 const voidImg = new Image()
 const _txtr = class Texture{
-	constructor(img, x, y, w, h){ this.canvas = img; this.x = x; this.y = y; this.w = w; this.h = h; this._pattern = null }
+	constructor(img = voidImg, x = 0, y = 0, w = 0, h = 0){ this.canvas = img; this.x = x; this.y = y; this.w = w; this.h = h; this._pattern = null }
 	crop(x, y, w, h){ return new _txtr(this.canvas, this.x + x, this.y + y, w, h) }
 	at(x, y){ return new _txtr(this.canvas, this.x + x * TEX_SIZE, this.y + y * TEX_SIZE, TEX_SIZE, TEX_SIZE) }
 	pattern(){
@@ -193,18 +193,14 @@ const _txtr = class Texture{
 			return this._pattern = ctx.createPattern(c, 'repeat')
 		}
 	}
-	setPatternTransform(a,b,c,d,e,f){
-		this.pattern().setTransform({a, b, c, d, e, f})
-	}
+	setPatternTransform(a,b,c,d,e,f){ this.pattern().setTransform({a, b, c, d, e, f}) }
 	then(fn){
-		if(this.canvas.complete === false){
-			const t = new _txtr(voidImg, 0, 0, 0, 0)
-			this.canvas.addEventListener('load', () => {
+		if(this.canvas.promise){
+			const t = new _txtr(this.canvas)
+			t.canvas.promise = this.canvas.promise.then(() => {
 				const e = fn(this)
-				if(e.canvas.complete === false) e.then(e => {
-					t.canvas = e.canvas; t.x = e.x; t.y = e.y; t.w = e.w; t.h = e.h
-				})
-				t.canvas = e.canvas; t.x = e.x; t.y = e.y; t.w = e.w; t.h = e.h
+				if(e.canvas.promise) e.then(e => { t.canvas = e.canvas; t.x = e.x; t.y = e.y; t.w = e.w; t.h = e.h })
+				else t.canvas = e.canvas; t.x = e.x; t.y = e.y; t.w = e.w; t.h = e.h
 			})
 			return t
 		}else return fn(this)
@@ -225,8 +221,10 @@ const loader = (meta) => {
 			i.crossOrigin = 'anonymous'
 			i.src = src
 			loading++
-			const t = new _txtr(i, 0, 0, 0, 0)
-			i.onload = i.onerror = () => (i.onload=i.onerror=null,t.w=i.width,t.h=i.height,--loading||loaded())
+			const t = new _txtr(i)
+			let r
+			i.promise = new Promise(_r=>r=_r)
+			i.onload = i.onerror = () => (i.onload=i.onerror=null,t.w=i.width,t.h=i.height,r(),i.promise=null,--loading||loaded())
 			return t
 		},
 		Audio(src){
@@ -300,6 +298,21 @@ const loader = (meta) => {
 		while(len > 0) a[--len] = null
 		return a
 	}
+	const ShaderCan = (w, h) => {
+		const c = document.createElement('canvas').getContext('webgl2')
+		c.w = c.canvas.width = w
+		c.h = c.canvas.height = h
+		const v = c.createShader(c.VERTEX_SHADER)
+		v.shaderSource(``)
+		c.compileShader(v)
+
+	}
+	(W => {
+		W.resize = (w, h) => {
+			this.w = this.canvas.width = w
+			this.h = this.canvas.height = h
+		}
+	})(WebGL2RenderingContext.prototype)
 </script>
 <script type="module">
 	import "./bitfield.js"

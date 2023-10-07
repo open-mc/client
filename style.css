@@ -96,7 +96,7 @@ input[type=checkbox]:checked::after{
 	width: inherit;
 	text-align: center;
 }
-label{
+span{
 	display: block;
 	text-align: center;
 	height: 20rem;
@@ -163,69 +163,6 @@ btn.disabled{
 .s8, .s9, .s10, .s11 { text-decoration: line-through; }
 .s12, .s13, .s14, .s15 { text-decoration: underline line-through; }
 
-item{
-	width: 16rem;
-	height: 16rem;
-	position: relative;
-}
-item:hover{
-	box-shadow: inset 0 0 0 16rem #FFF5;
-
-}
-item[count]{
-	cursor: pointer;
-}
-item[count]::after{
-	content: attr(count);
-	position: absolute;
-	bottom: -2rem;
-	right: -1rem;
-	z-index: 2;
-	pointer-events: none;
-}
-
-#ui{
-	display: flex;
-	position: absolute;
-	flex-direction: column;
-	justify-content: center;
-	background-color: #0004;
-	align-items: center;
-	top: 0;
-	left: 0;
-	bottom: 0;
-	right: 0;
-	z-index: 1001;
-}
-#ui.noshade{
-	background-color: #0000;
-}
-#ui.dirtbg{
-	background: url('./img/bg32.png') center/48px;
-}
-#inventory{
-	background: url('./img/inv.png') center/176rem no-repeat;
-	height: 86rem;
-	width: 176rem;
-	align-content: flex-start;
-	flex-direction: row;
-	flex-wrap: wrap;
-	gap: 2rem;
-	padding: 4rem 8rem;
-	display: none !important;
-	position: relative;
-}
-.inv #inventory{
-	display: flex !important;
-}
-#draggingNode{
-	position: fixed;
-	pointer-events: none;
-	z-index: 1002;
-	margin: -8rem;
-}
-
-
 iframe{
 	position: absolute;
 	border: none;
@@ -240,3 +177,19 @@ hr{
 	visibility: hidden;
 	flex: 1;
 }
+
+::placeholder{ color: #8888 }
+
+#ui{
+	display: flex;
+	position: absolute;
+	flex-direction: column;
+	justify-content: center;
+	background-color: #0004;
+	align-items: center;
+	top: 0; left: 0;
+	bottom: 0; right: 0;
+	z-index: 1001;
+}
+#ui.noshade{ background-color: #0000 }
+#ui.dirtbg{ background: url('./img/bg32.png') center/48px }

@@ -2,7 +2,7 @@
 <html spellcheck="false" autocomplete="off" autocapitalize="off" lang="en" ontouchend="getSelection().removeAllRanges();event.preventDefault();if('value' in event.target)event.target.focus();event.target.dispatchEvent(new MouseEvent('click', event.changedTouches[0]))" oncontextmenu="event.preventDefault();" onwheel="if(event.ctrlKey)event.preventDefault()">
 	<head>
 		<meta charset="UTF-8">
-		<meta name="viewport" content="width=500, initial-scale=1, user-scalable=no">
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
 		<link href="style.css" rel="stylesheet">
 		<link href="ui.css" rel="stylesheet">
 		<meta property="og:title" content="Paper Minecraft" />
@@ -21,7 +21,7 @@
 			<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAAdVBMVEVZPSlfnzV2tkxnpz1sbGyHh4dsrEKWbEp5VTq5hVxhoTdzs0l0tEptrUNpqT9mpjxqqkCQv2B+vlSXxmeSwWKTwmNQkCZXly1goDZrq0F/v1V1tUtiojiNvF1vr0VoqD5wsEaKuVqcy2yBsFFxsUeDslNkpDoS8foXAAAAh0lEQVQYGQXBhWEDAAzAMBftFMfM9P+Jkzgs9+fz22J7tbxYnXZ3R563n9+/vL8sbi/3u+3qkVe+/k58cHi6ueb+AVjDD7DgSBDmYAHrJEITKKphqE3NNJPJNKMlWoplRloRSkFVM4k208hMuglLJ9caBmE6VdUMWaQxNIoxERWl2GgbtTT+AfgZCCBUhgurAAAAAElFTkSuQmCC" style="height:64px" />
 			Loading...
 			<hr />
-			<span><span style="color:#FC8">Not affiliated</span> with <span style="color:red">Mojang Studios</span></span>
+			<span><b style="color:#FC8">Not affiliated</b> with <b style="color:red">Mojang Studios</b></span>
 		</div>
 	</body>
 	<script type="module">
@@ -41,5 +41,12 @@
 		import "./uis/serverlist.js"
 		import { start } from './uis/defects.js'
 		onload = start
+		screen.orientation?.lock('landscape').catch(e=>{})
+		onresize = () => {
+
+		}
 	</script>
+	<div id="orientation" style="z-index: 9999; background: #000; display: none; width: 100%; position: fixed; height: 100%; top: 0; left: 0; flex-flow: column; justify-content: center; gap: 100px">
+		<span style="font-size: 1.25em; text-align: center;">Switch to Landscape</span>
+	</div>
 </html>
