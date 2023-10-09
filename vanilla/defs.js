@@ -8,6 +8,7 @@ const {Audio, Texture} = loader(import.meta)
 export const terrainPng = Texture("terrain.png")
 export const itemsPng = Texture("items.png")
 export const particlePng = Texture("particles.png")
+export const animatedPng = Texture("animated.png")
 export const explode = [1,2,3,4].mmap(a => Audio(`sound/misc/explode${a}.mp3`))
 export const hurt = [1,2,3].mmap(a => Audio(`sound/misc/hurt${a}.mp3`))
 
@@ -120,7 +121,7 @@ Blocks.glass = class extends Block{
 	static stepSounds = Blocks.stone.stepSounds
 }
 Blocks.water = class extends Block{
-	static texture = terrainPng.at(14, 15)
+	static texture = animatedPng.at(2, 0, 32)
 	static solid = false
 	static climbable = true
 	static gooeyness = 0.15
@@ -133,7 +134,7 @@ Blocks.water = class extends Block{
 	}
 }
 Blocks.lava = class extends Blocks.water{
-	static texture = terrainPng.at(13, 15)
+	static texture = animatedPng.at(3, 0, 38)
 	static gooeyness = 0.5
 	random(x, y){
 		const r = random()
@@ -252,7 +253,7 @@ const fireAmbient = Audio('sound/fire/ambient.mp3'), portalAmbient = Audio('soun
 
 Blocks.fire = class extends Block{
 	solid = false
-	static texture = terrainPng.at(15, 1)
+	static texture = animatedPng.at(1, 0, 32)
 	static placeSounds = [Audio('sound/fire/ignite.mp3')]
 	random(x, y){
 		sound(fireAmbient, x, y, random() + 1, random() * 0.7 + 0.3)
@@ -261,7 +262,7 @@ Blocks.fire = class extends Block{
 
 Blocks.portal = class extends Block{
 	static solid = false
-	static texture = terrainPng.at(14, 1)
+	static texture = animatedPng.at(0, 0, 32)
 	random(x, y){
 		sound(portalAmbient, x, y, 0.5, random() * 0.4 + 0.8)
 	}

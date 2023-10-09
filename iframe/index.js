@@ -150,6 +150,7 @@ drawPhase(200, (c, w, h) => {
 		c.push()
 		c.translate(x0,-y0)
 		c.scale((x1-x0)/64,(y0-y1)/64)
+		chunk.animate()
 		c.image(chunk.ctx, 0, 0, 64, 64)
 		if(SCALE>12){
 			c.push()

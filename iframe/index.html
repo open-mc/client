@@ -225,7 +225,7 @@ const voidImg = new Image()
 const _txtr = class Texture{
 	constructor(img = voidImg, x = 0, y = 0, w = 0, h = 0){ this.canvas = img; this.x = x; this.y = y; this.w = w; this.h = h; this._pattern = null }
 	crop(x, y, w, h){ return new _txtr(this.canvas, this.x + x, this.y + y, w, h) }
-	at(x, y){ return new _txtr(this.canvas, this.x + x * TEX_SIZE, this.y + y * TEX_SIZE, TEX_SIZE, TEX_SIZE) }
+	at(x, y, l = 1){ return new _txtr(this.canvas, this.x + x * TEX_SIZE, this.y + y * TEX_SIZE, TEX_SIZE, TEX_SIZE*l) }
 	pattern(){
 		if(this._pattern) return this._pattern
 		const c = document.createElement('canvas')

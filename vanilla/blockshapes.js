@@ -14,9 +14,9 @@ BlockShape.ONE_SHORT = [0, 0, 1, 15/16]
 export const blockShaped = (C, s,o = class extends C{
 	static blockShape = s
 	static texture = C.texture ? C.texture.then(a => {
-		const c = Can(16, 16, true)
+		const c = Can(TEX_SIZE, TEX_SIZE, true)
 		c.defaultTransform()
-		c.scale(16, 16)
+		c.scale(TEX_SIZE, TEX_SIZE)
 		for(let i = 0; i < s.length; i+=4){
 			c.rect(s[0],s[1],s[2]-s[0],s[3]-s[1])
 		}

@@ -11,8 +11,9 @@ export class Chunk extends Uint16Array{
 		this.ctx = null
 		this.lastFrame = 0
 		this.animatedTiles = new Uint32Array(128)
-
 		const Schema = Chunk.savedatahistory[buf.flint()] || Chunk.savedata
+		const l = buf.short()
+		buf.i += l * 2
 		//read buffer palette
 		let palettelen = buf.byte() + 1 & 0xFF
 		let id
@@ -86,7 +87,7 @@ export class Chunk extends Uint16Array{
 	draw(){
 		if(this.ctx) return
 		this.ctx = canvasPool.pop()
-		if(!this.ctx)this.ctx = Can(TEX_SIZE << 6, TEX_SIZE << 6, true)
+		if(!this.ctx)this.ctx = Can(TEX_SIZE << 6, TEX_SIZE << 6, true), this.ctx.scale(TEX_SIZE,TEX_SIZE)
 		for(let x = 0; x < 64; x++){
 			for(let y = 0; y < 64; y++){
 				const i = x|(y<<6)
@@ -97,7 +98,7 @@ export class Chunk extends Uint16Array{
 					const frames = floor(texture.h / texture.w)
 					if(frames > 1)
 						this.animatedTiles[i>>5] |= 1<<(i&31)
-					this.ctx.drawImage(texture.canvas,texture.x,texture.y,texture.w,texture.w,x*TEX_SIZE,(63-y)*TEX_SIZE,TEX_SIZE,TEX_SIZE)
+					this.ctx.drawImage(texture.canvas,texture.x,texture.y + (ticks % floor(texture.h / texture.w)) * texture.w,texture.w,texture.w,x,63-y,1,1)
 				}
 			}
 		}
@@ -114,8 +115,9 @@ export class Chunk extends Uint16Array{
 				int &= ~(1 << (pos&31))
 				const b = this[pos]
 				const {texture} = b==65535 ? this.tileData.get(x|(y<<6)) : BlockIDs[b]
-				const y = (ticks % floor(texture.h / texture.w))
-				this.ctx.drawImage(texture.canvas, texture.x, texture.y + y * texture.w, texture.w, texture.w, (pos&63)*TEX_SIZE, (63-(pos>>6))*TEX_SIZE, TEX_SIZE, TEX_SIZE)
+				const x = (pos&63), y = (63-(pos>>6))
+				this.ctx.clearRect(x, y, 1, 1)
+				this.ctx.drawImage(texture.canvas, texture.x, texture.y + (ticks % floor(texture.h / texture.w)) * texture.w, texture.w, texture.w, x, y, 1, 1)
 			}
 		}
 	}

@@ -27,11 +27,11 @@ export function setblock(x, y, b){
 	}else if(b.texture && floor(b.texture.h / b.texture.w) > 1) ch.animatedTiles[chI>>5] |= 1 << (chI&31)
 	if(ch.ctx){
 		const {texture, render} = b
-		ch.ctx.clearRect(lx * TEX_SIZE, (63 - ly) * TEX_SIZE, TEX_SIZE, TEX_SIZE)
+		ch.ctx.clearRect(lx, 63-ly, 1, 1)
 		let i = ch.rerenders.indexOf(chI)
 		if((i == -1) & (render != undefined)) ch.rerenders.push(chI)
 		else if((i > -1) & (render == undefined)) ch.rerenders.splice(i, 1)
-		if(texture) ch.ctx.drawImage(texture.canvas,texture.x,texture.y,texture.w,texture.h,lx*TEX_SIZE,(63-ly)*TEX_SIZE,TEX_SIZE,TEX_SIZE)
+		if(texture) ch.ctx.drawImage(texture.canvas,texture.x,texture.y + (ticks % floor(texture.h / texture.w)) * texture.w,texture.w,texture.w,lx,63-ly,1,1)
 	}
 }
 export function getblock(x, y){
