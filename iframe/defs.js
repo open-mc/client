@@ -15,6 +15,7 @@ export function foundMe(e){
 export class Block{
 	static placeSounds = []; static stepSounds = []
 	static solid = true
+	static replacable = false
 	static texture = null
 	static climbable = false
 	static gooeyness = 0

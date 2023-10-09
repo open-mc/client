@@ -39,7 +39,7 @@ function solidCheck(x0, y0, x1, y1){
 		const {solid, blockShape} = getblock(x, y)
 		if(!solid) continue
 		if(!blockShape) return true
-		for(let i = 0; i < blockShape.length; i+=4){
+		for(let i = 0; i < blockShape.length; i += 4){
 			if(blockShape[i]+x>=x1 | blockShape[i+2]+x<=x0) continue
 			if(blockShape[i+1]+y>=y1 | blockShape[i+3]+y<=y0) continue
 			return true

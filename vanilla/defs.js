@@ -12,7 +12,7 @@ export const animatedPng = Texture("animated.png")
 export const explode = [1,2,3,4].mmap(a => Audio(`sound/misc/explode${a}.mp3`))
 export const hurt = [1,2,3].mmap(a => Audio(`sound/misc/hurt${a}.mp3`))
 
-Blocks.air = class extends Block{ static solid = false }
+Blocks.air = class extends Block{ static solid = false; static replacable = true }
 Blocks.grass = class extends Block{
 	static texture = terrainPng.at(0, 0)
 	static breaktime = 1.5
@@ -123,6 +123,7 @@ Blocks.glass = class extends Block{
 Blocks.water = class extends Block{
 	static texture = animatedPng.at(2, 0, 32)
 	static solid = false
+	static replacable = true
 	static climbable = true
 	static gooeyness = 0.15
 	random(x, y){
@@ -252,7 +253,8 @@ Blocks.diamond_block = MineralBlock
 const fireAmbient = Audio('sound/fire/ambient.mp3'), portalAmbient = Audio('sound/portal/ambient.mp3')
 
 Blocks.fire = class extends Block{
-	solid = false
+	static solid = false
+	static replacable = true
 	static texture = animatedPng.at(1, 0, 32)
 	static placeSounds = [Audio('sound/fire/ignite.mp3')]
 	random(x, y){

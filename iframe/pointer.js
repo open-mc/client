@@ -89,8 +89,8 @@ export function drawPointer(c){
 		}
 	}
 	if(d >= reach){
-		const {solid, blockShape} = getblock(bpx, bpy)
-		if(solid && blockShape && blockShape.length == 0){
+		const {solid, replacable, blockShape} = getblock(bpx, bpy)
+		if(solid && !replacable && blockShape && blockShape.length == 0){
 			px -= bpx - bx; py -= bpy - by
 			bx = bpx; by = bpy; bpx = bppx; bpy = bppy
 			if(bpx > bx) px = 1
@@ -104,7 +104,7 @@ export function drawPointer(c){
 			bx = by = NaN
 		}
 	}else px -= bpx - bx, py -= bpy - by, bpfx = px, bpfy = py
-	if(getblock(bpx, bpy).solid) bpx = bpy = bpfx = bpfy = NaN
+	if(!getblock(bpx, bpy).replacable) bpx = bpy = bpfx = bpfy = NaN
 	if(!getblock(bpx + 1, bpy).solid && !getblock(bpx - 1, bpy).solid && !getblock(bpx, bpy + 1).solid && !getblock(bpx, bpy - 1).solid){
 		bpx = bpy = bpfx = bpfy = NaN
 	}else{
