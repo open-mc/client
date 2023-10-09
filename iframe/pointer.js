@@ -35,14 +35,15 @@ drawPhase(-1000, () => {
 })
 export const DEFAULT_BLOCKSHAPE = [0, 0, 1, 1]
 export function drawPointer(c){
-	if(!renderUI) return
-	c.beginPath()
-	c.rect(ifloat(x + me.x - cam.x) - .3, ifloat(y + me.head + me.y - cam.y) - .03125, .6, .0625)
-	c.rect(ifloat(x + me.x - cam.x) - .03125, ifloat(y + me.head + me.y - cam.y) - .3, .0625, .6)
-	c.globalCompositeOperation = 'difference'
-	c.fillStyle = '#ccc'
-	c.fill()
-  c.globalCompositeOperation = 'source-over'
+	if(renderUI){
+		c.beginPath()
+		c.rect(ifloat(x + me.x - cam.x) - .3, ifloat(y + me.head + me.y - cam.y) - .03125, .6, .0625)
+		c.rect(ifloat(x + me.x - cam.x) - .03125, ifloat(y + me.head + me.y - cam.y) - .3, .0625, .6)
+		c.globalCompositeOperation = 'difference'
+		c.fillStyle = '#ccc'
+		c.fill()
+		c.globalCompositeOperation = 'source-over'
+	}
 	bx = floor(me.x)
 	by = floor(me.y + me.head)
 	bpx = NaN, bpy = NaN
@@ -115,39 +116,41 @@ export function drawPointer(c){
 					bpx = bpy = bpfx = bpfy = NaN
 					break a
 				}
-		c.lineWidth = 0.125
-		c.strokeStyle = '#000'
-		c.fillStyle = '#000'
-		c.globalAlpha = 0.5
-		let {blockShape = DEFAULT_BLOCKSHAPE} = getblock(bx, by)
-		if(bx == bx && by == by){
-			c.translate(ifloat(bx-cam.x), ifloat(by-cam.y))
-			c.save()
-			c.beginPath()
-			if(blockShape.length == 0) blockShape = DEFAULT_BLOCKSHAPE
-			for(let i = 0; i < blockShape.length; i += 4){
-				const x0 = blockShape[i], x1 = blockShape[i+2], y0 = blockShape[i+1], y1 = blockShape[i+3]
-				c.rect(x0, y0, x1-x0, y1-y0)
-				if(bpx > bx){
-					c.rect(x1, y0, 0.125, 0.0625)
-					c.rect(x1, y1 - 0.0625, 0.125, 0.0625)
-				}else if(bpx < bx){
-					c.rect(x0 - 0.125, y0, 0.125, 0.0625)
-					c.rect(x0 - 0.125, y1 - 0.0625, 0.125, 0.0625)
-				}else if(bpy > by){
-					c.rect(x0, y1, 0.0625, 0.125)
-					c.rect(x1 - 0.0625, y1, 0.0625, 0.125)
-				}else if(bpy < by){
-					c.rect(x0, y0 - 0.125, 0.0625, 0.125)
-					c.rect(x1 - 0.0625, y0 - 0.125, 0.0625, 0.125)
+		if(renderUI){
+			c.lineWidth = 0.125
+			c.strokeStyle = '#000'
+			c.fillStyle = '#000'
+			c.globalAlpha = 0.5
+			let {blockShape = DEFAULT_BLOCKSHAPE} = getblock(bx, by)
+			if(bx == bx && by == by){
+				c.translate(ifloat(bx-cam.x), ifloat(by-cam.y))
+				c.save()
+				c.beginPath()
+				if(blockShape.length == 0) blockShape = DEFAULT_BLOCKSHAPE
+				for(let i = 0; i < blockShape.length; i += 4){
+					const x0 = blockShape[i], x1 = blockShape[i+2], y0 = blockShape[i+1], y1 = blockShape[i+3]
+					c.rect(x0, y0, x1-x0, y1-y0)
+					if(bpx > bx){
+						c.rect(x1, y0, 0.125, 0.0625)
+						c.rect(x1, y1 - 0.0625, 0.125, 0.0625)
+					}else if(bpx < bx){
+						c.rect(x0 - 0.125, y0, 0.125, 0.0625)
+						c.rect(x0 - 0.125, y1 - 0.0625, 0.125, 0.0625)
+					}else if(bpy > by){
+						c.rect(x0, y1, 0.0625, 0.125)
+						c.rect(x1 - 0.0625, y1, 0.0625, 0.125)
+					}else if(bpy < by){
+						c.rect(x0, y0 - 0.125, 0.0625, 0.125)
+						c.rect(x1 - 0.0625, y0 - 0.125, 0.0625, 0.125)
+					}
 				}
+				c.clip()
+				c.stroke()
+				c.closePath()
+				c.restore()
 			}
-			c.clip()
-			c.stroke()
-			c.closePath()
-			c.restore()
+			c.globalAlpha = 1
 		}
-		c.globalAlpha = 1
 	}
 }
 let didHit = false

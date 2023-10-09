@@ -7,7 +7,7 @@ export const server = {
 	players: []
 }
 
-export const cam = {x: 0, y: 0, z: 2, rot: 0}
+export const cam = {x: 0, y: 0, z: .5, rot: 0}
 
 export function setblock(x, y, b){
 	const k = (x>>>6)+(y>>>6)*0x4000000
@@ -22,6 +22,9 @@ export function setblock(x, y, b){
 		ch[chI] = 65535
 		ch.tileData.set(chI, b)
 	}else ch[chI] = b.id
+	if(old.texture && floor(old.texture.h / old.texture.w) > 1){
+		if(!b.texture || floor(b.texture.h / b.texture.w) <= 1) ch.animatedTiles[chI>>5] &= ~(1 << (chI&31))
+	}else if(b.texture && floor(b.texture.h / b.texture.w) > 1) ch.animatedTiles[chI>>5] |= 1 << (chI&31)
 	if(ch.ctx){
 		const {texture, render} = b
 		ch.ctx.clearRect(lx * TEX_SIZE, (63 - ly) * TEX_SIZE, TEX_SIZE, TEX_SIZE)

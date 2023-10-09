@@ -195,7 +195,7 @@ class Wool extends Block{
 	static tool = 'shears'
 	static breaktime = 1.2
 	static stepSounds = audioSet('wool/place', 4)
-	static breakSounds = this.stepSounds
+	static placeSounds = this.stepSounds
 }
 
 Blocks.white_wool = class extends Wool{ static texture = terrainPng.at(0, 14) }
@@ -278,7 +278,7 @@ function rot_off_transform(p, rot, off, x, y){
 	p.setPatternTransform(a, b, -b, a, b*off-x, -a*off-y)
 }
 Blocks.end_portal = class extends Block{
-	static solid = true
+	static solid = false
 	static blockShape = [0, 0, 1, 0.75]
 	static softness = 1
 	static texture = terrainPng.at(14, 0)

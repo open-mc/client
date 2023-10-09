@@ -1,11 +1,9 @@
-import { finished } from './connectme.js'
 import { listen, options, storage } from './save.js'
-import { UI, hideUI, showUI, ui } from './ui.js'
+import { hideUI, showUI, ui } from './ui.js'
 import { pause } from './uis/pauseui.js'
 import { serverlist } from './uis/serverlist.js'
 
 export let iframe = document.createElement('iframe'), win = null
-
 
 // Security druggie
 iframe.sandbox = 'allow-scripts'
@@ -21,10 +19,10 @@ if(location.protocol == 'tauri:'){
 	// We allow it, but, being on a different domain, it still can't access parent iframe or credentials
 	// This is to actually allow it to load stuff from its own domain
 	iframe.sandbox += ' allow-same-origin'
-}else if(window.__TAURI__){
-	// tauri dev
+}else if(globalThis.__TAURI__){
+	// tauri development environment
 	// Fairly simple. Load localhost but by IP instead of domain
-	iframe.src = 'http://0/iframe/index.html'
+	iframe.src = 'http://127.0.0.1/iframe/index.html'
 	
 }else iframe.src = 'iframe/index.html'
 

@@ -68,7 +68,7 @@ class LivingEntity extends Entity{
 
 const portalEnter = Audio('sound/portal/enter.mp3'), portalExit = Audio('sound/portal/exit.mp3'), endPortalMake = Audio('sound/portal/end.mp3')
 
-const skinCan = Can(28, 12)
+const skinCan = Can(28, 12, true)
 Entities.player = class extends LivingEntity{
 	static alive = true
 	inv = Array.null(36)
@@ -142,7 +142,7 @@ Entities.player = class extends LivingEntity{
 	}
 	place(){
 		super.place()
-		const can = Can(33, 12)
+		const can = Can(33, 12, true)
 		const skinUnpacked = new ImageData(28, 12)
 		for(let i = 0; i < 336; i++){
 			skinUnpacked.data[i << 2] = this.skin[i * 3]

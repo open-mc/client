@@ -13,7 +13,7 @@ export function _recalcDimensions(c, camZ){
 	SCALE = camZ * TEX_SIZE
 	W2 = (W = round(visualViewport.width * visualViewport.scale * devicePixelRatio)) / SCALE / 2
 	H2 = (H = round(visualViewport.height * visualViewport.scale * devicePixelRatio)) / SCALE / 2
-	if(W != c.canvas.width || H != c.canvas.height) c.canvas.width = W, c.canvas.height = H
+	if(W != c.canvas.width || H != c.canvas.height) c.resize(W, H)
 	else if(c.reset) c.reset()
 	else c.resetTransform(),c.clearRect(0, 0, W, H)
 }

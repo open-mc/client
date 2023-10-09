@@ -62,7 +62,6 @@ const c = Can(0, 0, {alpha: false, desynchronized: true})
 c.canvas.style = 'width: 100%; height: 100%; position: fixed; top: 0; left: 0; z-index: 0;'
 document.body.append(c.canvas)
 
-globalThis.cam = cam
 export function frame(){
 	const now = performance.now()
 	eluStart()
@@ -74,7 +73,7 @@ export function frame(){
 	playerControls()
 	for(const entity of entityMap.values())stepEntity(entity)
 	const tzoom = (me.state & 4 ? -0.13 : 0) * ((1 << options.ffx) - 1) + 1
-	cam.z = sqrt(sqrt(cam.z * cam.z * cam.z * 2 ** (options.zoom * 7 - 3) * devicePixelRatio * tzoom))
+	cam.z = sqrt(sqrt(cam.z * cam.z * cam.z * 2 ** (options.zoom * 10 - 6) * devicePixelRatio * tzoom))
 	_recalcDimensions(c, cam.z)
 	c.transforms.length = 0
 	c.imageSmoothingEnabled = false

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <!-- Safari, fuck you! -->
 <script async src="https://ga.jspm.io/npm:es-module-shims@1.7.0/dist/es-module-shims.js"></script>
+<!--script src="canvas-webgl.js"></script-->
 <script type="importmap">
 {"imports": {
 	"api": "./api.js",
@@ -111,6 +112,49 @@
 		}
 		C.crop = function(x, y, w, h){ return new _txtr(this.canvas, x, y, w, h) }
 		C.texture = function(){ return new _txtr(this.canvas, 0, 0, this.canvas.width, this.canvas.height) }
+		/*const f32_8 = new Float32Array(8)
+		C.drawShader = function(x, y, w, h){
+			const {a, b, c, d, e, f} = this.getTransform()
+			// x y 1
+			// a c e -> x
+			// b d f -> y
+			const x0 = x*a+y*c+e, y0 = x*b+y*d+f
+			const x1 = (x+w)*a+y*c+e, y1 = (x+w)*b+y*d+f
+			const x2 = x*a+(y+h)*c+e, y2 = x*b+(y+h)*d+f
+			const x3 = (x+w)*a+(y+h)*c+e, y3 = (x+w)*b+(y+h)*d+f
+			const xmin = floor(max(min(x0, x1, x2, x3), 0)), xw = ceil(min(max(x0, x1, x2, x3), this.w) - xmin)
+			const ymin = floor(max(min(y0, y1, y2, y3), 0)), yh = ceil(min(max(f32_8[1], y1, y2, y3), this.h) - ymin)
+			if(!xw | !yh) return
+			const gl = xw <= 256 && yh <= 256 ? gl_big : gl_big
+			if(xw > gl.canvas.width | yh > gl.canvas.height){
+				gl.canvas.width = -2147483648>>>Math.clz32(xw-1)-1
+				gl.canvas.height = -2147483648>>>Math.clz32(yh-1)-1
+			}
+			gl.viewport(0, 0, xw, yh)
+			//gl.linkProgram(gl.prog)
+			//gl.useProgram(gl.prog)
+			gl.clearColor(0,0,0,0)
+			gl.clear(gl.COLOR_BUFFER_BIT)
+			gl.disable(gl.DEPTH_TEST)
+			gl.bindBuffer(gl.ARRAY_BUFFER, gl.buf)
+			f32_8[0] = (x2-xmin)/xw; f32_8[1] = (y2-ymin)/yh
+			f32_8[2] = (x3-xmin)/xw; f32_8[3] = (y3-ymin)/yh
+			f32_8[4] = (x0-xmin)/xw; f32_8[5] = (y0-ymin)/yh
+			f32_8[6] = (x1-xmin)/xw; f32_8[7] = (y1-ymin)/yh
+			gl.bufferSubData(gl.ARRAY_BUFFER, 0, f32_8)
+			gl.vertexAttribPointer(gl.posLoc, 2, gl.FLOAT, false, 0, 0)
+			gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
+			this.setTransform(1, 0, 0, 1, 0, 0)
+			this.drawImage(gl.canvas, 0, gl.canvas.height-yh, xw, yh, xmin, ymin, xw, yh)
+			this.setTransform(a, b, c, d, e, f)
+		}*/
+		C.getTransform ??= function(){
+			return {
+				a: this._transform[0], b: this._transform[1],
+				c: this._transform[4], d: this._transform[5],
+				e: this._transform[12], f: this._transform[13]
+			}
+		}
 	})(CanvasRenderingContext2D.prototype)
 	Math.fclamp = (a, b = 1) => a < 0 ? 0 : (a > b ? b : a)
 	Math.ifloat = x => {
@@ -149,14 +193,15 @@
 			return this
 		}}
 	})
-	const Can = (w = 100, h = 100, opt) => {
+	globalThis.Can = (w = 100, h = 100, opt) => {
 		const c = document.createElement('canvas').getContext('2d', typeof opt == 'boolean' ? {willReadFrequently: opt} : opt)
 		c.canvas.width = c.w = w; c.canvas.height = c.h = h
 		c.transforms = []
 		c.x = c.y = 0
 		return c
 	}
-	const {random, abs, min, max, round, floor, ceil, ifloat, ifloor, fclamp, sqrt, cbrt, atan2, sign, sin, cos, tan, PI, PI2 = PI * 2, imul } = Math
+	Object.defineProperties(globalThis, Object.getOwnPropertyDescriptors(Math))
+	globalThis.PI2 = PI*2
 
 	const _mac = navigator.platform.startsWith('Mac')
 const LBUTTON = 0, RBUTTON = 2, MBUTTON = 1, KEYS = {
@@ -281,8 +326,7 @@ const loader = (meta) => {
 					source.stop()
 				}
 			}
-		},
-
+		}
 	}
 }
 	let download, listen, buttons, changed, delta, cursor
@@ -298,32 +342,48 @@ const loader = (meta) => {
 		while(len > 0) a[--len] = null
 		return a
 	}
-	const ShaderCan = (w, h) => {
-		const c = document.createElement('canvas').getContext('webgl2')
-		c.w = c.canvas.width = w
-		c.h = c.canvas.height = h
-		const v = c.createShader(c.VERTEX_SHADER)
-		v.shaderSource(``)
-		c.compileShader(v)
-
+	/*function makeGl(){
+		const gl = document.createElement('canvas').getContext('webgl2', {desynchronized: false})
+		gl.prog = gl.createProgram()
+		gl.vert = gl.createShader(gl.VERTEX_SHADER)
+		gl.shaderSource(gl.vert, `#version 300 es
+	in vec2 _pos; out vec2 pos;
+	void main(){ gl_Position = vec4(_pos.x*2.-1.,1.-_pos.y*2.,1,1); pos = vec2(gl_VertexID&1, (gl_VertexID>>1)^1); }`)
+		gl.compileShader(gl.vert)
+		gl.frag = gl.createShader(gl.FRAGMENT_SHADER)
+		gl.shaderSource(gl.frag, `#version 300 es
+	precision mediump float;
+	in vec2 pos; out vec4 color;
+	void main(){
+		color = vec4(pos, pos.y, 1);
+	}`)
+		gl.compileShader(gl.frag)
+		if(!gl.getShaderParameter(gl.frag, gl.COMPILE_STATUS))
+			console.warn('Fragment shader compilation failed!\n\n'+gl.getShaderInfoLog(gl.frag))
+		gl.attachShader(gl.prog, gl.vert)
+		gl.attachShader(gl.prog, gl.frag)
+		gl.buf = gl.createBuffer()
+		gl.bindBuffer(gl.ARRAY_BUFFER, gl.buf)
+		gl.bufferData(gl.ARRAY_BUFFER, 32, gl.DYNAMIC_DRAW)
+		gl.linkProgram(gl.prog)
+		gl.useProgram(gl.prog)
+		gl.posLoc = gl.getAttribLocation(gl.prog, '_pos')
+		gl.enableVertexAttribArray(gl.posLoc)
+		return gl
 	}
-	(W => {
-		W.resize = (w, h) => {
-			this.w = this.canvas.width = w
-			this.h = this.canvas.height = h
-		}
-	})(WebGL2RenderingContext.prototype)
+	const gl_small = makeGl(), gl_big = makeGl()
+	gl_small.canvas.width = gl_small.canvas.height = 512*/
 </script>
 <script type="module">
-	import "./bitfield.js"
-	import "./chunk.js"
-	import "./controls.js"
-	import "./entity.js"
-	import "./ipc.js"
-	import "./pointer.js"
-	import "./sounds.js"
-	import "./world.js"
-	import "./incomingPacket.js"
-	import "./index.js"
-	import "https://unpkg.com/dataproto/index.js"
+	import 'https://unpkg.com/dataproto/index.js'
+	import './bitfield.js'
+	import './chunk.js'
+	import './controls.js'
+	import './entity.js'
+	import './ipc.js'
+	import './pointer.js'
+	import './sounds.js'
+	import './world.js'
+	import './incomingPacket.js'
+	import './index.js'
 </script>

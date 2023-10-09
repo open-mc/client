@@ -84,7 +84,7 @@ const serverList = UI('dirtbg serverlist',
 		Spacer.grow(1),
 		Btn('Hosting a server', () => window.open('https://github.com/open-mc/server','_blank')),
 		Btn('Refresh', serverlist)
-	).attr('style', 'align-self: stretch; justify-content: space-between; margin-left: 7rem'),
+	).attr('style', 'align-self: stretch; justify-content: space-between; margin-left: 7rem; flex-wrap: wrap'),
 	list = Div('serverlist'),
 	Spacer(20),
 	Row(input = Input('text', 'server ip'), addBtn = Btn('Add server', () => {if(input.value=='server ip') return input.value = 'very funny';else if(input.value=='very funny') return;addServer(input.value);input.value='';addBtn.disabled=true}, 'small disabled')),

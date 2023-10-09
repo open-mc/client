@@ -9,6 +9,8 @@ export class Chunk extends Uint16Array{
 		this.ref = 0
 		this.entities = new Set()
 		this.ctx = null
+		this.lastFrame = 0
+		this.animatedTiles = new Uint32Array(128)
 
 		const Schema = Chunk.savedatahistory[buf.flint()] || Chunk.savedata
 		//read buffer palette
@@ -79,18 +81,41 @@ export class Chunk extends Uint16Array{
 		this.ctx.clearRect(0, 0, TEX_SIZE << 6, TEX_SIZE << 6)
 		this.ctx = null
 		this.rerenders.length = 0
+		for(let i = 0; i < 128; i++) this.animatedTiles[i] = 0
 	}
 	draw(){
 		if(this.ctx) return
 		this.ctx = canvasPool.pop()
-		if(!this.ctx)this.ctx = Can(TEX_SIZE << 6, TEX_SIZE << 6)
+		if(!this.ctx)this.ctx = Can(TEX_SIZE << 6, TEX_SIZE << 6, true)
 		for(let x = 0; x < 64; x++){
 			for(let y = 0; y < 64; y++){
-				const b = this[x|(y<<6)]
+				const i = x|(y<<6)
+				const b = this[i]
 				const {texture, render} = b==65535 ? this.tileData.get(x|(y<<6)) : BlockIDs[b]
 				if(render) this.rerenders.push(x|(y<<6))
-				if(texture)
-					this.ctx.drawImage(texture.canvas,texture.x,texture.y,texture.w,texture.h,x*TEX_SIZE,(63-y)*TEX_SIZE,TEX_SIZE,TEX_SIZE)
+				if(texture){
+					const frames = floor(texture.h / texture.w)
+					if(frames > 1)
+						this.animatedTiles[i>>5] |= 1<<(i&31)
+					this.ctx.drawImage(texture.canvas,texture.x,texture.y,texture.w,texture.w,x*TEX_SIZE,(63-y)*TEX_SIZE,TEX_SIZE,TEX_SIZE)
+				}
+			}
+		}
+		this.lastFrame = ticks
+	}
+	animate(){
+		if(this.lastFrame == ticks) return
+		this.lastFrame = ticks
+		for(let i = 0; i < 128; i++){
+			let int = this.animatedTiles[i]
+			if(!int) continue
+			while(int){
+				let pos = i<<5|(31-clz32(int))
+				int &= ~(1 << (pos&31))
+				const b = this[pos]
+				const {texture} = b==65535 ? this.tileData.get(x|(y<<6)) : BlockIDs[b]
+				const y = (ticks % floor(texture.h / texture.w))
+				this.ctx.drawImage(texture.canvas, texture.x, texture.y + y * texture.w, texture.w, texture.w, (pos&63)*TEX_SIZE, (63-(pos>>6))*TEX_SIZE, TEX_SIZE, TEX_SIZE)
 			}
 		}
 	}

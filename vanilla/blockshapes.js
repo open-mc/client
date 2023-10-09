@@ -14,7 +14,7 @@ BlockShape.ONE_SHORT = [0, 0, 1, 15/16]
 export const blockShaped = (C, s,o = class extends C{
 	static blockShape = s
 	static texture = C.texture ? C.texture.then(a => {
-		const c = Can(16, 16)
+		const c = Can(16, 16, true)
 		c.defaultTransform()
 		c.scale(16, 16)
 		for(let i = 0; i < s.length; i+=4){
