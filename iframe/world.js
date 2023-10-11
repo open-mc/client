@@ -17,7 +17,7 @@ export function setblock(x, y, b){
 	const ly = y & 63
 	const chI = lx + (ly << 6)
 	let i = ch[chI]
-	const old = i==65535?chunk.tileData.get(chI):BlockIDs[i]
+	const old = i==65535?ch.tileData.get(chI):BlockIDs[i]
 	if(b.savedata){
 		ch[chI] = 65535
 		ch.tileData.set(chI, b)

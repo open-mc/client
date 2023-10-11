@@ -67,6 +67,7 @@ export class Chunk extends Uint16Array{
 		}else for(let j=0;j<4096;j++) this[j] = palette[buf.byte()]
 		//parse block entities
 		for(let j=0;j<4096;j++){
+			if(this[j] == 65535) this[j] = buf.short()
 			const block = BlockIDs[this[j]]
 			if(!block.savedata)continue
 			this[j] = 65535

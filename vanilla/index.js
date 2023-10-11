@@ -1,9 +1,11 @@
-import { AshParticle, BlastParticle, explode, terrainPng } from './defs.js'
-import { uiButtons, icons, renderItem, renderItemCount, click } from './effects.js'
+import { AshParticle, BlastParticle, explode } from './defs.js'
+import { uiButtons, icons, renderItem, renderItemCount, click, renderSlot, renderTooltip, resetSlot, slotI } from './effects.js'
 import "./entities.js"
 import { button, W2, uiLayer, renderLayer, onpause, pause, paused, renderUI, customPause, quit, onpacket, send } from 'api'
 import { getblock, gridEvents, sound, entityMap, pointer, cam } from 'world'
 import { Item } from 'definitions'
+import { terrainPng } from './blocks.js'
+import { BlockParticle } from '../iframe/defs.js'
 const { Texture } = loader(import.meta)
 
 const BREAKING = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].mmap(x => terrainPng.at(x, 15))
@@ -198,47 +200,29 @@ uiLayer(1000, (c, w, h) => {
 	const action = invAction
 	invAction = 0
 	if(!invInterface) return
+	resetSlot()
 	c.fillStyle = '#000'
 	c.globalAlpha = 0.2
 	c.fillRect(0, 0, w, h)
 	c.globalAlpha = 1
-	let slot = -1
 	c.translate(w / 2 - 88, h / 2)
 	c.push()
-	const s2 = invInterface.drawInterface(interfaceId, c)
-	if(s2 > -1) slot = s2 | 128
+	invInterface.drawInterface(interfaceId, c)
 	c.peek()
 	c.image(inventory, 0, -inventory.h)
 	c.translate(16,8 - inventory.h)
 	c.scale(16,16)
 	for(let i = 0; i < 9; i++){
-		renderItem(c, me.inv[i])
-		renderItemCount(c, me.inv[i])
-		const {x, y} = c.mouse()
-		if(slot == -1 && y >= 0 && y < 1 && x >= -0.5 && x < .5){
-			c.fillStyle = '#fff'
-			c.globalAlpha = 0.2
-			c.fillRect(-0.5, 0, 1, 1)
-			c.globalAlpha = 1
-			slot = i
-		}
+		renderSlot(c, me, i)
 		c.translate(1.125,0)
 	}
 	c.translate(-10.125, 1.375)
 	for(let i = 9; i < 36; i++){
-		renderItem(c, me.inv[i])
-		renderItemCount(c, me.inv[i])
-		const {x, y} = c.mouse()
-		if(y >= 0 && y < 1 && x >= -0.5 && x < .5 && slot == -1){
-			c.fillStyle = '#fff'
-			c.globalAlpha = 0.2
-			c.fillRect(-0.5, 0, 1, 1)
-			c.globalAlpha = 1
-			slot = i
-		}
+		renderSlot(c, me, i)
 		if(i % 9 == 8) c.translate(-9, 1.125)
 		else c.translate(1.125,0)
 	}
+	let slot = slotI
 	if(action == 1 && slot > -1){
 		const items = slot > 127 ? invInterface.items : me.inv; slot &= 127
 		const t = items[slot], h = me.items[0]
@@ -275,6 +259,10 @@ uiLayer(1000, (c, w, h) => {
 	c.translate(x, y - .5)
 	renderItem(c, me.items[0])
 	renderItemCount(c, me.items[0])
+
+	c.peek()
+	if(!me.items[0]) renderTooltip(c, me)
+
 	c.pop()
 })
 /*
@@ -345,9 +333,13 @@ button(KEYS.Q, GAMEPAD.Y, GAMEPAD.DOWN, () => {
 gridEvents[1] = (buf, x, y) => {
 	let time = 0
 	const toBreak = buf.float() / TPS
+	let lastParticle = t
 	return c => {
+		if(!toBreak) return
 		const block = getblock(x, y)
+		if(t - lastParticle > .1) new BlockParticle(block, floor(random() * 16), x, y), lastParticle = t
 		
+		if(toBreak == Infinity) return
 		c.save()
 			c.globalCompositeOperation = 'multiply'
 			block.trace(c)

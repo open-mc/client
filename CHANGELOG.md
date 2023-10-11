@@ -16,8 +16,7 @@ Todo: Crops & farmland
 
 Todo: Saplings & tree growing
 
-Todo: Animated textures (water + lava)
-
+- Animated textures (water + lava)
 - Switch to LevelDB
 - Block shapes
 - Flying permission, /op

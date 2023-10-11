@@ -94,9 +94,10 @@ const onMsg = ({data,origin}) => {
 				Object.defineProperties(proto.prototype, desc)
 				proto = Object.getPrototypeOf(proto)
 			}while(proto.prototype && !Object.hasOwn(proto.prototype, 'prototype'))
-			if(Dict == Blocks && !Thing.savedata)
+			if(Dict == Blocks){
 				Object.setPrototypeOf(Thing.constructor, Thing.prototype)
-				Object.defineProperties(Thing.constructor, Object.getOwnPropertyDescriptors(new Thing))
+				if(!Thing.savedata) Object.defineProperties(Thing.constructor, Object.getOwnPropertyDescriptors(new Thing))
+			}
 		}
 	}else if(data instanceof ArrayBuffer){
 		if(loading) return void msgQueue.push(data)

@@ -29,9 +29,11 @@ export const blockShaped = (C, s,o = class extends C{
 export const slabifyItem = (C, B) => class extends C{
 	places(fx, fy){ return fy > .5 ? B.variants.get(BlockShape.UPPER_SLAB) : B.variants.get(BlockShape.SLAB) }
 	static texture = B.variants.get(BlockShape.SLAB)?.texture
+	static defaultName = C.defaultName + ' slab'
 }
 
-export const itemify = C => class extends Item{
+export const itemify = (C, n) => class extends Item{
 	static texture = C.texture
+	static defaultName = n
 	places(){ return C }
 }

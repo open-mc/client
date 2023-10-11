@@ -1,5 +1,5 @@
 import { particlePng, explode, AshParticle, BlastParticle, hurt } from './defs.js'
-import { renderItem, renderItemCount } from './effects.js'
+import { renderItem, renderItemCount, renderSlot } from './effects.js'
 import { Entities, Entity, Item, Blocks, BlockIDs } from 'definitions'
 import { renderF3 } from 'api'
 import { getblock, cam, pointer } from 'world'
@@ -174,7 +174,6 @@ Entities.player = class extends LivingEntity{
 		if(this==me&&perms<3)this.state&=-2
 	}
 	drawInterface(id, c){
-		let slot = -1
 		// x=0, y=0 => left middle
 		// x=176 => right
 		if(id == 0){
@@ -191,33 +190,12 @@ Entities.player = class extends LivingEntity{
 			c.translate(16, 2)
 			c.scale(16,16)
 			for(let i = 1; i < 5; i++){
-				renderItem(c, this.items[i])
-				renderItemCount(c, this.items[i])
-				const {x, y} = c.mouse()
-				if(y >= 0 && y < 1 && x >= -0.5 && x < .5){
-					c.fillStyle = '#fff'
-					c.globalAlpha = 0.2
-					c.fillRect(-0.5, 0, 1, 1)
-					c.globalAlpha = 1
-					slot = i
-				}
+				renderSlot(c, this, i | 128)
 				c.translate(0, 1.125)
 			}
 			c.translate(4.3125, -4.5)
-			{
-				renderItem(c, this.items[5])
-				renderItemCount(c, this.items[5])
-				const {x, y} = c.mouse()
-				if(y >= 0 && y < 1 && x >= -0.5 && x < .5){
-					c.fillStyle = '#fff'
-					c.globalAlpha = 0.2
-					c.fillRect(-0.5, 0, 1, 1)
-					c.globalAlpha = 1
-					slot = 5
-				}
-			}
+			renderSlot(c, this, 5 | 128)
 		}
-		return slot
 	}
 }
 Entity[50] = function(){

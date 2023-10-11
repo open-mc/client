@@ -1,4 +1,5 @@
 import { music } from 'world'
+import { renderF3 } from '../iframe/api.js'
 const {Audio, Texture} = loader(import.meta)
 
 export const audioSet = (path, count) => Array.from({length: count}, (_, i) => Audio('sound/'+path+(i+1)+'.mp3'))
@@ -35,6 +36,8 @@ music('nether',
 )
 
 music('end', Audio('sound/end.mp3'))
+
+music('void', Audio('sound/deep1.mp3'))
 
 export const lava = {
 	ambient: Audio('sound/lava/ambient.mp3'),
@@ -74,4 +77,46 @@ export function renderItemCount(c, item){
 		c.fillStyle = count === (count & 255) ? '#fff' : '#e44'
 		c.fillText(count + '', 0.5, 0, 0.6)
 	}
+}
+let slotx = NaN, sloty = NaN
+export let slotI = -1
+
+export function resetSlot(){
+	slotx = sloty = NaN
+	slotI = -1
+}
+
+export function renderSlot(c, e, i){
+	const item = i > 127 ? e.items[i&127] : me.inv[i]
+	renderItem(c, item)
+	renderItemCount(c, item)
+	const {x, y} = c.mouse()
+	if(y >= 0 && y < 1 && x >= -0.5 && x < .5){
+		c.fillStyle = '#fff'
+		c.globalAlpha = 0.2
+		c.fillRect(-0.5, 0, 1, 1)
+		c.globalAlpha = 1
+		void ({x: slotx, y: sloty} = c.to(1.0625, 1.125))
+		slotI = i
+	}
+}
+export function renderTooltip(c, e){
+	if(slotI < 0) return
+	const item = slotI > 127 ? e.items[slotI & 127] : me.inv[slotI]
+	if(!item) return
+	const {x, y} = c.mouse()
+	const lines = [item.name || item.defaultName], styles = [15]
+	if(renderF3) lines.push(`${item.className}*${item.count}${(item.savedata?'+NBT':'')} (${item.id})`), styles.push(8)
+	let width = 0
+	for(const l of lines) width = max(c.measureText(l, 10).width, width)
+	c.translate(x + 12, y + 8)
+	c.fillStyle = '#110010e4'
+	c.fillRect(-1, lines.length*-12-2, width+8, lines.length*12+2)
+	c.fillRect(0, lines.length*-12-3, width+6, lines.length*12+4)
+	c.strokeStyle = '#22004b'
+	c.lineWidth = 1
+	c.strokeRect(0.5, lines.length*-12-1.5, width+5, lines.length*12+1)
+	c.textAlign = 'left'; c.textBaseline = 'middle'
+	let i = -1
+	for(const l of lines) c.styledText(styles[++i], l, 3, -7-i*12, 10)
 }

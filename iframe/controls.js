@@ -1,5 +1,5 @@
 import { button, onwheel, paused } from 'api'
-import { EPSILON } from './entity.js'
+import { EPSILON, mePhysics } from './entity.js'
 import { getblock } from 'world'
 let R=false,L=false,U=false,D=false
 let lastPressUp = 0, lastPressRight = 0, lastPressLeft = 0
@@ -34,13 +34,12 @@ export const playerControls = () => {
 	else me.state &= -3
 	if((me.state & 0x10003) == 0x10003) me.state &= -2
 	if(D && (me.state & 1)) me.dy = -5
-	if(R && !L) me.dx = (me.dx + ((me.state & 3) == 2 ? 1.3 : me.state & 4 ? 8 : 6)) / 2
-	else if(L && !R) me.dx = (me.dx + ((me.state & 3) == 2 ? -1.3 : me.state & 4 ? -8 : -6)) / 2
-	const {climbable} = getblock(floor(me.x), floor(me.dy > 0 ? me.y : me.y + me.height / 4))
+	if(R && !L) me.dx = (me.dx + ((me.state & 3) == 2 ? 1.3 : me.state & 4 ? 8 : 6)) / 2 * mePhysics.factor
+	else if(L && !R) me.dx = (me.dx + ((me.state & 3) == 2 ? -1.3 : me.state & 4 ? -8 : -6)) / 2 * mePhysics.factor
 	if(U){
-		if(climbable) me.dy = (me.dy + 3) / 2
+		if(mePhysics.climbable) me.dy = (me.dy + 4*mePhysics.factor) / 2
 		else if((me.state & 1)) me.dy = 5
-		else if(me.impactDy < 0)me.dy = 9
+		else if(me.impactDy < 0)me.dy = 9*mePhysics.factor
 	}
 	if((me.impactDy < 0) && (me.state & 2)){
 		const x = me.x + (me.dx > 0 ? -me.width + EPSILON * 2 : me.width - EPSILON * 2)

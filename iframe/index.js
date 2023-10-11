@@ -1,6 +1,6 @@
 import { playerControls } from './controls.js'
 import { DataWriter, DataReader } from 'https://unpkg.com/dataproto/index.js'
-import { meImpact, stepEntity } from './entity.js'
+import { mePhysics, stepEntity } from './entity.js'
 import { gridEventMap, getblock, entityMap, map, cam, server } from 'world'
 import * as pointer from './pointer.js'
 import { button, drawPhase, renderLayer, uiLayer, W, H, W2, H2, SCALE, options, paused, _recalcDimensions, _renderPhases, renderBoxes, renderF3, send } from 'api'
@@ -38,8 +38,8 @@ function tick(){ //20 times a second
 		buf.double(me.x)
 		buf.double(me.y)
 		buf.short(me.state)
-		buf.float(meImpact.dx); buf.float(meImpact.dy)
-		meImpact.dx = meImpact.dy = 0
+		buf.float(mePhysics.impactDx); buf.float(mePhysics.impactDy)
+		mePhysics.impactDx = mePhysics.impactDy = 0
 		pointer.checkBlockPlacing(buf)
 		send(buf)
 	}
@@ -269,17 +269,17 @@ Looking at: ${lookingAt.className+(lookingAt.savedata?' {...}':'')} (${lookingAt
 })
 const {Texture} = loader(import.meta)
 const icons = Texture('/vanilla/icons.png')
-const heart = icons.crop(52,0,9,9), halfHeart = icons.crop(61,0,9,9)
-const heartEmpty = icons.crop(16,0,9,9)
+//const heart = icons.crop(52,0,9,9), halfHeart = icons.crop(61,0,9,9)
+//const heartEmpty = icons.crop(16,0,9,9)
 const pingIcons = icons.crop(0,16,10,24)
 
 const colors = ['#000', '#a00', '#0a0', '#fa0', '#00a', '#a0a', '#0aa', '#aaa', '#555', '#f55', '#5f5', '#ff5', '#55f', '#f5f', '#5ff', '#fff']
 const shadowColors = ['#0000004', '#2a0000', '#002a00', '#2a2a00', '#00002a', '#2a002a', '#002a2a', '#2a2a2a', '#15151544', '#3f1515', '#153f15', '#3f3f15', '#15153f', '#3f153f', '#153f3f', '#3f3f3f']
-CanvasRenderingContext2D.prototype.styledText = function(S,t,x,y,s){
+CanvasRenderingContext2D.prototype.styledText = function(S,t,x,y,s,w){
 	this.fillStyle = shadowColors[S&15]
-	this.fillText(t,x+1,y-1,s)
+	this.fillText(t,x+1,y-1,s, w)
 	this.fillStyle = colors[S&15]
-	this.fillText(t,x,y,s)
+	this.fillText(t,x,y,s,w)
 }
 
 uiLayer(999, (c, w, h) => {
@@ -313,7 +313,7 @@ uiLayer(999, (c, w, h) => {
 		c.fillStyle = shadowColors[15]
 		c.fillText(name, x + 10, y, 8)
 		c.fillStyle = colors[15]
-		c.styledText(15, name, x + 9, y + 1, 8)
+		c.styledText(15, name, x + 9, y + 1, 8, 60)
 		const cl = ping < 25 ? 0 : ping < 60 ? 1 : ping < 300 ? 2 : ping < 1000 ? 3 : 4
 		c.image(pingIcons, x+70, y, 10, 7, 0, cl*8, 10, 7)
 	}

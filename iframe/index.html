@@ -99,6 +99,23 @@
 				y: cursor.my * a / det - cursor.my * b / det + (b * e - a * f) / det
 			}
 		}
+		C.from = function(x = 0, y = 0){
+			const {a, b, c, d, e, f} = this.getTransform()
+			// Divide by matrix
+			const det = a * d - b * c
+			return {
+				x: x * d / det - x * c / det + (c * f - d * e) / det,
+				y: y * a / det - y * b / det + (b * e - a * f) / det
+			}
+		}
+		C.to = function(x = 0, y = 0){
+			const {a, b, c, d, e, f} = this.getTransform()
+			// Multiply by matrix
+			return {
+				x: x * a + y * c + e,
+				y: x * b + y * d + f
+			}
+		}
 		C.fillPattern = function(a){
 			this.fillStyle = a._pattern ?? a.pattern()
 		}
@@ -183,8 +200,7 @@
 				if(j > i)this[i] = this[j]
 				if(this[i] != a)i++
 			}
-			this.length = i
-			return this
+			return this.length = i
 		}},
 		mmap: {enumerable: false, value(fn){
 			const len = this.length

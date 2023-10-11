@@ -18,7 +18,7 @@ export class Block{
 	static replacable = false
 	static texture = null
 	static climbable = false
-	static gooeyness = 0
+	static viscosity = 0
 	static breaktime = 3
 	1(buf, x, y){
 		if(this.placeSounds.length)
@@ -35,7 +35,7 @@ export class Block{
 		punchParticles(this, x, y)
 	}
 	walk(x, y, e){
-		if(!e.alive) return
+		if(!e.alive || !this.solid) return
 		if(this.stepSounds.length)
 			sound(this.stepSounds[floor(random() * this.stepSounds.length)], x, y, 0.15, 1)
 		if((e.impactDy < 0 && !(e.state & 0x10000)) || (e.state & 4)) stepParticles(this, e)
@@ -101,10 +101,6 @@ export class Entity{
 		return map.has((x+ox&0x3FFFFFF)+(y&0x3FFFFFF)*0x4000000)
 			&& map.has((x&0x3FFFFFF)+(y+oy&0x3FFFFFF)*0x4000000)
 			&& map.has((x+ox&0x3FFFFFF)+(y+oy&0x3FFFFFF)*0x4000000)
-	}
-	preupdate(){
-		const { gooeyness } = getblock(floor(this.x), floor(this.dy > 0 ? this.y : this.y + this.height / 4))
-		if(gooeyness) this.dx *= (1 - gooeyness), this.dy *= (1 - gooeyness)
 	}
 	update(){}
 	place(){
@@ -228,16 +224,20 @@ renderLayer(300, c => {
 	}
 })
 
-class BlockParticle extends Particle{
+export class BlockParticle extends Particle{
 	constructor(block, frac, x, y){
-		super(true, (random()+1)/2, x + (frac & 3) / 4 + .125, y + (frac >> 2) / 4 + .125, (frac & 3) + random()*2 - 2.5, 3 + (frac >> 2) + random()*2)
+		super(true,
+			(random()+.5)/2, x + (frac & 3) / 4 + .125, y + (frac >> 2) / 4 + .125,
+			(frac & 3) + random()*2 - 2.5 , 2 + (frac >> 2) + random()*2
+		)
 		this.block = block
 		this.frac = (random() * 16) | 0
 	}
 	render(c){
 		if(!this.block || !this.block.texture) return
 		const w = (this.frac&2)+2, h = (this.frac<<1&2)+2
-		c.image(this.block.texture, -0.1, -0.1, w/20, h/20, (this.frac & 3) << 2, this.frac & 12, w, h)
+		const {w: tw, h: th} = this.block.texture
+		c.image(this.block.texture, -0.1, -0.1, w/20, h/20, (this.frac & 3) << 2, (this.frac & 12) + (ticks%floor(th/tw))*tw, w, h)
 	}
 }
 export function blockBreak(block, x, y){

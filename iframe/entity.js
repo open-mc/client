@@ -30,7 +30,10 @@ export function moveEntity(e){
 	const ch = map.get((floor(e.x) >>> 6) + (floor(e.y) >>> 6) * 0x4000000) || null
 	if(ch != e.chunk)e.chunk&&e.chunk.entities.delete(e), e.chunk = ch, ch&&ch.entities.add(e)
 }
-export let meImpact = {dx: 0, dy: 0}
+export let mePhysics = {
+	impactDx: 0, impactDy: 0,
+	factor: 1, climbable: false
+}
 export const EPSILON = .0001
 
 function solidCheck(x0, y0, x1, y1){
@@ -50,7 +53,7 @@ function solidCheck(x0, y0, x1, y1){
 
 function fastCollision(e){
 	const dx = e.dx * dt, dy = e.dy * dt
-	const x0 = floor(e.x - e.width + EPSILON)
+	let x0 = floor(e.x - e.width + EPSILON)
 	let y0 = floor(e.y + EPSILON)
 	const CLIMB = (e.impactDy < 0 ? e.stepHeight ?? 0.01 : 0.01)
 	e.impactDx = e.impactDy = 0
@@ -73,11 +76,11 @@ function fastCollision(e){
 			if((y === ey - 1 ? ty >= e.y + dy + EPSILON : ys > 1) || ty < e.y - EPSILON) continue
 			e.y = ty
 			e.impactDy = e.dy
-			if(e == me && abs(meImpact.dy) < e.dy) meImpact.dy = e.dy
+			if(e == me && abs(mePhysics.impactDy) < e.dy) mePhysics.impactDy = e.dy
 			e.dy = 0
 			break y
 		}
-		e.y = ifloat(e.y + dy)
+		e.y += dy
 	}else if(dy < 0){
 		const ey = floor(e.y + dy + EPSILON) - 1 - y0
 		for(let y = 0; y > ey; y--){
@@ -96,11 +99,11 @@ function fastCollision(e){
 			if((y === ey + 1 ? ty <= e.y + dy - EPSILON : ys < 0) || ty > e.y + EPSILON) continue
 			e.y = ty
 			e.impactDy = e.dy
-			if(e == me && abs(meImpact.dy) < -e.dy) meImpact.dy = e.dy
+			if(e == me && abs(mePhysics.impactDy) < -e.dy) mePhysics.impactDy = e.dy
 			e.dy = 0
 			break y
 		}
-		e.y = ifloat(e.y + dy)
+		e.y += dy
 	}
 	y0 = floor(e.y + EPSILON)
 	x: if(dx > 0){
@@ -130,11 +133,11 @@ function fastCollision(e){
 			if((x === ex - 1 ? tx >= e.x + dx + EPSILON : xs > 1) || tx < e.x - EPSILON) continue
 			e.x = tx
 			e.impactDx = e.dx
-			if(e == me && abs(meImpact.dx) < e.dx) meImpact.dx = e.dx
+			if(e == me && abs(mePhysics.impactDx) < e.dx) mePhysics.impactDx = e.dx
 			e.dx = 0
 			break x
 		}
-		e.x = ifloat(e.x + dx)
+		e.x += dx
 	}else if(dx < 0){
 		const ex = floor(e.x - e.width + dx + EPSILON) - 1 - x0
 		for(let x = 0; x > ex; x--){
@@ -162,12 +165,41 @@ function fastCollision(e){
 			if((x === ex + 1 ? tx <= e.x + dx - EPSILON : xs < 0) || tx > e.x + EPSILON) continue
 			e.x = tx
 			e.impactDx = e.dx
-			if(e == me && abs(meImpact.dx) < -e.dx) meImpact.dx = e.dx
+			if(e == me && abs(mePhysics.impactDx) < -e.dx) mePhysics.impactDx = e.dx
 			e.dx = 0
 			break x
 		}
-		e.x = ifloat(e.x + dx)
+		e.x += dx
 	}
+	x0 = floor(e.x - e.width + EPSILON)
+	y0 = floor(e.y + EPSILON)
+	let v = 0, c = false
+	a: for(let y = ceil(e.y + e.height - EPSILON) - y0 - 1; y >= 0; y--)
+		b: for(let x = ceil(e.x + e.width - EPSILON) - x0 - 1; x >= 0; x--){
+			const b = getblock(x0 + x, y0 + y)
+			const {blockShape, viscosity, climbable} = b
+			let touchingBottom = 1 - (e.y - y - y0)
+			if(blockShape){
+				const bx0 = e.x - e.width - x - x0, bx1 = e.x + e.width - x - x0
+				const by0 = e.y - y - y0, by1 = by0 + e.height
+				for(let i = 0; i < blockShape.length; i += 4){
+					const y = blockShape[i+3] - by0
+					if(y > touchingBottom) touchingBottom = y
+					if((bx0 > blockShape[i+2] | bx1 < blockShape[i]) || (y > 0 | by1 < blockShape[i+1])) continue b
+				}
+			}
+			if(viscosity > v) v = viscosity
+			if(climbable & !c)
+				c = touchingBottom > (e.impactDx ? 0 : dy > 0 ? .125 : .375) * e.height
+			if(!b.touched) continue
+			if(b.touched(e, x0 + x, y0 + y)) break a
+		}
+	v = 1 - v
+	if(e == me){
+		mePhysics.factor = v
+		mePhysics.climbable = c
+	}
+	e.dx *= v ** dt; e.dy *= v ** (dt*60)
 	e.x = ifloat(e.x)
 	e.y = ifloat(e.y)
 }
