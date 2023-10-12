@@ -1,7 +1,7 @@
 import { audioSet, lava, water } from './effects.js'
 import { sound, cam } from 'world'
 import { Blocks, Block, Item } from 'definitions'
-import { BlockShape, blockShaped } from './blockshapes.js'
+import { BlockShape, blockShaped, fluidify } from './blockshapes.js'
 const {Texture, Audio} = loader(import.meta)
 
 export const terrainPng = Texture("terrain.png")
@@ -23,6 +23,9 @@ class Stone extends Block{
 	static breaktime = 7.5
 }
 Blocks.stone = Stone
+Blocks.cobblestone = class extends Stone{
+	static texture = terrainPng.at(0, 1)
+}
 Blocks.obsidian = class extends Stone{
 	static texture = terrainPng.at(5, 2)
 	static breaktime = 250
@@ -115,8 +118,7 @@ Blocks.glass = class extends Block{
 	static placeSounds = Blocks.stone.placeSounds
 	static stepSounds = Blocks.stone.stepSounds
 }
-Blocks.water = class extends Block{
-	static texture = animatedPng.at(2, 0, 32)
+class Water extends Block{
 	static solid = false
 	static replacable = true
 	static climbable = true
@@ -129,8 +131,13 @@ Blocks.water = class extends Block{
 			sound(water.ambient[1], x, y, 1, 1)
 	}
 }
-Blocks.lava = class extends Blocks.water{
-	static texture = animatedPng.at(3, 0, 38)
+void({
+	filled: Blocks.water,
+	top: Blocks.waterTop,
+	flowing: Blocks.waterFlowing
+} = fluidify(Water, animatedPng.at(2, 0, 32), animatedPng.at(5, 0, 64)))
+
+class Lava extends Water{
 	static viscosity = 0.5
 	random(x, y){
 		const r = random()
@@ -140,6 +147,12 @@ Blocks.lava = class extends Blocks.water{
 			sound(lava.pop, x, y, 1, 1)
 	}
 }
+void({
+	filled: Blocks.lava,
+	top: Blocks.lavaTop,
+	flowing: Blocks.lavaFlowing
+} = fluidify(Lava, animatedPng.at(3, 0, 38), animatedPng.at(4, 0, 32)))
+
 Blocks.sandstone = class extends Stone{
 	static texture = terrainPng.at(1, 11)
 	static breaktime = 4

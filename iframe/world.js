@@ -1,4 +1,4 @@
-import { Blocks, BlockIDs } from 'definitions'
+import { BlockIDs, Blocks } from 'definitions'
 import { musicdict } from './sounds.js'
 export const map = globalThis.map = new Map, entityMap = globalThis.entityMap = new Map()
 export const server = {
@@ -9,30 +9,58 @@ export const server = {
 
 export const cam = {x: 0, y: 0, z: .5, rot: 0}
 
+function variant(ch, i, x, y, b){
+	if(!b){
+		const id = ch[i]
+		b = id==65535?ch.tileData.get(i):BlockIDs[id]
+	}
+	if(b.variant){
+		const old = b
+		if(!(b = b.variant(x, y))) return
+		if(b.savedata){
+			ch[i] = 65535
+			ch.tileData.set(i, b=b===b.constructor?new b:b)
+		}else{ ch[i] = b.id; if(old.savedata) ch.tileData.delete(i) }
+		updateDrawn(old, b, ch, i)
+	}
+	return b
+}
+function updateDrawn(o, n, ch, i){
+	if(o.texture && floor(o.texture.h / o.texture.w) > 1){
+		if(!n.texture || floor(n.texture.h / n.texture.w) <= 1) ch.animatedTiles[i>>5] &= ~(1 << (i&31))
+	}else if(n.texture && floor(n.texture.h / n.texture.w) > 1) ch.animatedTiles[i>>5] |= 1 << (i&31)
+	if(ch.ctx){
+		const {texture, render} = n
+		ch.ctx.clearRect(i&63, 63-(i>>6), 1, 1)
+		let j = ch.rerenders.indexOf(i)
+		if((j == -1) & (render != undefined)) ch.rerenders.push(i)
+		else if((j > -1) & (render == undefined)) ch.rerenders.splice(j, 1)
+		if(texture) ch.ctx.drawImage(texture.canvas,texture.x,texture.y + (ticks % floor(texture.h / texture.w)) * texture.w,texture.w,texture.w,i&63,63-(i>>6),1,1)
+	}
+}
+
 export function setblock(x, y, b){
+	b = b.savedata&&b===b.constructor?new b:b
 	const k = (x>>>6)+(y>>>6)*0x4000000
 	const ch = map.get(k)
-	if(!ch) return
-	const lx = x & 63
-	const ly = y & 63
-	const chI = lx + (ly << 6)
-	let i = ch[chI]
-	const old = i==65535?ch.tileData.get(chI):BlockIDs[i]
+	if(!ch) return b
+	const i = (x & 63) | (y & 63) << 6
+	const id = ch[i], old = id==65535?ch.tileData.get(i):BlockIDs[id]
 	if(b.savedata){
-		ch[chI] = 65535
-		ch.tileData.set(chI, b)
-	}else ch[chI] = b.id
-	if(old.texture && floor(old.texture.h / old.texture.w) > 1){
-		if(!b.texture || floor(b.texture.h / b.texture.w) <= 1) ch.animatedTiles[chI>>5] &= ~(1 << (chI&31))
-	}else if(b.texture && floor(b.texture.h / b.texture.w) > 1) ch.animatedTiles[chI>>5] |= 1 << (chI&31)
-	if(ch.ctx){
-		const {texture, render} = b
-		ch.ctx.clearRect(lx, 63-ly, 1, 1)
-		let i = ch.rerenders.indexOf(chI)
-		if((i == -1) & (render != undefined)) ch.rerenders.push(chI)
-		else if((i > -1) & (render == undefined)) ch.rerenders.splice(i, 1)
-		if(texture) ch.ctx.drawImage(texture.canvas,texture.x,texture.y + (ticks % floor(texture.h / texture.w)) * texture.w,texture.w,texture.w,lx,63-ly,1,1)
-	}
+		ch[i] = 65535
+		ch.tileData.set(i, b)
+	}else{ ch[i] = b.id; if(old.savedata) ch.tileData.delete(i) }
+	updateDrawn(old, b, ch, i)
+	variant(ch, i, x, y, b)
+	if((i&63) == 63) variant(map.get((x+1>>>6)+(y>>>6)*0x4000000), i&0b111111000000, x+1, y)
+	else variant(ch, i+1, x+1, y)
+	if((i&63) == 0) variant(map.get((x-1>>>6)+(y>>>6)*0x4000000), i|0b000000111111, x-1, y)
+	else variant(ch, i-1, x-1, y)
+	if((i>>6) == 63) variant(map.get((x>>>6)+(y+1>>>6)*0x4000000), i&0b000000111111, x, y+1)
+	else variant(ch, i+64, x, y+1)
+	if((i>>6) == 0) variant(map.get((x>>>6)+(y-1>>>6)*0x4000000), i|0b111111000000, x, y-1)
+	else variant(ch, i-64, x, y-1)
+	return b
 }
 export function getblock(x, y){
 	const k = (x>>>6)+(y>>>6)*0x4000000

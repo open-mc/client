@@ -62,6 +62,7 @@ const c = Can(0, 0, {alpha: false, desynchronized: true})
 c.canvas.style = 'width: 100%; height: 100%; position: fixed; top: 0; left: 0; z-index: 0;'
 document.body.append(c.canvas)
 
+globalThis.FONT = '1000px mc'
 export function frame(){
 	const now = performance.now()
 	eluStart()
@@ -113,7 +114,7 @@ export function frame(){
 		if(me.y < cam.y - H2)cam.y -= H2*2
 	}
 	cam.rot = max(0, cam.rot - dt)
-	c.font = '1000px mc'
+	c.font = FONT
 	for(const phase of _renderPhases){
 		try{
 			switch(phase.coordSpace){
@@ -276,10 +277,12 @@ const pingIcons = icons.crop(0,16,10,24)
 const colors = ['#000', '#a00', '#0a0', '#fa0', '#00a', '#a0a', '#0aa', '#aaa', '#555', '#f55', '#5f5', '#ff5', '#55f', '#f5f', '#5ff', '#fff']
 const shadowColors = ['#0000004', '#2a0000', '#002a00', '#2a2a00', '#00002a', '#2a002a', '#002a2a', '#2a2a2a', '#15151544', '#3f1515', '#153f15', '#3f3f15', '#15153f', '#3f153f', '#153f3f', '#3f3f3f']
 CanvasRenderingContext2D.prototype.styledText = function(S,t,x,y,s,w){
+	this.font = (S&32?'bold ':'')+(S&64?'italic ':'')+FONT
 	this.fillStyle = shadowColors[S&15]
 	this.fillText(t,x+1,y-1,s, w)
 	this.fillStyle = colors[S&15]
 	this.fillText(t,x,y,s,w)
+	this.font = FONT
 }
 
 uiLayer(999, (c, w, h) => {

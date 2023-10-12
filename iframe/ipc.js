@@ -58,6 +58,7 @@ const onMsg = ({data,origin}) => {
 			i = 0; for(const b of data[0].split('\n'))funcify(b, i++, Blocks)
 			i = 0; for(const b of data[1].split('\n'))funcify(b, i++, Items)
 			i = 0; for(const b of data[2].split('\n'))funcify(b, i++, Entities)
+			for(const b in Blocks) Object.setPrototypeOf(Blocks[b], Blocks[b].prototype)
 			if(!--loading)loaded()
 			frame()
 		})
@@ -80,9 +81,7 @@ const onMsg = ({data,origin}) => {
 			Thing[Symbol.toStringTag] = (Dict == Blocks ? 'Blocks.' : Dict == Items ? 'Items.' : 'Entities.') + name
 			Thing.savedata = a.length ? jsonToType(a.pop()) : null
 			Thing.savedatahistory = a.map(jsonToType)
-			Thing.__constructor = Thing
-			Thing.constructor = List[Thing.id] = Dict[name] = Dict == Blocks && !Thing.savedata ? function a(){return a} : a => new Thing(a)
-			Thing.constructor.prototype = Thing.prototype
+			List[Thing.id] = Thing
 			if(Thing.init) Thing.init()
 
 			// Copy static props to prototype
@@ -95,7 +94,6 @@ const onMsg = ({data,origin}) => {
 				proto = Object.getPrototypeOf(proto)
 			}while(proto.prototype && !Object.hasOwn(proto.prototype, 'prototype'))
 			if(Dict == Blocks){
-				Object.setPrototypeOf(Thing.constructor, Thing.prototype)
 				if(!Thing.savedata) Object.defineProperties(Thing.constructor, Object.getOwnPropertyDescriptors(new Thing))
 			}
 		}

@@ -34,6 +34,7 @@ drawPhase(-1000, () => {
 	if(x||y)me.f = atan2(x, y)
 })
 export const DEFAULT_BLOCKSHAPE = [0, 0, 1, 1]
+let placingBlocked = false
 export function drawPointer(c){
 	if(renderUI){
 		c.beginPath()
@@ -47,6 +48,7 @@ export function drawPointer(c){
 	bx = floor(me.x)
 	by = floor(me.y + me.head)
 	bpx = NaN, bpy = NaN
+	placingBlocked = false
 	let bppx = NaN, bppy = NaN
 	const reach = sqrt(x * x + y * y)
 	let d = 0, px = me.x - bx, py = me.y + me.head - by
@@ -113,7 +115,7 @@ export function drawPointer(c){
 			if(ch)for(const e of ch.entities)
 				if(e.y < bpy + 1 && e.y + e.height > bpy && e.x - e.width < bpx + 1 && e.x + e.width > bpx){
 					//Don't allow placing because there is an entity in the way
-					bpx = bpy = bpfx = bpfy = NaN
+					placingBlocked = true
 					break a
 				}
 		if(renderUI){
@@ -159,7 +161,7 @@ export function checkBlockPlacing(buf){
 	const hasB = buttons.has(options.click ? RBUTTON : LBUTTON) || buttons.has(options.click ? GAMEPAD.RT : GAMEPAD.LT)
 	if(hasP && t > lastPlace + .12 && !paused){
 		let b = me.inv[me.selected]
-		if(b && bpx == bpx && b.places && (b = b.places(bpfx, bpfy))) setblock(bpx, bpy, b)
+		if(b && bpx == bpx && b.places && (b = b.places(bpfx, bpfy))) if(b.blockShape.length==0 || !placingBlocked) setblock(bpx, bpy, b)
 		buf.byte(me.selected)
 		buf.float(x); buf.float(y)
 		lastPlace = t

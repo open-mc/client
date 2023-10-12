@@ -185,7 +185,7 @@ function fastCollision(e){
 				for(let i = 0; i < blockShape.length; i += 4){
 					const y = blockShape[i+3] - by0
 					if(y > touchingBottom) touchingBottom = y
-					if((bx0 > blockShape[i+2] | bx1 < blockShape[i]) || (y > 0 | by1 < blockShape[i+1])) continue b
+					if((bx0 > blockShape[i+2] | bx1 < blockShape[i]) || (y < 0 | by1 < blockShape[i+1])) continue b
 				}
 			}
 			if(viscosity > v) v = viscosity
@@ -196,6 +196,7 @@ function fastCollision(e){
 		}
 	v = 1 - v
 	if(e == me){
+		if(mePhysics.factor != 1 && v == 1 && me.impactDx) me.dy = 7
 		mePhysics.factor = v
 		mePhysics.climbable = c
 	}

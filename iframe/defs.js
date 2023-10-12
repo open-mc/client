@@ -66,10 +66,10 @@ export class Item{
 		const item = ItemIDs[buf.getUint16(buf.i)]
 		buf.i += 2
 		if(!item) return null
-		if(!target)target = item(count)
+		if(!target) target = new item(count)
 		else target.count = count, Object.setPrototypeOf(target, Object.getPrototypeOf(item))
 		target.name = buf.string()
-		if(target.savedata)buf.read(target.savedatahistory[buf.flint()] || target.savedata, target)
+		if(target.savedata) buf.read(target.savedatahistory[buf.flint()] || target.savedata, target)
 		return target
 	}
 	static encode(buf, v){

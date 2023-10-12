@@ -70,8 +70,7 @@ function blockSetPacket(buf){
 		}else{
 			const x = buf.int(), y = buf.int()
 			const id = buf.short()
-			const block = BlockIDs[id]()
-			setblock(x, y, block)
+			const block = setblock(x, y, BlockIDs[id])
 			if(block.savedata) buf.read(block.savedata, block)
 		}
 	}
@@ -85,7 +84,7 @@ function entityPacket(buf){
 		if(!e){
 			if(mv & 64){
 				mv |= 256
-				e = EntityIDs[buf.short()]()
+				e = new EntityIDs[buf.short()]()
 				e.netId = id
 				e.age = buf.double()
 				buf.read(e.savedata, e)

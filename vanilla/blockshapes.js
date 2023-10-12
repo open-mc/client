@@ -1,5 +1,5 @@
 import { Item } from 'definitions'
-
+import { getblock } from 'world'
 export const BlockShape = {}
 BlockShape.SLAB = [0, 0, 1, 0.5]
 BlockShape.UPPER_SLAB = [0, 0.5, 1, 1]
@@ -10,30 +10,64 @@ BlockShape.UPPER_STAIRS_LEFT = [0, 0.5, 1, 1, 0.5, 0, 1, 0.5]
 BlockShape.VERTICAL_THIN = [0.25, 0, 0.75, 1]
 BlockShape.HORIZONTAL_THIN = [0, 0.25, 1, 0.75]
 BlockShape.ONE_SHORT = [0, 0, 1, 15/16]
+BlockShape.TWO_SHORT = [0, 0, 1, 14/16]
 
-export const blockShaped = (C, s,o = class extends C{
-	static blockShape = s
-	static texture = C.texture ? C.texture.then(a => {
-		const c = Can(TEX_SIZE, TEX_SIZE, true)
+
+function trimTex(t, s){
+	return t && t.then(a => {
+		const c = Can(a.w, a.h, true)
 		c.defaultTransform()
-		c.scale(TEX_SIZE, TEX_SIZE)
-		for(let i = 0; i < s.length; i+=4){
-			c.rect(s[0],s[1],s[2]-s[0],s[3]-s[1])
-		}
+		c.scale(a.w, a.w)
+		for(let y = floor(a.h / a.w) - 1; y >= 0; y--)
+			for(let i = 0; i < s.length; i+=4){
+				c.rect(s[0],y+s[1],s[2]-s[0],s[3]-s[1])
+			}
 		c.clip()
-		c.image(a, 0, 0, 1, 1)
+		c.image(a, 0, 0, 1, a.h/a.w)
 		return c
-	}) : null
-}) => ((C.variants??=new Map).set(s, o),o)
-
-export const slabifyItem = (C, B) => class extends C{
-	places(fx, fy){ return fy > .5 ? B.variants.get(BlockShape.UPPER_SLAB) : B.variants.get(BlockShape.SLAB) }
-	static texture = B.variants.get(BlockShape.SLAB)?.texture
-	static defaultName = C.defaultName + ' slab'
+	})
 }
 
-export const itemify = (C, n) => class extends Item{
-	static texture = C.texture
+const shapeKeys = new Map()
+	.set(BlockShape.SLAB, 'slabShape')
+	.set(BlockShape.UPPER_SLAB, 'upperSlabShape')
+
+export const blockShaped = (B, s) => {
+	const o = class extends B{
+		static blockShape = s
+		static texture = trimTex(B.texture, s)
+	}
+	const k = shapeKeys.get(s); if(k) B[k] = o
+	return o
+}
+
+export const slabifyItem = (I, B) => class extends I{
+	places(fx, fy){ return fy > .5 ? B.upperSlabShape : B.slabShape }
+	static texture = B.slabShape?.texture
+	static defaultName = I.defaultName + ' slab'
+}
+
+export const itemify = (B, n) => class extends Item{
+	static texture = B.texture
 	static defaultName = n
-	places(){ return C }
+	places(){return B}
+}
+
+
+
+export const fluidify = (B, tex, flowingTex) => {
+	B.fluid = true
+	B.texture = tex
+	const filled = class extends B{
+		variant(x, y){ return !getblock(x, y+1).fluid ? top : undefined }
+	}
+	const top = class extends filled{
+		variant(x, y){ return getblock(x, y+1).fluid ? filled : undefined }
+		static blockShape = BlockShape.TWO_SHORT
+		static texture = trimTex(B.texture, BlockShape.TWO_SHORT)
+	}
+	const flowing = class extends B{
+		static texture = flowingTex
+	}
+	return {filled, top, flowing}
 }

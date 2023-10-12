@@ -1,78 +1,24 @@
 import { Blocks, Items, Item } from 'definitions'
 import { itemify, slabifyItem } from './blockshapes.js'
-import {terrainPng} from './blocks.js'
+import './blocks.js'
 
 const {Texture} = loader(import.meta)
 
 export const itemsPng = Texture("items.png")
 
-Items.sand = class extends Item{
-	places(){ return Blocks.sand }
-	static texture = Blocks.sand.texture
-	static defaultName = 'Sand'
-}
+Items.oak_log = itemify(Blocks.oak_log, 'Oak log')
+Items.birch_log = itemify(Blocks.birch_log, 'Birch log')
+Items.spruce_log = itemify(Blocks.spruce_log, 'Spruce log')
+Items.dark_oak_log = itemify(Blocks.dark_oak_log, 'Dark oak log')
+Items.acacia_log = itemify(Blocks.acacia_log, 'Acacia log')
+Items.jungle_log = itemify(Blocks.jungle_log, 'Jungle log')
 
-Items.oak_log = class extends Item{
-	places(){ return Blocks.oak_log }
-	static texture = Blocks.oak_log.texture
-	static defaultName = 'Oak log'
-}
-Items.birch_log = class extends Item{
-	places(){ return Blocks.birch_log }
-	static texture = Blocks.birch_log.texture
-	static defaultName = 'Birch log'
-}
-Items.spruce_log = class extends Item{
-	places(){ return Blocks.spruce_log }
-	static texture = Blocks.spruce_log.texture
-	static defaultName = 'Spruce log'
-}
-Items.dark_oak_log = class extends Item{
-	places(){ return Blocks.dark_oak_log }
-	static texture = Blocks.dark_oak_log.texture
-	static defaultName = 'Dark oak log'
-}
-Items.acacia_log = class extends Item{
-	places(){ return Blocks.acacia_log }
-	static texture = Blocks.acacia_log.texture
-	static defaultName = 'Acacia log'
-}
-Items.jungle_log = class extends Item{
-	places(){ return Blocks.jungle_log }
-	static texture = Blocks.jungle_log.texture
-	static defaultName = 'Jungle log'
-}
-
-Items.oak_planks = class extends Item{
-	places(){ return Blocks.oak_planks }
-	static texture = Blocks.oak_planks.texture
-	static defaultName = 'Oak planks'
-}
-Items.birch_planks = class extends Item{
-	places(){ return Blocks.birch_planks }
-	static texture = Blocks.birch_planks.texture
-	static defaultName = 'Birch planks'
-}
-Items.spruce_planks = class extends Item{
-	places(){ return Blocks.spruce_planks }
-	static texture = Blocks.spruce_planks.texture
-	static defaultName = 'Spruce planks'
-}
-Items.dark_oak_planks = class extends Item{
-	places(){ return Blocks.dark_oak_planks }
-	static texture = Blocks.dark_oak_planks.texture
-	static defaultName = 'Dark oak planks'
-}
-Items.acacia_planks = class extends Item{
-	places(){ return Blocks.acacia_planks }
-	static texture = Blocks.acacia_planks.texture
-	static defaultName = 'Acacia planks'
-}
-Items.jungle_planks = class extends Item{
-	places(){ return Blocks.jungle_planks }
-	static texture = Blocks.jungle_planks.texture
-	static defaultName = 'Jungle planks'
-}
+Items.oak_planks = itemify(Blocks.oak_planks, 'Oak planks')
+Items.birch_planks = itemify(Blocks.birch_planks, 'Birch planks')
+Items.spruce_planks = itemify(Blocks.spruce_planks, 'Spruce planks')
+Items.dark_oak_planks = itemify(Blocks.dark_oak_planks, 'Dark oak planks')
+Items.acacia_planks = itemify(Blocks.acacia_planks, 'Acacia planks')
+Items.jungle_planks = itemify(Blocks.jungle_planks, 'Jungle planks')
 
 Items.oak_planks_slab = slabifyItem(Items.oak_planks, Blocks.oak_planks)
 Items.birch_planks_slab = slabifyItem(Items.birch_planks, Blocks.birch_planks)
@@ -81,51 +27,19 @@ Items.dark_oak_planks_slab = slabifyItem(Items.dark_oak_planks, Blocks.dark_oak_
 Items.acacia_planks_slab = slabifyItem(Items.acacia_planks, Blocks.acacia_planks)
 Items.jungle_planks_slab = slabifyItem(Items.jungle_planks, Blocks.jungle_planks)
 
-Items.sandstone = class extends Item{
-	places(){ return Blocks.sandstone }
-	static texture = Blocks.sandstone.texture
-	static defaultName = 'Sandstone'
-}
-Items.stone = class extends Item{
-	places(){ return Blocks.stone }
-	static texture = Blocks.stone.texture
-	static defaultName = 'Stone'
-}
-Items.glass = class extends Item{
-	places(){ return Blocks.glass }
-	static texture = terrainPng.at(1, 3)
-	static defaultName = 'Glass'
-}
-Items.bedrock = class extends Item{
-	places(){ return Blocks.bedrock }
-	static texture = Blocks.bedrock.texture
-	static defaultName = 'Bedrock'
-}
-Items.obsidian = class extends Item{
-	places(){ return Blocks.obsidian }
-	static texture = Blocks.obsidian.texture
-	static defaultName = 'Obsidian'
-}
-Items.glowing_obsidian = class extends Items.obsidian{
-	places(){ return Blocks.glowing_obsidian }
-	static texture = Blocks.glowing_obsidian.texture
-	static defaultName = 'Glowing obsidian'
-}
-Items.netherrack = class extends Item{
-	places(){ return Blocks.netherrack }
-	static texture = Blocks.netherrack.texture
-	static defaultName = 'Netherrack'
-}
-Items.grass = class extends Item{
-	places(){ return Blocks.grass }
-	static texture = Blocks.grass.texture
-	static defaultName = 'Grass block'
-}
-Items.dirt = class extends Item{
-	places(){ return Blocks.dirt }
-	static texture = Blocks.dirt.texture
-	static defaultName = 'Dirt'
-}
+
+Items.sand = itemify(Blocks.sand, 'Sand')
+Items.sandstone = itemify(Blocks.sandstone, 'Sandstone')
+Items.stone = itemify(Blocks.stone, 'Stone')
+Items.cobblestone = itemify(Blocks.cobblestone, 'Cobblestone')
+Items.glass = itemify(Blocks.glass, 'Glass')
+Items.bedrock = itemify(Blocks.bedrock, 'Bedrock')
+Items.obsidian = itemify(Blocks.obsidian, 'Obsidian')
+Items.glowing_obsidian = itemify(Blocks.glowing_obsidian, 'Glowing Obsidian')
+
+Items.netherrack = itemify(Blocks.netherrack, 'Netherrack')
+Items.grass = itemify(Blocks.grass, 'Grass block')
+Items.dirt = itemify(Blocks.dirt, 'Dirt')
 Items.sugar_cane = class extends Item{
 	places(){ return Blocks.sugar_cane }
 	static texture = itemsPng.crop(16,256,16,16)
@@ -169,11 +83,7 @@ Items.flint_and_steel = class extends Tool{
 	static defaultName = 'Flint and steel'
 }
 
-Items.tnt = class extends Item{
-	static texture = Blocks.tnt.texture
-	places(){ return Blocks.tnt }
-	static defaultName = 'TNT'
-}
+Items.tnt = itemify(Blocks.tnt, 'TNT')
 
 Items.end_crystal = class extends Item{
 	static texture = itemsPng.at(0,10)
@@ -210,22 +120,14 @@ Items.smooth_red_sandstone = class extends Items.sandstone{
 	static defaultName = 'Smooth red sandstone'
 }
 
-Items.end_portal_frame = class extends Item{
-	static texture = terrainPng.at(9, 0)
-	places(){ return Blocks.end_portal_frame }
-	static defaultName = 'End portal frame'
-}
+Items.end_portal_frame = itemify(Blocks.end_portal_frame, 'End portal frame')
 
 Items.eye_of_ender = class extends Item{
 	static texture = itemsPng.at(1, 10)
 	static defaultName = 'Eye of ender'
 }
 
-Items.endstone = class extends Item{
-	static texture = terrainPng.at(7, 4)
-	places(){ return Blocks.endstone }
-	static defaultName = 'Endstone'
-}
+Items.endstone = itemify(Blocks.endstone, 'Endstone')
 
 Items.white_wool = itemify(Blocks.white_wool, 'White wool')
 Items.light_grey_wool = itemify(Blocks.light_grey_wool, 'Light grey wool')

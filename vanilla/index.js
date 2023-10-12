@@ -124,6 +124,7 @@ const heartEmpty = icons.crop(16,0,9,9)
 const btnW = uiButtons.large.w
 
 let respawnClicked = false
+let hotbarTooltipAlpha = 0, lastSelected = -1
 uiLayer(1000, (c, w, h) => {
 	if(renderUI){
 		let hotBarLeft = w / 2 - hotbar.w/2
@@ -139,7 +140,7 @@ uiLayer(1000, (c, w, h) => {
 			c.translate(1.25, 0)
 		}
 		c.peek()
-		c.translate(hotBarLeft, 5 + hotbar.h + 1)
+		c.translate(hotBarLeft, hotbar.h + 6)
 		const wiggle = me.health < 5 ? (t*24&2)-1 : 0
 		for(let h = 0; h < 20; h+=2){
 			const x = h*4, y = (wiggle * ((h&2)-1) + 1) / 2
@@ -148,12 +149,20 @@ uiLayer(1000, (c, w, h) => {
 			else if(me.health>h) c.image(halfHeart,x,y,9,9)
 		}
 		c.pop()
+		c.textAlign = 'center'; c.textBaseline = 'middle'
+		if(lastSelected != me.selected) lastSelected = me.selected, hotbarTooltipAlpha = 5
+		c.globalAlpha = min(1, max(0, hotbarTooltipAlpha))
+		hotbarTooltipAlpha -= dt*2
+		const item = me.inv[me.selected]
+		if(item) c.styledText(item.name ? 79 : 15, item.name || item.defaultName, hotBarLeft + hotbar.w / 2, hotbar.h + 24, 10)
+		c.globalAlpha = 1
 	}
 	if(me.state&0x8000){
 		const h3 = h / 3
 		c.fillStyle = '#f003'
 		c.fillRect(0, 0, w, h)
 		c.textAlign = 'center'
+		c.textBaseline = 'alphabetic'
 		c.fillStyle = '#333'
 		c.fillText('You died!', w / 2 + 4, h3*2 - 4, 40)
 		c.fillStyle = '#fff'
