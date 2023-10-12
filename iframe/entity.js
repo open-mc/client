@@ -201,6 +201,5 @@ function fastCollision(e){
 		mePhysics.climbable = c
 	}
 	e.dx *= v ** dt; e.dy *= v ** (dt*60)
-	e.x = ifloat(e.x)
-	e.y = ifloat(e.y)
+	e.x = ifloat(e.x); e.y = ifloat(e.y)
 }

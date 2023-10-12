@@ -2,6 +2,7 @@ import { audioSet, lava, water } from './effects.js'
 import { sound, cam } from 'world'
 import { Blocks, Block, Item } from 'definitions'
 import { BlockShape, blockShaped, fluidify } from './blockshapes.js'
+import { LivingEntity } from './entities.js'
 const {Texture, Audio} = loader(import.meta)
 
 export const terrainPng = Texture("terrain.png")
@@ -118,7 +119,7 @@ Blocks.glass = class extends Block{
 	static placeSounds = Blocks.stone.placeSounds
 	static stepSounds = Blocks.stone.stepSounds
 }
-class Water extends Block{
+export class Water extends Block{
 	static solid = false
 	static replacable = true
 	static climbable = true
@@ -134,10 +135,14 @@ class Water extends Block{
 void({
 	filled: Blocks.water,
 	top: Blocks.waterTop,
-	flowing: Blocks.waterFlowing
+	flowing: Blocks.waterFlowing,
+	levels: [, Blocks.waterFlowing1, Blocks.waterFlowing2, Blocks.waterFlowing3, Blocks.waterFlowing4, Blocks.waterFlowing5, Blocks.waterFlowing6, Blocks.waterFlowing7]
 } = fluidify(Water, animatedPng.at(2, 0, 32), animatedPng.at(5, 0, 64)))
 
-class Lava extends Water{
+class Lava extends Block{
+	static solid = false
+	static replacable = true
+	static climbable = true
 	static viscosity = 0.5
 	random(x, y){
 		const r = random()
@@ -150,7 +155,8 @@ class Lava extends Water{
 void({
 	filled: Blocks.lava,
 	top: Blocks.lavaTop,
-	flowing: Blocks.lavaFlowing
+	flowing: Blocks.lavaFlowing,
+	levels: [, Blocks.lavaFlowing1, Blocks.lavaFlowing2, Blocks.lavaFlowing3, Blocks.lavaFlowing4, Blocks.lavaFlowing5, Blocks.lavaFlowing6, Blocks.lavaFlowing7]
 } = fluidify(Lava, animatedPng.at(3, 0, 38), animatedPng.at(4, 0, 32)))
 
 Blocks.sandstone = class extends Stone{
@@ -284,8 +290,9 @@ const endPortalOverlays = [
 	epo.crop(192,0,64,256)
 ]
 function rot_off_transform(p, rot, off, x, y){
-	const a = cos(rot) / 16, b = sin(rot) / 16
-	p.setPatternTransform(a, b, -b, a, b*off-x, -a*off-y)
+	const f = cam.z*2
+	const a = cos(rot) / f, b = sin(rot) / f
+	p.setPatternTransform(a, -b, -b, -a, b*off-x, a*off+y)
 }
 Blocks.end_portal = class extends Block{
 	static solid = false

@@ -165,13 +165,6 @@
 			this.drawImage(gl.canvas, 0, gl.canvas.height-yh, xw, yh, xmin, ymin, xw, yh)
 			this.setTransform(a, b, c, d, e, f)
 		}*/
-		C.getTransform ??= function(){
-			return {
-				a: this._transform[0], b: this._transform[1],
-				c: this._transform[4], d: this._transform[5],
-				e: this._transform[12], f: this._transform[13]
-			}
-		}
 	})(CanvasRenderingContext2D.prototype)
 	Math.fclamp = (a, b = 1) => a < 0 ? 0 : (a > b ? b : a)
 	Math.ifloat = x => {
@@ -254,7 +247,7 @@ const _txtr = class Texture{
 			return this._pattern = ctx.createPattern(c, 'repeat')
 		}
 	}
-	setPatternTransform(a,b,c,d,e,f){ this.pattern().setTransform({a, b, c, d, e, f}) }
+	setPatternTransform(a,b,c,d,e,f){ this.pattern().setTransform({a, b: -b, c, d: -d, e, f: -f}) }
 	then(fn){
 		if(this.canvas.promise){
 			const t = new _txtr(this.canvas)

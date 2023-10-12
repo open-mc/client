@@ -3,6 +3,7 @@ import { renderItem, renderItemCount, renderSlot } from './effects.js'
 import { Entities, Entity, Item, Blocks, BlockIDs } from 'definitions'
 import { renderF3 } from 'api'
 import { getblock, cam, pointer } from 'world'
+import { Water } from './blocks.js'
 const {Audio, Texture} = loader(import.meta)
 
 const meInterface = Texture('meint.png')
@@ -11,7 +12,20 @@ const damageSounds = [
 	null, Audio('sound/fire/extinguish.mp3')
 ]
 
-class LivingEntity extends Entity{
+const enterWaterSounds = [
+	Audio('sound/water/enter1.mp3'),
+	Audio('sound/water/enter2.mp3'),
+	Audio('sound/water/enter3.mp3')
+], exitWaterSounds = [
+	Audio('sound/water/exit1.mp3'),
+	Audio('sound/water/exit2.mp3'),
+	Audio('sound/water/exit3.mp3')
+], splashSounds = [
+	Audio('sound/water/splash1.mp3'),
+	Audio('sound/water/splash2.mp3')
+]
+
+export class LivingEntity extends Entity{
 	health = 20
 	hitTimer = 0
 	hurtTextures = null
@@ -63,6 +77,20 @@ class LivingEntity extends Entity{
 				if(block.walk) block.walk(x, y, this)
 			}
 		}else this.blocksWalked = this.dy < -10 ? 1.7 : 1.68
+
+		const l = this.state&0x20000, l2 = this.state&0x40000
+		const c = getblock(floor(this.x), floor(this.y+this.head)) instanceof Water, c2 = getblock(floor(this.x), floor(this.y+this.height*.25)) instanceof Water
+		this.state = this.state&~0x60000|c<<17|c2<<18
+		if(l && !c){
+			// Left water
+			this.sound(exitWaterSounds[floor(random()*exitWaterSounds.length)], .3, 1)
+		}else if(c && !l){
+			// Entered water
+			this.sound(enterWaterSounds[floor(random()*enterWaterSounds.length)], .5, 1)
+		}
+		if(c2 && !l2){
+			this.sound(splashSounds[floor(random()*splashSounds.length)], min(this.dy/20,2), random()*.8+.6)
+		}
 	}
 }
 

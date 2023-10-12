@@ -153,7 +153,7 @@ drawPhase(200, (c, w, h) => {
 		c.scale((x1-x0)/64,(y0-y1)/64)
 		chunk.animate()
 		c.image(chunk.ctx, 0, 0, 64, 64)
-		if(SCALE>12){
+		if(true){
 			c.push()
 			for(const i of chunk.rerenders){
 				c.translate(i&63,i>>6)

@@ -28,6 +28,7 @@ function variant(ch, i, x, y, b){
 function updateDrawn(o, n, ch, i){
 	if(o.texture && floor(o.texture.h / o.texture.w) > 1){
 		if(!n.texture || floor(n.texture.h / n.texture.w) <= 1) ch.animatedTiles[i>>5] &= ~(1 << (i&31))
+		else return
 	}else if(n.texture && floor(n.texture.h / n.texture.w) > 1) ch.animatedTiles[i>>5] |= 1 << (i&31)
 	if(ch.ctx){
 		const {texture, render} = n
