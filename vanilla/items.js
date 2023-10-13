@@ -145,3 +145,15 @@ Items.purple_wool = itemify(Blocks.purple_wool, 'Purple wool')
 Items.magenta_wool = itemify(Blocks.magenta_wool, 'Magenta wool')
 Items.pink_wool = itemify(Blocks.pink_wool, 'Pink wool')
 Items.brown_wool = itemify(Blocks.brown_wool, 'Brown wool')
+
+Items.bucket = class extends Item{
+	static texture = itemsPng.at(9, 1)
+}
+Items.bucket_of_water = class extends Item{
+	static texture = itemsPng.at(12, 1)
+	places(){ return Blocks.water }
+}
+Items.bucket_of_lava = class extends Item{
+	static texture = itemsPng.at(10, 1)
+	places(){ return Blocks.lava }
+}

@@ -2,7 +2,6 @@ import { audioSet, lava, water } from './effects.js'
 import { sound, cam } from 'world'
 import { Blocks, Block, Item } from 'definitions'
 import { BlockShape, blockShaped, fluidify } from './blockshapes.js'
-import { LivingEntity } from './entities.js'
 const {Texture, Audio} = loader(import.meta)
 
 export const terrainPng = Texture("terrain.png")
@@ -119,18 +118,31 @@ Blocks.glass = class extends Block{
 	static placeSounds = Blocks.stone.placeSounds
 	static stepSounds = Blocks.stone.stepSounds
 }
+
+const bucketSounds = {
+	fillLava: audioSet('bucket/fill_lava', 3),
+	emptyLava: audioSet('bucket/empty_lava', 3),
+	fillWater: audioSet('bucket/fill_water', 3),
+	emptyWater: audioSet('bucket/empty_water', 3)
+}
+
 export class Water extends Block{
 	static solid = false
 	static replacable = true
 	static climbable = true
 	static viscosity = 0.15
 	random(x, y){
-		const r = random()
-		if(r < .025)
-			sound(water.ambient[0], x, y, 1, 1)
-		else if(r < .05)
-			sound(water.ambient[1], x, y, 1, 1)
+		if(this.flows){
+			const r = random()
+			if(r < .05)
+				sound(water.ambient[0], x, y, 1, 1)
+			else if(r < .1)
+				sound(water.ambient[1], x, y, 1, 1)
+		}
 	}
+	32(buf, x, y){ sound(fireExtinguish, x, y, 0.7, random()*.8+1.2) }
+	33(buf, x, y){ sound(bucketSounds.emptyWater, x, y) }
+	34(buf, x, y){ sound(bucketSounds.fillWater, x, y) }
 }
 void({
 	filled: Blocks.water,
@@ -151,6 +163,9 @@ class Lava extends Block{
 		else if(r < .25)
 			sound(lava.pop, x, y, 1, 1)
 	}
+	32(buf, x, y){ sound(fireExtinguish, x, y, 0.7, random()*.8+1.2) }
+	33(buf, x, y){ sound(bucketSounds.emptyLava, x, y) }
+	34(buf, x, y){ sound(bucketSounds.fillLava, x, y) }
 }
 void({
 	filled: Blocks.lava,

@@ -37,7 +37,7 @@ export class LivingEntity extends Entity{
 		const fields = buf.byte()
 		if(this.health < oldHealth){
 			if(this == me) cam.rot = 0.15
-			this.sound(hurt[floor(random()*hurt.length)])
+			this.sound(hurt)
 			if(fields & 1){
 				if(this.health) this.hitTimer = 0.5
 				else this.hitTimer = 1, this.flags = this.flags & -2 | (this.dx>=0)
@@ -83,13 +83,13 @@ export class LivingEntity extends Entity{
 		this.state = this.state&~0x60000|c<<17|c2<<18
 		if(l && !c){
 			// Left water
-			this.sound(exitWaterSounds[floor(random()*exitWaterSounds.length)], .3, 1)
+			this.sound(exitWaterSounds, .3, 1)
 		}else if(c && !l){
 			// Entered water
-			this.sound(enterWaterSounds[floor(random()*enterWaterSounds.length)], .5, 1)
+			this.sound(enterWaterSounds, .5, 1)
 		}
 		if(c2 && !l2){
-			this.sound(splashSounds[floor(random()*splashSounds.length)], min(this.dy/20,2), random()*.8+.6)
+			this.sound(splashSounds, min(this.dy/20,2), random()*.8+.6)
 		}
 	}
 }
@@ -312,7 +312,7 @@ Entities.tnt = class extends Entity{
 	}	
 	2(){ this.fusing = 1 }
 	3(){
-		this.sound(explode[floor(random()*explode.length)])
+		this.sound(explode)
 		for(let i = 0; i < 15; i++) new BlastParticle(this.x, this.y)
 		for(let i = 0; i < 30; i++) new AshParticle(this.x, this.y)
 	}
@@ -336,7 +336,7 @@ Entities.end_crystal = class extends Entity{
 		c.pop()
 	}
 	3(){
-		this.sound(explode[floor(random()*explode.length)])
+		this.sound(explode)
 		for(let i = 0; i < 15; i++) new BlastParticle(this.x, this.y)
 		for(let i = 0; i < 30; i++) new AshParticle(this.x, this.y)
 	}

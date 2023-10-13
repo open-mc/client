@@ -75,8 +75,9 @@ const playerLoadCb = []
 export const onPlayerLoad = cb => playerLoadCb.push(cb)
 const SPEEDOFSOUND = 340
 export function sound(fn, x, y, vol = 1, pitch = 1){
+	if(Array.isArray(fn)) fn = fn[floor(random() * fn.length)]
 	if(!me) return
-	x = ifloat(x - me.x - .5); y = ifloat(y - me.y + me.head - .5)
+	x = ifloat(x - me.x + .5); y = ifloat(y - me.y + me.head + .5)
 	const dist = sqrt(x * x + y * y)
 	// Let's see if I can get the physics right from the top of my head
 	// The speed of sound is 340m/s. This means a sound approaching at a speed of 340m/s => 2x pitch, -170m/s => 0.5x pitch, -340m/s => 0x pitch (sound can never reach)

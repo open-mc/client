@@ -22,27 +22,27 @@ export class Block{
 	static breaktime = 3
 	1(buf, x, y){
 		if(this.placeSounds.length)
-			sound(this.placeSounds[floor(random() * this.placeSounds.length)], x, y, 1, 0.8)
+			sound(this.placeSounds, x, y, 1, 0.8)
 	}
 	2(buf, x, y){
 		if(this.placeSounds.length)
-			sound(this.placeSounds[floor(random() * this.placeSounds.length)], x, y, 1, 0.8)
+			sound(this.placeSounds, x, y, 1, 0.8)
 		blockBreak(this, x, y)
 	}
 	punch(x, y){
 		if(this.stepSounds.length)
-			sound(this.stepSounds[floor(random() * this.stepSounds.length)], x, y, 0.1375, 0.5)
+			sound(this.stepSounds, x, y, 0.1375, 0.5)
 		punchParticles(this, x, y)
 	}
 	walk(x, y, e){
 		if(!e.alive || !this.solid) return
 		if(this.stepSounds.length)
-			sound(this.stepSounds[floor(random() * this.stepSounds.length)], x, y, 0.15, 1)
+			sound(this.stepSounds, x, y, 0.15, 1)
 		if((e.impactDy < 0 && !(e.state & 0x10000)) || (e.state & 4)) stepParticles(this, e)
 	}
 	fall(x, y){
 		if(this.stepSounds.length)
-			sound(this.stepSounds[Math.floor(Math.random() * this.stepSounds.length)], x ,y, 0.5, 0.75)
+			sound(this.stepSounds[Math.floor(Math.random() * this.stepSounds.length)], x, y, 0.5, 0.75)
 	}
 	trace(c){
 		c.beginPath()

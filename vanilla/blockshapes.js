@@ -70,28 +70,30 @@ export const fluidify = (B, tex, flowingTex) => {
 			const t = b == flowing ? flowingTex : tex
 			c.scale(1/16,1/16)
 			c.fillPattern(t)
-			t.setPatternTransform(1, 0, 0, 1, 0, -(ticks%floor(t.h/t.w))*t.w)
+			t.setPatternTransform(1, 0, 0, 1, 0, -t.w-(ticks%floor(t.h/t.w))*t.w)
 			c.fillRect(0, 0, 16, 14)
 		}
 	}
 	const flowing = class extends B{
 		static texture = flowingTex
 		static fluidLevel = 8
+		static flows = true
 	}
 	const level = class extends B{
 		static texture = null
+		static flows = true
 		render(c, x, y){
 			c.scale(1/16,1/16)
 			c.fillPattern(flowingTex)
-			flowingTex.setPatternTransform(1, 0, 0, 1, 0, -(ticks%floor(flowingTex.h/flowingTex.w))*flowingTex.w)
+			flowingTex.setPatternTransform(1, 0, 0, 1, 0, -flowingTex.w-(ticks%floor(flowingTex.h/flowingTex.w))*flowingTex.w)
 			let y1 = 0, y2 = 0
 			{
-				const {solid, fluidLevel = solid ? 8 : 0} = getblock(x+1,y)
-				y2 = min(this.fluidLevel, fluidLevel)*2
+				const {solid, fluidLevel} = getblock(x+1,y)
+				y2 = fluidLevel ? min(this.fluidLevel, fluidLevel)*2 : this.fluidLevel * (solid/2+.5)
 			}
 			{
-				const {solid, fluidLevel = solid ? 8 : 0} = getblock(x-1,y)
-				y1 = min(this.fluidLevel, fluidLevel)*2
+				const {solid, fluidLevel} = getblock(x-1,y)
+				y1 = fluidLevel ? min(this.fluidLevel, fluidLevel)*2 : this.fluidLevel * (solid/2+.5)
 			}
 			c.beginPath()
 			c.moveTo(0, 0)

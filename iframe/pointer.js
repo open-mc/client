@@ -162,7 +162,7 @@ export function checkBlockPlacing(buf){
 	const hasP = buttons.has(options.click ? LBUTTON : RBUTTON) || buttons.has(options.click ? GAMEPAD.LT : GAMEPAD.RT)
 	const hasB = buttons.has(options.click ? RBUTTON : LBUTTON) || buttons.has(options.click ? GAMEPAD.RT : GAMEPAD.LT)
 	if(hasP && t > lastPlace + .12 && !paused && bpx == bpx){
-		setblock(bpx, bpy, blockPlacing)
+		if(blockPlacing) setblock(bpx, bpy, blockPlacing)
 		buf.byte(me.selected)
 		buf.float(x); buf.float(y)
 		lastPlace = t

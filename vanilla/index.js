@@ -362,7 +362,7 @@ gridEvents[1] = (buf, x, y) => {
 
 gridEvents[3] = (_, x, y) => {
 	x += .5; y += .5
-	sound(explode[floor(random()*explode.length)], x, y)
+	sound(explode, x, y)
 	for(let i = 0; i < 15; i++) new BlastParticle(x, y)
 	for(let i = 0; i < 30; i++) new AshParticle(x, y)
 }
