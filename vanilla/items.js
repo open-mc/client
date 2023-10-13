@@ -148,12 +148,15 @@ Items.brown_wool = itemify(Blocks.brown_wool, 'Brown wool')
 
 Items.bucket = class extends Item{
 	static texture = itemsPng.at(9, 1)
+	static name = 'Bucket'
 }
 Items.bucket_of_water = class extends Item{
 	static texture = itemsPng.at(12, 1)
 	places(){ return Blocks.water }
+	static name = 'Bucket of water'
 }
 Items.bucket_of_lava = class extends Item{
 	static texture = itemsPng.at(10, 1)
 	places(){ return Blocks.lava }
+	static name = 'Bucket of lava'
 }
