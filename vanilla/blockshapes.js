@@ -60,6 +60,7 @@ export const fluidify = (B, tex, flowingTex) => {
 	const filled = class extends B{
 		variant(x, y){ return !getblock(x, y+1).fluidLevel ? top : undefined }
 		static fluidLevel = 8
+		static flows = false
 	}
 	const top = class extends filled{
 		variant(x, y){ return getblock(x, y+1).fluidLevel ? filled : undefined }

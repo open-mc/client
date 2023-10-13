@@ -52,9 +52,10 @@ export function drawPointer(c){
 	const reach = sqrt(x * x + y * y)
 	let d = 0, px = me.x - bx, py = me.y + me.head - by
 	const dx = sin(me.f), dy = cos(me.f)
+	const item = me.inv[me.selected], interactFluid = item?.interactFluid ?? false
 	a: while(d < reach){
-		const {solid, blockShape = DEFAULT_BLOCKSHAPE} = getblock(bx, by)
-		if(solid){
+		const {solid, blockShape = DEFAULT_BLOCKSHAPE, flows} = getblock(bx, by)
+		if(solid || (interactFluid && flows === false)){
 			for(let i = 0; i < blockShape.length; i += 4){
 				const x0 = blockShape[i], x1 = blockShape[i+2], y0 = blockShape[i+1], y1 = blockShape[i+3]
 				if(dx > 0 && px <= x0){
@@ -107,9 +108,12 @@ export function drawPointer(c){
 	}else px -= bpx - bx, py -= bpy - by, bpfx = px, bpfy = py
 	if(!getblock(bpx, bpy).replacable) bpx = bpy = bpfx = bpfy = NaN
 
-	blockPlacing = me.inv[me.selected]?.places?.(bpfx, bpfy)
+	blockPlacing = item?.places?.(bpfx, bpfy)
 
-	if(!getblock(bpx + 1, bpy).solid && !getblock(bpx - 1, bpy).solid && !getblock(bpx, bpy + 1).solid && !getblock(bpx, bpy - 1).solid){
+	if(interactFluid ?
+		getblock(bpx + 1, bpy).flows === false && getblock(bpx - 1, bpy).flows === false && getblock(bpx, bpy + 1).flows === false && getblock(bpx, bpy - 1).flows === false
+		: !getblock(bpx + 1, bpy).solid && !getblock(bpx - 1, bpy).solid && !getblock(bpx, bpy + 1).solid && !getblock(bpx, bpy - 1).solid
+	){
 		bpx = bpy = bpfx = bpfy = NaN
 	}else{
 		let x = bpx - 32 >>> 6, y = bpy - 32 >>> 6, x1 = x + 1 & 0x3FFFFFF, y1 = y + 1 & 0x3FFFFFF

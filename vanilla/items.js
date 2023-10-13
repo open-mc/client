@@ -149,6 +149,7 @@ Items.brown_wool = itemify(Blocks.brown_wool, 'Brown wool')
 Items.bucket = class extends Item{
 	static texture = itemsPng.at(9, 1)
 	static name = 'Bucket'
+	static interactFluid = true
 }
 Items.bucket_of_water = class extends Item{
 	static texture = itemsPng.at(12, 1)
