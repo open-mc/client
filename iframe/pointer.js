@@ -121,7 +121,7 @@ export function drawPointer(c){
 			if(ch)for(const e of ch.entities)
 				if(e.y < bpy + 1 && e.y + e.height > bpy && e.x - e.width < bpx + 1 && e.x + e.width > bpx){
 					//Don't allow placing because there is an entity in the way
-					if(blockPlacing?.blockShape?.length!==0) blockPlacing = null, bpx = bpy = bpfx = bpfy = NaN
+					if(blockPlacing?.blockShape?.length!==0 && blockPlacing?.solid!==false && !interactFluid) blockPlacing = null, bpx = bpy = bpfx = bpfy = NaN
 					break a
 				}
 		if(renderUI){
