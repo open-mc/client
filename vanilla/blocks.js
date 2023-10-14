@@ -350,7 +350,8 @@ Blocks.filled_end_portal_frame = class extends Blocks.end_portal_frame{
 
 Blocks.sugar_cane = class extends Block{
 	static breaktime = 0
-	static blockShape = []
+	static solid = false
+	static targettable = true
 	static placeSounds = Blocks.grass.placeSounds
 	static texture = terrainPng.crop(144,64,16,16)
 }

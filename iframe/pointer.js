@@ -91,8 +91,8 @@ export function drawPointer(c){
 		}
 	}
 	if(d >= reach){
-		const {solid, replacable, blockShape} = getblock(bpx, bpy)
-		if(solid && !replacable && blockShape && blockShape.length == 0){
+		const {targettable, solid, replacable} = getblock(bpx, bpy)
+		if(targettable && !solid && !replacable){
 			px -= bpx - bx; py -= bpy - by
 			bx = bpx; by = bpy; bpx = bppx; bpy = bppy
 			if(bpx > bx) px = 1
@@ -107,12 +107,11 @@ export function drawPointer(c){
 		}
 	}else px -= bpx - bx, py -= bpy - by, bpfx = px, bpfy = py
 	if(!getblock(bpx, bpy).replacable) bpx = bpy = bpfx = bpfy = NaN
-
 	blockPlacing = item?.places?.(bpfx, bpfy)
-
+	const up = getblock(bpx, bpy + 1), down = getblock(bpx, bpy - 1), left = getblock(bpx - 1, bpy), right = getblock(bpx + 1, bpy)
 	if(interactFluid ?
-		getblock(bpx + 1, bpy).flows === false && getblock(bpx - 1, bpy).flows === false && getblock(bpx, bpy + 1).flows === false && getblock(bpx, bpy - 1).flows === false
-		: !getblock(bpx + 1, bpy).solid && !getblock(bpx - 1, bpy).solid && !getblock(bpx, bpy + 1).solid && !getblock(bpx, bpy - 1).solid
+		up.flows === false && down.flows === false && left.flows === false && right.flows === false
+		: !(up.targettable??up.solid) && !(down.targettable??down.solid) && !(left.targettable??left.solid) && !(right.targettable??right.solid)
 	){
 		bpx = bpy = bpfx = bpfy = NaN
 	}else{
