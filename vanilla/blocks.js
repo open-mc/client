@@ -282,7 +282,7 @@ Blocks.fire = class extends Block{
 	random(x, y){
 		sound(fireAmbient, x, y, random() + 1, random() * 0.7 + 0.3)
 	}
-	2(buf, x, y){
+	destroyed(x, y){
 		sound(fireExtinguish, x, y, 0.5, random() * 1.6 + 1.8)
 	}
 }

@@ -422,6 +422,7 @@ gridEvents[1] = (buf, x, y) => {
 }
 gridEvents[2] = (buf, x, y) => {
 	const b = getblock(x, y)
+	if(b.destroyed) return void b.destroyed?.(x, y)
 	if(b.placeSounds.length)
 		sound(b.placeSounds, x, y, 1, 0.8)
 	blockBreak(b, x, y)
