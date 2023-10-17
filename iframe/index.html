@@ -6,7 +6,7 @@
 {"imports": {
 	"api": "./api.js",
 	"world": "./world.js",
-	"definitions": "./defs.js"
+	"definitions": "./definitions.js"
 }}
 </script>
 <style>
@@ -24,6 +24,10 @@
 	const postMessage = parent.postMessage.bind(parent)
 	let msgQueue = []
 	parent.postMessage(null, '*')
+	/**
+	 * setImmediate / clearImmediate polyfill using MessageChannel
+	 */
+	{let i=0,m=new MessageChannel,c=new Map;m.port1.onmessage=({data:i},j=c.get(i))=>(c.delete(i)&&j());m=m.port2;globalThis.setImmediate=(f,...a)=>(c.set(++i,a.length?f.bind(undefined, ...a):f),m.postMessage(i),i);globalThis.clearImmediate=i=>c.delete(i)}
 	const TEX_SIZE = 16
 	;(C => {
 		/**
@@ -171,7 +175,9 @@
 		let f = Math.floor(x)
 		return (f >> 0) + (x - f)
 	}
+	Math.randint = () => Math.random() * 4294967296 | 0
 	Math.ifloor = x => Math.floor(x) | 0
+	Math.iceil = x => Math.ceil(x) | 0
 	for(const n of [HTMLCollection, NodeList])Object.setPrototypeOf(n.prototype, Array.prototype)
 	Object.defineProperties(Array.prototype, {
 		winner: {enumerable: false, value(pred){
@@ -338,11 +344,10 @@ const loader = (meta) => {
 		}
 	}
 }
-	let download, listen, buttons, changed, delta, cursor
+	let listen, buttons, changed, delta, cursor
 	let loading = 1, loaded = null, dt = 1 / 60, pointer
 	let t = 0, TPS = 20
 	let meid = -1, r = 0, me = null, perms = 2
-	let ticks = 0, world = '', gx = 0, gy = 0
 	let mx = 0, my = 0
 	const nul = new Array(1000).fill(null)
 	Array.null = len => {

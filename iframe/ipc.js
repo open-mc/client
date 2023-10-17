@@ -1,9 +1,10 @@
 import { DataReader, jsonToType } from 'https://unpkg.com/dataproto/index.js'
 import { frame } from './index.js'
 import { options, listen, _cbs, _mouseMoveCb, _joypadMoveCbs, _pauseCb, _wheelCb, _optionListeners, fakePause, codes, paused } from 'api'
-import { Blocks, Items, Entities, BlockIDs, ItemIDs, EntityIDs, Block, Item, Entity } from 'definitions'
+import { Blocks, Items, Entities, BlockIDs, ItemIDs, EntityIDs, Block, Item, Entity, Classes } from 'definitions'
 import 'world'
-import { Chunk } from './chunk.js'
+
+Classes[0] = {savedata: null, savedatahistory: []}
 
 loaded = () => {
 	for(const data of msgQueue) try{ onMsg({data}) }catch(e){console.error(e)}
@@ -46,11 +47,11 @@ const onMsg = ({data,origin}) => {
 			return
 		}
 		// import scripts
-		const classes = [{}, Chunk], list = data[3].split('\n')
-		for(let i = 0; i < classes.length; i++){
+		const list = data[3].split('\n')
+		for(let i = 0; i < Classes.length; i++){
 			const h = (list[i]||'{}').split(' ')
-			classes[i].savedata = jsonToType(h.pop())
-			classes[i].savedatahistory = h.mmap(jsonToType)
+			Classes[i].savedata = jsonToType(h.pop())
+			Classes[i].savedatahistory = h.mmap(jsonToType)
 		}
 		Promise.all(data.slice(4).map(a => import(a))).then(() => {
 			// done importing
@@ -58,7 +59,6 @@ const onMsg = ({data,origin}) => {
 			i = 0; for(const b of data[0].split('\n'))funcify(b, i++, Blocks)
 			i = 0; for(const b of data[1].split('\n'))funcify(b, i++, Items)
 			i = 0; for(const b of data[2].split('\n'))funcify(b, i++, Entities)
-			for(const b in Blocks) Object.setPrototypeOf(Blocks[b], Blocks[b].prototype)
 			if(!--loading)loaded()
 			frame()
 		})
@@ -88,12 +88,13 @@ const onMsg = ({data,origin}) => {
 			// This will also copy .prototype, which we want
 			let proto = Thing
 			do{
-				const desc = Object.getOwnPropertyDescriptors(proto)
-				delete desc.length; delete desc.name
+				const desc = Object.getOwnPropertyDescriptors(proto), desc2 = Object.getOwnPropertyDescriptors(proto.prototype)
+				delete desc.length; delete desc.name; delete desc2.constructor
 				Object.defineProperties(proto.prototype, desc)
+				Object.defineProperties(proto, desc2)
 				proto = Object.getPrototypeOf(proto)
 			}while(proto.prototype && !Object.hasOwn(proto.prototype, 'prototype'))
-			if(Dict == Blocks){
+			if(Dict == Blocks && !Thing.savedata){
 				if(!Thing.savedata) Object.defineProperties(Thing.constructor, Object.getOwnPropertyDescriptors(new Thing))
 			}
 		}
@@ -120,5 +121,3 @@ const m = msgQueue; msgQueue = []
 for(const data of m) try{ onMsg({data}) }catch(e){console.error(e)}
 addEventListener('message', onMsg)
 onmessage = null
-
-download = blob => postMessage(blob, '*')

@@ -1,11 +1,10 @@
-import { AshParticle, BlastParticle, explode } from './defs.js'
-import { uiButtons, icons, renderItem, renderItemCount, click, renderSlot, renderTooltip, resetSlot, slotI } from './effects.js'
+import { uiButtons, icons, renderItem, renderItemCount, click, renderSlot, renderTooltip, resetSlot, slotI, audioSet } from './effects.js'
 import "./entities.js"
-import { button, W2, uiLayer, renderLayer, onpause, pause, paused, renderUI, customPause, quit, onpacket, send } from 'api'
-import { getblock, gridEvents, sound, entityMap, pointer, cam } from 'world'
-import { Item } from 'definitions'
+import { button, W2, H2, uiLayer, renderLayer, onpause, pause, paused, renderUI, customPause, quit, onpacket, send } from 'api'
+import { getblock, gridEvents, sound, entityMap, pointer, cam, world } from 'world'
+import { Item, BlockParticle, blockBreak } from 'definitions'
+import { AshParticle, BlastParticle, explode } from './defs.js'
 import { terrainPng } from './blocks.js'
-import { BlockParticle } from '../iframe/defs.js'
 const { Texture } = loader(import.meta)
 
 const BREAKING = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].mmap(x => terrainPng.at(x, 15))
@@ -22,64 +21,113 @@ const sun = skyPng.crop(128, 64, 32, 32), moons = [
 	skyPng.crop(224, 32, 32, 32)
 ], cloudMap = skyPng.crop(128, 127, 128, 1)
 const endSky = skyPng.crop(128,128,128,128)
+const rain = skyPng.crop(0, 0, 64, 256)
+
+const gradients = Can(0, 0)
+function makeGradients(h){
+	gradients.resize(5, h)
+	gradients.defaultTransform()
+
+	let gradient = gradients.createLinearGradient(0, 0, 0, h)
+	gradient.addColorStop(0.3, '#0a0c14')
+	gradient.addColorStop(0.7, '#040609')
+	gradients.fillStyle = gradient
+	gradients.fillRect(0, 0, 1, h)
+
+	gradient = gradients.createLinearGradient(0, 0, 0, h)
+	gradient.addColorStop(0.3, '#c3d2ff')
+	gradient.addColorStop(0.7, '#78a7ff')
+	gradients.fillStyle = gradient
+	gradients.fillRect(1, 0, 1, h)
+
+	gradient = gradients.createLinearGradient(0, 0, 0, h)
+	gradient.addColorStop(0.3, '#c5563b')
+	gradient.addColorStop(0.7, 'transparent')
+	gradients.fillStyle = gradient
+	gradients.fillRect(2, 0, 1, h)
+
+	gradient = gradients.createLinearGradient(0, 0, 0, h)
+	gradient.addColorStop(0.3, '#586493')
+	gradient.addColorStop(0.7, '#63718b')
+	gradients.fillStyle = gradient
+	gradients.fillRect(3, 0, 1, h)
+
+	gradient = gradients.createLinearGradient(0, 0, 0, h)
+	gradient.addColorStop(0.3, '#2b3046')
+	gradient.addColorStop(0.7, '#2c2e35')
+	gradients.fillStyle = gradient
+	gradients.fillRect(4, 0, 1, h)
+}
+const rainSound = audioSet('misc/rain', 4)
+let lastRainPlay = 0
+setInterval(() => {
+	if(world.weather && t - lastRainPlay > 0.8333333) lastRainPlay = t, me.sound(rainSound, 0.5)
+})
+
 uiLayer(-100, (c, w, h) => {
-	if(world == 'overworld'){
+	if(gradients.h != h) makeGradients(h)
+	if(world.id == 'overworld'){
+		const rainyness = min(world.weather&&(1-world.weatherFade/40), 1, (world.weather&0x0FFFFFFF)/40)
 		const reach = pointer.effectiveReach()
-		const time = ticks % 24000
+		const time = world.tick % 24000
 		const light = time < 1800 ? time / 1800 : time < 13800 ? 1 : time < 15600 ? (15600 - time) / 1800 : 0
 		let orangeness = 0
-		if(time < 1800)orangeness = 1 - abs(time - 900)/900
-		else if(time >= 13800 && time < 15600)orangeness = 1 - abs(time - 14700)/900
+		if(time < 1800) orangeness = 1 - abs(time - 900)/900
+		else if(time >= 13800 && time < 15600) orangeness = 1 - abs(time - 14700)/900
 		const wspan = w + 64 + reach/2
-		let gradient = c.createLinearGradient(0, 0, 0, h)
-		gradient.addColorStop(0.3, '#0a0c14')
-		gradient.addColorStop(0.7, '#040609')
-		c.fillStyle = gradient
-		c.fillRect(0, 0, w, h)
-		c.rect(0, 0, w, h)
-		const xo = wspan * ((time + 12600) % 24000 / 8400 - .5) - 20 - reach/4 - pointer.x*cam.z/16
-		const yo = h/2 + 6 + h/3 * sin(((time + 12600) % 24000 / 8400 - .5) * PI) - pointer.y*cam.z/16
-		c.translate(xo, yo)
-		c.fillPattern(stars)
-		c.fill()
-		c.translate(-xo, -yo)
-		gradient = c.createLinearGradient(0, 0, 0, h)
-		gradient.addColorStop(0.3, '#c3d2ff')
-		gradient.addColorStop(0.7, '#78a7ff')
+		if(light < 1 && rainyness < 1){
+			c.image(gradients, 0, 0, w, h, 0, 0, 1, h)
+			c.rect(0, 0, w, h)
+			const xo = wspan * ((time + 12600) % 24000 / 8400 - .5) - 20 - reach/4 - ifloat(cam.x-me.x)*cam.z/16
+			const yo = h/2 + 6 + h/3 * sin(((time + 12600) % 24000 / 8400 - .5) * PI) - ifloat(cam.y-me.y)*cam.z/16
+			c.translate(xo, yo)
+			c.globalAlpha = 1-rainyness
+			c.fillPattern(stars)
+			c.fill()
+			c.translate(-xo, -yo)
+		}
 		c.globalAlpha = light
-		c.fillStyle = gradient
-		c.fillRect(0, 0, w, h)
-		gradient = c.createLinearGradient(0, 0, 0, h)
-		gradient.addColorStop(0.3, '#c5563b')
-		gradient.addColorStop(0.7, 'transparent')
+		if(light && rainyness < 1) c.image(gradients, 0, 0, w, h, 1, 0, 1, h)
+		if(world.weather > 0x10000000){
+			c.globalAlpha = light
+			if(c.globalAlpha) c.image(gradients, 0, 0, w, h, 3, 0, 1, h)
+			c.globalAlpha = min(light, rainyness)
+			if(c.globalAlpha) c.image(gradients, 0, 0, w, h, 4, 0, 1, h)
+		}else{
+			c.globalAlpha = min(light, rainyness)
+			if(c.globalAlpha) c.image(gradients, 0, 0, w, h, 3, 0, 1, h)
+		}
+
 		c.globalAlpha = orangeness
-		c.fillStyle = gradient
-		c.fillRect(0, 0, w, h)
+		if(orangeness) c.image(gradients, 0, 0, w, h, 2, 0, 1, h)
+
 		c.globalAlpha = 1
 		c.globalCompositeOperation = 'lighter'
+		c.globalAlpha = 1 - rainyness
 		if(time < 15600){
 			const progress = time / 15600
-			c.image(sun, wspan * progress - 64 - reach/4 - pointer.x*cam.z/16, h/2 - 32 + h/3 * sin(progress * PI) - pointer.y*cam.z/16, 64, 64)
+			c.image(sun, wspan * progress - 64 - reach/4 - ifloat(cam.x-me.x)*cam.z/16, h/2 - 32 + h/3 * sin(progress * PI) - ifloat(cam.y-me.y)*cam.z/16, 64, 64)
 		}else{
 			const progress = (time - 15600) / 8400
-			c.image(moons[ticks / 24000 & 7], wspan * progress - 64 - reach/4 - pointer.x*cam.z/16, h/2 - 32 + h/3 * sin(progress * PI) - pointer.y*cam.z/16, 64, 64)
+			c.image(moons[world.tick / 24000 & 7], wspan * progress - 64 - reach/4 - ifloat(cam.x-me.x)*cam.z/16, h/2 - 32 + h/3 * sin(progress * PI) - ifloat(cam.y-me.y)*cam.z/16, 64, 64)
 		}
 		c.globalCompositeOperation = 'source-over'
 		c.globalAlpha = 1
-	}else if(world == 'nether'){
+	}else if(world.id == 'nether'){
 		c.fillStyle = '#190404'
 		c.fillRect(0, 0, w, h)
-	}else if(world == 'end'){
+	}else if(world.id == 'end'){
 		c.globalAlpha = 0.15
 		c.fillPattern(endSky)
 		c.fillRect(0, 0, w, h)
 		c.globalAlpha = 1
 	}
 })
-uiLayer(500, (c, w, h) => {
-	if(world == 'nether'){
+renderLayer(500, (c, w, h) => {
+	if(world.id == 'nether'){
 		c.fillStyle = '#40000033'
-		c.fillRect(0, 0, w, h)
+		c.fillRect(-W2, -H2, W2*2, H2*2)
+		return
 	}
 })
 
@@ -96,7 +144,7 @@ const cloudLayers = [
 ]
 
 renderLayer(150, c => {
-	if(world != 'overworld') return
+	if(world.id != 'overworld') return
 	for(const {y, h, s, o, a} of cloudLayers){
 		c.globalCompositeOperation = o
 		c.globalAlpha = a
@@ -110,8 +158,26 @@ renderLayer(150, c => {
 		c.scale(1 / (h * 3), 1 / (h * 3))
 		c.translate(-x, 0)
 	}
-	c.globalAlpha = 1
 	c.globalCompositeOperation = 'source-over'
+	const rainyness = min(1-world.weatherFade/40, 1, (world.weather&0x0FFFFFFF)/40)
+	if(rainyness && cam.z > .25){
+		c.globalAlpha = rainyness/2
+		c.fillPattern(rain)
+		rain.setPatternTransform(.0625, 0, 0, .0625, 0, t*30%16)
+		const end = iceil(cam.x+W2)
+		for(let x = ifloor(cam.x-W2); x != end; x=x+1|0){
+			const off = ifloat(x-cam.x)%4 + ((x ^ x>>2 ^ x>>4 ^ x>>6) & 3)
+			let off2 = imul(x, 0x13F255A7) >> 16
+			off2 = ((off2 ^ off2 >> 2 ^ off2 >> 4 ^ off2 >> 6) & 3) << 2
+			c.beginPath()
+			c.rect(ifloat(x-cam.x), -H2, 1, H2*2)
+			c.closePath()
+			c.translate(off, off2)
+			c.fill()
+			c.translate(-off, -off2)
+		}
+	}
+	c.globalAlpha = 1
 })
 
 const hotbar = Texture('hotbar.png')
@@ -249,10 +315,10 @@ uiLayer(1000, (c, w, h) => {
 		const items = slot > 127 ? invInterface.items : me.inv; slot &= 127
 		const t = items[slot], h = me.items[0]
 		if(t && !h){
-			me.items[0] = t.constructor(t.count - (t.count >>= 1))
+			me.items[0] = new t.constructor(t.count - (t.count >>= 1))
 			if(!t.count)items[slot] = null
 		}else if(h && !t){
-			items[slot] = h.constructor(1)
+			items[slot] = new h.constructor(1)
 			if(!--h.count)me.items[0] = null
 		}else if(h && t && h.constructor == t.constructor && !h.savedata && t.count < t.maxStack){
 			t.count++
@@ -274,12 +340,6 @@ uiLayer(1000, (c, w, h) => {
 
 	c.pop()
 })
-/*
-const guiAtlas = Texture()
-uiLayer(1000, (c) => {
-	
-})
-*/
 
 
 let invInterface = null, interfaceId = 0
@@ -322,11 +382,6 @@ onpacket(32, buf => {
 		else e.inv[slot] = Item.decode(buf)
 	}
 })
-onpacket(15, buf => {
-	const e = entityMap.get(buf.uint32() + buf.short() * 4294967296)
-	if(!e) return
-	e.selected = buf.byte()
-})
 
 button(KEYS.E, GAMEPAD.X, () => {
 	if(paused) return closeInterface()
@@ -339,7 +394,7 @@ button(KEYS.Q, GAMEPAD.Y, GAMEPAD.DOWN, () => {
 	send(buf)
 })
 
-gridEvents[1] = (buf, x, y) => {
+gridEvents[4] = (buf, x, y) => {
 	let time = 0
 	const toBreak = buf.float() / TPS
 	let lastParticle = t
@@ -360,9 +415,26 @@ gridEvents[1] = (buf, x, y) => {
 	}
 }
 
+gridEvents[1] = (buf, x, y) => {
+	const b = getblock(x, y)
+	if(b.placeSounds.length)
+		sound(b.placeSounds, x, y, 1, 0.8)
+}
+gridEvents[2] = (buf, x, y) => {
+	const b = getblock(x, y)
+	if(b.placeSounds.length)
+		sound(b.placeSounds, x, y, 1, 0.8)
+	blockBreak(b, x, y)
+}
+
 gridEvents[3] = (_, x, y) => {
 	x += .5; y += .5
 	sound(explode, x, y)
 	for(let i = 0; i < 15; i++) new BlastParticle(x, y)
 	for(let i = 0; i < 30; i++) new AshParticle(x, y)
+}
+
+gridEvents[10] = (_, x, y) => {
+	x += .5; y += .5
+	//for(let i = 0; i < 10; i++) new AshParticle(x, y)
 }

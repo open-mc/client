@@ -1,21 +1,41 @@
 <details> <summary> <h1 style="display:inline-block"> The Future </h1> </summary>
 
+# Beta 1.2
+
+Todo: Bossfight
+
+Todo: Hostile mobs
+
+# Beta 1.1
+
+Todo: Pretty lighting
+
+Todo: Farm & crops
+
+Todo: Fishing
+
+Todo: End terrain generation
+
+Todo: Passive mobs
+
 ## Beta 1.0
 
-Excitement awaits...
+Todo: Crafting
+
+Todo: Singleplayer
+
+Todo: Terrain generation overhaul
+
+Todo: Creating accounts (deprecating account keys)
 
 </details>
 
 ## Alpha 9 (current version)
 
-Todo: Chests, furnaces
-
-Todo: Water + lava flowing physics
-
-Todo: Crops & farmland
-
-Todo: Saplings & tree growing
-
+- Chest, furnace, crafting table
+- Saplings & tree growing
+- Weather
+- Water + lava flowing physics
 - Animated textures (water + lava)
 - Switch to LevelDB
 - Block shapes

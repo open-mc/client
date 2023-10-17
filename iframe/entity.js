@@ -1,4 +1,4 @@
-import { getblock, map } from 'world'
+import { getblock, map, world } from 'world'
 
 const groundDrag = .0000244
 const airDrag = 0.06
@@ -12,9 +12,9 @@ export function stepEntity(e){
 	if(e != me && !e.shouldSimulate()) return
 	if(e.state & 1)e.dy = 0
 	else{
-		e.dy += dt * gy * e.gy
+		e.dy += dt * world.gy * e.gy
 		e.dy = e.dy * yDrag ** dt
-		e.dx += dt * gx * e.gx
+		e.dx += dt * world.gx * e.gx
 	}
 	e.dx = e.dx * (e.impactDy < 0 ? groundDrag : airDrag) ** dt
 	if(e == me || dt > 1/30)e.ix = e.x, e.iy = e.y

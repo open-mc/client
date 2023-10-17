@@ -1,4 +1,7 @@
 import { BlockIDs, EntityIDs } from 'definitions'
+import { world } from 'world'
+import { Classes } from './definitions.js'
+
 const canvasPool = []
 export class Chunk extends Uint16Array{
 	constructor(buf){
@@ -79,16 +82,24 @@ export class Chunk extends Uint16Array{
 	static savedatahistory = []
 	hide(){
 		if(!this.ctx) return
-		canvasPool.push(this.ctx)
-		this.ctx.clearRect(0, 0, TEX_SIZE << 6, TEX_SIZE << 6)
+		if(this.ctx.width === 64) canvasPool2.push(this.ctx)
+		else canvasPool.push(this.ctx)
+		this.ctx.clearRect(0, 0, 64, 64)
 		this.ctx = null
 		this.rerenders.length = 0
 		for(let i = 0; i < 128; i++) this.animatedTiles[i] = 0
 	}
-	draw(){
-		if(this.ctx) return
+	draw(detail){
+		if(this.ctx) this.hide()
 		this.ctx = canvasPool.pop()
-		if(!this.ctx)this.ctx = Can(TEX_SIZE << 6, TEX_SIZE << 6, true), this.ctx.scale(TEX_SIZE,TEX_SIZE)
+		if(!this.ctx)this.ctx = Can(detail*64, detail*64), this.ctx.scale(detail,detail)
+		else if(this.ctx.w != detail*64){
+			this.ctx.resize(detail*64, detail*64)
+			this.ctx.scale(detail,detail)
+		}
+		this._draw()
+	}
+	_draw(){
 		for(let x = 0; x < 64; x++){
 			for(let y = 0; y < 64; y++){
 				const i = x|(y<<6)
@@ -99,15 +110,15 @@ export class Chunk extends Uint16Array{
 					const frames = floor(texture.h / texture.w)
 					if(frames > 1)
 						this.animatedTiles[i>>5] |= 1<<(i&31)
-					this.ctx.drawImage(texture.canvas,texture.x,texture.y + (ticks % floor(texture.h / texture.w)) * texture.w,texture.w,texture.w,x,63-y,1,1)
+					this.ctx.drawImage(texture.canvas,texture.x,texture.y + (world.tick % floor(texture.h / texture.w)) * texture.w,texture.w,texture.w,x,63-y,1,1)
 				}
 			}
 		}
-		this.lastFrame = ticks
+		this.lastFrame = world.tick
 	}
 	animate(){
-		if(this.lastFrame == ticks) return
-		this.lastFrame = ticks
+		if(this.lastFrame == world.tick) return
+		this.lastFrame = world.tick
 		for(let i = 0; i < 128; i++){
 			let int = this.animatedTiles[i]
 			if(!int) continue
@@ -118,8 +129,14 @@ export class Chunk extends Uint16Array{
 				const {texture} = b==65535 ? this.tileData.get(x|(y<<6)) : BlockIDs[b]
 				const x = (pos&63), y = (63-(pos>>6))
 				this.ctx.clearRect(x, y, 1, 1)
-				this.ctx.drawImage(texture.canvas, texture.x, texture.y + (ticks % floor(texture.h / texture.w)) * texture.w, texture.w, texture.w, x, y, 1, 1)
+				this.ctx.drawImage(texture.canvas, texture.x, texture.y + (world.tick % floor(texture.h / texture.w)) * texture.w, texture.w, texture.w, x, y, 1, 1)
 			}
 		}
 	}
 }
+
+Classes[1] = Chunk
+
+setTimeout(() => {
+	if(canvasPool.length > 10) canvasPool.length = 0
+}, 10e3)

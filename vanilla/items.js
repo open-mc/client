@@ -1,6 +1,7 @@
 import { Blocks, Items, Item } from 'definitions'
 import { itemify, slabifyItem } from './blockshapes.js'
 import './blocks.js'
+import { getblock } from 'world'
 
 const {Texture} = loader(import.meta)
 
@@ -41,7 +42,11 @@ Items.netherrack = itemify(Blocks.netherrack, 'Netherrack')
 Items.grass = itemify(Blocks.grass, 'Grass block')
 Items.dirt = itemify(Blocks.dirt, 'Dirt')
 Items.sugar_cane = class extends Item{
-	places(){ return Blocks.sugar_cane }
+	places(_, _2, x, y){
+		const bl = getblock(x-1, y-1), br = getblock(x+1, y-1), b = getblock(x, y-1)
+		if(b == Blocks.sugar_cane | (((bl.flows === false & bl.fluidType === 'water') | (br.flows === false & br.fluidType === 'water')) & b.solid))
+			return Blocks.sugar_cane
+	}
 	static texture = itemsPng.crop(16,256,16,16)
 	static defaultName = 'Sugar cane'
 }
@@ -161,3 +166,73 @@ Items.bucket_of_lava = class extends Item{
 	places(){ return Blocks.lava }
 	static defaultName = 'Bucket of lava'
 }
+
+Items.oak_sapling = class extends Item{
+	place(_, _2, x, y){ if(getblock(x,y-1).dirt) return Blocks.oak_sapling }
+	static texture = Blocks.oak_sapling.texture
+	static defaultName = 'Oak sapling'
+}
+
+Items.birch_sapling = class extends Item{
+	place(_, _2, x, y){ if(getblock(x,y-1).dirt) return Blocks.birch_sapling }
+	static texture = Blocks.birch_sapling.texture
+	static defaultName = 'Birch sapling'
+}
+
+Items.spruce_sapling = class extends Item{
+	place(_, _2, x, y){ if(getblock(x,y-1).dirt) return Blocks.spruce_sapling }
+	static texture = Blocks.spruce_sapling.texture
+	static defaultName = 'Spruce sapling'
+}
+
+Items.dark_oak_sapling = class extends Item{
+	place(_, _2, x, y){ if(getblock(x,y-1).dirt) return Blocks.dark_oak_sapling }
+	static texture = Blocks.dark_oak_sapling.texture
+	static defaultName = 'Dark oak sapling'
+}
+
+Items.acacia_sapling = class extends Item{
+	place(_, _2, x, y){ if(getblock(x,y-1).dirt) return Blocks.acacia_sapling }
+	static texture = Blocks.acacia_sapling.texture
+	static defaultName = 'Acacia sapling'
+}
+
+Items.jungle_sapling = class extends Item{
+	place(_, _2, x, y){ if(getblock(x,y-1).dirt) return Blocks.jungle_sapling }
+	static texture = Blocks.jungle_sapling.texture
+	static defaultName = 'Jungle sapling'
+}
+
+Items.bone_meal = class extends Item{
+	static texture = itemsPng.at(9, 9)
+	static defaultName = 'Bone meal'
+}
+
+Items.apple = class extends Item{
+	static texture = itemsPng.at(2, 0)
+	static defaultName = 'Apple'
+}
+
+Items.stick = class extends Item{
+	static texture = itemsPng.at(1, 17)
+	static defaultName = 'Stick'
+}
+
+const leavesItem = (B, B2, n) => class extends itemify(B, n){
+	places(_ , _2, _3, _4, x, y){	
+		if(getblock(x, y) === B2) return
+		return B
+	}
+}
+
+Items.oak_leaves = leavesItem(Blocks.oak_leaves, Blocks.oak_log, 'Oak Leaves')
+Items.birch_leaves = leavesItem(Blocks.birch_leaves, Blocks.birch_log, 'Birch Leaves')
+Items.spruce_leaves = leavesItem(Blocks.spruce_leaves, Blocks.spruce_log, 'Spruce Leaves')
+Items.dark_oak_leaves = leavesItem(Blocks.dark_oak_leaves, Blocks.dark_oak_log, 'Dark oak Leaves')
+Items.acacia_leaves = leavesItem(Blocks.acacia_leaves, Blocks.acacia_log, 'Acacia Leaves')
+Items.jungle_leaves = leavesItem(Blocks.jungle_leaves, Blocks.jungle_log, 'Jungle Leaves')
+
+Items.crafting_table = itemify(Blocks.crafting_table, 'Crafting table')
+
+Items.furnace = itemify(Blocks.furnace, 'Furnace')
+Items.chest = itemify(Blocks.chest, 'Chest')

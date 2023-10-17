@@ -30,7 +30,7 @@ function renderCamMode(){
 	camNode.textContent = 'Camera: ' + cameraOptions[options.camera]
 }
 function camChange(){
-	options.camera = (options.camera + 1) % 4
+	options.camera = (options.camera + 1) % 5
 	renderCamMode()
 }
 

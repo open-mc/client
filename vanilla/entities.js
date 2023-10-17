@@ -1,9 +1,8 @@
 import { particlePng, explode, AshParticle, BlastParticle, hurt } from './defs.js'
-import { renderItem, renderItemCount, renderSlot } from './effects.js'
+import { audioSet, renderItem, renderItemCount, renderSlot } from './effects.js'
 import { Entities, Entity, Item, Blocks, BlockIDs } from 'definitions'
 import { renderF3 } from 'api'
-import { getblock, cam, pointer } from 'world'
-import { Water } from './blocks.js'
+import { getblock, cam, worldEvents } from 'world'
 const {Audio, Texture} = loader(import.meta)
 
 const meInterface = Texture('meint.png')
@@ -79,7 +78,7 @@ export class LivingEntity extends Entity{
 		}else this.blocksWalked = this.dy < -10 ? 1.7 : 1.68
 
 		const l = this.state&0x20000, l2 = this.state&0x40000
-		const c = getblock(floor(this.x), floor(this.y+this.head)) instanceof Water, c2 = getblock(floor(this.x), floor(this.y+this.height*.25)) instanceof Water
+		const c = getblock(floor(this.x), floor(this.y+this.head)).fluidType == 'water', c2 = getblock(floor(this.x), floor(this.y+this.height*.25)).fluidType == 'water'
 		this.state = this.state&~0x60000|c<<17|c2<<18
 		if(l && !c){
 			// Left water
@@ -95,6 +94,7 @@ export class LivingEntity extends Entity{
 }
 
 const portalEnter = Audio('sound/portal/enter.mp3'), portalExit = Audio('sound/portal/exit.mp3'), endPortalMake = Audio('sound/portal/end.mp3')
+const thunder = audioSet('misc/thunder', 3)
 
 const skinCan = Can(28, 12, true)
 Entities.player = class extends LivingEntity{
@@ -226,13 +226,22 @@ Entities.player = class extends LivingEntity{
 		}
 	}
 }
-Entity[50] = function(){
-	this.sound(portalExit, 0.25, random() * 0.4 + 0.8)
+
+Entity[13] = function(buf){
+	this.selected = buf.byte()
 }
-Entity[52] = function(){
+
+worldEvents[50] = () => {
+	me.sound(portalExit, 0.25, random() * 0.4 + 0.8)
+}
+worldEvents[52] = () => {
 	// Heard portal open
-	this.sound(endPortalMake)
+	me.sound(endPortalMake)
 }
+worldEvents[53] = buf => {
+	me.sound(thunder, buf.float(), random()*.2+.8)
+}
+
 const pop = Audio('sound/misc/pop.mp3')
 
 Entities.item = class extends Entity{
@@ -342,4 +351,43 @@ Entities.end_crystal = class extends Entity{
 	}
 	static gx = 0
 	static gy = 0
+}
+
+
+Entities.lightning_bolt = class extends Entity{
+	static gx = 0
+	static gy = 0
+	seed = randint()
+	_fillRect(c, h = 32){
+		c.globalAlpha = 0.25
+		c.fillRect(-1, 0, 2, h)
+		c.globalAlpha = 0.5
+		c.fillRect(-2/3, 0, 4/3, h)
+		c.globalAlpha = 1
+		c.fillRect(-1/3, 0, 2/3, h)
+	}
+	render(c){
+		c.fillStyle = '#fff'
+		c.push()
+		const seed = this.seed >> (this.age > 10 ? 16 : 1)
+		let x = ((seed&15)-7.5)/30
+		c.transform(1, 0, x, 1, 0, 0)
+		this._fillRect(c)
+		c.peek()
+		let ox = x*32
+		c.translate(ox, 32)
+		x = ((seed>>4&15)-7.5)/30
+		c.transform(1, 0, x, 1, 0, 0)
+		this._fillRect(c)
+		c.peek()
+		ox += x * 32
+		c.translate(ox, 32*2)
+		x = ((seed>>8&15)-7.5)/30
+		c.transform(1, 0, x, 1, 0, 0)
+		this._fillRect(c, 192)
+		c.pop()
+	}
+	1(){
+		this.sound(explode, 2)
+	}
 }

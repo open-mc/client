@@ -12,11 +12,11 @@ Other sounds: **C418** + **Mojang AB**
 
 ## Client software
 
-[OpenMC organization](https://github.com/open-mc)
+[Open-MC organization](https://github.com/open-mc)
 
 - BlobTheKat
 - Zekiah-A
 
 ## Server software
 
-[OpenMC organization](https://github.com/open-mc)
+[Open-MC organization](https://github.com/open-mc)

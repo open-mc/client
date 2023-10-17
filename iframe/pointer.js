@@ -107,7 +107,7 @@ export function drawPointer(c){
 		}
 	}else px -= bpx - bx, py -= bpy - by, bpfx = px, bpfy = py
 	if(!getblock(bpx, bpy).replacable) bpx = bpy = bpfx = bpfy = NaN
-	blockPlacing = item?.places?.(bpfx, bpfy)
+	blockPlacing = item?.places?.(bpfx, bpfy, bpx, bpy, bx, by)
 	const up = getblock(bpx, bpy + 1), down = getblock(bpx, bpy - 1), left = getblock(bpx - 1, bpy), right = getblock(bpx + 1, bpy)
 	if(interactFluid ?
 		up.flows === false && down.flows === false && left.flows === false && right.flows === false
@@ -120,7 +120,7 @@ export function drawPointer(c){
 			if(ch)for(const e of ch.entities)
 				if(e.y < bpy + 1 && e.y + e.height > bpy && e.x - e.width < bpx + 1 && e.x + e.width > bpx){
 					//Don't allow placing because there is an entity in the way
-					if(blockPlacing?.blockShape?.length!==0 && blockPlacing?.solid!==false && !interactFluid) blockPlacing = null, bpx = bpy = bpfx = bpfy = NaN
+					if(blockPlacing?.blockShape?.length!==0 && blockPlacing?.solid===true && !interactFluid) blockPlacing = null, bpx = bpy = bpfx = bpfy = NaN
 					break a
 				}
 		if(renderUI){

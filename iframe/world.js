@@ -1,4 +1,4 @@
-import { BlockIDs, Blocks } from 'definitions'
+import { BlockIDs, Classes } from 'definitions'
 import { musicdict } from './sounds.js'
 export const map = globalThis.map = new Map, entityMap = globalThis.entityMap = new Map()
 export const server = {
@@ -10,6 +10,7 @@ export const server = {
 export const cam = {x: 0, y: 0, z: .5, rot: 0}
 
 function variant(ch, i, x, y, b){
+	if(!ch) return
 	if(!b){
 		const id = ch[i]
 		b = id==65535?ch.tileData.get(i):BlockIDs[id]
@@ -36,7 +37,7 @@ function updateDrawn(o, n, ch, i){
 		let j = ch.rerenders.indexOf(i)
 		if((j == -1) & (render != undefined)) ch.rerenders.push(i)
 		else if((j > -1) & (render == undefined)) ch.rerenders.splice(j, 1)
-		if(texture) ch.ctx.drawImage(texture.canvas,texture.x,texture.y + (ticks % floor(texture.h / texture.w)) * texture.w,texture.w,texture.w,i&63,63-(i>>6),1,1)
+		if(texture) ch.ctx.drawImage(texture.canvas,texture.x,texture.y + (world.tick % floor(texture.h / texture.w)) * texture.w,texture.w,texture.w,i&63,63-(i>>6),1,1)
 	}
 }
 
@@ -96,3 +97,15 @@ export const music = (theme, ...audios) => {
 }
 
 export * as pointer from './pointer.js'
+
+export { worldEvents } from './incomingPacket.js'
+
+export const world = {
+	id: '',
+	tick: 0,
+	gx: 0, gy: 0,
+	weather: 0,
+	weatherFade: 0
+}
+
+export let bigintOffset = {x: 0n, y: 0n}

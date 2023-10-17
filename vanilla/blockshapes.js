@@ -1,5 +1,5 @@
 import { Item } from 'definitions'
-import { getblock } from 'world'
+import { getblock, world } from 'world'
 export const BlockShape = {}
 BlockShape.SLAB = [0, 0, 1, 0.5]
 BlockShape.UPPER_SLAB = [0, 0.5, 1, 1]
@@ -55,8 +55,9 @@ export const itemify = (B, n) => class extends Item{
 
 
 
-export const fluidify = (B, tex, flowingTex) => {
+export const fluidify = (B, type, tex, flowingTex) => {
 	B.texture = tex
+	B.fluidType = type
 	const filled = class extends B{
 		variant(x, y){ return !getblock(x, y+1).fluidLevel ? top : undefined }
 		static fluidLevel = 8
@@ -71,7 +72,7 @@ export const fluidify = (B, tex, flowingTex) => {
 			const t = b == flowing ? flowingTex : tex
 			c.scale(1/16,1/16)
 			c.fillPattern(t)
-			t.setPatternTransform(1, 0, 0, 1, 0, -t.w-(ticks%floor(t.h/t.w))*t.w)
+			t.setPatternTransform(1, 0, 0, 1, 0, -t.w-(world.tick%floor(t.h/t.w))*t.w)
 			c.fillRect(0, 0, 16, 14)
 		}
 	}
@@ -86,7 +87,7 @@ export const fluidify = (B, tex, flowingTex) => {
 		render(c, x, y){
 			c.scale(1/16,1/16)
 			c.fillPattern(flowingTex)
-			flowingTex.setPatternTransform(1, 0, 0, 1, 0, -flowingTex.w-(ticks%floor(flowingTex.h/flowingTex.w))*flowingTex.w)
+			flowingTex.setPatternTransform(1, 0, 0, 1, 0, -flowingTex.w-(world.tick%floor(flowingTex.h/flowingTex.w))*flowingTex.w)
 			let y1 = 0, y2 = 0
 			{
 				const {solid, fluidLevel} = getblock(x+1,y)

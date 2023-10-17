@@ -110,3 +110,5 @@ export const codes = new Array(256)
 
 export const onpacket = (c, cb) => codes[c] = cb
 export const send = buf => postMessage(buf.build ? buf.build().buffer : buf.buffer || buf, '*')
+
+export const download = blob => postMessage(blob, '*')

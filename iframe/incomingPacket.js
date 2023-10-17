@@ -1,9 +1,11 @@
-import { getblock, setblock, gridEventMap, gridEvents, map, entityMap, server } from 'world'
+import { getblock, setblock, gridEventMap, gridEvents, map, entityMap, server, world } from 'world'
 import { Chunk } from './chunk.js'
 import { queue } from './sounds.js'
 import { moveEntity } from './entity.js'
 import { BlockIDs, EntityIDs, foundMe } from 'definitions'
 import { codes } from 'api'
+import { Classes } from './definitions.js'
+import { bigintOffset } from './world.js'
 
 function rubberPacket(data){
 	meid = data.uint32() + data.uint16() * 4294967296
@@ -13,14 +15,14 @@ function rubberPacket(data){
 	TPS = data.float()
 	perms = data.byte()
 }
-function dimPacket(data){
-	queue(world = data.string())
-	gx = data.float()
-	gy = data.float()
-	ticks = data.double()
+function dimensionPacket(data){
+	queue(world.id = data.string())
+	world.gx = data.float()
+	world.gy = data.float()
+	data.read(Classes[0].savedata, world)
 }
 function clockPacket(data){
-	ticks = data.double()
+	world.tick = data.double()
 }
 function chunkPacket(buf){
 	const chunk = new Chunk(buf)
@@ -127,13 +129,55 @@ function serverPacket(buf){
 	Promise.all(pr).then(a => server.players = a)
 }
 
+function worldPacket(buf){
+	let id
+	while(id = buf.byte())
+		worldEvents[id]?.(buf)
+}
+
+export const worldEvents = new Array(256)
+worldEvents[10] = buf => {
+	world.weather = buf.uint32()
+	world.weatherFade = 40
+}
+
+function setBigintOffset(buf){
+	let n = 0n
+	for(const v of buf.uint8array())
+		n <<= 8n, n |= BigInt(v)
+	n <<= 16n
+	const offx = Number(bigintOffset.x - n & 0xFFFF0000n) | 0
+	bigintOffset.x = n
+	n = 0n
+	for(const v of buf.uint8array())
+		n <<= 8n, n |= BigInt(v)
+	n <<= 16n
+	const offy = Number(bigintOffset.y - n & 0xFFFF0000n) | 0
+	bigintOffset.y = n
+
+	const chunks = [...map.values()]
+	map.clear()
+	for(const c of chunks){
+		c.x += offx >> 6; c.y += offx >> 6
+		map.set(c.x+c.y*0x4000000, c)
+	}
+	for(const e of entityMap.values()){
+		e.x += offx; e.y += offy
+	}
+	for(const g of gridEventMap.values()){
+		g.x += offx; g.y += offy
+	}
+}
+
 Object.assign(codes, {
 	1: rubberPacket,
-	2: dimPacket,
+	2: dimensionPacket,
 	3: clockPacket,
 	4: serverPacket,
 	8: blockSetPacket,
+	15: worldPacket,
 	16: chunkPacket,
 	17: chunkDeletePacket,
 	20: entityPacket,
+	64: setBigintOffset
 })

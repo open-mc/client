@@ -9,6 +9,7 @@ export const animatedPng = Texture("animated.png")
 
 Blocks.air = class extends Block{ static solid = false; static replacable = true }
 Blocks.grass = class extends Block{
+	static dirt = true
 	static texture = terrainPng.at(0, 0)
 	static breaktime = 1.5
 	static tool = 'shovel'
@@ -36,6 +37,7 @@ Blocks.glowing_obsidian = class extends Blocks.obsidian{
 	static texture = terrainPng.at(5, 4)
 }
 Blocks.dirt = class extends Block{
+	static dirt = true
 	static texture = terrainPng.at(2, 0)
 	static breaktime = 1
 	static tool = 'shovel'
@@ -126,7 +128,7 @@ const bucketSounds = {
 	emptyWater: audioSet('bucket/empty_water', 3)
 }
 
-export class Water extends Block{
+class Water extends Block{
 	static solid = false
 	static replacable = true
 	static climbable = true
@@ -149,7 +151,7 @@ void({
 	top: Blocks.waterTop,
 	flowing: Blocks.waterFlowing,
 	levels: [, Blocks.waterFlowing1, Blocks.waterFlowing2, Blocks.waterFlowing3, Blocks.waterFlowing4, Blocks.waterFlowing5, Blocks.waterFlowing6, Blocks.waterFlowing7]
-} = fluidify(Water, animatedPng.at(2, 0, 32), animatedPng.at(5, 0, 64)))
+} = fluidify(Water, 'water', animatedPng.at(2, 0, 32), animatedPng.at(5, 0, 64)))
 
 class Lava extends Block{
 	static solid = false
@@ -172,7 +174,7 @@ void({
 	top: Blocks.lavaTop,
 	flowing: Blocks.lavaFlowing,
 	levels: [, Blocks.lavaFlowing1, Blocks.lavaFlowing2, Blocks.lavaFlowing3, Blocks.lavaFlowing4, Blocks.lavaFlowing5, Blocks.lavaFlowing6, Blocks.lavaFlowing7]
-} = fluidify(Lava, animatedPng.at(3, 0, 38), animatedPng.at(4, 0, 32)))
+} = fluidify(Lava, 'lava', animatedPng.at(3, 0, 38), animatedPng.at(4, 0, 32)))
 
 Blocks.sandstone = class extends Stone{
 	static texture = terrainPng.at(1, 11)
@@ -227,10 +229,6 @@ Blocks.chest = class extends Block{
 	items = Array.null(27)
 	name = ''
 	static tool = 'axe'
-	static savedata = {
-		items: [Item, 27],
-		name: String
-	}
 }
 
 class Wool extends Block{
@@ -361,3 +359,87 @@ Blocks.pumpkin_leaf = class extends Block{
 Blocks.pumpkin_leaf1 = class extends Blocks.pumpkin_leaf{ }
 Blocks.pumpkin_leaf2 = class extends Blocks.pumpkin_leaf{ }
 Blocks.pumpkin_leaf3 = class extends Blocks.pumpkin_leaf{ }
+
+class Sapling extends Block{
+	static solid = false
+	static targettable = true
+	static placeSounds = Blocks.grass.placeSounds
+}
+
+Blocks.oak_sapling = class extends Sapling{
+	static texture = terrainPng.at(14, 2)
+}
+
+Blocks.birch_sapling = class extends Sapling{
+	static texture = terrainPng.at(15, 4)
+}
+
+Blocks.spruce_sapling = class extends Sapling{
+	static texture = terrainPng.at(15, 3)
+}
+
+Blocks.dark_oak_sapling = class extends Sapling{
+	static texture = terrainPng.at(14, 4)
+}
+
+Blocks.acacia_sapling = class extends Sapling{
+	static texture = terrainPng.at(14, 3)
+}
+
+Blocks.jungle_sapling = class extends Sapling{
+	static texture = terrainPng.at(15, 2)
+}
+
+class Leaves extends Block{
+	static placeSounds = Blocks.grass.placeSounds
+	static stepSounds = Blocks.grass.stepSounds
+}
+
+Blocks.oak_leaves = class extends Leaves{
+	static texture = terrainPng.at(0, 12)
+}
+Blocks.birch_leaves = class extends Leaves{
+	static texture = terrainPng.at(2, 12)
+}
+Blocks.spruce_leaves = class extends Leaves{
+	static texture = terrainPng.at(2, 12)
+}
+Blocks.dark_oak_leaves = class extends Leaves{
+	static texture = terrainPng.at(0, 12)
+}
+Blocks.acacia_leaves = class extends Leaves{
+	static texture = terrainPng.at(0, 12)
+}
+Blocks.jungle_leaves = class extends Leaves{
+	static texture = terrainPng.at(4, 12)
+}
+
+Blocks.oak_log_leaves = class extends Leaves{
+	static texture = terrainPng.at(5, 12)
+}
+Blocks.birch_log_leaves = class extends Leaves{
+	static texture = terrainPng.at(6, 12)
+}
+Blocks.spruce_log_leaves = class extends Leaves{
+	static texture = terrainPng.at(7, 12)
+}
+Blocks.dark_oak_log_leaves = class extends Leaves{
+	static texture = terrainPng.at(8, 12)
+}
+Blocks.acacia_log_leaves = class extends Leaves{
+	static texture = terrainPng.at(9, 12)
+}
+Blocks.jungle_log_leaves = class extends Leaves{
+	static texture = terrainPng.at(10, 12)
+}
+
+Blocks.crafting_table = class extends Planks{
+	static texture = terrainPng.at(12, 3)
+}
+
+Blocks.furnace = class extends Stone{
+	static texture = terrainPng.at(12, 2)
+}
+Blocks.lit_furnace = class extends Blocks.furnace{
+	static texture = terrainPng.at(13, 3)
+}

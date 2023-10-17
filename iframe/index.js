@@ -1,16 +1,18 @@
 import { playerControls } from './controls.js'
 import { DataWriter, DataReader } from 'https://unpkg.com/dataproto/index.js'
 import { mePhysics, stepEntity } from './entity.js'
-import { gridEventMap, getblock, entityMap, map, cam, server } from 'world'
+import { gridEventMap, getblock, entityMap, map, cam, server, world } from 'world'
 import * as pointer from './pointer.js'
-import { button, drawPhase, renderLayer, uiLayer, W, H, W2, H2, SCALE, options, paused, _recalcDimensions, _renderPhases, renderBoxes, renderF3, send } from 'api'
+import { button, drawPhase, renderLayer, uiLayer, W, H, W2, H2, SCALE, options, paused, _recalcDimensions, _renderPhases, renderBoxes, renderF3, send, download } from 'api'
 import { particles } from 'definitions'
 import { VERSION } from '../version.js'
+import { bigintOffset } from './world.js'
 
 
 let last = performance.now(), count = 1.1, timeToFrame = 0
-t = Date.now()/1000%86400
+t = performance.now()/1000
 setInterval(function(){
+	t = performance.now()/1000
 	eluStart()
 	const now = performance.now()
 	let update = 1000 / TPS
@@ -31,7 +33,7 @@ setInterval(function(){
 const sendDelay = 1 //send packet every tick
 function tick(){ //20 times a second
 	if(dt < 1/20000)dt = 1/20000
-	if(ticks % sendDelay == 0 && me && me.netId > -1){
+	if(world.tick % sendDelay == 0 && me && me.netId > -1){
 		let buf = new DataWriter()
 		buf.byte(4)
 		buf.byte(r)
@@ -43,7 +45,10 @@ function tick(){ //20 times a second
 		pointer.checkBlockPlacing(buf)
 		send(buf)
 	}
-	ticks++
+	world.tick++
+	if(world.weather&0x0FFFFFFF) world.weather--
+	else world.weather = 0
+	if(world.weatherFade) world.weatherFade--
 	const x = floor(me.x + random() * 16 - 8), y = floor(me.y + random() * 16 - 8)
 	const randomBlock = getblock(x, y)
 	if(randomBlock.random) randomBlock.random(x, y)
@@ -66,14 +71,13 @@ globalThis.FONT = '1000px mc'
 export function frame(){
 	const now = performance.now()
 	eluStart()
-	dt += (min(300, now - lastFrame) / 1000 * options.speed - dt) / 20
-	t += (now - lastFrame) / 1000 * options.speed
+	dt += (min(300, now - lastFrame) / 1000 * options.speed - dt) / round(.333333/dt)
 	lastFrame = now
 	requestAnimationFrame(frame)
 	if(!me || me.netId == -1) return
 	playerControls()
 	for(const entity of entityMap.values())stepEntity(entity)
-	const tzoom = (me.state & 4 ? -0.13 : 0) * ((1 << options.ffx) - 1) + 1
+	const tzoom = (me.state & 4 ? -0.13 : 0) * ((1 << options.ffx * (options.camera != 4)) - 1) + 1
 	cam.z = sqrt(sqrt(cam.z * cam.z * cam.z * 2 ** (options.zoom * 10 - 6) * devicePixelRatio * tzoom))
 	_recalcDimensions(c, cam.z)
 	c.transforms.length = 0
@@ -108,10 +112,13 @@ export function frame(){
 		cam.x = me.x
 		cam.y = me.y + me.head / 2
 	}else if(options.camera == 4){
-		if(me.x > cam.x + W2)cam.x += W2*2
-		if(me.x < cam.x - W2)cam.x -= W2*2
-		if(me.y > cam.y + H2)cam.y += H2*2
-		if(me.y < cam.y - H2)cam.y -= H2*2
+		const dx = ifloat(me.x - cam.x), dy = ifloat(me.y + me.head/2 - cam.y)
+		if(abs(dx) > W2 * 2 - 2) cam.x += dx
+		else if(dx > W2 - 1)cam.x += W2*2 - 2
+		else if(dx < 1 - W2)cam.x -= W2*2 - 2
+		if(abs(dy) > H2 * 2 - 2) cam.y += dy
+		else if(dy > H2 - 1)cam.y += H2*2 - 2
+		else if(dy < 1 - H2)cam.y -= H2*2 - 2
 	}
 	cam.rot = max(0, cam.rot - dt)
 	c.font = FONT
@@ -135,11 +142,13 @@ export function frame(){
 	delta.jlx = delta.jly = 0
 	delta.jrx = delta.jry = 0
 }
+globalThis.cam = cam
 drawPhase(200, (c, w, h) => {
 	const hitboxes = buttons.has(KEYS.SYMBOL) | renderBoxes
 	c.setTransform(1,0,0,1,W2*SCALE,h-H2*SCALE)
 	c.rotate(cam.rot)
 	c.translate(-W2*SCALE,H2*SCALE)
+	const expectedDetail = max(1, min(TEX_SIZE, 2**ceil(log2(cam.z*1.189207115*devicePixelRatio)+2)))
 	for(const chunk of map.values()){
 		const cxs = chunk.x << 6, cys = chunk.y << 6
 		const x0 = round(ifloat(cxs - cam.x + W2) * SCALE)
@@ -147,7 +156,7 @@ drawPhase(200, (c, w, h) => {
 		const y0 = round(ifloat(cys - cam.y + H2) * SCALE)
 		const y1 = round(ifloat(cys + 64 - cam.y + H2) * SCALE)
 		if(x1 <= 0 || y1 <= 0 || x0 >= w || y0 >= h){ chunk.hide(); continue }
-		if(!chunk.ctx)chunk.draw()
+		if(!chunk.ctx || chunk.ctx.w < expectedDetail*64 || chunk.ctx.w > expectedDetail*128) chunk.draw(expectedDetail)
 		c.push()
 		c.translate(x0,-y0)
 		c.scale((x1-x0)/64,(y0-y1)/64)
@@ -231,17 +240,32 @@ renderLayer(400, c => {
 	pointer.drawPointer(c)
 })
 
+function toString(big, num, precision = 3){
+	let v
+	if(!precision){
+		v = big + BigInt(floor(num)).toString()
+	}else if(-num <= big) v = (big + BigInt(floor(num))).toString() + (num%1+1).toFixed(precision).slice(1)
+	else{
+		const x = big + BigInt(ceil(num))
+		v = (x?'':'-') + x.toString() + (num%1-1).toFixed(precision).slice(2)
+	}
+	if(v.length > 50) v = v.slice(0, 10) + '...' + v.slice(-39)
+	return v
+}
+
 uiLayer(1000, (c, w, h) => {
 	if(!renderF3 && !buttons.has(KEYS.SYMBOL)) return
 	c.textAlign = 'left'
 	let y = h - 1
+	const trueX = toString(bigintOffset.x, me.x, 3), trueY = toString(bigintOffset.y, me.y, 3)
+
 	for(const t of `Paper Minecraft ${VERSION}
 FPS: ${round(1/dt)} (${timeToFrame.toFixed(2).padStart(5,'\u2007')}ms)
 ELU: ${min(100,elusmooth*100).toFixed(1).padStart(4,'\u2007')}%${performance.memory ? ', MEM: '+(performance.memory.usedJSHeapSize/1048576).toFixed(1)+'MB' : ''}
 Ch: ${map.size}, E: ${entityMap.size}, P: ${particles.size}
-XY: ${me.x.toFixed(3)} / ${me.y.toFixed(3)}
-ChXY: ${(floor(me.x) & 63).toString().padStart(2,'\u2007')} ${(floor(me.y) & 63).toString().padStart(2,'\u2007')} in ${floor(me.x) >> 6} ${floor(me.y) >> 6}
-Looking at: ${floor(pointer.x + me.x)|0} ${floor(pointer.y + me.y + me.head)|0}
+XY: ${trueX} / ${trueY}
+ChXY: ${(floor(me.x) & 63).toString().padStart(2,'\u2007')} ${(floor(me.y) & 63).toString().padStart(2,'\u2007')} in ${toString(bigintOffset.x>>6n,floor(me.x) >> 6, 0)} ${toString(bigintOffset.y>>6n,floor(me.y) >> 6, 0)}
+Looking at: ${toString(bigintOffset.x, floor(pointer.x + me.x)|0, 0)} ${toString(bigintOffset.y, floor(pointer.y + me.y + me.head)|0, 0)}
 Facing: ${(me.f >= 0 ? 'R' : 'L') + (90 - abs(me.f / PI2 * 360)).toFixed(1).padStart(5, '\u2007')} (${(me.f / PI2 * 360).toFixed(1)})
 `.slice(0, -1).split('\n')){
 		let {top, bottom, width} = c.measureText(t, 10)
@@ -255,8 +279,8 @@ Facing: ${(me.f >= 0 ? 'R' : 'L') + (90 - abs(me.f / PI2 * 360)).toFixed(1).padS
 	y = h - 1
 	c.textAlign = 'right'
 	const lookingAt = getblock(floor(pointer.x + me.x), floor(pointer.y + me.y + me.head))
-	for(const t of `Tick ${ticks}, Day ${floor((ticks+6000)/24000)}, Time ${floor((ticks/1000+6)%24).toString().padStart(2,'0')}:${(floor((ticks/250)%4)*15).toString().padStart(2,'0')}
-Dimension: ${world}
+	for(const t of `Tick ${world.tick}, Day ${floor((world.tick+6000)/24000)}, Time ${floor((world.tick/1000+6)%24).toString().padStart(2,'0')}:${(floor((world.tick/250)%4)*15).toString().padStart(2,'0')}
+Dimension: ${world.id}
 Biome: ${me.chunk ? round(me.chunk.biomes[mex] * (1 - mexi) + me.chunk.biomes[mex+2] * mexi) : 0}/${me.chunk ? round(me.chunk.biomes[mex+1] * (1 - mexi) + me.chunk.biomes[mex+3] * mexi) : 0}
 Looking at: ${lookingAt.className+(lookingAt.savedata?' {...}':'')} (${lookingAt.id})
 `.slice(0, -1).split('\n')){

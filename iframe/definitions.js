@@ -1,5 +1,5 @@
 import { renderLayer, options } from 'api'
-import { getblock, sound, entityMap, cam } from 'world'
+import { getblock, sound, entityMap, cam, world } from 'world'
 import { registerTypes } from 'https://unpkg.com/dataproto/index.js'
 import * as pointer from './pointer.js'
 import { EPSILON } from './entity.js'
@@ -20,15 +20,6 @@ export class Block{
 	static climbable = false
 	static viscosity = 0
 	static breaktime = 3
-	1(buf, x, y){
-		if(this.placeSounds.length)
-			sound(this.placeSounds, x, y, 1, 0.8)
-	}
-	2(buf, x, y){
-		if(this.placeSounds.length)
-			sound(this.placeSounds, x, y, 1, 0.8)
-		blockBreak(this, x, y)
-	}
 	punch(x, y){
 		if(this.stepSounds.length)
 			sound(this.stepSounds, x, y, 0.1375, 0.5)
@@ -128,7 +119,7 @@ export const BlockIDs = [], ItemIDs = [], EntityIDs = []
 Object.assign(globalThis, {Blocks, Items, Entities, BlockIDs, ItemIDs, EntityIDs})
 
 export class Particle{
-	constructor(physical, lifetime, x, y, dx, dy, ddx = gx, ddy = gy){
+	constructor(physical, lifetime, x, y, dx, dy, ddx = world.gx, ddy = world.gy){
 		this.physical = physical; this.lifetime = lifetime
 		this.x = x; this.y = y
 		this.dx = dx; this.dy = dy
@@ -237,7 +228,7 @@ export class BlockParticle extends Particle{
 		if(!this.block || !this.block.texture) return
 		const w = (this.frac&2)+2, h = (this.frac<<1&2)+2
 		const {w: tw, h: th} = this.block.texture
-		c.image(this.block.texture, -0.1, -0.1, w/20, h/20, (this.frac & 3) << 2, (this.frac & 12) + (ticks%floor(th/tw))*tw, w, h)
+		c.image(this.block.texture, -0.1, -0.1, w/20, h/20, (this.frac & 3) << 2, (this.frac & 12) + (world.tick%floor(th/tw))*tw, w, h)
 	}
 }
 export function blockBreak(block, x, y){
@@ -260,3 +251,5 @@ export function punchParticles(block, x, y){
 	particle = new BlockParticle(block, s>>4, x, y)
 	particle.dy /= 2; particle.lifetime /= 2; particle.physical = false; particle.ddy /= 2
 }
+
+export const Classes = []
