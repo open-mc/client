@@ -95,14 +95,17 @@ export class Entity{
 	}
 	update(){}
 	place(){
+		if(entityMap.has(this.netId)) return false
 		entityMap.set(this.netId, this)
 		this.ix = this.x; this.iy = this.y
 		if(meid === this.netId && me != this) foundMe(this)
+		return true
 	}
 	remove(){
-		entityMap.delete(this.netId)
+		const a = entityMap.delete(this.netId)
 		this.netId = -1
 		if(this.chunk) this.chunk.entities.delete(this)
+		return a
 	}
 	sound(a,b=1,c=1){ sound(a, this.ix-.5, this.iy-.5+this.head, b, c) }
 	static width = 0.5

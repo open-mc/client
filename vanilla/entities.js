@@ -3,6 +3,7 @@ import { audioSet, renderItem, renderItemCount, renderSlot } from './effects.js'
 import { Entities, Entity, Item, Blocks, BlockIDs } from 'definitions'
 import { renderF3 } from 'api'
 import { getblock, cam, worldEvents } from 'world'
+import { uiLayer } from '../iframe/api.js'
 const {Audio, Texture} = loader(import.meta)
 
 const meInterface = Texture('meint.png')
@@ -318,7 +319,7 @@ Entities.tnt = class extends Entity{
 	}
 	1(){
 		this.sound(fuse)
-	}	
+	}
 	2(){ this.fusing = 1 }
 	3(){
 		this.sound(explode)
@@ -353,11 +354,19 @@ Entities.end_crystal = class extends Entity{
 	static gy = 0
 }
 
-
+export let lightningBoltCount = 0
+uiLayer(50, (c, w, h) => {
+	if(!lightningBoltCount) return
+	c.fillStyle = '#fff'
+	c.globalAlpha = (1-0.8**lightningBoltCount)*(t%.4<.2)
+	c.fillRect(0, 0, w, h)
+	c.globalAlpha = 1
+})
 Entities.lightning_bolt = class extends Entity{
 	static gx = 0
 	static gy = 0
 	seed = randint()
+	place(){ if(super.place()) lightningBoltCount++ }
 	_fillRect(c, h = 32){
 		c.globalAlpha = 0.25
 		c.fillRect(-1, 0, 2, h)
@@ -390,4 +399,5 @@ Entities.lightning_bolt = class extends Entity{
 	1(){
 		this.sound(explode, 2)
 	}
+	remove(){ if(super.remove()) lightningBoltCount-- }
 }
