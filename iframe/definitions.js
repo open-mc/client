@@ -1,6 +1,6 @@
 import { renderLayer, options } from 'api'
 import { getblock, sound, entityMap, cam, world } from 'world'
-import { registerTypes } from 'https://unpkg.com/dataproto/index.js'
+import { registerTypes } from '/server/modules/dataproto.js'
 import * as pointer from './pointer.js'
 import { EPSILON } from './entity.js'
 

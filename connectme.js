@@ -1,4 +1,4 @@
-import { DataReader, decoder } from 'https://unpkg.com/dataproto/index.js'
+import { DataReader, decoder } from '/server/modules/dataproto.js'
 import "./uis/chat.js"
 import { msg, pendingConnection, reconn } from './uis/dirtscreen.js'
 import { Btn, click, Div, Img, Label, ping, Row } from './ui.js'

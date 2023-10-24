@@ -1,5 +1,5 @@
 import { playerControls } from './controls.js'
-import { DataWriter, DataReader } from 'https://unpkg.com/dataproto/index.js'
+import { DataWriter, DataReader } from '/server/modules/dataproto.js'
 import { mePhysics, stepEntity } from './entity.js'
 import { gridEventMap, getblock, entityMap, map, cam, server, world } from 'world'
 import * as pointer from './pointer.js'
