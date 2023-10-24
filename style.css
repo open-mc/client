@@ -181,6 +181,7 @@ hr{
 ::placeholder{ color: #8888 }
 
 #ui{
+	padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 	display: flex;
 	position: absolute;
 	flex-direction: column;
