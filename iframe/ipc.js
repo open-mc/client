@@ -89,7 +89,7 @@ const onMsg = ({data,origin}) => {
 			let proto = Thing
 			do{
 				const desc = Object.getOwnPropertyDescriptors(proto), desc2 = Object.getOwnPropertyDescriptors(proto.prototype)
-				delete desc.length; delete desc.name; delete desc2.constructor
+				delete desc.length; delete desc.name
 				Object.defineProperties(proto.prototype, desc)
 				Object.defineProperties(proto, desc2)
 				proto = Object.getPrototypeOf(proto)

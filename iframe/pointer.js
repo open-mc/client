@@ -201,8 +201,8 @@ export function pointerMoved(dx, dy){
 	jrx = jry = 0
 	const reach = effectiveReach()
 	const s = min(reach, sqrt(x * x + y * y))
-	x += dx * 9 ** options.sensitivity / 3 / cam.z / TEX_SIZE
-	y += dy * 9 ** options.sensitivity / 3 / cam.z / TEX_SIZE
+	x += dx * 9 ** options.sensitivity / 3 / cam.z / TEX_SIZE / 2
+	y += dy * 9 ** options.sensitivity / 3 / cam.z / TEX_SIZE / 2
 	const ns = sqrt(x * x + y * y)
 	if(!ns) return x = y = 0
 	if(ns > s){

@@ -4,6 +4,10 @@
 	font-weight: normal;
 	font-style: normal;
 }
+@keyframes slide{
+	0%{background-position-x: 0}
+	100%{background-position-x: -2560px;}
+}
 html{font-size:2px}
 body{
 	width: 100%;
