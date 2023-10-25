@@ -26,6 +26,7 @@ export const options = {}
 const defaults = {
 	guiScale: 1,
 	zoom: 0.6,
+	supersample: 0.5,
 	sound: 0.75,
 	music: 0.75,
 	sensitivity: 0.5,

@@ -1,6 +1,6 @@
 import { pause } from './pauseui.js'
-import { options } from '../save.js'
-import { Btn, Label, Row, Scale, ScaleSmall, showUI, Spacer, UI } from '../ui.js'
+import { options } from '../js/save.js'
+import { Btn, Label, Row, Scale, ScaleSmall, showUI, Spacer, UI } from '../js/ui.js'
 import { advancedOptionsScreen } from './advanced.js'
 import { controlsScreen } from './controlsScreen.js'
 

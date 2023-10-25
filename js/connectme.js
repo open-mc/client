@@ -1,10 +1,10 @@
 import { DataReader, decoder } from '/server/modules/dataproto.js'
-import "./uis/chat.js"
-import { msg, pendingConnection, reconn } from './uis/dirtscreen.js'
+import "../uis/chat.js"
+import { msg, pendingConnection, reconn } from '../uis/dirtscreen.js'
 import { Btn, click, Div, Img, Label, ping, Row } from './ui.js'
 import { servers, saveServers, storage, options } from './save.js'
 import { destroyIframe, fwPacket, gameIframe } from './iframe.js'
-import { PROTOCOL_VERSION } from './version.js'
+import { PROTOCOL_VERSION } from '../version.js'
 let lastIp = null
 globalThis.ws = null
 

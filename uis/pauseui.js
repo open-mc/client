@@ -1,4 +1,4 @@
-import { Btn, Div, hideUI, Label, Row, setDefaultUI, showUI, UI } from '../ui.js'
+import { Btn, Div, hideUI, Label, Row, setDefaultUI, showUI, UI } from '../js/ui.js'
 import { controlsScreen } from './controlsScreen.js'
 import { feedback } from './feedbackui.js'
 import { optionsScreen } from './options.js'

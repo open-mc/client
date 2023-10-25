@@ -1,7 +1,7 @@
 import { listen, options, storage } from './save.js'
 import { hideUI, showUI, ui } from './ui.js'
-import { pause } from './uis/pauseui.js'
-import { serverlist } from './uis/serverlist.js'
+import { pause } from '../uis/pauseui.js'
+import { serverlist } from '../uis/serverlist.js'
 
 export let iframe = document.createElement('iframe'), win = null
 

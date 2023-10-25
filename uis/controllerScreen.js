@@ -1,6 +1,5 @@
-import { options } from '../save.js'
-import { Btn, Label, Row, showUI, Spacer, UI } from '../ui.js'
-import { optionsScreen } from './options.js'
+import { options } from '../js/save.js'
+import { Btn, Label, Row, showUI, Spacer, UI } from '../js/ui.js'
 import { controlsScreen } from './controlsScreen.js'
 
 function renderJoy(){

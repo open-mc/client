@@ -10,9 +10,10 @@ export const _optionListeners = {}
 export let W2 = 0, H2 = 0, W = 0, H = 0, SCALE = 1
 
 export function _recalcDimensions(c, camZ){
-	SCALE = camZ * TEX_SIZE
-	W2 = (W = round(visualViewport.width * visualViewport.scale * devicePixelRatio)) / SCALE / 2
-	H2 = (H = round(visualViewport.height * visualViewport.scale * devicePixelRatio)) / SCALE / 2
+	const dpx = devicePixelRatio * 2**(options.supersample*6-3)
+	SCALE = camZ * TEX_SIZE * dpx
+	W2 = (W = round(visualViewport.width * visualViewport.scale * dpx)) / SCALE / 2
+	H2 = (H = round(visualViewport.height * visualViewport.scale * dpx)) / SCALE / 2
 	if(W != c.canvas.width || H != c.canvas.height) c.resize(W, H)
 	else if(c.reset) c.reset()
 	else c.resetTransform(),c.clearRect(0, 0, W, H)
@@ -98,11 +99,11 @@ export function fakePause(b = true){
 }
 
 
-export let renderF3 = false, renderBoxes = false, renderUI = true
-listen('autof3', () => {renderF3 = !!options.autof3; renderBoxes = options.autof3 > 1})
+export let renderF3 = false, renderBoxes = 0, renderUI = true
+listen('autof3', () => {renderF3 = !!options.autof3; renderBoxes = (options.autof3 > 1)*2})
 button(KEYS.F1, () => {renderUI = !renderUI})
 button(KEYS.F3, () => {
-	if(buttons.has(KEYS.ALT) | buttons.has(KEYS.SHIFT) | buttons.has(KEYS.MOD)) renderBoxes = !renderBoxes
+	if(buttons.has(KEYS.ALT) | buttons.has(KEYS.SHIFT) | buttons.has(KEYS.MOD)) renderBoxes = (renderBoxes+1)%3
 	else renderF3 = !renderF3
 })
 

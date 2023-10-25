@@ -160,7 +160,7 @@ renderLayer(150, c => {
 	}
 	c.globalCompositeOperation = 'source-over'
 	const rainyness = min(1-world.weatherFade/40, 1, (world.weather&0x0FFFFFFF)/40)
-	if(rainyness && cam.z > .25){
+	if(rainyness && cam.z > .125){
 		c.globalAlpha = rainyness/2
 		c.fillPattern(rain)
 		rain.setPatternTransform(.0625, 0, 0, .0625, 0, t*30%16)

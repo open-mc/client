@@ -1,8 +1,8 @@
 @font-face {
 	font-family: mc;
-	src: url('./font.ttf') format('truetype');
+	src: url('./img/font.ttf') format('truetype');
 	font-weight: normal;
-  font-style: normal;
+	font-style: normal;
 }
 html{font-size:2px}
 body{
@@ -102,8 +102,8 @@ span{
 	height: 20rem;
 	line-height: 20rem;
 	text-overflow: ellipsis;
-  white-space: pre;
-  overflow: hidden;
+	white-space: pre;
+	overflow: hidden;
 	flex-shrink: 0;
 }
 btn{

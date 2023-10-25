@@ -1,5 +1,5 @@
-import { options } from '../save.js'
-import { Btn, Label, Scale, showUI, Spacer, UI } from '../ui.js'
+import { options } from '../js/save.js'
+import { Btn, Label, Scale, showUI, Spacer, UI } from '../js/ui.js'
 import { optionsScreen } from './options.js'
 
 function speedChange(a = options.speed/4){
@@ -13,11 +13,17 @@ function maxParticlesChange(a = Math.max(0, Math.log10(options.maxParticles)) / 
 	options.maxParticles = a ? 10 ** a : 0
 	return ['Max particles: '+options.maxParticles, a/7]
 }
+function supersampleChange(a = options.supersample){
+	options.supersample = (a = Math.round(a * 6)) / 6
+	const z = 2 ** (a - 3)
+	return ['Supersampling: '+z, options.supersample]
+}
 
 let af3Node
 const ui = UI('menu',
 	Label('Advanced Options'),
 	Scale(speedChange),
+	Scale(supersampleChange),
 	Scale(maxParticlesChange),
 	af3Node = Btn('Open debug automatically: '+(options.autof3 ? options.autof3 > 1 ? 'FULL' : 'YES' : 'NO'), () => {
 		options.autof3 = (options.autof3+1)%3

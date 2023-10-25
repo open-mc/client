@@ -303,7 +303,7 @@ const endPortalOverlays = [
 	epo.crop(192,0,64,256)
 ]
 function rot_off_transform(p, rot, off, x, y){
-	const f = cam.z*2
+	const f = cam.z
 	const a = cos(rot) / f, b = sin(rot) / f
 	p.setPatternTransform(a, -b, -b, -a, b*off-x, a*off+y)
 }

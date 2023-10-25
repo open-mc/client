@@ -78,7 +78,7 @@ export function frame(){
 	playerControls()
 	for(const entity of entityMap.values())stepEntity(entity)
 	const tzoom = (me.state & 4 ? -0.13 : 0) * ((1 << options.ffx * (options.camera != 4)) - 1) + 1
-	cam.z = sqrt(sqrt(cam.z * cam.z * cam.z * 2 ** (options.zoom * 10 - 6) * devicePixelRatio * tzoom))
+	cam.z = sqrt(sqrt(cam.z * cam.z * cam.z * 2 ** (options.zoom * 10 - 6) * tzoom))
 	_recalcDimensions(c, cam.z)
 	c.transforms.length = 0
 	c.imageSmoothingEnabled = false
@@ -131,7 +131,7 @@ export function frame(){
 					c.rotate(-cam.rot)
 					phase(c)
 					break
-				case 'ui': const s = options.guiScale * devicePixelRatio * 2; c.setTransform(s, 0, 0, -s, 0, H); phase(c, W /  s, H /  s); break
+				case 'ui': const s = options.guiScale * devicePixelRatio * 2**(options.supersample*6-3) * 2; c.setTransform(s, 0, 0, -s, 0, H); phase(c, W / s, H / s); break
 				default: console.error('Invalid coordinate space: ' + phase.coordSpace)
 			}
 		}catch(e){console.error(e)}
@@ -144,11 +144,11 @@ export function frame(){
 }
 globalThis.cam = cam
 drawPhase(200, (c, w, h) => {
-	const hitboxes = buttons.has(KEYS.SYMBOL) | renderBoxes
+	const hitboxes = renderBoxes + buttons.has(KEYS.SYMBOL)
 	c.setTransform(1,0,0,1,W2*SCALE,h-H2*SCALE)
 	c.rotate(cam.rot)
 	c.translate(-W2*SCALE,H2*SCALE)
-	const expectedDetail = max(1, min(TEX_SIZE, 2**ceil(log2(cam.z*1.189207115*devicePixelRatio)+2)))
+	const expectedDetail = max(1, min(TEX_SIZE, 2**ceil(log2(cam.z*1.189207115+2)+2)))
 	for(const chunk of map.values()){
 		const cxs = chunk.x << 6, cys = chunk.y << 6
 		const x0 = round(ifloat(cxs - cam.x + W2) * SCALE)
@@ -176,25 +176,47 @@ drawPhase(200, (c, w, h) => {
 			c.lineWidth = 0.0625
 			c.strokeStyle = '#06f'
 			c.fillStyle = '#08f'
-			c.globalAlpha = cam.z / 16
-			for(let i = 8; i < 64; i += 8)
-				c.fillRect(i - 0.015625, 0, 0.03125, 64)
-			for(let i = 8; i < 64; i += 8)
-				c.fillRect(0, i - 0.015625, 64, 0.03125)
-			c.globalAlpha = 1
+			if(hitboxes >= 2){
+				c.globalAlpha = cam.z / 16
+				for(let i = 8; i < 64; i += 8)
+					c.fillRect(i - 0.015625, 0, 0.03125, 64)
+				for(let i = 8; i < 64; i += 8)
+					c.fillRect(0, i - 0.015625, 64, 0.03125)
+				c.globalAlpha = 1
+			}
 			c.strokeRect(0,0,64,64)
 		}
 		c.pop()
 	}
 	c.fillStyle = '#00f'
-	if(abs(cam.x) <= W2 + 0.0625 && hitboxes)
+	if(hitboxes >= 2 && abs(cam.x) <= W2 + 0.0625)
 		c.fillRect((W2-cam.x-0.0625)*SCALE,0,0.125*SCALE,-h)
-	if(abs(cam.y) <= H2 + 0.0625 && hitboxes)
+	if(hitboxes >= 2 && abs(cam.y) <= H2 + 0.0625)
 		c.fillRect(0,(cam.y-H2-0.0625)*SCALE,w,0.125*SCALE)
-	if(abs(ifloat(cam.x + 2147483648)) <= W2 + 0.0625 && hitboxes)
+	if(hitboxes >= 2 && abs(ifloat(cam.x + 2147483648)) <= W2 + 0.0625)
 		c.fillRect(ifloat(W2-cam.x+2147483648-0.0625)*SCALE,0,0.125*SCALE,-h)
-	if(abs(ifloat(cam.y + 2147483648)) <= H2 + 0.0625 && hitboxes)
+	if(hitboxes >= 2 && abs(ifloat(cam.y + 2147483648)) <= H2 + 0.0625)
 		c.fillRect(0,ifloat(cam.y+2147483648-H2-0.0625)*SCALE,w,0.125*SCALE)
+	if(hitboxes >= 2){
+		const mx = floor(me.ix), my = floor(me.iy)
+		const refx = me.ix - mx, refy = me.iy - my
+		c.setTransform(SCALE, 0, 0, -SCALE, W2 * SCALE, h - H2 * SCALE)
+		c.rotate(-cam.rot)
+		c.translate(ifloat(mx - cam.x), ifloat(my - cam.y))
+		c.lineWidth = 0.0625
+		const LENGTH = 6
+		for(let x = -LENGTH; x <= LENGTH; x++)
+		for(let y = -LENGTH; y <= LENGTH; y++){
+			const bl = getblock(mx + x, my + y)
+			c.strokeStyle = bl.solid ? '#fffc' : bl.fluidType ? '#00fc' : bl.blockShape ? '#fff8' : bl.targettable ? '#444c' : '#0000'
+			c.save()
+			c.globalAlpha = max(0, 1 - ((x - refx) * (x - refx) + (y - refy) * (y - refy))/LENGTH/LENGTH)
+			c.translate(x, y)
+			bl.trace(c)
+			c.clip(); c.stroke()
+			c.restore()
+		}
+	}
 })
 drawPhase(300, (c, w, h) => {
 	for(const ev of gridEventMap.values()){
@@ -204,7 +226,7 @@ drawPhase(300, (c, w, h) => {
 })
 
 drawPhase(100, (c, w, h) => {
-	const hitboxes = buttons.has(KEYS.SYMBOL) | renderBoxes
+	const hitboxes = buttons.has(KEYS.SYMBOL) + renderBoxes
 	for(const entity of entityMap.values()){
 		if(!entity.render)continue
 		c.setTransform(SCALE, 0, 0, -SCALE, W2 * SCALE, h - H2 * SCALE)
@@ -218,19 +240,21 @@ drawPhase(100, (c, w, h) => {
 			if(entity.head){
 				c.fillStyle = '#fc0'
 				const L = entity == me ? sqrt(pointer.x * pointer.x + pointer.y * pointer.y) : 0.8
-				c.push()
-					c.translate(0, entity.head)
-					c.rotate(-entity.f)
-					c.fillRect(-0.015625,-0.015625,0.03125,L)
-					c.translate(0,L); c.rotate(PI * 1.25)
-					c.fillRect(-0.015625,-0.015625,0.03125,0.2)
-					c.fillRect(-0.015625,-0.015625,0.2,0.03125)
-				c.pop()
-				c.fillStyle = '#f00'
-				c.fillRect(-entity.width + 0.0625, entity.head - 0.03125, entity.width*2 - 0.125, 0.0625)
+				if(hitboxes >= 2){
+					c.push()
+						c.translate(0, entity.head)
+						c.rotate(-entity.f)
+						c.fillRect(-0.015625,-0.015625,0.03125,L)
+						c.translate(0,L); c.rotate(PI * 1.25)
+						c.fillRect(-0.015625,-0.015625,0.03125,0.2)
+						c.fillRect(-0.015625,-0.015625,0.2,0.03125)
+					c.pop()
+				}
+				c.fillStyle = '#f00c'
+				c.fillRect(-entity.width + 0.046875, entity.head - 0.0234375, entity.width*2 - 0.09375, 0.046875)
 			}
-			c.strokeStyle = '#fff'
-			c.lineWidth = 0.0625
+			c.strokeStyle = '#fffc'
+			c.lineWidth = 0.046875
 			c.strokeRect(-entity.width + 0.03125, 0.03125, entity.width * 2 - 0.0625, entity.height - 0.0625)
 		}
 	}

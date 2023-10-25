@@ -1,15 +1,15 @@
-import { storage } from '../save.js'
-import { Btn, Label, Row, showUI, Spacer, UI } from '../ui.js'
+import { storage } from '../js/save.js'
+import { Btn, Label, Row, showUI, Spacer, UI } from '../js/ui.js'
 import { serverlist } from './serverlist.js'
 
 // Web technologies are a mess * ** [citation needed]
 // Here we aim to detect and warn the user about an L browser, advising them to use a more based browser
 const defects = {
 	/**
-	 *  Safari is a defect. It should not exist, it is an abomination. I don't even know where to start
-	 * No canvas support
+	 * Safari is a defect. It should not exist, it is an abomination. I don't even know where to start
+	 * No canvas filter support
 	 * No pattern fill nearest neighbour support (blurry clouds)
-	 * Almost all metrics are rounded to integers, completely butchering pretty much any scaled-up css art
+	 * Almost all css metrics are rounded to integers, completely butchering pretty much any scaled-up css art
 	 * as well as canvas metrics with methods like .measureText()
 	 * Page zoom does not properly update devicePixelRatio,
 	 * making it completely impossible to reliably measure a physical pixel
@@ -18,13 +18,13 @@ const defects = {
 	 */
 	safari: false, 
 	/**
-	 * No dedicated sound thread causes choppy or glitchy sounds when CPU is busy
+	 * Sound being processed on GPU causes choppy or glitchy sounds when GPU is very busy
 	 * Odd-looking text
-	 * Atlas texture bleeding
+	 * Atlas texture bleeding (not sure if this is M1 only)
 	 */
 	m1: false,
 	/**
-	 * Damn, I had hoped you would excell in this, firefox. Still not even comparable to safari though xD
+	 * Damn, I had hoped you would excell in this, firefox.
 	 * Horrendous canvas2d performance on some systems
 	 */
 	firefox: false,
@@ -36,7 +36,7 @@ const defects = {
 	mobile: false
 }
 const M1 = `
-Your computer appears to be using an apple silicon chip, which is known to be experimental and not stable handling audio and textures.`
+Your computer appears to be using an apple silicon chip, which is known to be experimental and not stable handling audio and textures in certain cases.`
 // Fuck you, safari!
 const SAFARI = `
 You seem to be using safari, which has proven multiple times to be an incompetent browser for developers, not supporting technologies that are standard almost anywhere else and offering mediocre quality and performance for graphical applications\nWe urge you, please, to switch to a different browser.`

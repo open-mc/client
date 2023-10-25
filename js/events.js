@@ -1,5 +1,5 @@
 import { keyMsg, win } from './iframe.js'
-import { pause } from './uis/pauseui.js'
+import { pause } from '../uis/pauseui.js'
 import { ui, NONE, ptrFail, ptrSuccess } from './ui.js'
 
 onkeydown = e => {

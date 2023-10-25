@@ -36,14 +36,14 @@ export class Block{
 			sound(this.stepSounds[Math.floor(Math.random() * this.stepSounds.length)], x, y, 0.5, 0.75)
 	}
 	trace(c){
-		c.beginPath()
+		c.beginPath?.()
 		let {blockShape} = this
 		if(!blockShape || blockShape.length == 0) blockShape = pointer.DEFAULT_BLOCKSHAPE
 		for(let i = 0; i < blockShape.length; i += 4){
 			const x0 = blockShape[i], x1 = blockShape[i+2], y0 = blockShape[i+1], y1 = blockShape[i+3]
 			c.rect(x0, y0, x1-x0, y1-y0)
 		}
-		c.closePath()
+		c.closePath?.()
 	}
 }
 export class Item{

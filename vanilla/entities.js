@@ -200,7 +200,7 @@ Entities.player = class extends LivingEntity{
 	get head(){return this.state & 2 ? 1.4 : 1.6}
 	update(){
 		super.update()
-		if(this==me&&perms<3)this.state&=-2
+		if(this == me && perms<3)this.state&=-2
 	}
 	drawInterface(id, c){
 		// x=0, y=0 => left middle

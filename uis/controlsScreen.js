@@ -1,7 +1,6 @@
 import { pause } from './pauseui.js'
-import { options } from '../save.js'
-import { Btn, Label, Row, Scale, showUI, Spacer, UI } from '../ui.js'
-import { optionsScreen } from './options.js'
+import { options } from '../js/save.js'
+import { Btn, Label, Row, Scale, showUI, Spacer, UI } from '../js/ui.js'
 import { controllerScreen } from './controllerScreen.js'
 
 function renderClick(){

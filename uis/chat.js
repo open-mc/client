@@ -1,5 +1,5 @@
-import { key } from '../events.js'
-import { hideUI, Input, showUI, ui, UI } from '../ui.js'
+import { key } from '../js/events.js'
+import { hideUI, Input, showUI, ui, UI } from '../js/ui.js'
 let input
 const chatui = UI('noshade',
 	input = Input('text', '', { msg: /^[^/][^]*/y, c7: /\/\w*/y, c11: /~|~?[+-]?(\d+(\.\d*)?|\.\d+)([Ee][+-]?\d+)?/y, c13: /"(?:[^\\"]|\\.)*"/y, c10: /[^"\s]\S*/y, c9: /"/u}).attr('id', 'chatbox')
