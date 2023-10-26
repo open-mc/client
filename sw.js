@@ -1,24 +1,26 @@
-const VERSION = '0.0.9'
-
-self.addEventListener('install', event => {
-	event.waitUntil(
-		caches.open('cache')
-			.then(async cache => {await cache.addAll(['index.html', 'style.css', 'index.js'])})
-			.then(self.skipWaiting())
-	)
-})
+self.addEventListener('install', self.skipWaiting)
 
 // The activate handler takes care of cleaning up old caches.
-self.addEventListener('activate', e => e.waitUntil(caches.keys().then(names => names.filter(name => name != 'cache-'+VERSION)).then(todelete => Promise.all(todelete.map(name => caches.delete(name)))).then(() => self.clients.claim())))
+self.addEventListener('activate', e => e.waitUntil(activated()))
+let cache = null
+async function activated(){
+	const req = new Request('/version.js'), [old, [res, nw]] = await Promise.all([
+		caches.open('cache').then(c => (cache=c).match(req).then(k => k?.text())),
+		fetch(req).then(a=>a.clone().text().then(k=>[a,k])).catch(e=>[null,null])
+	])
+	if(nw && old !== nw){
+		// Update available
+		cache = await caches.delete('cache').then(() => caches.open('cache'))
+		await cache.put(req, res)
+	}
+}
 
-const cache = await caches.open('cache')
-self.addEventListener('fetch', event => {
-	event.respondWith((async function(){
-		let res = await cache.match(req)
-		if(!res){
-			res = await fetch(req)
-			cache.put(req, res)
-		}
-		return res
-	})())
-})
+async function onFetch(req, p){
+	let res = await cache?.match(req)
+	if(!res){
+		res = await fetch(req)
+		cache.put(req, res.clone())
+	}
+	return res
+}
+self.addEventListener('fetch', e => e.respondWith(onFetch(e.request, e.preloadResponse)))

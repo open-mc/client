@@ -1,8 +1,9 @@
 export const storage = globalThis.localStorage
 if(!storage.name) {
-	location.href = '/acc.html'
+	location.href = '/'
 	throw 'No account'
 }
+history.replaceState(null, '', '/')
 
 export const servers = (storage.servers || 
 	(/.github.io$|.pages.dev$/.test(location.hostname) ? 'blobk.at' : /(\w+\.)*localhost$|127.0.0.1$/y.test(location.hostname) ? 'localhost' : location.hostname)).split('\0')

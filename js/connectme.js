@@ -106,20 +106,30 @@ export function preconnect(ip, cb = Function.prototype){
 			return
 		}
 		ws.challenge = null
-		if(typeof data == 'string'){
+		if(typeof data === 'string'){
 			const style = parseInt(data.slice(0,2), 16)
-			if(style == -1) return onerror(data.slice(2))
-			else if(style == -2) return onpending(data.slice(2))
+			if(style === -1) return onerror(data.slice(2))
+			else if(style === -2) return onpending(data.slice(2))
+			else if(style === -3){
+				let i = data.indexOf(';')
+				pendingConnection(data.slice(i+3), parseInt(data.slice(i+1,i+3), 16))
+				i = Math.min(60e3, +data.slice(2, i) || 1000)
+				setTimeout(() => preconnect(displayIp, play), i)
+				finished()
+				return
+			}
 			if(style != style) return
 			const box = chat.children[9] || document.createElement('div')
 			box.textContent = data.slice(2)
 			chat.insertAdjacentElement('afterbegin', box)
 			box.classList = `c${style&15} s${style>>4}`
-			if(options.notifs == 2 || (options.notifs == 1 && pingRegex.test(box.textContent))) notif()
+			const {color, fontStyle, fontWeight, textDecoration} = getComputedStyle(box)
+			console.log('%c' + data.slice(2), 'color:'+color+';font:12px/12px mc,monospace;font-weight:'+fontWeight+';font-style:'+fontStyle+';text-decoration:'+textDecoration)
+			if(options.notifs === 2 || (options.notifs === 1 && pingRegex.test(box.textContent))) notif()
 		}else fwPacket(data)
 	}
 	ws.onclose = () => {
-		if(ws == globalThis.ws){
+		if(ws === globalThis.ws){
 			const msg = timeout >= 0 ? 'Connection refused' : 'Connection lost'
 			finished()
 			reconn(msg)
@@ -163,6 +173,7 @@ export function preconnect(ip, cb = Function.prototype){
 	if(!(ws instanceof WebSocket))ws.onclose()
 	return node
 }
+
 export async function play(ws){
 	lastIp = ws.ip
 	if(!ws.challenge) return
