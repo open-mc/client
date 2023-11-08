@@ -99,6 +99,7 @@ export function preconnect(ip, cb = Function.prototype){
 			motd.textContent = packet.string()
 			icon.src = packet.string()
 			ws.packs = decoder.decode(pako.inflate(packet.uint8array())).split('\0')
+			for(let i = 0; i < ws.packs.length; i++) if(ws.packs[i][0]=='@') ws.packs[i] = 'http' + ip.slice(2) + ws.packs[i].slice(1)
 			ws.challenge = packet.uint8array()
 			const host = decoder.decode(ws.challenge.subarray(0, ws.challenge.indexOf(0))).toLowerCase()
 			if(host != ip.replace(/\w+:\/\//y,'').toLowerCase()) return void ws.close() // mitm attack

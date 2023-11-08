@@ -1,6 +1,6 @@
 import { Blocks, Items, Item } from 'definitions'
 import { itemify, slabifyItem } from './blockshapes.js'
-import './blocks.js'
+import { chestTop } from './blocks.js'
 import { getblock } from 'world'
 
 const {Texture} = loader(import.meta)
@@ -235,4 +235,8 @@ Items.jungle_leaves = leavesItem(Blocks.jungle_leaves, Blocks.jungle_log, 'Jungl
 Items.crafting_table = itemify(Blocks.crafting_table, 'Crafting table')
 
 Items.furnace = itemify(Blocks.furnace, 'Furnace')
-Items.chest = itemify(Blocks.chest, 'Chest')
+Items.chest = class extends Item{
+	static texture = Blocks.chest.texture
+	static defaultName = 'Chest'
+	render(c){ c.image(chestTop, 0, 0, 1, 1) }
+}

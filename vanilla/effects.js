@@ -51,17 +51,28 @@ export const water = {
 export function renderItem(c, item, respectModel = false){
 	if(item && item.texture){
 		if(!respectModel || item.model == 0){
-			c.image(item.texture, -0.5, 0, 1, 1)
+			c.push()
+			c.translate(-0.5, 0)
+			c.image(item.texture, 0, 0, 1, 1)
+			item.render?.(c)
+			c.pop()
 		}else if(item.model == 1){
 			c.push()
 			c.translate(0.5,0)
 			c.translate(-1.2,1.2)
 			c.rotate(PI * -0.75)
 			c.scale(-1.6, 1.6)
-			c.image(item.texture, -0.5, 0, 1, 1)
+			c.translate(-0.5, 0)
+			c.image(item.texture, 0, 0, 1, 1)
+			item.render?.(c)
 			c.pop()
 		}else if(item.model == 2){
-			c.image(item.texture, -0.75, -0.25, 1.5, 1.5)
+			c.push()
+			c.translate(-0.75, -0.25)
+			c.scale(1.5, 1.5)
+			c.image(item.texture, 0, 0, 1, 1)
+			item.render?.(c)
+			c.pop()
 		}
 	}
 }

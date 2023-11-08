@@ -223,7 +223,7 @@ Blocks.endstone = class extends Block{
 	static placeSounds = Blocks.stone.placeSounds
 	static stepSounds = Blocks.stone.stepSounds
 }
-const chestTop = terrainPng.at(9, 3)
+export const chestTop = terrainPng.at(9, 3)
 Blocks.chest = class extends Block{
 	static blockShape = [1/16, 0, 15/16, 7/8]
 	static texture = terrainPng.at(10, 3)
