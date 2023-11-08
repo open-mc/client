@@ -300,30 +300,30 @@ uiLayer(1000, (c, w, h) => {
 	let slot = slotI
 	if(action == 1 && slot > -1){
 		const items = slot > 127 ? invInterface.items : me.inv; slot &= 127
-		const t = items[slot], h = me.items[0]
-		if(t && !h) me.items[0] = t, items[slot] = null
-		else if(h && !t) items[slot] = h, me.items[0] = null
+		const t = items[slot], h = me.inv[36]
+		if(t && !h) me.inv[36] = t, items[slot] = null
+		else if(h && !t) items[slot] = h, me.inv[36] = null
 		else if(h && t && h.constructor == t.constructor && !h.savedata){
 			const add = min(h.count, t.maxStack - t.count)
-			if(!(h.count -= add))me.items[0] = null
+			if(!(h.count -= add))me.inv[36] = null
 			t.count += add
-		}else items[slot] = h, me.items[0] = t
+		}else items[slot] = h, me.inv[36] = t
 		const buf = new DataWriter()
 		buf.byte(32); buf.byte(slot | (items == me.inv ? 0 : 128))
 		send(buf)
 	}else if(action == 2 && slot > -1){
 		const items = slot > 127 ? invInterface.items : me.inv; slot &= 127
-		const t = items[slot], h = me.items[0]
+		const t = items[slot], h = me.inv[36]
 		if(t && !h){
-			me.items[0] = new t.constructor(t.count - (t.count >>= 1))
+			me.inv[36] = new t.constructor(t.count - (t.count >>= 1))
 			if(!t.count)items[slot] = null
 		}else if(h && !t){
 			items[slot] = new h.constructor(1)
-			if(!--h.count)me.items[0] = null
+			if(!--h.count)me.inv[36] = null
 		}else if(h && t && h.constructor == t.constructor && !h.savedata && t.count < t.maxStack){
 			t.count++
-			if(!--h.count)me.items[0] = null
-		}else items[slot] = h, me.items[0] = t
+			if(!--h.count)me.inv[36] = null
+		}else items[slot] = h, me.inv[36] = t
 		const buf = new DataWriter()
 		buf.byte(33); buf.byte(slot | (items == me.inv ? 0 : 128))
 		send(buf)
@@ -332,11 +332,11 @@ uiLayer(1000, (c, w, h) => {
 	c.scale(16,16)
 	const {x, y} = c.mouse()
 	c.translate(x, y - .5)
-	renderItem(c, me.items[0])
-	renderItemCount(c, me.items[0])
+	renderItem(c, me.inv[36])
+	renderItemCount(c, me.inv[36])
 
 	c.peek()
-	if(!me.items[0]) renderTooltip(c, me)
+	if(!me.inv[36]) renderTooltip(c, me)
 
 	c.pop()
 })
@@ -357,12 +357,10 @@ onpause(() => {
 	}
 })
 
-function openEntity(e){
+function openInventory(){
 	pause(true)
 	const buf = new DataWriter()
 	buf.byte(13)
-	buf.int(e.netId)
-	buf.short((e.netId / 4294967296) | 0)
 	send(buf)
 }
 function closeInterface(){ pause(false) }
@@ -373,19 +371,31 @@ onpacket(13, buf => {
 	invInterface = e
 	interfaceId = buf.byte()
 })
+onpacket(14, buf => {
+	const b = getblock(buf.int(), buf.int())
+	if(!b) return
+	invInterface = b
+	interfaceId = buf.byte()
+})
 onpacket(32, buf => {
 	const e = entityMap.get(buf.uint32() + buf.short() * 4294967296)
 	if(!e) return
+	while(buf.left) e.inv[buf.byte()] = Item.decode(buf)
+})
+onpacket(33, buf => {
+	const e = entityMap.get(buf.uint32() + buf.short() * 4294967296),
+			int = entityMap.get(buf.uint32() + buf.short() * 4294967296)?.interface?.(buf.byte())
+	if(!e) return
 	while(buf.left){
-		const slot = buf.byte()
-		if(slot > 127)e.items[slot&127] = Item.decode(buf)
-		else e.inv[slot] = Item.decode(buf)
+		const slot = buf.byte(), item = Item.decode(buf)
+		if(slot > 127){if(int) int[slot&127] = item}
+		else e.inv[slot] = item
 	}
 })
 
 button(KEYS.E, GAMEPAD.X, () => {
 	if(paused) return closeInterface()
-	openEntity(me)
+	openInventory()
 })
 
 button(KEYS.Q, GAMEPAD.Y, GAMEPAD.DOWN, () => {

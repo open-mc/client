@@ -238,5 +238,8 @@ Items.furnace = itemify(Blocks.furnace, 'Furnace')
 Items.chest = class extends Item{
 	static texture = Blocks.chest.texture
 	static defaultName = 'Chest'
-	render(c){ c.image(chestTop, 0, 0, 1, 1) }
+	render(c, model){
+		//c.transform(-1, 0, 0, 1, 1, 0)
+		c.image(chestTop, 0, 0, 1, 1)
+	}
 }

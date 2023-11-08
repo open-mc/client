@@ -224,6 +224,7 @@ Blocks.endstone = class extends Block{
 	static stepSounds = Blocks.stone.stepSounds
 }
 export const chestTop = terrainPng.at(9, 3)
+const chestOpen = Audio('sound/containers/open_chest.mp3'), chestClose = Audio('sound/containers/close_chest.mp3')
 Blocks.chest = class extends Block{
 	static blockShape = [1/16, 0, 15/16, 7/8]
 	static texture = terrainPng.at(10, 3)
@@ -232,9 +233,20 @@ Blocks.chest = class extends Block{
 	items = Array.null(27)
 	name = ''
 	state = 0
+	opening = 0
+	1(buf, x, y){
+		const old = this.state
+		this.state = buf.byte()
+		if((this.state^old)&2){
+			this.opening = 1
+			sound(this.state&2 ? chestOpen : chestClose, x, y, 0.5, 1 - random()*.1)
+		}
+	}
 	render(c){
-		if(this.state&2) c.transform(-1, 0, 0, 1, 1, 0)
-		const rot = 0
+		if(this.state&1) c.transform(-1, 0, 0, 1, 1, 0)
+		this.opening = max(this.opening - dt*2, 0)
+		
+		const rot = (1-0.5**((this.state & 2 ? 1 - this.opening : this.opening)*4))*16/15
 		c.translate(0.0625, 0.625)
 		c.rotate(rot*PI/2)
 		c.image(chestTop, -0.0625, -0.625, 1, 1)
