@@ -10,7 +10,8 @@ async function activated(){
 	])
 	if(nw && old !== nw){
 		// Update available
-		cache = await caches.delete('cache').then(() => caches.open('cache'))
+		await caches.delete('cache')
+		cache = null
 		await cache.put(req, res)
 	}
 }
@@ -23,4 +24,4 @@ async function onFetch(req, p){
 	}
 	return res
 }
-self.addEventListener('fetch', e => e.respondWith(onFetch(e.request, e.preloadResponse)))
+self.addEventListener('fetch', e => e.respondWith(cache ? onFetch(e.request, e.preloadResponse) : caches.open('cache').then(c => (cache = c, onFetch(e.request, e.preloadResponse)))))

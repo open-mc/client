@@ -107,7 +107,7 @@ const onMsg = ({data,origin}) => {
 			codes[code](packet)
 		}catch(e){
 			console.error(e)
-			console.log(packet, packet.i)
+			console.warn(packet, packet.i)
 		}
 	}else if(typeof data == 'number'){
 		if(data >= 0){

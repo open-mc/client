@@ -16,7 +16,10 @@ function rubberPacket(data){
 	perms = data.byte()
 }
 function dimensionPacket(data){
-	queue(world.id = data.string())
+	if(world.id != (world.id = data.string())){
+		queue(world.id)
+		gridEventMap.clear()
+	}
 	world.gx = data.float()
 	world.gy = data.float()
 	data.read(Classes[0].savedata, world)

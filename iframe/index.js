@@ -67,7 +67,7 @@ const c = Can(0, 0, {alpha: false, desynchronized: true})
 c.canvas.style = 'width: 100%; height: 100%; position: fixed; top: 0; left: 0; z-index: 0;'
 document.body.append(c.canvas)
 
-globalThis.FONT = '1000px mc'
+globalThis.FONT = '1000px mc, Arial'
 export function frame(){
 	const now = performance.now()
 	eluStart()

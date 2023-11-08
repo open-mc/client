@@ -11,11 +11,11 @@
 		<script>
 			const go = () => pr && (pr.then(() => location = '/app.html'),pr=undefined)
 			let pr = Promise.resolve(undefined)
-			if('serviceWorker' in navigator && !/\.?localhost$|^(127.0.0.1|0.0.0.0)$/.test(location.host)){
+			if('serviceWorker' in navigator && false && !/\.?localhost$|^(127.0.0.1|0.0.0.0)$/.test(location.host)){
 				pr = navigator.serviceWorker.ready
 				navigator.serviceWorker.register('./sw.js', {type: 'module', updateViaCache: 'all'})
 			}
-			if(localStorage.name){ go(); throw 'Logged in' }
+			if(localStorage.name){ go(); document.body.textContent='' }
 			async function gotKey(key){
 				key = key.toLowerCase()
 				if(!/[a-f0-9]{32}$/y.test(key)) return false

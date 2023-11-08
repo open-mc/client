@@ -45,9 +45,11 @@ Blocks.dirt = class extends Block{
 	static stepSounds = audioSet('dirt/step', 4)
 }
 Blocks.farmland = class extends Blocks.dirt{
+	static texture = terrainPng.at(6, 2)
 	static blockShape = [0, 0, 1, 0.9375]
 }
 Blocks.hydrated_farmland = class extends Blocks.dirt{
+	static texture = terrainPng.at(7, 2)
 	static blockShape = [0, 0, 1, 0.9375]
 }
 Blocks.bedrock = class extends Stone{
@@ -221,13 +223,22 @@ Blocks.endstone = class extends Block{
 	static placeSounds = Blocks.stone.placeSounds
 	static stepSounds = Blocks.stone.stepSounds
 }
-
+const chestTop = terrainPng.at(9, 3)
 Blocks.chest = class extends Block{
-	static texture = terrainPng.at(10, 1)
+	static blockShape = [1/16, 0, 15/16, 7/8]
+	static texture = terrainPng.at(10, 3)
 	static placeSounds = Wood.placeSounds
 	static stepSounds = Wood.stepSounds
 	items = Array.null(27)
 	name = ''
+	state = 0
+	render(c){
+		if(this.state&2) c.transform(-1, 0, 0, 1, 1, 0)
+		const rot = 0
+		c.translate(0.0625, 0.625)
+		c.rotate(rot*PI/2)
+		c.image(chestTop, -0.0625, -0.625, 1, 1)
+	}
 	static tool = 'axe'
 }
 

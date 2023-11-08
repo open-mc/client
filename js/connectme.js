@@ -124,7 +124,7 @@ export function preconnect(ip, cb = Function.prototype){
 			chat.insertAdjacentElement('afterbegin', box)
 			box.classList = `c${style&15} s${style>>4}`
 			const {color, fontStyle, fontWeight, textDecoration} = getComputedStyle(box)
-			console.log('%c' + data.slice(2), 'color:'+color+';font:12px/12px mc,monospace;font-weight:'+fontWeight+';font-style:'+fontStyle+';text-decoration:'+textDecoration)
+			console.log('%c'+data.slice(2), 'color:'+color+';font-size:12px;font-family:mc,monospace,Arial;font-weight:'+fontWeight+';font-style:'+fontStyle+';text-decoration:'+textDecoration)
 			if(options.notifs === 2 || (options.notifs === 1 && pingRegex.test(box.textContent))) notif()
 		}else fwPacket(data)
 	}

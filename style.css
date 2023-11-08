@@ -21,7 +21,7 @@ body{
 	user-select: none;
 	-webkit-user-select: none;
 	-webkit-user-drag: none;
-	font-family: mc;
+	font-family: mc, Arial;
 	font-size: 10rem;
 	color: white;
 	animation: spin 1s infinite;

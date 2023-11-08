@@ -32,7 +32,7 @@ export const playerControls = () => {
 	if((me.state & 2) || !(L || R)) me.state &= -5
 	if(D ^ (buttons.has(KEYS.SHIFT) | buttons.has(GAMEPAD.B)) ^ buttons.has(KEYS.CAPSLOCK)) me.state |= 2
 	else me.state &= -3
-	if((me.state & 0x10003) == 0x10003) me.state &= -2
+	if((me.state | ~0x10003) === -1) me.state &= -2
 	if(D && (me.state & 1)) me.dy = -5
 	if(R && !L) me.dx = (me.dx + ((me.state & 3) == 2 ? 1.3 : me.state & 4 ? 8 : 6)) / 2 * mePhysics.factor
 	else if(L && !R) me.dx = (me.dx + ((me.state & 3) == 2 ? -1.3 : me.state & 4 ? -8 : -6)) / 2 * mePhysics.factor
@@ -43,7 +43,7 @@ export const playerControls = () => {
 	}
 	if((me.impactDy < 0) && (me.state & 2)){
 		const x = me.x + (me.dx > 0 ? -me.width + EPSILON * 2 : me.width - EPSILON * 2)
-		if(getblock(floor(x), floor(me.y - .001)).solid && !getblock(floor(x + me.dx * dt), floor(me.y - .001)).solid){
+		if(getblock(floor(x), floor(me.y - .001)).solid && !getblock(floor(x + me.dx * dt + sign(me.dx)*.125), floor(me.y - .001)).solid){
 			me.dx = 0
 		}
 	}
