@@ -99,6 +99,7 @@ export const Input = (type, placeholder, tokenizers = {txt:/[^]*/y}) => {
 	for(const k in tokenizers)if(tokenizers[k].flags!='y')tokenizers[k] = new RegExp(tokenizers[k].source, 'y')
 	const t = document.createElement(type == 'long' ? 'textarea' : 'input'), v = document.createElement('div')
 	newnode(v, '__cursor', '_')
+	t.autocomplete = 'off'; t.name = '\0'
 	el.os = el.oe = 0
 	el.t = t
 	el.clear = clear

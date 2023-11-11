@@ -97,8 +97,8 @@ export function resetSlot(){
 	slotI = -1
 }
 
-export function renderSlot(c, e, i){
-	const item = i > 127 ? e.items[i&127] : me.inv[i]
+export function renderSlot(c, e, i, id=0){
+	const item = e.interface(id)?.[i]
 	renderItem(c, item)
 	renderItemCount(c, item)
 	const {x, y} = c.mouse()
@@ -108,7 +108,7 @@ export function renderSlot(c, e, i){
 		c.fillRect(-0.5, 0, 1, 1)
 		c.globalAlpha = 1
 		void ({x: slotx, y: sloty} = c.to(1.0625, 1.125))
-		slotI = i
+		slotI = e == me && id == 0 ? i : i|128
 	}
 }
 export function renderTooltip(c, e){

@@ -47,7 +47,7 @@ export class Block{
 	}
 }
 export class Item{
-	constructor(a){ this.count=a&255; this.name='' }
+	constructor(a,n=''){ this.count=a&255; this.name=n }
 	breaktime(b){ return b.breaktime }
 	static maxStack = 64
 	static model = 0

@@ -1,6 +1,6 @@
-import { audioSet, lava, water } from './effects.js'
+import { audioSet, lava, renderSlot, water } from './effects.js'
 import { sound, cam } from 'world'
-import { Blocks, Block, Item } from 'definitions'
+import { Blocks, Block, Items } from 'definitions'
 import { BlockShape, blockShaped, fluidify } from './blockshapes.js'
 const {Texture, Audio} = loader(import.meta)
 
@@ -225,12 +225,33 @@ Blocks.endstone = class extends Block{
 }
 export const chestTop = terrainPng.at(9, 3)
 const chestOpen = Audio('sound/containers/open_chest.mp3'), chestClose = Audio('sound/containers/close_chest.mp3')
+const containerInterface = Texture('container.png')
 Blocks.chest = class extends Block{
 	static blockShape = [1/16, 0, 15/16, 7/8]
 	static texture = terrainPng.at(10, 3)
 	static placeSounds = Wood.placeSounds
 	static stepSounds = Wood.stepSounds
+	static interactible = true
 	items = Array.null(27)
+	interface(id){ return id == 0 ? this.items : undefined }
+	drawInterface(id, c){
+		if(id == 0){
+			c.image(containerInterface, 0, 0)
+			c.push()
+			c.translate(16, 46)
+			c.scale(16, 16)
+			for(let i = 0; i < 27; i++){
+				renderSlot(c, this, i)
+				if(i%9==8) c.translate(-9, -1.125)
+				else c.translate(1.125, 0)
+			}
+			c.pop()
+			c.textAlign = 'left'
+			c.fillStyle = '#505050'
+			c.fillText(this.name||Items.chest.defaultName, 8, 65, 10)
+			c.fillText('Inventory', 8, -1, 10)
+		}
+	}
 	name = ''
 	state = 0
 	opening = 0
@@ -458,11 +479,14 @@ Blocks.jungle_log_leaves = class extends Leaves{
 
 Blocks.crafting_table = class extends Planks{
 	static texture = terrainPng.at(12, 3)
+	static interactible = true
 }
 
 Blocks.furnace = class extends Stone{
 	static texture = terrainPng.at(12, 2)
+	static interactible = true
 }
 Blocks.lit_furnace = class extends Blocks.furnace{
 	static texture = terrainPng.at(13, 3)
+	static interactible = true
 }

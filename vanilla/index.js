@@ -282,8 +282,6 @@ uiLayer(1000, (c, w, h) => {
 	c.globalAlpha = 1
 	c.translate(w / 2 - 88, h / 2)
 	c.push()
-	invInterface.drawInterface(interfaceId, c)
-	c.peek()
 	c.image(inventory, 0, -inventory.h)
 	c.translate(16,8 - inventory.h)
 	c.scale(16,16)
@@ -297,35 +295,37 @@ uiLayer(1000, (c, w, h) => {
 		if(i % 9 == 8) c.translate(-9, 1.125)
 		else c.translate(1.125,0)
 	}
+	c.peek()
+	invInterface.drawInterface?.(interfaceId, c)
 	let slot = slotI
 	if(action == 1 && slot > -1){
-		const items = slot > 127 ? invInterface.items : me.inv; slot &= 127
-		const t = items[slot], h = me.inv[36]
-		if(t && !h) me.inv[36] = t, items[slot] = null
-		else if(h && !t) items[slot] = h, me.inv[36] = null
+		const items = slot > 127 ? invInterface.interface?.(interfaceId) : me.inv
+		const t = items[slot&127], h = me.inv[36]
+		if(t && !h) me.inv[36] = t, items[slot&127] = null
+		else if(h && !t) items[slot&127] = h, me.inv[36] = null
 		else if(h && t && h.constructor == t.constructor && !h.savedata){
 			const add = min(h.count, t.maxStack - t.count)
 			if(!(h.count -= add))me.inv[36] = null
 			t.count += add
-		}else items[slot] = h, me.inv[36] = t
+		}else items[slot&127] = h, me.inv[36] = t
 		const buf = new DataWriter()
-		buf.byte(32); buf.byte(slot | (items == me.inv ? 0 : 128))
+		buf.byte(32); buf.byte(slot)
 		send(buf)
 	}else if(action == 2 && slot > -1){
-		const items = slot > 127 ? invInterface.items : me.inv; slot &= 127
-		const t = items[slot], h = me.inv[36]
+		const items = slot > 127 ? invInterface.interface?.(interfaceId) : me.inv
+		const t = items[slot&127], h = me.inv[36]
 		if(t && !h){
 			me.inv[36] = new t.constructor(t.count - (t.count >>= 1))
-			if(!t.count)items[slot] = null
+			if(!t.count)items[slot&127] = null
 		}else if(h && !t){
-			items[slot] = new h.constructor(1)
+			items[slot&127] = new h.constructor(1)
 			if(!--h.count)me.inv[36] = null
 		}else if(h && t && h.constructor == t.constructor && !h.savedata && t.count < t.maxStack){
 			t.count++
 			if(!--h.count)me.inv[36] = null
-		}else items[slot] = h, me.inv[36] = t
+		}else items[slot&127] = h, me.inv[36] = t
 		const buf = new DataWriter()
-		buf.byte(33); buf.byte(slot | (items == me.inv ? 0 : 128))
+		buf.byte(33); buf.byte(slot)
 		send(buf)
 	}
 	c.peek()
@@ -353,12 +353,10 @@ onpause(() => {
 		const buf = new DataWriter()
 		buf.byte(15)
 		send(buf)
-		invInterface = null
 	}
 })
 
 function openInventory(){
-	pause(true)
 	const buf = new DataWriter()
 	buf.byte(13)
 	send(buf)
@@ -370,26 +368,24 @@ onpacket(13, buf => {
 	if(!e) return
 	invInterface = e
 	interfaceId = buf.byte()
+	pause(true)
 })
 onpacket(14, buf => {
 	const b = getblock(buf.int(), buf.int())
 	if(!b) return
 	invInterface = b
 	interfaceId = buf.byte()
+	pause(true)
 })
+onpacket(15, () => { invInterface = null })
+
 onpacket(32, buf => {
-	const e = entityMap.get(buf.uint32() + buf.short() * 4294967296)
-	if(!e) return
-	while(buf.left) e.inv[buf.byte()] = Item.decode(buf)
-})
-onpacket(33, buf => {
-	const e = entityMap.get(buf.uint32() + buf.short() * 4294967296),
-			int = entityMap.get(buf.uint32() + buf.short() * 4294967296)?.interface?.(buf.byte())
-	if(!e) return
+	let i = buf.byte()
 	while(buf.left){
-		const slot = buf.byte(), item = Item.decode(buf)
-		if(slot > 127){if(int) int[slot&127] = item}
-		else e.inv[slot] = item
+		const e = i&1 ? getblock(buf.int(), buf.int()) : entityMap.get(buf.uint32() + buf.short() * 4294967296)
+		const int = e.interface(buf.byte())
+		while(buf.left&&(i=buf.byte())<128)
+			int[i] = Item.decode(buf)
 	}
 })
 

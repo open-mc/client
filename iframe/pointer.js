@@ -107,7 +107,7 @@ export function drawPointer(c){
 		}
 	}else px -= bpx - bx, py -= bpy - by, bpfx = px, bpfy = py
 	if(!getblock(bpx, bpy).replacable) bpx = bpy = bpfx = bpfy = NaN
-	blockPlacing = perms >= 2 ? item?.places?.(bpfx, bpfy, bpx, bpy, bx, by) : undefined
+	blockPlacing = perms >= 2 && (!getblock(bx, by).interactible || (me.state&2)) ? item?.places?.(bpfx, bpfy, bpx, bpy, bx, by) : undefined
 	const up = getblock(bpx, bpy + 1), down = getblock(bpx, bpy - 1), left = getblock(bpx - 1, bpy), right = getblock(bpx + 1, bpy)
 	if(interactFluid ?
 		up.flows === false && down.flows === false && left.flows === false && right.flows === false
@@ -137,6 +137,7 @@ export function drawPointer(c){
 				for(let i = 0; i < blockShape.length; i += 4){
 					const x0 = blockShape[i], x1 = blockShape[i+2], y0 = blockShape[i+1], y1 = blockShape[i+3]
 					c.rect(x0, y0, x1-x0, y1-y0)
+					if(blockPlacing)
 					if(bpx > bx){
 						c.rect(x1, y0, 0.125, 0.0625)
 						c.rect(x1, y1 - 0.0625, 0.125, 0.0625)

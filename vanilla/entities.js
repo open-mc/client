@@ -102,7 +102,7 @@ Entities.player = class extends LivingEntity{
 	static alive = true
 	inv = Array.null(37)
 	items = [null, null, null, null, null]
-	interface(id){ return id==0 ? this.items : undefined }
+	interface(id){ return id==0 ? this.inv : id==1 ? this.items : undefined }
 	selected = 0
 	skin = null
 	textures = null
@@ -206,7 +206,7 @@ Entities.player = class extends LivingEntity{
 	drawInterface(id, c){
 		// x=0, y=0 => left middle
 		// x=176 => right
-		if(id == 0){
+		if(id == 1){
 			c.image(meInterface, 0, 0)
 			c.push()
 			c.translate(50,5)
@@ -220,11 +220,11 @@ Entities.player = class extends LivingEntity{
 			c.translate(16, 2)
 			c.scale(16,16)
 			for(let i = 0; i < 4; i++){
-				renderSlot(c, this, i | 128)
+				renderSlot(c, this, i, 1)
 				c.translate(0, 1.125)
 			}
 			c.translate(4.3125, -4.5)
-			renderSlot(c, this, 4 | 128)
+			renderSlot(c, this, 4, 1)
 		}
 	}
 }
