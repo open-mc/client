@@ -102,7 +102,12 @@ Entities.player = class extends LivingEntity{
 	static alive = true
 	inv = Array.null(37)
 	items = [null, null, null, null, null]
-	interface(id){ return id==0 ? this.inv : id==1 ? this.items : undefined }
+	getItem(id, slot){return id == 0 ? this.inv[slot] : id == 1 ? this.items[slot] : undefined}
+	setItem(id, slot, item, force = 0){
+		if(id == 0 && slot < 36+force) this.inv[slot] = item
+		else if(id == 1) this.items[slot] = item
+		else return true
+	}
 	selected = 0
 	skin = null
 	textures = null

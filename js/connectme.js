@@ -78,7 +78,7 @@ function hashv8(domain){
 	return '['+hex4(a>>>16)+':'+hex4(a&0xffff)+':'+hex4(b>>>16)+':'+hex4(b&0xffff)+':'+hex4(c>>>16)+':'+hex4(c&0xffff)+':'+hex4(d>>>16)+':'+hex4(d&0xffff)+']'
 }
 
-export function preconnect(ip, cb = Function.prototype){
+export function preconnect(ip, cb = Function.prototype, instant = false){
 	const displayIp = ip
 	if(!/:\d+$/.test(ip))ip += ':27277'
 	if(ip.startsWith('localhost:')) ip = 'wss://local.blobk.at' + ip.slice(9)
@@ -88,16 +88,21 @@ export function preconnect(ip, cb = Function.prototype){
 	try{
 		ws = new WebSocket(`${ip}/${storage.name}/${encodeURIComponent(storage.pubKey)}/${encodeURIComponent(storage.authSig)}`)
 		ws.ip = ip
-	}catch(e){ws = {close(){this.onclose&&this.onclose()},ip}}
+	}catch(e){ws = {close(){this.onclose&&this.onclose()},ip,onclose:null}}
 	ws.challenge = null
 	ws.binaryType = 'arraybuffer'
 	let timeout = setTimeout(ws.close.bind(ws), 5000)
 	ws.onmessage = function({data}){
 		if(ws != globalThis.ws){
 			const packet = new DataReader(data)
-			name.textContent = ws.name = packet.string()
-			motd.textContent = packet.string()
-			icon.src = packet.string()
+			ws.name = packet.string()
+			const motdString = packet.string()
+			const src = packet.string()
+			if(!instant){
+				name.textContent = ws.name
+				motd.textContent = motdString
+				icon.src = src
+			}
 			ws.packs = decoder.decode(pako.inflate(packet.uint8array())).split('\0')
 			for(let i = 0; i < ws.packs.length; i++) if(ws.packs[i][0]=='@') ws.packs[i] = 'http' + ip.slice(2) + ws.packs[i].slice(1)
 			ws.challenge = packet.uint8array()
@@ -115,7 +120,7 @@ export function preconnect(ip, cb = Function.prototype){
 				let i = data.indexOf(';')
 				pendingConnection(data.slice(i+3), parseInt(data.slice(i+1,i+3), 16))
 				i = Math.min(60e3, +data.slice(2, i) || 1000)
-				setTimeout(() => preconnect(displayIp, play), i)
+				setTimeout(() => preconnect(displayIp, play, true), i)
 				finished()
 				return
 			}
@@ -130,7 +135,7 @@ export function preconnect(ip, cb = Function.prototype){
 		}else fwPacket(data)
 	}
 	ws.onclose = () => {
-		if(ws === globalThis.ws){
+		if(ws === globalThis.ws || instant){
 			const msg = timeout >= 0 ? 'Connection refused' : 'Connection lost'
 			finished()
 			reconn(msg)
@@ -142,6 +147,7 @@ export function preconnect(ip, cb = Function.prototype){
 		name.textContent = displayIp
 	}
 	ws.onopen = () => (clearTimeout(timeout), timeout = -1)
+	if(instant) return void ws.onclose()
 	let name, motd, icon
 	const node = Row(
 		icon = Img('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAJCAYAAADgkQYQAAAAAXNSR0IArs4c6QAAACZJREFUKFNjZCACMBKhhoEGijo6Ov5XVFQwotMg59DAOny+JMo6AMVLDArhBOpkAAAAAElFTkSuQmCC'),
@@ -171,7 +177,7 @@ export function preconnect(ip, cb = Function.prototype){
 	)
 	node.onclick = () => {click(); play(ws)}
 	node.end = () => {if(ws != globalThis.ws) ws.close(); node.remove()}
-	if(!(ws instanceof WebSocket))ws.onclose()
+	if(!(ws instanceof WebSocket)) ws.onclose()
 	return node
 }
 
@@ -191,10 +197,10 @@ export async function play(ws){
 	gameIframe(ws.packs)
 }
 const urlServer = location.search.slice(1)
-if(urlServer) preconnect(urlServer, play)
+if(urlServer) preconnect(urlServer, play, true)
 export function reconnect(){
 	if(!lastIp) return
-	preconnect(lastIp, play)
+	preconnect(lastIp, play, true)
 }
 export function finished(){
 	if(!ws) return

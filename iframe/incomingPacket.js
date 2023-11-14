@@ -95,8 +95,8 @@ function entityPacket(buf){
 				buf.read(e.savedata, e)
 			}else throw 'Not supposed to happen!'
 		}else if(mv & 64)Object.setPrototypeOf(e, EntityIDs[buf.short()].prototype), e.age = buf.double(), buf.read(e.savedata, e)
-		if(mv & 1)if(abs(e.x - (e.x = buf.double())) > 16 || e == me)e.ix = e.x
-		if(mv & 2)if(abs(e.y - (e.y = buf.double())) > 16 || e == me)e.iy = e.y
+		if(mv & 1)if(abs(e.x - (e.x = buf.double()||0)) > 16 || e == me)e.ix = e.x
+		if(mv & 2)if(abs(e.y - (e.y = buf.double()||0)) > 16 || e == me)e.iy = e.y
 		if(mv & 4)e.dx = buf.float(), e.dy = buf.float()
 		if(mv & 8)e.f = buf.float(), e.state = buf.int()
 		if(mv & 16)e.name = buf.string()
@@ -178,7 +178,7 @@ Object.assign(codes, {
 	3: clockPacket,
 	4: serverPacket,
 	8: blockSetPacket,
-	15: worldPacket,
+	19: worldPacket,
 	16: chunkPacket,
 	17: chunkDeletePacket,
 	20: entityPacket,

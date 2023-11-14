@@ -256,3 +256,5 @@ export function punchParticles(block, x, y){
 }
 
 export const Classes = []
+
+export const ephemeralInterfaces = {}

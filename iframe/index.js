@@ -267,7 +267,7 @@ renderLayer(400, c => {
 function toString(big, num, precision = 3){
 	let v
 	if(!precision){
-		v = big + BigInt(floor(num)).toString()
+		v = (big + BigInt(floor(num))).toString()
 	}else if(-num <= big) v = (big + BigInt(floor(num))).toString() + (num%1+1).toFixed(precision).slice(1)
 	else{
 		const x = big + BigInt(ceil(num))

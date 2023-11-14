@@ -5,6 +5,8 @@ import { getblock, gridEvents, sound, entityMap, pointer, cam, world } from 'wor
 import { Item, BlockParticle, blockBreak } from 'definitions'
 import { AshParticle, BlastParticle, explode } from './defs.js'
 import { terrainPng } from './blocks.js'
+import { ephemeralInterfaces } from '../iframe/definitions.js'
+import "./interfaces.js"
 const { Texture } = loader(import.meta)
 
 const BREAKING = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].mmap(x => terrainPng.at(x, 15))
@@ -299,31 +301,32 @@ uiLayer(1000, (c, w, h) => {
 	invInterface.drawInterface?.(interfaceId, c)
 	let slot = slotI
 	if(action == 1 && slot > -1){
-		const items = slot > 127 ? invInterface.interface?.(interfaceId) : me.inv
-		const t = items[slot&127], h = me.inv[36]
-		if(t && !h) me.inv[36] = t, items[slot&127] = null
-		else if(h && !t) items[slot&127] = h, me.inv[36] = null
+		const int = slot > 127 ? invInterface : me, id = slot > 127 ? interfaceId : 0
+		const t = int.getItem(id, slot&127), h = me.getItem(0, 36)
+		if(t && !h) int.setItem(id, slot&127, null) || me.setItem(0, 36, t, true)
+		else if(h && !t) int.setItem(id, slot&127, h) || me.setItem(0, 36, null, true)
 		else if(h && t && h.constructor == t.constructor && !h.savedata){
 			const add = min(h.count, t.maxStack - t.count)
-			if(!(h.count -= add))me.inv[36] = null
+			if(!(h.count -= add)) me.setItem(0, 36, null, true)
 			t.count += add
-		}else items[slot&127] = h, me.inv[36] = t
+		}else int.setItem(id, slot&127, h) || me.setItem(0, 36, t, true)
 		const buf = new DataWriter()
 		buf.byte(32); buf.byte(slot)
 		send(buf)
 	}else if(action == 2 && slot > -1){
-		const items = slot > 127 ? invInterface.interface?.(interfaceId) : me.inv
-		const t = items[slot&127], h = me.inv[36]
+		const int = slot > 127 ? invInterface : me, id = slot > 127 ? interfaceId : 0
+		const t = int.getItem(id, slot&127), h = me.getItem(0, 36)
 		if(t && !h){
-			me.inv[36] = new t.constructor(t.count - (t.count >>= 1))
-			if(!t.count)items[slot&127] = null
+			me.setItem(0, 36, new t.constructor(t.count - (t.count >>= 1)), true)
+			if(!t.count) int.setItem(id, slot&127, null, true)
 		}else if(h && !t){
-			items[slot&127] = new h.constructor(1)
-			if(!--h.count)me.inv[36] = null
+			if(!int.setItem(id, slot&127, new h.constructor(1))){
+				if(!--h.count) me.setItem(0, 36, null, true)
+			}
 		}else if(h && t && h.constructor == t.constructor && !h.savedata && t.count < t.maxStack){
 			t.count++
-			if(!--h.count)me.inv[36] = null
-		}else items[slot&127] = h, me.inv[36] = t
+			if(!--h.count) me.setItem(0, 36, null, true)
+		}else int.setItem(id, slot&127, h) || me.setItem(0, 36, t, true)
 		const buf = new DataWriter()
 		buf.byte(33); buf.byte(slot)
 		send(buf)
@@ -363,6 +366,12 @@ function openInventory(){
 }
 function closeInterface(){ pause(false) }
 
+onpacket(12, buf => {
+	const kind = buf.short()
+	invInterface = new ephemeralInterfaces[kind]()
+	interfaceId = buf.byte()
+	pause(true)
+})
 onpacket(13, buf => {
 	const e = entityMap.get(buf.uint32() + buf.short() * 4294967296)
 	if(!e) return
@@ -382,10 +391,12 @@ onpacket(15, () => { invInterface = null })
 onpacket(32, buf => {
 	let i = buf.byte()
 	while(buf.left){
-		const e = i&1 ? getblock(buf.int(), buf.int()) : entityMap.get(buf.uint32() + buf.short() * 4294967296)
-		const int = e.interface(buf.byte())
-		while(buf.left&&(i=buf.byte())<128)
-			int[i] = Item.decode(buf)
+		const e = i&2 ? invInterface : i&1 ? getblock(buf.int(), buf.int()) : entityMap.get(buf.uint32() + buf.short() * 4294967296)
+		const id = buf.byte()
+		while(buf.left&&(i=buf.byte())<128){
+			const itm = Item.decode(buf)
+			e.setItem?.(id, i, itm, true)
+		}
 	}
 })
 

@@ -349,12 +349,24 @@ const loader = (meta) => {
 	let t = 0, TPS = 20
 	let meid = -1, r = 0, me = null, perms = 2
 	let mx = 0, my = 0
-	const nul = new Array(1000).fill(null)
+	const nul = new Array(100).fill(null)
 	Array.null = len => {
-		if(len <= 1000) return nul.slice(0, len)
+		if(len <= 100) return nul.slice(0, len)
 		const a = new Array(len)
 		while(len > 0) a[--len] = null
 		return a
+	}
+	Array.range = (...a) => {
+		const res = []
+		let step = 1
+		if(a.length%2) step = a.pop()
+		if(!step) throw new RangeError("'step' argument must not be zero")
+		for(let i = 0; i < a.length; i+=2){
+			const end = a[i+1]
+			if(step > 0) for(let j = a[i]; j < end; j+=step) res.push(j)
+			else for(let j = a[i]; j > end; j+=step) res.push(j)
+		}
+		return res
 	}
 	/*function makeGl(){
 		const gl = document.createElement('canvas').getContext('webgl2', {desynchronized: false})

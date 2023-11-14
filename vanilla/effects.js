@@ -98,7 +98,7 @@ export function resetSlot(){
 }
 
 export function renderSlot(c, e, i, id=0){
-	const item = e.interface(id)?.[i]
+	const item = e.getItem(id, i)
 	renderItem(c, item)
 	renderItemCount(c, item)
 	const {x, y} = c.mouse()

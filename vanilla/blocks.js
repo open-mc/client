@@ -233,7 +233,11 @@ Blocks.chest = class extends Block{
 	static stepSounds = Wood.stepSounds
 	static interactible = true
 	items = Array.null(27)
-	interface(id){ return id == 0 ? this.items : undefined }
+	getItem(id, slot){ return id == 0 ? this.items[slot] : null}
+	setItem(id, slot, item){
+		if(id == 0) this.items[slot] = item
+		else return true
+	}
 	drawInterface(id, c){
 		if(id == 0){
 			c.image(containerInterface, 0, 0)
@@ -476,7 +480,6 @@ Blocks.acacia_log_leaves = class extends Leaves{
 Blocks.jungle_log_leaves = class extends Leaves{
 	static texture = terrainPng.at(10, 12)
 }
-
 Blocks.crafting_table = class extends Planks{
 	static texture = terrainPng.at(12, 3)
 	static interactible = true
