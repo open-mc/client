@@ -241,6 +241,8 @@ uiLayer(1000, (c, w, h) => {
 			c.shadowColor = '#000'
 			c.fillText('Press Enter to talk with proximity chat', 5, 5, 10)
 			c.globalAlpha = 1
+			c.shadowBlur = 0
+			c.shadowColor = '#0000'
 		}
 	}
 	if(me.state&0x8000){

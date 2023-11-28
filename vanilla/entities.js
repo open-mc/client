@@ -235,6 +235,7 @@ Entities.player = class extends LivingEntity{
 }
 
 Entity[13] = function(buf){
+	if(this == me) return
 	this.selected = buf.byte()
 }
 
