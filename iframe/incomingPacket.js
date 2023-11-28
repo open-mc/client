@@ -1,11 +1,11 @@
-import { getblock, setblock, gridEventMap, gridEvents, map, entityMap, server, world } from 'world'
+import { getblock, setblock, gridEventMap, gridEvents, map, entityMap, server, world, CONFIG } from 'world'
 import { Chunk } from './chunk.js'
 import { queue } from './sounds.js'
 import { moveEntity } from './entity.js'
 import { BlockIDs, EntityIDs, foundMe } from 'definitions'
 import { codes } from 'api'
 import { Classes } from './definitions.js'
-import { bigintOffset } from './world.js'
+import { bigintOffset, configLoaded } from './world.js'
 
 function rubberPacket(data){
 	meid = data.uint32() + data.uint16() * 4294967296
@@ -172,11 +172,17 @@ function setBigintOffset(buf){
 	}
 }
 
+function configPacket(buf){
+	CONFIG.proximitychat = buf.float()
+	for(const f of configLoaded.listeners) try{f(CONFIG)}catch(e){console.error(e)}
+}
+
 Object.assign(codes, {
 	1: rubberPacket,
 	2: dimensionPacket,
 	3: clockPacket,
 	4: serverPacket,
+	5: configPacket,
 	8: blockSetPacket,
 	19: worldPacket,
 	16: chunkPacket,

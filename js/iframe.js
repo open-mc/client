@@ -42,6 +42,7 @@ onmessage = ({data, source}) => {
 	if(data === null){
 		win = iframe.contentWindow
 		if(!win) return
+		if(!m && voice) microphone()
 		for(const k in options) win.postMessage([k, options[k]], '*')
 		win.postMessage(files, '*')
 		for(let i = 0; i < queue.length; i += 2)queue[i](queue[i+1])
@@ -50,6 +51,8 @@ onmessage = ({data, source}) => {
 	else if(data === false) hideUI()
 	else if(data == 'custompause') showUI(empty)
 	else if(data == 'quit') serverlist()
+	else if(data == 'voice') voiceOn()
+	else if(data == 'novoice') voiceOff()
 	else if(data instanceof ArrayBuffer && globalThis.ws) ws.send(data)
 	else if(data instanceof Blob){
 		let d = new Date()
@@ -79,6 +82,7 @@ document.body.onwheel = ({deltaY}) => {
 export function destroyIframe(){
 	if(win)win.close(), win = null
 	iframe.remove()
+	voiceOff(); if(m && typeof m == 'object') m.a.disconnect(m.ctx); m = null
 	win = null; queue.length = 0
 }
 
@@ -98,3 +102,30 @@ export function keyMsg(a){
 	if(!win) return void queue.push(keyMsg, a)
 	win.postMessage(a, '*')
 }
+
+
+
+let m = null, sampleRate = 0, voice = false
+async function microphone(){
+	m = 1
+	try{
+		m = await navigator.mediaDevices.getUserMedia({audio: true})
+		sampleRate = m.getAudioTracks()[0].getSettings().sampleRate
+		const ctx = m.ctx = new AudioContext({sampleRate})
+		win.postMessage(sampleRate + 5e9, '*')
+		const a = m.a = ctx.createScriptProcessor(4096, 1, 1) // Blink/webkit bug, node requires output
+		a.onaudioprocess = ({inputBuffer}) => {
+			if(!voice) return
+			const f32 = inputBuffer.getChannelData(0)
+			win.postMessage(f32, '*', [f32.buffer])
+		}
+		ctx.createMediaStreamSource(m).connect(a)
+		a.connect(ctx.destination)
+	}catch(e){console.log(e)}
+}
+function voiceOn(){
+	voice = true
+	chat.classList.add('voice')
+	if(!m && win) microphone()
+}
+function voiceOff(){ voice = false; chat.classList.remove('voice') }

@@ -1,6 +1,6 @@
 import { DataReader, jsonToType } from '/server/modules/dataproto.js'
 import { frame } from './index.js'
-import { options, listen, _cbs, _mouseMoveCb, _joypadMoveCbs, _pauseCb, _wheelCb, _optionListeners, fakePause, codes, paused } from 'api'
+import { options, listen, _cbs, _mouseMoveCb, _joypadMoveCbs, _pauseCb, _wheelCb, _optionListeners, fakePause, codes, paused, _onvoice, voice } from 'api'
 import { Blocks, Items, Entities, BlockIDs, ItemIDs, EntityIDs, Block, Item, Entity, Classes } from 'definitions'
 import 'world'
 
@@ -109,8 +109,11 @@ const onMsg = ({data,origin}) => {
 			console.error(e)
 			console.warn(packet, packet.i)
 		}
+	}else if(data instanceof Float32Array){
+		_onvoice(data)
 	}else if(typeof data == 'number'){
-		if(data >= 0){
+		if(data >= 5e9) voice.sampleRate = data - 5e9
+		else if(data >= 0){
 			buttons.set(data)
 			changed.set(data)
 			if(_cbs[data])for(const f of _cbs[data])f()

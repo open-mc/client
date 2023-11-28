@@ -6,6 +6,11 @@ export const server = {
 	sub: '',
 	players: []
 }
+export const CONFIG = {
+	proximitychat: 0
+}
+export const configLoaded = fn => configLoaded.listeners.push(fn)
+configLoaded.listeners = []
 
 export const cam = {x: 0, y: 0, z: .5, rot: 0}
 

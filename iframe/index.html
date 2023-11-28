@@ -18,6 +18,7 @@
 	}
 </style>
 <script>
+	pako = null
 	delete window.localStorage; delete window.sessionStorage
 	document.fonts.forEach(font => font.load())
 	onmessage = ({data,origin}) => origin!='null'&&msgQueue.push(data)
@@ -154,9 +155,7 @@
 			gl.viewport(0, 0, xw, yh)
 			//gl.linkProgram(gl.prog)
 			//gl.useProgram(gl.prog)
-			gl.clearColor(0,0,0,0)
 			gl.clear(gl.COLOR_BUFFER_BIT)
-			gl.disable(gl.DEPTH_TEST)
 			gl.bindBuffer(gl.ARRAY_BUFFER, gl.buf)
 			f32_8[0] = (x2-xmin)/xw; f32_8[1] = (y2-ymin)/yh
 			f32_8[2] = (x3-xmin)/xw; f32_8[3] = (y3-ymin)/yh
@@ -228,7 +227,7 @@ const LBUTTON = 0, RBUTTON = 2, MBUTTON = 1, KEYS = {
 	RIGHT: 39, DOWN: 40, LEFT: 37, MOD: _mac ? 91 : 17, F1: 112, F2: 113, F3: 114, F4: 115,
 	F5: 116, F6: 117, F7: 118, F8: 119, F9: 120, F10: 121, F11: 122, F12: 123, MINUS: 189,
 	PLUS: 187, OPENBR: 219, CLOSEBR: 221, SEMICOLON: 186, APOS: 222, BACKSLASH: 220, COMMA: 188,
-	DOT: 190, SLASH: 191
+	DOT: 190, SLASH: 191, ENTER: 13
 }, GAMEPAD = {
 	A: 256, B: 257, X: 258, Y: 259, LB: 260, RB: 261, LT: 262, RT: 263, UP: 268, DOWN: 269, LEFT: 270, RIGHT: 271,
 	MENU: 300
@@ -266,9 +265,9 @@ const _txtr = class Texture{
 		}else return fn(this)
 	}
 }
-const _actx = new AudioContext()
-const _bgGain = _actx.createGain()
-_bgGain.connect(_actx.destination)
+const actx = new AudioContext()
+const _bgGain = actx.createGain()
+_bgGain.connect(actx.destination)
 let _volume = 0
 const createTexture = (i,x=0,y=0,w=i.width,h=i.height) => new _txtr(i,x,y,w,h)
 const loader = (meta) => {
@@ -292,7 +291,7 @@ const loader = (meta) => {
 			return function play(vol = 1, pitch = 1, pan = 0, start = 0, end = NaN, ends = true, bg = false){
 				if(buf === null){
 					buf = []
-					fetch(folder + src, {credentials: 'omit', priority: 'low'}).then(a => a.arrayBuffer()).then(a => _actx.decodeAudioData(a, b => {
+					fetch(folder + src, {credentials: 'omit', priority: 'low'}).then(a => a.arrayBuffer()).then(a => actx.decodeAudioData(a, b => {
 						const l = buf; buf = b
 						for(let i = 0; i < l.length; i++) l[i][0] = play(...l[i]), l[i].length = 1
 					}))
@@ -307,20 +306,20 @@ const loader = (meta) => {
 						}else a[0]()
 					}
 				}
-				const source = _actx.createBufferSource()
+				const source = actx.createBufferSource()
 				source.buffer = buf
 				if(bg) source.connect(_bgGain)
 				else{
-					let dest = _actx.destination
+					let dest = actx.destination
 					const volume = _volume * vol
 					if(volume != 1){
-						const gain = _actx.createGain()
+						const gain = actx.createGain()
 						gain.gain.value = volume
 						gain.connect(dest)
 						dest = gain
 					}
 					if(pan != 0){
-						const panner = _actx.createStereoPanner()
+						const panner = actx.createStereoPanner()
 						panner.pan.value = min(1, max(-1, pan))
 						panner.connect(dest)
 						dest = panner
@@ -395,11 +394,14 @@ const loader = (meta) => {
 		gl.useProgram(gl.prog)
 		gl.posLoc = gl.getAttribLocation(gl.prog, '_pos')
 		gl.enableVertexAttribArray(gl.posLoc)
+		gl.clearColor(0,0,0,0)
+		gl.disable(gl.DEPTH_TEST)
 		return gl
 	}
 	const gl_small = makeGl(), gl_big = makeGl()
 	gl_small.canvas.width = gl_small.canvas.height = 512*/
 </script>
+<script async src="/img/_pako.js"></script>
 <script type="module">
 	import './bitfield.js'
 	import './chunk.js'

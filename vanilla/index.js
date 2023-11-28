@@ -1,12 +1,13 @@
 import { uiButtons, icons, renderItem, renderItemCount, click, renderSlot, renderTooltip, resetSlot, slotI, audioSet } from './effects.js'
 import "./entities.js"
 import { button, W2, H2, uiLayer, renderLayer, onpause, pause, paused, renderUI, customPause, quit, onpacket, send } from 'api'
-import { getblock, gridEvents, sound, entityMap, pointer, cam, world } from 'world'
+import { getblock, gridEvents, sound, entityMap, pointer, cam, world, configLoaded } from 'world'
 import { Item, BlockParticle, blockBreak } from 'definitions'
 import { AshParticle, BlastParticle, explode } from './defs.js'
 import { terrainPng } from './blocks.js'
 import { ephemeralInterfaces } from '../iframe/definitions.js'
 import "./interfaces.js"
+import "./voice.js"
 const { Texture } = loader(import.meta)
 
 const BREAKING = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].mmap(x => terrainPng.at(x, 15))
@@ -193,6 +194,8 @@ const btnW = uiButtons.large.w
 
 let respawnClicked = false
 let hotbarTooltipAlpha = 0, lastSelected = -1
+let proximityChatTooltip = 0
+configLoaded(CONFIG => proximityChatTooltip = CONFIG.proximitychat ? 10 : 0)
 uiLayer(1000, (c, w, h) => {
 	if(renderUI){
 		let hotBarLeft = w / 2 - hotbar.w/2
@@ -219,11 +222,26 @@ uiLayer(1000, (c, w, h) => {
 		c.pop()
 		c.textAlign = 'center'; c.textBaseline = 'middle'
 		if(lastSelected != me.selected) lastSelected = me.selected, hotbarTooltipAlpha = 5
-		c.globalAlpha = min(1, max(0, hotbarTooltipAlpha))
-		hotbarTooltipAlpha -= dt*2
-		const item = me.inv[me.selected]
-		if(item) c.styledText(item.name ? 79 : 15, item.name || item.defaultName, hotBarLeft + hotbar.w / 2, hotbar.h + 24, 10)
-		c.globalAlpha = 1
+		if(hotbarTooltipAlpha > 0){
+			c.globalAlpha = min(1, max(0, hotbarTooltipAlpha))
+			hotbarTooltipAlpha -= dt*2
+			const item = me.inv[me.selected]
+			if(item) c.styledText(item.name ? 79 : 15, item.name || item.defaultName, hotBarLeft + hotbar.w / 2, hotbar.h + 24, 10)
+			c.globalAlpha = 1
+		}
+		if(proximityChatTooltip > 0){
+			proximityChatTooltip -= dt
+			c.globalAlpha = min(1, proximityChatTooltip/3)
+			c.textAlign = 'left'
+			c.textBaseline = 'alphabetic'
+			c.fillStyle = '#800'
+			c.fillText('Press Enter to talk with proximity chat', 6, 4, 10)
+			c.fillStyle = '#f00'
+			c.shadowBlur = 10
+			c.shadowColor = '#000'
+			c.fillText('Press Enter to talk with proximity chat', 5, 5, 10)
+			c.globalAlpha = 1
+		}
 	}
 	if(me.state&0x8000){
 		const h3 = h / 3

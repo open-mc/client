@@ -113,3 +113,19 @@ export const onpacket = (c, cb) => codes[c] = cb
 export const send = buf => postMessage(buf.build ? buf.build().buffer : buf.buffer || buf, '*')
 
 export const download = blob => postMessage(blob, '*')
+
+export let _onvoice = null
+
+export function voice(fn){
+	postMessage('voice', '*')
+	if(typeof fn == 'function') _onvoice = fn
+	voice.active = true
+	return stopVoice
+}
+export function stopVoice(){
+	_onvoice = null
+	postMessage('novoice', '*')
+	voice.active = false
+}
+voice.sampleRate = 0
+voice.active = false

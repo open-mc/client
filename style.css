@@ -240,6 +240,14 @@ column{
 	opacity: 1 !important;
 	animation-play-state: paused;
 }
+#chat.voice:after{
+	content: '';
+	background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACMAAAALCAYAAAD1JjQCAAAAAXNSR0IArs4c6QAAANFJREFUOE+9lFsOwyAMBM2p2yO0pyZa1IlWK5I2QWqUH/BrWGxa2derupZt/P//9qKAgLACpFx34g9h3lX1XFDoVdWvxv8Ekyf1tSuKGt/sUn8W1wjMa5Iyj0//yOZKscYuFVQg/c/sAs+4AUMhgLQmuduUAHglUrEjSA6T101cjof8RnKfIKfVvsNkgTPFZjB+CxzYoUbP5BXhQACN6Kr4nk9gKpa9QWNPe4ZELp9T50TMpgQ1lQt/95vZ5Zv7p8rceStWnsp9tJ3SE159K1ZgNm64fhq/G7yuAAAAAElFTkSuQmCC) 0/cover;
+	height: 22px; width: 70px;
+	position: absolute;
+	bottom: -50px; left: 2px;
+	filter: drop-shadow(0 0 3px black)
+}
 #chatbox{
 	position: fixed;
 	bottom: 30rem;

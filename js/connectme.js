@@ -90,6 +90,7 @@ export function preconnect(ip, cb = Function.prototype, instant = false){
 		ws.ip = ip
 	}catch(e){ws = {close(){this.onclose&&this.onclose()},ip,onclose:null}}
 	ws.challenge = null
+	ws.displayIp = displayIp
 	ws.binaryType = 'arraybuffer'
 	let timeout = setTimeout(ws.close.bind(ws), 5000)
 	ws.onmessage = function({data}){
@@ -103,7 +104,7 @@ export function preconnect(ip, cb = Function.prototype, instant = false){
 				motd.textContent = motdString
 				icon.src = src
 			}
-			ws.packs = decoder.decode(pako.inflate(packet.uint8array())).split('\0')
+			ws.packs = pako.inflate(packet.uint8array(), {to: 'string'}).split('\0')
 			for(let i = 0; i < ws.packs.length; i++) if(ws.packs[i][0]=='@') ws.packs[i] = 'http' + ip.slice(2) + ws.packs[i].slice(1)
 			ws.challenge = packet.uint8array()
 			const host = decoder.decode(ws.challenge.subarray(0, ws.challenge.indexOf(0))).toLowerCase()
@@ -182,6 +183,7 @@ export function preconnect(ip, cb = Function.prototype, instant = false){
 }
 
 export async function play(ws){
+	if(ws.readyState>=2) return preconnect(ws.displayIp, play)
 	lastIp = ws.ip
 	if(!ws.challenge) return
 	const signature = await makeSign(ws.challenge)
@@ -195,6 +197,7 @@ export async function play(ws){
 	onfocus()
 	pendingConnection('Authenticating...')
 	gameIframe(ws.packs)
+	console.clear()
 }
 const urlServer = location.search.slice(1)
 if(urlServer) preconnect(urlServer, play, true)

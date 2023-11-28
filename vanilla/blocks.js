@@ -251,6 +251,7 @@ Blocks.chest = class extends Block{
 			}
 			c.pop()
 			c.textAlign = 'left'
+			c.textBaseline = 'alphabetic'
 			c.fillStyle = '#505050'
 			c.fillText(this.name||Items.chest.defaultName, 8, 65, 10)
 			c.fillText('Inventory', 8, -1, 10)
