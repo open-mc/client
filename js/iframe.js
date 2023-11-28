@@ -110,7 +110,7 @@ async function microphone(){
 	m = 1
 	try{
 		m = await navigator.mediaDevices.getUserMedia({audio: true})
-		sampleRate = m.getAudioTracks()[0].getSettings().sampleRate
+		sampleRate = Math.max(22050, m.getAudioTracks()[0].getSettings().sampleRate ?? 22050)
 		const ctx = m.ctx = new AudioContext({sampleRate})
 		win.postMessage(sampleRate + 5e9, '*')
 		const a = m.a = ctx.createScriptProcessor(4096, 1, 1) // Blink/webkit bug, node requires output
