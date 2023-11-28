@@ -63,6 +63,7 @@ if(matchMedia("not (pointer: fine)").matches)
 export function start(){
 	const loading = document.getElementById('loading')
 	if(loading) loading.remove()
+	if(ws) return
 	if(!storage.shownDefects && (defects.firefox || defects.safari || defects.m1)){
 		showUI(UI('dirtbg',
 			Label('Notice about your current environment').attr('style', 'font-size: 12rem; max-width: calc(100% - 20px); white-space: pre-wrap; height: auto'),

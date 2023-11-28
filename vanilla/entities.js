@@ -58,7 +58,7 @@ export class LivingEntity extends Entity{
 			c.globalAlpha = 0.2
 			c.fillRect(width * -0.5 - 0.05, this.height + 0.15 - 0.05, width + 0.1, bottom + top + 0.1)
 			c.globalAlpha = 1
-			c.fillStyle = '#fff'
+			c.fillStyle = this.state&0x100?'#f44':'#fff'
 			c.fillText(this.name, 0, this.height + 0.15 + bottom * 0.3, 0.3)
 		}
 		if(ys < 0) c.translate(0, this.height)

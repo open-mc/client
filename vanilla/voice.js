@@ -45,8 +45,8 @@ drawPhase(-10000, () => {
 		if(obj.ends < actx.currentTime - 10000){ bufferEnds.delete(e); continue }
 		setVol(e, obj)
 	}
-	if(voice.active && !buttons.has(KEYS.ENTER)) stopVoice()
-	else if(!voice.active && buttons.has(KEYS.ENTER)) voice(sendVoice)
+	if(voice.active && !buttons.has(KEYS.ENTER)) stopVoice(), me.state &= ~0x100
+	else if(!voice.active && buttons.has(KEYS.ENTER)) voice(sendVoice), me.state |= 0x100
 })
 function sendVoice(f32){
 	if(!pako) return

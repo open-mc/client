@@ -6,7 +6,8 @@ onkeydown = e => {
 	if(document.activeElement != document.body && e.key != 'Escape') return
 	e.preventDefault()
 	if(e.repeat) return
-	if(cbs[e.key])for(const f of cbs[e.key])f()
+	if(cbs[e.key]){for(const f of cbs[e.key])f(); return}
+	if(e.key == 'Escape') return
 	if(win) keyMsg(e.keyCode)
 }
 onkeyup = e => {
@@ -16,6 +17,7 @@ onkeyup = e => {
 		if(ui && ui.esc) ui.esc()
 		return
 	}
+	if(cbs[e.key]) return
 	if(win) keyMsg(~e.keyCode)
 	e.preventDefault()
 }
