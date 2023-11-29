@@ -68,7 +68,7 @@ let wasFullscreen = false
 let ignoreEsc = false
 document.onpointerlockerror = document.onpointerlockchange = function(e){
 	if(e.type == 'error' || e.type == 'pointerlockerror') ptrFail(), keyMsg(true)
-	else if(document.pointerLockElement){
+	else if(e.type == 'pointerlockchange' && document.pointerLockElement){
 		ptrSuccess()
 		keyMsg(false)
 		//if(wasFullscreen)document.documentElement.requestFullscreen()

@@ -32,6 +32,7 @@ Todo: Creating accounts (deprecating account keys)
 
 ## Alpha 9 (current version)
 
+- Proximity chat
 - Chest, furnace, crafting table
 - Saplings & tree growing
 - Weather

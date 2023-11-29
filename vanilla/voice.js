@@ -1,4 +1,4 @@
-import { send, onpacket, voice, stopVoice, drawPhase } from 'api'
+import { send, onpacket, voice, stopVoice, drawPhase, button } from 'api'
 import { entityMap, CONFIG } from 'world'
 
 onpacket(96, buf => {
@@ -47,6 +47,10 @@ drawPhase(-10000, () => {
 	}
 	if(voice.active && !buttons.has(KEYS.ENTER)) stopVoice(), me.state &= ~0x100
 	else if(!voice.active && buttons.has(KEYS.ENTER)) voice(sendVoice), me.state |= 0x100
+})
+button(KEYS.P, () => {
+	if(voice.active) stopVoice(), me.state &= ~0x100
+	else if(!voice.active) voice(sendVoice), me.state |= 0x100
 })
 function sendVoice(f32){
 	if(!pako) return

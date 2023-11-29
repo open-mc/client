@@ -235,8 +235,9 @@ Entities.player = class extends LivingEntity{
 }
 
 Entity[13] = function(buf){
+	const b = buf.byte()
 	if(this == me) return
-	this.selected = buf.byte()
+	this.selected = b
 }
 
 worldEvents[50] = () => {
