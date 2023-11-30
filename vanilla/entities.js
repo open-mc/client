@@ -1,9 +1,9 @@
 import { particlePng, explode, AshParticle, BlastParticle, hurt } from './defs.js'
 import { audioSet, renderItem, renderItemCount, renderSlot } from './effects.js'
 import { Entities, Entity, Item, Blocks, BlockIDs } from 'definitions'
-import { renderF3 } from 'api'
+import { renderF3, uiLayer } from 'api'
 import { getblock, cam, worldEvents } from 'world'
-import { uiLayer } from '../iframe/api.js'
+
 const {Audio, Texture} = loader(import.meta)
 
 const meInterface = Texture('meint.png')

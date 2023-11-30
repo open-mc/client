@@ -3,8 +3,7 @@ import { entityMap, CONFIG } from 'world'
 
 onpacket(96, buf => {
 	if(!pako) return
-	const e = entityMap.get(buf.uint32() + buf.uint16()*4294967296)
-	if(!e) return
+	const e = CONFIG.proximitychat == Infinity ? buf.uint32() + buf.uint16()*4294967296 : entityMap.get(buf.uint32() + buf.uint16()*4294967296)
 	const sampleRate = buf.uint32()
 	const arr = pako.inflateRaw(new Uint8Array(buf.buffer, buf.byteOffset + buf.i, buf.left))
 	queuePlay(e, sampleRate, arr)
@@ -12,7 +11,6 @@ onpacket(96, buf => {
 
 let bufferEnds = new Map()
 function queuePlay(e, sampleRate, data){
-	if(!e) return
 	const f32 = new Float32Array(data.length)
 	const b = actx.createBuffer(1, f32.length, sampleRate)
 	for(let i = 0; i < f32.length; i++) f32[i] = data[i]/128-1
@@ -21,16 +19,19 @@ function queuePlay(e, sampleRate, data){
 	n.buffer = b
 	let obj = bufferEnds.get(e)
 	if(!obj){
-		const gain = actx.createGain(), pan = gain.connect(actx.createStereoPanner())
-		pan.connect(actx.destination)
-		bufferEnds.set(e, obj = { ends: 0, gain, pan })
+		if(typeof e == 'object'){
+			const gain = actx.createGain(), pan = gain.connect(actx.createStereoPanner())
+			pan.connect(actx.destination)
+			bufferEnds.set(e, obj = { ends: 0, gain, pan })
+		}else bufferEnds.set(e, obj = { ends: 0 })
 	}
-	n.connect(obj.gain)
+	if(typeof e === 'object') n.connect(obj.gain)
+	else n.connect(actx.destination)
 	if(obj.ends < actx.currentTime || actx.state != 'running' || obj.ends > actx.currentTime + 10) obj.ends = actx.currentTime
 	n.start(obj.ends)
 	if(obj.ends - actx.currentTime > 0.5) n.playbackRate.value = 1.25
 	obj.ends += (f32.length/sampleRate) / n.playbackRate.value
-	setVol(e, obj)
+	if(typeof e === 'object') setVol(e, obj)
 }
 
 function setVol(e, obj){
@@ -43,10 +44,10 @@ function setVol(e, obj){
 drawPhase(-10000, () => {
 	for(const [e, obj] of bufferEnds){
 		if(obj.ends < actx.currentTime - 10000){ bufferEnds.delete(e); continue }
-		setVol(e, obj)
+		if(typeof e === 'object') setVol(e, obj)
 	}
 	if(voice.active && (!buttons.has(KEYS.ENTER)^voiceToggle)) stopVoice(), me.state &= ~0x100
-	else if(!voice.active && (buttons.has(KEYS.ENTER)^voiceToggle)) voice(sendVoice), me.state |= 0x100
+	else if(!voice.active && (buttons.has(KEYS.ENTER)^voiceToggle) && CONFIG.proximitychat) voice(sendVoice), me.state |= 0x100
 })
 let voiceToggle = false
 button(KEYS.P, () => voiceToggle = !voiceToggle)

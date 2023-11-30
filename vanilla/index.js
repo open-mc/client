@@ -1,11 +1,10 @@
 import { uiButtons, icons, renderItem, renderItemCount, click, renderSlot, renderTooltip, resetSlot, slotI, audioSet } from './effects.js'
 import "./entities.js"
-import { button, W2, H2, uiLayer, renderLayer, onpause, pause, paused, renderUI, customPause, quit, onpacket, send } from 'api'
+import { button, W2, H2, uiLayer, renderLayer, onpause, pause, paused, renderUI, customPause, quit, onpacket, send, voice } from 'api'
 import { getblock, gridEvents, sound, entityMap, pointer, cam, world, configLoaded } from 'world'
-import { Item, BlockParticle, blockBreak } from 'definitions'
+import { Item, BlockParticle, blockBreak, ephemeralInterfaces } from 'definitions'
 import { AshParticle, BlastParticle, explode } from './defs.js'
 import { terrainPng } from './blocks.js'
-import { ephemeralInterfaces } from '../iframe/definitions.js'
 import "./interfaces.js"
 import "./voice.js"
 const { Texture } = loader(import.meta)
@@ -229,6 +228,7 @@ uiLayer(1000, (c, w, h) => {
 			if(item) c.styledText(item.name ? 79 : 15, item.name || item.defaultName, hotBarLeft + hotbar.w / 2, hotbar.h + 24, 10)
 			c.globalAlpha = 1
 		}
+		if(voice.active) proximityChatTooltip = 0
 		if(proximityChatTooltip > 0){
 			c.globalAlpha = min(1, proximityChatTooltip/5)
 			proximityChatTooltip -= dt

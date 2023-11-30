@@ -1,5 +1,5 @@
 import { music } from 'world'
-import { renderF3 } from '../iframe/api.js'
+import { renderF3 } from 'api'
 const {Audio, Texture} = loader(import.meta)
 
 export const audioSet = (path, count) => Array.from({length: count}, (_, i) => Audio('sound/'+path+(i+1)+'.mp3'))
