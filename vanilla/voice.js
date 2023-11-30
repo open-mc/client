@@ -45,13 +45,11 @@ drawPhase(-10000, () => {
 		if(obj.ends < actx.currentTime - 10000){ bufferEnds.delete(e); continue }
 		setVol(e, obj)
 	}
-	if(voice.active && !buttons.has(KEYS.ENTER)) stopVoice(), me.state &= ~0x100
-	else if(!voice.active && buttons.has(KEYS.ENTER)) voice(sendVoice), me.state |= 0x100
+	if(voice.active && (!buttons.has(KEYS.ENTER)^voiceToggle)) stopVoice(), me.state &= ~0x100
+	else if(voice.active && (buttons.has(KEYS.ENTER)^voiceToggle)) voice(sendVoice), me.state |= 0x100
 })
-button(KEYS.P, () => {
-	if(voice.active) stopVoice(), me.state &= ~0x100
-	else if(!voice.active) voice(sendVoice), me.state |= 0x100
-})
+let voiceToggle = false
+button(KEYS.P, () => voiceToggle = !voiceToggle)
 function sendVoice(f32){
 	if(!pako) return
 	const arr = new Uint8ClampedArray(f32.length)

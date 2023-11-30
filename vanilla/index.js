@@ -230,7 +230,7 @@ uiLayer(1000, (c, w, h) => {
 			c.globalAlpha = 1
 		}
 		if(proximityChatTooltip > 0){
-			c.globalAlpha = min(1, proximityChatTooltip/3)
+			c.globalAlpha = min(1, proximityChatTooltip/5)
 			proximityChatTooltip -= dt
 			c.textAlign = 'left'
 			c.textBaseline = 'alphabetic'
