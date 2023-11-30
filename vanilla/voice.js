@@ -46,7 +46,7 @@ drawPhase(-10000, () => {
 		setVol(e, obj)
 	}
 	if(voice.active && (!buttons.has(KEYS.ENTER)^voiceToggle)) stopVoice(), me.state &= ~0x100
-	else if(voice.active && (buttons.has(KEYS.ENTER)^voiceToggle)) voice(sendVoice), me.state |= 0x100
+	else if(!voice.active && (buttons.has(KEYS.ENTER)^voiceToggle)) voice(sendVoice), me.state |= 0x100
 })
 let voiceToggle = false
 button(KEYS.P, () => voiceToggle = !voiceToggle)
