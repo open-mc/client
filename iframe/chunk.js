@@ -18,7 +18,7 @@ export class Chunk extends Uint16Array{
 		const l = buf.short()
 		buf.i += l * 2
 		//read buffer palette
-		let palettelen = buf.byte() + 1 & 0xFF
+		let palettelen = buf.byte() + 1
 		let id
 		while((id = buf.short()) != 65535){
 			const e = new EntityIDs[id]()
@@ -42,8 +42,9 @@ export class Chunk extends Uint16Array{
 		}else if(palettelen == 1){
 			for(let j=0;j<4096;j++)this[j] = palette[0]
 		}else if(palettelen == 2){
+			const u8 = new Uint8Array(512)
 			for(let j=0;j<4096;j+=8){
-				const byte = buf.byte()
+				const byte = u8[j>>3]
 				this[j  ] = palette[byte&1]
 				this[j+1] = palette[(byte>>1)&1]
 				this[j+2] = palette[(byte>>2)&1]
@@ -54,20 +55,25 @@ export class Chunk extends Uint16Array{
 				this[j+7] = palette[byte>>7]
 			}
 		}else if(palettelen <= 4){
+			const u8 = new Uint8Array(1024)
 			for(let j=0;j<4096;j+=4){
-				const byte = buf.byte()
+				const byte = u8[j>>2]
 				this[j  ] = palette[byte&3]
 				this[j+1] = palette[(byte>>2)&3]
 				this[j+2] = palette[(byte>>4)&3]
 				this[j+3] = palette[byte>>6]
 			}
 		}else if(palettelen <= 16){
+			const u8 = new Uint8Array(2048)
 			for(let j=0;j<4096;j+=2){
-				const byte = buf.byte()
+				const byte = u8[j>>1]
 				this[j  ] = palette[byte&15]
 				this[j+1] = palette[(byte>>4)]
 			}
-		}else for(let j=0;j<4096;j++) this[j] = palette[buf.byte()]
+		}else{
+			const u8 = new Uint8Array(4096)
+			for(let j=0;j<4096;j++) this[j] = palette[u8[j]]
+		}
 		//parse block entities
 		for(let j=0;j<4096;j++){
 			if(this[j] == 65535) this[j] = buf.short()
