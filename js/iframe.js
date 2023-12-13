@@ -82,7 +82,7 @@ document.body.onwheel = ({deltaY}) => {
 export function destroyIframe(){
 	if(win)win.close(), win = null
 	iframe.remove()
-	voiceOff(); if(m && typeof m == 'object') m.a.disconnect(m.ctx); m = null
+	voiceOff(); if(m && typeof m == 'object') m.source.disconnect(), m = null
 	win = null; queue.length = 0
 }
 
@@ -104,22 +104,34 @@ export function keyMsg(a){
 }
 
 
-
-let m = null, sampleRate = 0, voice = false
+const TARGET_SAMPLE_RATE = 22050
+let m = null, voice = false
 async function microphone(){
 	m = 1
 	try{
 		m = await navigator.mediaDevices.getUserMedia({audio: true})
-		sampleRate = Math.max(22050, m.getAudioTracks()[0].getSettings().sampleRate ?? 22050)
-		const ctx = m.ctx = new AudioContext({sampleRate})
+		let node, ctx = null, sampleRate
+		// Firefox, wtf??? https://bugzilla.mozilla.org/show_bug.cgi?id=1388586
+		for(sampleRate of [TARGET_SAMPLE_RATE, 8000, 16000, 32000, 44100, 48000]) try{
+			ctx = new AudioContext({sampleRate})
+			node = ctx.createMediaStreamSource(m)
+			break
+		}catch(e){}
+		if(!node) throw alert("Please switch to chrome or safari, your browser does not support processing microphone input"), 'browser does not support processing microphone input'
+		let bufferSize = 2048, r = null
+		if(sampleRate !== TARGET_SAMPLE_RATE){
+			bufferSize = 2**Math.round(Math.log2(sampleRate/10))
+			const {resampler} = await import('/img/_resampler.js')
+			r = resampler(sampleRate, TARGET_SAMPLE_RATE, 1, bufferSize)
+		}
 		win.postMessage(sampleRate + 5e9, '*')
-		const a = m.a = ctx.createScriptProcessor(4096, 1, 1) // Blink/webkit bug, node requires output
+		const a = ctx.createScriptProcessor(4096, 1, 1) // Blink/webkit bug, node requires output
 		a.onaudioprocess = ({inputBuffer}) => {
 			if(!voice) return
-			const f32 = inputBuffer.getChannelData(0)
+			const f32 = r?r(inputBuffer.getChannelData(0)):inputBuffer.getChannelData(0)
 			win.postMessage(f32, '*', [f32.buffer])
 		}
-		ctx.createMediaStreamSource(m).connect(a)
+		m.source=ctx.createMediaStreamSource(m);m.source.connect(a)
 		a.connect(ctx.destination)
 	}catch(e){console.log(e)}
 }
