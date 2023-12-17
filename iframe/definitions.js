@@ -116,8 +116,12 @@ export class Entity{
 	static alive = false
 }
 
-export const Blocks = {}, Items = {}, Entities = {}
-export const BlockIDs = [], ItemIDs = [], EntityIDs = []
+export const Blocks = {}
+export const Items = {}
+export const Entities = {}
+export const BlockIDs = []
+export const ItemIDs = []
+export const EntityIDs = []
 
 Object.assign(globalThis, {Blocks, Items, Entities, BlockIDs, ItemIDs, EntityIDs})
 
