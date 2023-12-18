@@ -12,7 +12,10 @@ let lastPlace = 0
 let jrx = 0, jry = 0
 drawPhase(-1000, () => {
 	a: if(options.joy == 0){
-		if(cursor.jrx || cursor.jry) pointerMoved(cursor.jrx * 100, cursor.jry * 100)
+		if(cursor.jrx || cursor.jry){
+			const sens = 9 ** (options.controllerSensitivity-options.sensitivity)
+			pointerMoved(cursor.jrx * 100 * sens, cursor.jry * 100 * sens)
+		}
 	}else if(options.joy == 1){
 		const reach = effectiveReach()
 		if(cursor.jrx || cursor.jry){
@@ -202,8 +205,8 @@ export function pointerMoved(dx, dy){
 	jrx = jry = 0
 	const reach = effectiveReach()
 	const s = min(reach, sqrt(x * x + y * y))
-	x += dx * 9 ** options.sensitivity / 3 / cam.z / TEX_SIZE / 2
-	y += dy * 9 ** options.sensitivity / 3 / cam.z / TEX_SIZE / 2
+	const sens = Math.floor(9 ** options.sensitivity / 3) / cam.z / TEX_SIZE / 2
+	x += dx * sens; y += dy * sens
 	const ns = sqrt(x * x + y * y)
 	if(!ns) return x = y = 0
 	if(ns > s){

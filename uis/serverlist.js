@@ -90,11 +90,13 @@ const serverList = UI('dirtbg serverlist',
 	Row(input = Input('text', 'server ip'), addBtn = Btn('Add server', () => {if(input.value=='server ip') return input.value = 'very funny';else if(input.value=='very funny') return;addServer(input.value);input.value='';addBtn.disabled=true}, 'small disabled')),
 	Spacer(20)
 )
+selectSkinBtn.classList.add('selectable')
 selectSkinBtn.onclick = btn => getSkin().then(a => {
 	if(!a) return
 	btn.textContent = a
 	setTimeout(() => btn.textContent = 'Select skin', 2000)
 })
+logoutBtn.classList.add('selectable')
 logoutBtn.onclick = () => {
 	storage.name = storage.privKey = storage.pubKey = storage.authSig = ''
 	location+=''

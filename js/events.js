@@ -21,20 +21,72 @@ onkeyup = e => {
 	if(win) keyMsg(~e.keyCode)
 	e.preventDefault()
 }
-onmousedown = e => void(win && (!ui || (ui instanceof Comment)) && keyMsg(e.button))
-onmouseup = e => void(win && keyMsg(~e.button))
+document.onmousedown = e => void(win && (!ui || (ui instanceof Comment)) && keyMsg(e.button))
+document.onmouseup = e => void(win && keyMsg(~e.button))
 
-let gamepadButtons = new Set, odxs = [0,0], odys = [0,0], dxs = odxs.slice(0), dys = odys.slice(0)
+let mtarget = null
+document.onmousemove = ({movementX, movementY, clientX, clientY, target}) => {
+	if(mtarget) mtarget.classList.remove('hover')
+	while(target && target.nodeName!='BTN' && target.nodeName!='INPUT' && !target.classList.contains('selectable')) target=target.parentElement
+	;(mtarget=target)?.classList.add('hover')
+	if(!win) return
+	if(ui){
+		const v = ui.rowI!=undefined&&ui.rows[ui.rowI]
+		if(v){
+			v.classList.remove('hover')
+			ui.rowI = undefined
+			const n = v.columnI!=undefined&&v.columns[v.columnI]
+			if(n) n.classList.remove('hover'), v.columnI = undefined
+		}
+		win.postMessage([clientX, clientY], '*')
+		return
+	}
+	const movementScale = globalThis.netscape ? devicePixelRatio : /Opera|OPR\//.test(navigator.userAgent) ? 1/devicePixelRatio : 1
+	win.postMessage([movementX * movementScale, -movementY * movementScale], '*')
+}
+
+document.onwheel = ({deltaY}) => {
+	if(!win) return
+	const movementScale = devicePixelRatio ** (globalThis.netscape ? 1 : /Opera|OPR\//.test(navigator.userAgent) ? -1 : 0)
+	win.postMessage([deltaY * movementScale], '*')
+}
+
+let gamepadButtons = new Set, odxs = [0,0], odys = [0,0], dxs = [0,0], dys = [0,0]
+let wasShowingUI = true
 requestAnimationFrame(function checkInputs(){
+	requestAnimationFrame(checkInputs)
 	dxs.fill(0), dys.fill(0)
 	for(const d of navigator.getGamepads()){
-		if(!d || d.mapping != 'standard') continue
-		globalThis.d=d
+		if(!d) continue
+		if(d.mapping != 'standard'){
+			let i = 320
+			for(const b of d.buttons){
+				if(b.pressed || b == 1){
+					if(!gamepadButtons.has(i)){
+						gamepadButtons.add(i); keyMsg(i)
+						if(i===320 && ui && ui.esc) ui.esc()
+						else if(i===320) document.exitPointerLock()
+					}
+				}else if(gamepadButtons.has(i))
+					gamepadButtons.delete(i), keyMsg(~i)
+				i++
+			}
+			continue
+		}
 		let i = 256
 		for(const b of d.buttons){
 			if(b.pressed || b == 1){
-				if(!gamepadButtons.has(i))
+				if(!gamepadButtons.has(i)){
 					gamepadButtons.add(i), keyMsg(i)
+					a: if(i===256){
+						if(!ui || ui.rowI==undefined) break a
+						const v = ui.rows[ui.rowI]
+						if(v.columnI==undefined) break a
+						const e = v.columns[v.columnI]
+						if(!e || !e.click) break a
+						e.click()
+					}else if(i === 257 && ui && ui.esc && ui !== NONE) ui.esc()
+				}
 			}else if(gamepadButtons.has(i))
 				gamepadButtons.delete(i), keyMsg(~i)
 			i++
@@ -42,14 +94,58 @@ requestAnimationFrame(function checkInputs(){
 		dxs[0] += d.axes[0], dys[0] -= d.axes[1], dxs[1] += d.axes[2], dys[1] -= d.axes[3]
 	}
 	// Normalize to min(|vec|, 1) then send
+	const showingUI = ui && !(ui instanceof Comment)
 	for(let i = 0; i < 2; i++){
 		let d = dxs[i]*dxs[i]+dys[i]*dys[i]
 		if(d > 1) d = Math.sqrt(d), dxs[i] /= d, dys[i] /= d
-		if(dxs[i] == odxs[i] && dys[i] == odys[i]) continue
-		keyMsg([i, dxs[i], dys[i]])
+		if(!wasShowingUI){
+			if(showingUI) keyMsg([i, 0, 0])
+			else if(dxs[i] != odxs[i] || dys[i] != odys[i])
+				keyMsg([i, dxs[i], dys[i]])
+		}else if(!showingUI) keyMsg([i, dxs[i], dys[i]])
+	}
+	wasShowingUI = showingUI
+	a: if(showingUI){
+		const X = Math.abs(odxs[0])<0.4?dxs[0]>=0.4?1:dxs[0]<=-0.4?-1:0:0
+		const Y = Math.abs(odys[0])<0.4?dys[0]>=0.4?1:dys[0]<=-0.4?-1:0:0
+		if(!X&&!Y) break a
+		if(mtarget) mtarget.classList.remove('hover'), mtarget = null
+		ui.rows ??= ui.querySelectorAll('row:not(row row), :not(row) > btn:not(.disabled)')
+		if(!ui.rows.length) break a
+		if(ui.rowI == undefined)
+			ui.rows[ui.rowI = Y>0?ui.rows.length-1:0].classList.add('hover')
+		else if(Y){
+			const s = ui.rows[ui.rowI]
+			s.classList.remove('hover')
+			if(s.columnI!=undefined) s.columns[s.columnI].classList.remove('hover'),s.columnI=undefined
+			ui.rowI = (ui.rowI - Y + ui.rows.length) % ui.rows.length
+			ui.rows[ui.rowI].classList.add('hover')
+		}
+		const s = ui.rows[ui.rowI]
+		s.columns ??= s.nodeName === 'BTN' ? [s] : s.querySelectorAll('img,btn:not(.disabled),input,.selectable')
+		if(!s.columns.length) break a
+		if(s.columnI == undefined)
+			s.columns[s.columnI = X<0?s.columns.length-1:0].classList.add('hover')
+		else if(X){
+			s.columns[s.columnI].classList.remove('hover')
+			s.columnI = (s.columnI + X + s.columns.length) % s.columns.length
+			s.columns[s.columnI].classList.add('hover')
+		}
+	}
+	a: if(showingUI){
+		const dx = dxs[1]
+		if(ui.rowI == undefined) break a
+		const s = ui.rows[ui.rowI]
+		if(s.columnI == undefined) break a
+		const n = s.columns[s.columnI]
+		if(n.parentElement?.nodeName != 'BTN') break a
+		const track = n.parentElement
+		track.value = Math.max(0, Math.min(1, track.value + dx/50))
+		const {0:t,1:v} = track.change(track.value)
+		n.style.setProperty('--value', v)
+		track.firstChild.textContent = t
 	}
 	void([odxs, odys, dxs, dys] = [dxs, dys, odxs, odys])
-	requestAnimationFrame(checkInputs)
 })
 
 const cbs = {}

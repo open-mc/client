@@ -142,7 +142,7 @@ export function preconnect(ip, cb = Function.prototype, instant = false){
 			reconn(msg)
 			return
 		}
-		icon.src = './img/no.png'
+		icon.src = './img/pack.png'
 		motd.textContent = ws instanceof WebSocket ? 'Failed to connect' : 'Invalid IP'
 		motd.style.color = '#d22'
 		name.textContent = displayIp
@@ -176,6 +176,7 @@ export function preconnect(ip, cb = Function.prototype, instant = false){
 			motd = Label('Connecting...').attr('style', 'opacity: 0.5')
 		)
 	)
+	node.classList.add('selectable')
 	node.onclick = () => {click(); play(ws)}
 	node.end = () => {if(ws != globalThis.ws) ws.close(); node.remove()}
 	if(!(ws instanceof WebSocket)) ws.onclose()

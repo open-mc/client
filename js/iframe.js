@@ -63,21 +63,6 @@ onmessage = ({data, source}) => {
 		URL.revokeObjectURL(a.href)
 	}
 }
-document.body.onmousemove = ({movementX, movementY, clientX, clientY}) => {
-	if(!win) return
-	if(ui){
-		win.postMessage([clientX, clientY], '*')
-		return
-	}
-	const movementScale = globalThis.netscape ? devicePixelRatio : /Opera|OPR\//.test(navigator.userAgent) ? 1/devicePixelRatio : 1
-	win.postMessage([movementX * movementScale, -movementY * movementScale], '*')
-}
-
-document.body.onwheel = ({deltaY}) => {
-	if(!win) return
-	const movementScale = devicePixelRatio ** (globalThis.netscape ? 1 : /Opera|OPR\//.test(navigator.userAgent) ? -1 : 0)
-	win.postMessage([deltaY * movementScale], '*')
-}
 
 export function destroyIframe(){
 	if(win)win.close(), win = null

@@ -30,6 +30,7 @@ const defaults = {
 	sound: 0.75,
 	music: 0.75,
 	sensitivity: 0.5,
+	controllerSensitivity: 0.5,
 	camera: 0,
 	fsc: 1,
 	speed: 1,

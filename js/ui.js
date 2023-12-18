@@ -143,7 +143,7 @@ let thumbx = -1, curtrack = null
 function pointermove(e){
 	if(curtrack){
 		curtrack.value = Math.max(0, Math.min(1, (e.clientX - curtrack.offsetLeft - thumbx) / (curtrack.offsetWidth - curtrack.lastChild.offsetWidth)))
-		let [t, v] = curtrack.change(curtrack.value)
+		const {0:t,1:v} = curtrack.change(curtrack.value)
 		curtrack.lastChild.style.setProperty('--value', v)
 		curtrack.firstChild.textContent = t
 	}

@@ -136,12 +136,15 @@ btn.thumb{
 	top: 0;
 	left: calc(var(--value) * (100% - 8rem));
 }
-btn:hover, btn.highlighted{
+btn.highlighted, btn.hover{
 	background-position-y: 100%;
 }
 btn.disabled{
 	background-position-y: 0;
 	cursor: unset;
+}
+.selectable.hover{
+	color: white !important;
 }
 
 .c0{ color: #000; text-shadow: 1rem 1rem #0004 }
@@ -190,7 +193,7 @@ hr{
 	position: absolute;
 	flex-direction: column;
 	justify-content: center;
-	background-color: #0004;
+	background-color: #0006;
 	align-items: center;
 	top: 0; left: 0;
 	bottom: 0; right: 0;
@@ -283,7 +286,7 @@ column{
 	height: 52rem;
 	flex-grow: 1;
 }
-#serverlist > row:hover{
+#serverlist > row.hover{
 	border: 1rem #fff8 solid;
 	cursor: pointer;
 	padding: 0;
