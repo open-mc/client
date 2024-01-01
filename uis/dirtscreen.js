@@ -1,13 +1,13 @@
 import { reconnect } from '../js/connectme.js'
-import { Btn, Label, Row, showUI, Spacer, UI } from '../js/ui.js'
+import { Btn, Div, Label, Row, showUI, UI } from '../js/ui.js'
 import { serverlist } from './serverlist.js'
 
 let label, reconnectBtn
 const message = UI('dirtbg',
 	label = Label('').attr('style','overflow:visible'),
-	Spacer(100),
+	Div('spacing'),
 	reconnectBtn = Row(Btn('Back', serverlist), Btn('Reconnect', reconnect)),
-	Spacer(100)
+	Div('spacing')
 )
 export function msg(txt, code = 15){
 	label.className = `s${code >> 4} c${code & 15}`
@@ -26,9 +26,9 @@ export function reconn(txt, code = 15){
 let label2
 const message2 = UI('dirtbg',
 	label2 = Label(''),
-	Spacer(100),
+	Div('spacing'),
 	Btn('Disconnect', serverlist),
-	Spacer(100)
+	Div('spacing')
 )
 
 export function pendingConnection(txt, code = 15){

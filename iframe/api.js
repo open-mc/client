@@ -3,7 +3,6 @@ export const _cbs = []
 export const _mouseMoveCb = []
 export const _joypadMoveCbs = {}
 export const _wheelCb = []
-export const _pauseCb = []
 export const _renderPhases = []
 export const _optionListeners = {}
 
@@ -56,7 +55,6 @@ export function drawPhase(prio, fn){
 
 
 export const onwheel = cb => _wheelCb.push(cb)
-export const onpause = cb => _pauseCb.push(cb)
 export const onmousemove = cb => _mouseMoveCb.push(cb)
 export const onjoypad = (i, cb) => (_joypadMoveCbs[i]??=[]).push(cb)
 
@@ -81,29 +79,20 @@ export const listen = (...keys) => {
 		if(key in options) cb(options[key])
 	}
 }
-export let paused = false
-let customPaused = false
-export const pause = _paused => me && (paused != (_paused=!!_paused) || customPaused) && postMessage(_paused, '*')
-export function customPause(){
-	if(customPaused)return
-	fakePause(true)
-	customPaused = true
-	postMessage('custompause', '*')
-}
-export const quit = () => postMessage('quit', '*')
-
-export function fakePause(b = true){
-	paused = b
-	customPaused = false
-	for(const cb of _pauseCb) cb()
-}
+export let _paused = false, paused = false
+export function _updatePaused(a){ if(a!==undefined) _paused=a; if(paused^_paused) postMessage(_paused=paused, '*') }
+export const pause = (_paused=true) => paused=_paused
+export const quit = () => postMessage(NaN, '*')
 
 
 export let renderF3 = false, renderBoxes = 0, renderUI = true
 listen('autof3', () => {renderF3 = !!options.autof3; renderBoxes = (options.autof3 > 1)*2})
 button(KEYS.F1, () => {renderUI = !renderUI})
-button(KEYS.F3, () => {
-	if(buttons.has(KEYS.ALT) | buttons.has(KEYS.SHIFT) | buttons.has(KEYS.MOD)) renderBoxes = (renderBoxes+1)%3
+button(KEYS.F3, GAMEPAD.UP, () => {
+	if(buttons.has(GAMEPAD.UP)){
+		if(renderF3) ++renderBoxes>=3&&(renderBoxes=0,renderF3=false)
+		else renderF3=true
+	}else if(buttons.has(KEYS.ALT) | buttons.has(KEYS.SHIFT) | buttons.has(KEYS.MOD)) renderBoxes = (renderBoxes+1)%3
 	else renderF3 = !renderF3
 })
 
@@ -117,14 +106,14 @@ export const download = blob => postMessage(blob, '*')
 export let _onvoice = null
 
 export function voice(fn){
-	postMessage('voice', '*')
+	postMessage(Infinity, '*')
 	if(typeof fn == 'function') _onvoice = fn
 	voice.active = true
 	return stopVoice
 }
 export function stopVoice(){
 	_onvoice = null
-	postMessage('novoice', '*')
+	postMessage(-Infinity, '*')
 	voice.active = false
 }
 voice.sampleRate = 0

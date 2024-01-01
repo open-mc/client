@@ -3,11 +3,11 @@ import { DataWriter, DataReader } from '/server/modules/dataproto.js'
 import { mePhysics, stepEntity } from './entity.js'
 import { gridEventMap, getblock, entityMap, map, cam, server, world } from 'world'
 import * as pointer from './pointer.js'
-import { button, drawPhase, renderLayer, uiLayer, W, H, W2, H2, SCALE, options, paused, _recalcDimensions, _renderPhases, renderBoxes, renderF3, send, download } from 'api'
+import { button, drawPhase, renderLayer, uiLayer, W, H, W2, H2, SCALE, options, paused, _recalcDimensions, _renderPhases, renderBoxes, renderF3, send, download, pause } from 'api'
 import { particles } from 'definitions'
 import { VERSION } from '../version.js'
 import { bigintOffset } from './world.js'
-
+import { _updatePaused } from './api.js'
 
 let last = performance.now(), count = 1.1, timeToFrame = 0
 t = performance.now()/1000
@@ -15,7 +15,7 @@ setInterval(function(){
 	t = performance.now()/1000
 	eluStart()
 	const now = performance.now()
-	let update = 1000 / TPS
+	let update = 1000 / world.tps
 	let dt = now - last
 	elusmooth += (elu / (dt || 1) - elusmooth) / count
 	last = now
@@ -33,10 +33,10 @@ setInterval(function(){
 const sendDelay = 1 //send packet every tick
 function tick(){ //20 times a second
 	if(dt < 1/20000)dt = 1/20000
-	if(world.tick % sendDelay == 0 && me && me.netId > -1){
+	if(world.tick % sendDelay == 0 && me && !(me.health <= 0)){
 		let buf = new DataWriter()
 		buf.byte(4)
-		buf.byte(r)
+		buf.byte(world.r)
 		buf.double(me.x)
 		buf.double(me.y)
 		buf.short(me.state)
@@ -74,19 +74,19 @@ export function frame(){
 	dt += (min(300, now - lastFrame) / 1000 * options.speed - dt) / round(.333333/dt)
 	lastFrame = now
 	requestAnimationFrame(frame)
-	if(!me || me.netId == -1) return
+	if(!me) return
+	pause(false)
 	playerControls()
-	for(const entity of entityMap.values())stepEntity(entity)
+	for(const entity of entityMap.values()) stepEntity(entity)
 	const tzoom = (me.state & 4 ? -0.13 : 0) * ((1 << options.ffx * (options.camera != 4)) - 1) + 1
-	cam.z = sqrt(sqrt(cam.z * cam.z * cam.z * 2 ** (options.zoom * 10 - 6) * tzoom))
+	cam.z = sqrt(sqrt(cam.z * cam.z * cam.z * 2 ** (options.zoom * 10 - 6) * tzoom * 2**cam.baseZ))
 	_recalcDimensions(c, cam.z)
 	c.transforms.length = 0
 	c.imageSmoothingEnabled = false
-	if(!me) return
 	const reach = pointer.effectiveReach()
 	if(options.camera == 0){
 		const D = me.state & 4 ? 0.7 : 2
-		const dx = ifloat(me.x + pointer.x/D - cam.x), dy = ifloat(me.y + pointer.y/D + me.head - cam.y)
+		const dx = ifloat(me.x + pointer.x/D - cam.x + cam.baseX), dy = ifloat(me.y + pointer.y/D + me.head - cam.y + cam.baseY)
 		if(abs(dx) > 64)cam.x += dx
 		else{
 			if(!camMovingX && abs(dx) > reach / 2)camMovingX = true
@@ -100,19 +100,19 @@ export function frame(){
 			if(camMovingY)cam.y = ifloat(cam.y + (dy - sign(dy)*(reach/4+0.25)) * dt * 7)
 		}
 	}else if(options.camera == 1){
-		const dx = ifloat(me.x + pointer.x - cam.x), dy = ifloat(me.y + pointer.y + me.head - cam.y)
+		const dx = ifloat(me.x + pointer.x - cam.x + cam.baseX), dy = ifloat(me.y + pointer.y + me.head - cam.y + cam.baseY)
 		if(abs(dx) > 64) cam.x += dx
 		else cam.x += dx * dt
 		if(abs(dy) > 64) cam.y += dy
 		else cam.y += dy * dt
 	}else if(options.camera == 2){
-		cam.x = me.x + pointer.x
-		cam.y = me.y + me.head + pointer.y
+		cam.x = me.x + pointer.x + cam.baseX
+		cam.y = me.y + me.head + pointer.y + cam.baseY
 	}else if(options.camera == 3){
-		cam.x = me.x
-		cam.y = me.y + me.head / 2
+		cam.x = me.x + cam.baseX
+		cam.y = me.y + me.head / 2 + cam.baseY
 	}else if(options.camera == 4){
-		const dx = ifloat(me.x - cam.x), dy = ifloat(me.y + me.head/2 - cam.y)
+		const dx = ifloat(me.x - cam.x + cam.baseX), dy = ifloat(me.y + me.head/2 - cam.y + cam.baseY)
 		if(abs(dx) > W2 * 2 - 2) cam.x += dx
 		else if(dx > W2 - 1)cam.x += W2*2 - 2
 		else if(dx < 1 - W2)cam.x -= W2*2 - 2
@@ -120,7 +120,9 @@ export function frame(){
 		else if(dy > H2 - 1)cam.y += H2*2 - 2
 		else if(dy < 1 - H2)cam.y -= H2*2 - 2
 	}
-	cam.rot = max(0, cam.rot - dt)
+	if(cam.staticX === cam.staticX) cam.x = cam.staticX
+	if(cam.staticY === cam.staticY) cam.y = cam.staticY
+	cam.f += (cam.baseF - cam.f) * min(1, dt*4/sqrt(abs(cam.baseF - cam.f)))
 	c.font = FONT
 	for(const phase of _renderPhases){
 		try{
@@ -128,7 +130,7 @@ export function frame(){
 				case 'none': phase(c, W, H); break
 				case 'world':
 					c.setTransform(SCALE, 0, 0, -SCALE, W2 * SCALE, H - H2 * SCALE)
-					c.rotate(-cam.rot)
+					c.rotate(-cam.f)
 					phase(c)
 					break
 				case 'ui': const s = options.guiScale * devicePixelRatio * 2**(options.supersample*6-3) * 2; c.setTransform(s, 0, 0, -s, 0, H); phase(c, W / s, H / s); break
@@ -141,21 +143,26 @@ export function frame(){
 	delta.mx = delta.my = 0
 	delta.jlx = delta.jly = 0
 	delta.jrx = delta.jry = 0
+	_updatePaused()
 }
 globalThis.cam = cam
 drawPhase(200, (c, w, h) => {
 	const hitboxes = renderBoxes + buttons.has(KEYS.SYMBOL)
 	c.setTransform(1,0,0,1,W2*SCALE,h-H2*SCALE)
-	c.rotate(cam.rot)
-	c.translate(-W2*SCALE,H2*SCALE)
+	c.rotate(cam.f)
+	//c.translate(-W2*SCALE,H2*SCALE)
 	const expectedDetail = max(1, min(TEX_SIZE, 2**ceil(log2(cam.z*1.189207115+2)+2)))
+	const sr = sin(cam.f), cr = cos(cam.f)
+	const x0 = -w*cr+h*sr, x1 = w*cr-h*sr, x2 = w*cr+h*sr, x3 = -w*cr-h*sr
+	const y0 = -w*sr+h*cr, y1 = w*sr-h*cr, y2 = w*sr+h*cr, y3 = -w*sr-h*cr
+	const limX = max(x0,x1,x2,x3)/2, limY = max(y0,y1,y2,y3)/2
 	for(const chunk of map.values()){
 		const cxs = chunk.x << 6, cys = chunk.y << 6
-		const x0 = round(ifloat(cxs - cam.x + W2) * SCALE)
-		const x1 = round(ifloat(cxs + 64 - cam.x + W2) * SCALE)
-		const y0 = round(ifloat(cys - cam.y + H2) * SCALE)
-		const y1 = round(ifloat(cys + 64 - cam.y + H2) * SCALE)
-		if(x1 <= 0 || y1 <= 0 || x0 >= w || y0 >= h){ chunk.hide(); continue }
+		const x0 = round(ifloat(cxs - cam.x) * SCALE)
+		const x1 = round(ifloat(cxs + 64 - cam.x) * SCALE)
+		const y0 = round(ifloat(cys - cam.y) * SCALE)
+		const y1 = round(ifloat(cys + 64 - cam.y) * SCALE)
+		if(x1 <= -limX || y1 <= -limY || x0 >= limX || y0 >= limY){ chunk.hide(); continue }
 		if(!chunk.ctx || chunk.ctx.w < expectedDetail*64 || chunk.ctx.w > expectedDetail*128) chunk.draw(expectedDetail)
 		c.push()
 		c.translate(x0,-y0)
@@ -201,7 +208,7 @@ drawPhase(200, (c, w, h) => {
 		const mx = floor(me.ix), my = floor(me.iy)
 		const refx = me.ix - mx, refy = me.iy - my
 		c.setTransform(SCALE, 0, 0, -SCALE, W2 * SCALE, h - H2 * SCALE)
-		c.rotate(-cam.rot)
+		c.rotate(-cam.f)
 		c.translate(ifloat(mx - cam.x), ifloat(my - cam.y))
 		c.lineWidth = 0.0625
 		const LENGTH = 6
@@ -219,44 +226,57 @@ drawPhase(200, (c, w, h) => {
 	}
 })
 drawPhase(300, (c, w, h) => {
+	c.setTransform(SCALE, 0, 0, -SCALE, W2 * SCALE, h - H2 * SCALE)
+	c.rotate(-cam.f)
+	c.push()
 	for(const ev of gridEventMap.values()){
-		c.setTransform(SCALE, 0, 0, -SCALE, ifloat(ev.x - cam.x + W2) * SCALE, ifloat(cam.y - H2 - ev.y) * SCALE + h)
+		c.translate(ifloat(ev.x - cam.x), ifloat(ev.y - cam.y))
 		if(!map.has((ev.x>>>6)+(ev.y>>>6)*0x4000000) || ev(c))gridEventMap.delete(ev.i)
+		c.peek()
 	}
 })
-
-drawPhase(100, (c, w, h) => {
+function renderEntity(entity, w, h){
+	if(!entity.render) return
 	const hitboxes = buttons.has(KEYS.SYMBOL) + renderBoxes
-	for(const entity of entityMap.values()){
-		if(!entity.render)continue
-		c.setTransform(SCALE, 0, 0, -SCALE, W2 * SCALE, h - H2 * SCALE)
-		c.rotate(-cam.rot)
-		c.translate(ifloat(entity.ix - cam.x), ifloat(entity.iy - cam.y))
-		entity.render(c)
-		c.setTransform(SCALE, 0, 0, -SCALE, W2 * SCALE, h - H2 * SCALE)
-		c.rotate(-cam.rot)
-		c.translate(ifloat(entity.ix - cam.x), ifloat(entity.iy - cam.y))
-		if(hitboxes){
-			if(entity.head){
-				c.fillStyle = '#fc0'
-				const L = entity == me ? sqrt(pointer.x * pointer.x + pointer.y * pointer.y) : 0.8
-				if(hitboxes >= 2){
-					c.push()
-						c.translate(0, entity.head)
-						c.rotate(-entity.f)
-						c.fillRect(-0.015625,-0.015625,0.03125,L)
-						c.translate(0,L); c.rotate(PI * 1.25)
-						c.fillRect(-0.015625,-0.015625,0.03125,0.2)
-						c.fillRect(-0.015625,-0.015625,0.2,0.03125)
-					c.pop()
-				}
-				c.fillStyle = '#f00c'
-				c.fillRect(-entity.width + 0.046875, entity.head - 0.0234375, entity.width*2 - 0.09375, 0.046875)
+	if(entity == me || dt > 1/30)entity.ix = entity.x, entity.iy = entity.y
+	else{
+		entity.ix += ifloat(entity.x - entity.ix) * dt * 20
+		entity.iy += ifloat(entity.y - entity.iy) * dt * 20
+	}
+	c.setTransform(SCALE, 0, 0, -SCALE, W2 * SCALE, h - H2 * SCALE)
+	c.rotate(-cam.f)
+	c.translate(ifloat(entity.ix - cam.x), ifloat(entity.iy - cam.y))
+	c.push()
+	entity.render(c)
+	c.pop()
+	if(hitboxes){
+		if(entity.head){
+			c.fillStyle = '#fc0'
+			const L = entity == me ? sqrt(pointer.x * pointer.x + pointer.y * pointer.y) : 0.8
+			if(hitboxes >= 2){
+				c.push()
+					c.translate(0, entity.head)
+					c.rotate(-entity.f)
+					c.fillRect(-0.015625,-0.015625,0.03125,L)
+					c.translate(0,L); c.rotate(PI * 1.25)
+					c.fillRect(-0.015625,-0.015625,0.03125,0.2)
+					c.fillRect(-0.015625,-0.015625,0.2,0.03125)
+				c.pop()
 			}
-			c.strokeStyle = '#fffc'
-			c.lineWidth = 0.046875
-			c.strokeRect(-entity.width + 0.03125, 0.03125, entity.width * 2 - 0.0625, entity.height - 0.0625)
+			c.fillStyle = '#f00c'
+			c.fillRect(-entity.width + 0.046875, entity.head - 0.0234375, entity.width*2 - 0.09375, 0.046875)
 		}
+		c.strokeStyle = '#fffc'
+		c.lineWidth = 0.046875
+		c.strokeRect(-entity.width + 0.03125, 0.03125, entity.width * 2 - 0.0625, entity.height - 0.0625)
+	}
+}
+drawPhase(100, (c, w, h) => {
+	for(const e of entityMap.values()) renderEntity(e, w, h)
+	if(!me.linked && !(me.health<=0)){
+		c.globalAlpha = 0.2
+		renderEntity(me, w, h)
+		c.globalAlpha = 1
 	}
 })
 renderLayer(400, c => {

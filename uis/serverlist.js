@@ -70,7 +70,7 @@ function drawSkin(){
 drawSkin()
 let list, input, addBtn, selectSkinBtn, logoutBtn
 const serverList = UI('dirtbg serverlist',
-	Spacer(20),
+	Spacer.grow(1),
 	Row(
 		Label('Welcome, '),
 		skinCtx.canvas.attr('style','height:16rem;align-self:center'),
@@ -78,7 +78,7 @@ const serverList = UI('dirtbg serverlist',
 		selectSkinBtn = Label('Select skin').attr('style', 'color: #888; text-decoration: underline; cursor: pointer'),
 		logoutBtn = Label('Log out').attr('style', 'color: #888; text-decoration: underline; cursor: pointer')
 	),
-	Spacer(20),
+	Spacer.grow(1),
 	Row(
 		Label('Connect to a server:'),
 		Spacer.grow(1),
@@ -86,9 +86,9 @@ const serverList = UI('dirtbg serverlist',
 		Btn('Refresh', serverlist)
 	).attr('style', 'align-self: stretch; justify-content: space-between; margin-left: 7rem; flex-wrap: wrap'),
 	list = Div('serverlist'),
-	Spacer(20),
+	Spacer.grow(1),
 	Row(input = Input('text', 'server ip'), addBtn = Btn('Add server', () => {if(input.value=='server ip') return input.value = 'very funny';else if(input.value=='very funny') return;addServer(input.value);input.value='';addBtn.disabled=true}, 'small disabled')),
-	Spacer(20)
+	Spacer.grow(1)
 )
 selectSkinBtn.classList.add('selectable')
 selectSkinBtn.onclick = btn => getSkin().then(a => {

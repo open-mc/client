@@ -2,6 +2,7 @@ import { setblock, onPlayerLoad, getblock, map, cam } from 'world'
 import './controls.js'
 import { button, onmousemove, onjoypad, W2, H2, options, paused, renderUI } from 'api'
 import { drawPhase } from './api.js'
+import { Entity } from 'definitions'
 
 export let x = 2, y = 0
 export let bx = 0, by = 0, bpx = 0, bpy = 0, bpfx = 0, bpfy = 0
@@ -30,8 +31,8 @@ drawPhase(-1000, () => {
 		x += (jrx * reach - x) / 3; y += (jry * reach - y) / 3
 	}
 	if(options.camera == 0){
-		cam.x += (x - oldx) / 3
-		cam.y += (y - oldy) / 3
+		if(cam.staticX != cam.staticX) cam.x += (x - oldx) / 3
+		if(cam.staticY != cam.staticY) cam.y += (y - oldy) / 3
 	}
 	oldx = x; oldy = y
 	if(x||y)me.f = atan2(x, y)
@@ -39,13 +40,14 @@ drawPhase(-1000, () => {
 export const DEFAULT_BLOCKSHAPE = [0, 0, 1, 1]
 let blockPlacing = null
 export function drawPointer(c){
-	if(renderUI){
+	if(renderUI && me.health){
 		c.beginPath()
 		c.rect(ifloat(x + me.x - cam.x) - .3, ifloat(y + me.head + me.y - cam.y) - .03125, .6, .0625)
 		c.rect(ifloat(x + me.x - cam.x) - .03125, ifloat(y + me.head + me.y - cam.y) - .3, .0625, .6)
 		c.globalCompositeOperation = 'difference'
 		c.fillStyle = '#ccc'
-		c.fill()
+		if(!me.linked) c.globalAlpha = 0.2, c.fill(), c.globalAlpha = 1
+		else c.fill()
 		c.globalCompositeOperation = 'source-over'
 	}
 	bx = floor(me.x)
@@ -180,7 +182,7 @@ export function checkBlockPlacing(buf){
 		me.state |= 8; lastPlace = t
 	}else{
 		buf.byte(me.selected); buf.float(NaN); buf.float(me.f)
-		let id = 281474976710655 // -1
+		let id = Entity.meid // -1
 		const hitBtnDown = hasB && !paused
 		if(hitBtnDown && !didHit){
 			const xp = me.x + x, yp = me.y + me.head + y
@@ -202,6 +204,8 @@ export let blockbreakx = NaN, blockbreaky = NaN
 button(LBUTTON, RBUTTON, GAMEPAD.LT, GAMEPAD.RT, () => {lastPlace = 0})
 let oldx = 0, oldy = 0
 export function pointerMoved(dx, dy){
+	const _dx = dx, sr = sin(cam.f), cr = cos(cam.f)
+	dx = dx*cr-dy*sr; dy = _dx*sr+dy*cr
 	jrx = jry = 0
 	const reach = effectiveReach()
 	const s = min(reach, sqrt(x * x + y * y))

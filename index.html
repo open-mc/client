@@ -1,6 +1,8 @@
 <!DOCTYPE html>
-<html spellcheck="false" autocomplete="off" autocapitalize="off" lang="en" ontouchend="getSelection().removeAllRanges();event.preventDefault();if('value' in event.target)event.target.focus();event.target.dispatchEvent(new MouseEvent('click', event.changedTouches[0]))" oncontextmenu="event.preventDefault();" onwheel="if(event.ctrlKey)event.preventDefault()">
+<html spellcheck="false" autocomplete="off" autocapitalize="off" lang="en" ontouchend="getSelection().removeAllRanges();event.preventDefault();if('value' in event.target)event.target.focus();event.changedTouches[0].bubbles=true;event.target.dispatchEvent(new MouseEvent('click', event.changedTouches[0]))" oncontextmenu="event.preventDefault();" onwheel="if(event.ctrlKey)event.preventDefault()">
 	<head>
+		<script src='https://cdn.jsdelivr.net/npm/asmcrypto.js@2.3.2/asmcrypto.all.es5.min.js'></script>
+		<script src='https://cdn.jsdelivr.net/npm/webcrypto-liner@1.4.1/build/webcrypto-liner.shim.min.js'></script>
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover">
 		<link href="style.css" rel="stylesheet">
@@ -10,10 +12,11 @@
 		<link rel="apple-touch-icon" href="./img/icon.png">
 		<link rel="shortcut icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAAdVBMVEVZPSlfnzV2tkxnpz1sbGyHh4dsrEKWbEp5VTq5hVxhoTdzs0l0tEptrUNpqT9mpjxqqkCQv2B+vlSXxmeSwWKTwmNQkCZXly1goDZrq0F/v1V1tUtiojiNvF1vr0VoqD5wsEaKuVqcy2yBsFFxsUeDslNkpDoS8foXAAAAh0lEQVQYGQXBhWEDAAzAMBftFMfM9P+Jkzgs9+fz22J7tbxYnXZ3R563n9+/vL8sbi/3u+3qkVe+/k58cHi6ueb+AVjDD7DgSBDmYAHrJEITKKphqE3NNJPJNKMlWoplRloRSkFVM4k208hMuglLJ9caBmE6VdUMWaQxNIoxERWl2GgbtTT+AfgZCCBUhgurAAAAAElFTkSuQmCC">
 		<meta name="apple-mobile-web-app-capable" content="yes">
-		<script>(d=>{if(window.__TAURI__)return;d.display="fullscreen";d.icons=[{src:(d.start_url=location.origin+'/app.html',d.scope=location.origin)+"/img/icon.png",type:"image/png",sizes:"512x512"}];document.head.insertAdjacentHTML('beforeEnd', `<link rel="manifest" href="data:application/json;base64,${btoa(JSON.stringify(d))}"><meta name="apple-mobile-web-app-title" content="${d.short_name}"><meta property="og:title" content="${d.name}"><meta property="og:description" content="${d.description}"><meta property="og:image" content="/img/icon.png"><link rel="shortcut icon" href="/img/icon.png" type="image/x-icon"><meta name="theme-color" content="${d.theme_color}">`);document.title=d.name;document.documentElement.style.backgroundColor=d.background_color})({name:"Paper Minecraft",short_name:"Paper MC",theme_color:"#000",background_color:"#000"})</script>
+		<script>(d=>{if(window.__TAURI__)return;d.display="fullscreen";d.icons=[{src:(d.start_url=location.origin,d.scope=location.origin)+"/img/icon.png",type:"image/png",sizes:"512x512"}];document.head.insertAdjacentHTML('beforeEnd', `<link rel="manifest" href="data:application/json;base64,${btoa(JSON.stringify(d))}"><meta name="apple-mobile-web-app-title" content="${d.short_name}"><meta property="og:title" content="${d.name}"><meta property="og:description" content="${d.description}"><meta property="og:image" content="/img/icon.png"><link rel="shortcut icon" href="/img/icon.png" type="image/x-icon"><meta name="theme-color" content="${d.theme_color}">`);document.title=d.name;document.documentElement.style.backgroundColor=d.background_color})({name:"Paper Minecraft",short_name:"Paper MC",theme_color:"#000",background_color:"#000"});</script>
 		<script src="/img/_pako.js"></script>
 	</head>
 	<body>
+		<div id="errors"></div>
 		<div id="chat"></div>
 		<div id="loading" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#000;z-index:65535;display:flex;flex-flow:column;padding:16px;align-items:center;gap:16px">
 			<hr />
@@ -26,7 +29,14 @@
 	<script type="module">
 		import { start } from './uis/defects.js'
 		onload = start
-		screen.orientation?.lock('landscape').catch(e=>{})
+		screen.orientation?.lock?.('landscape')?.catch(e=>{})
+		onerror = (_, s, l, c, e) => {
+			if(s)
+				errors.append((s.startsWith(location.origin)?s.slice(location.origin.length):s)+':'+l+':'+c+': '+e+'\n')
+			else errors.append(e+'\n')
+			if(errors.childNodes.length>20) errors.childNodes[0].remove()
+		}
+		onunhandledrejection=({reason})=>onerror(undefined,'',0,0,reason)
 	</script>
 	<div id="orientation" style="z-index: 9999; background: #000; display: none; width: 100%; position: fixed; height: 100%; top: 0; left: 0; flex-flow: column; justify-content: center; gap: 100px">
 		<span style="font-size: 1.25em; text-align: center;">Switch to Landscape</span>

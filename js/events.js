@@ -30,7 +30,7 @@ document.onmousemove = ({movementX, movementY, clientX, clientY, target}) => {
 	while(target && target.nodeName!='BTN' && target.nodeName!='INPUT' && !target.classList.contains('selectable')) target=target.parentElement
 	;(mtarget=target)?.classList.add('hover')
 	if(!win) return
-	if(ui){
+	if(ui === NONE){
 		const v = ui.rowI!=undefined&&ui.rows[ui.rowI]
 		if(v){
 			v.classList.remove('hover')
@@ -40,7 +40,7 @@ document.onmousemove = ({movementX, movementY, clientX, clientY, target}) => {
 		}
 		win.postMessage([clientX, clientY], '*')
 		return
-	}
+	}else if(ui) return
 	const movementScale = globalThis.netscape ? devicePixelRatio : /Opera|OPR\//.test(navigator.userAgent) ? 1/devicePixelRatio : 1
 	win.postMessage([movementX * movementScale, -movementY * movementScale], '*')
 }
@@ -163,13 +163,13 @@ HTMLElement.prototype.requestFullscreen = HTMLElement.prototype.requestFullscree
 let wasFullscreen = false
 let ignoreEsc = false
 document.onpointerlockerror = document.onpointerlockchange = function(e){
-	if(e.type == 'error' || e.type == 'pointerlockerror') ptrFail(), keyMsg(true)
+	if(e.type == 'error' || e.type == 'pointerlockerror') ptrFail()//, keyMsg(true)
 	else if(e.type == 'pointerlockchange' && document.pointerLockElement){
 		ptrSuccess()
 		keyMsg(false)
 		//if(wasFullscreen)document.documentElement.requestFullscreen()
 	}else{
-		keyMsg(true)
+		//keyMsg(true)
 		wasFullscreen = !!(!ui && document.fullscreenElement)
 		if(wasFullscreen)document.exitFullscreen ? document.exitFullscreen().catch(Function.prototype) : document.webkitExitFullscreen()
 		if(!ui)pause(), ignoreEsc = true

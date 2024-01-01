@@ -270,7 +270,7 @@ Blocks.chest = class extends Block{
 	}
 	render(c){
 		if(this.state&1) c.transform(-1, 0, 0, 1, 1, 0)
-		this.opening = max(this.opening - dt*2, 0)
+		this.opening = max(this.opening - dt*3, 0)
 		
 		const rot = (1-0.5**((this.state & 2 ? 1 - this.opening : this.opening)*4))*16/15
 		c.translate(0.0625, 0.625)
@@ -493,4 +493,21 @@ Blocks.furnace = class extends Stone{
 Blocks.lit_furnace = class extends Blocks.furnace{
 	static texture = terrainPng.at(13, 3)
 	static interactible = true
+}
+const commandBlockTex = Texture('command_blocks.png')
+const commandBlockTexs = [0,1,2,3,4,5].mmap(a => commandBlockTex.crop(a<<4,0,16,64))
+Blocks.command_block = class extends Stone{
+	type = 0
+	commands = []
+	render(c){
+		const a = floor(t*2)&3
+		const tex = commandBlockTexs[this.type]
+		c.image(tex, 0, 0, 1, 1, 0, a<<4, 16, 16)
+		c.globalAlpha = (t*2)%1
+		c.image(tex, 0, 0, 1, 1, 0, (a+1&3)<<4, 16, 16)
+		c.globalAlpha = 1
+	}
+	get particleTexture(){ return commandBlockTexs[this.type] }
+	static breaktime = Infinity
+	static tool = 'pick'
 }

@@ -1,9 +1,12 @@
 import { button, onwheel, paused } from 'api'
 import { EPSILON, mePhysics } from './entity.js'
 import { getblock } from 'world'
+import { send } from './api.js'
 let R=false,L=false,U=false,D=false
 let lastPressUp = 0, lastPressRight = 0, lastPressLeft = 0
 
+let gamepadToggleCrouch = false
+button(GAMEPAD.B, () => gamepadToggleCrouch=!gamepadToggleCrouch)
 export const playerControls = () => {
 	if(paused) return
 	const r = buttons.has(KEYS.RIGHT) || buttons.has(KEYS.D) || cursor.jlx > 0.4
@@ -29,8 +32,17 @@ export const playerControls = () => {
 		}else lastPressUp = t
 	}
 	R=r;L=l;U=u;D=d
+	if(!me.linked && !(me.health<=0)){
+		const SPEED = 6*dt
+		if(R) me.x += SPEED
+		if(L) me.x -= SPEED
+		if(U) me.y += SPEED
+		if(D) me.y -= SPEED
+		me.dx *= 1e-20**dt; me.dy *= 1e-20**dt
+	}
 	if((me.state & 2) || !(L || R)) me.state &= -5
-	if(D ^ (buttons.has(KEYS.SHIFT) | buttons.has(GAMEPAD.B)) ^ buttons.has(KEYS.CAPSLOCK)) me.state |= 2
+	if(buttons.has(KEYS.SHIFT)) gamepadToggleCrouch = false
+	if(D ^ buttons.has(KEYS.SHIFT) ^ gamepadToggleCrouch ^ buttons.has(KEYS.CAPSLOCK)) me.state |= 2
 	else me.state &= -3
 	if((me.state | ~0x10003) === -1) me.state &= -2
 	if(D && (me.state & 1)) me.dy = -5
@@ -58,6 +70,12 @@ button(KEYS.NUM_6, () => {me.selected = 5})
 button(KEYS.NUM_7, () => {me.selected = 6})
 button(KEYS.NUM_8, () => {me.selected = 7})
 button(KEYS.NUM_9, () => {me.selected = 8})
+
+button(KEYS.BACK, () => {
+	const d = new DataWriter()
+	d.byte(me.linked ? 6 : 7)
+	send(d.build())
+})
 
 let cummulative = 0
 onwheel(dy => {

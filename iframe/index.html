@@ -25,6 +25,8 @@
 	const postMessage = parent.postMessage.bind(parent)
 	let msgQueue = []
 	parent.postMessage(null, '*')
+	onerror=(_,a,b,c,d)=>postMessage([''+d,a,b,c], '*')
+	onunhandledrejection=({reason})=>postMessage([''+reason,'',0,0], '*')
 	/**
 	 * setImmediate / clearImmediate polyfill using MessageChannel
 	 */
@@ -179,13 +181,12 @@
 	Math.iceil = x => Math.ceil(x) | 0
 	for(const n of [HTMLCollection, NodeList])Object.setPrototypeOf(n.prototype, Array.prototype)
 	Object.defineProperties(Array.prototype, {
-		winner: {enumerable: false, value(pred){
-			let best = -Infinity
-			let winner = null
+		winner: {enumerable: false, value(pred, best = -Infinity){
+			let winner = undefined
 			const length = this.length
 			for(let i = 0; i < length; i++){
 				const a = this[i], score = pred(a, i, this)
-				if(score > best){
+				if(score >= best){
 					best = score
 					winner = a
 				}
@@ -343,10 +344,9 @@ const loader = (meta) => {
 		}
 	}
 }
-	let listen, buttons, changed, delta, cursor
+	let buttons, changed, delta, cursor
 	let loading = 1, loaded = null, dt = 1 / 60, pointer
-	let t = 0, TPS = 20
-	let meid = -1, r = 0, me = null, perms = 2
+	let t = 0, me = null, perms = 2
 	let mx = 0, my = 0
 	const nul = new Array(100).fill(null)
 	Array.null = len => {

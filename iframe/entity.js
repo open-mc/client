@@ -7,7 +7,7 @@ const yDrag = 0.667
 export function stepEntity(e){
 	if(e != me && !e.shouldSimulate()) return
 	e.preupdate?.()
-	e.state = (e.state & 0xFFFEFFFF) | (e.impactDy<0)<<16
+	e.state = (e.state & 0xfffeffff) | (e.impactDy<0)<<16
 	fastCollision(e)
 	if(e != me && !e.shouldSimulate()) return
 	if(e.state & 1)e.dy = 0
@@ -17,13 +17,8 @@ export function stepEntity(e){
 		e.dx += dt * world.gx * e.gx
 	}
 	e.dx = e.dx * (e.impactDy < 0 ? groundDrag : airDrag) ** dt
-	if(e == me || dt > 1/30)e.ix = e.x, e.iy = e.y
-	else{
-		e.ix += ifloat(e.x - e.ix) * dt * 20
-		e.iy += ifloat(e.y - e.iy) * dt * 20
-	}
 	moveEntity(e)
-	e.age += dt * TPS
+	e.age += dt * world.tps
 	e.update?.()
 }
 export function moveEntity(e){

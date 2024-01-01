@@ -1,12 +1,12 @@
 import { uiButtons, icons, renderItem, renderItemCount, click, renderSlot, renderTooltip, resetSlot, slotI, audioSet } from './effects.js'
-import "./entities.js"
-import { button, W2, H2, uiLayer, renderLayer, onpause, pause, paused, renderUI, customPause, quit, onpacket, send, voice } from 'api'
+import './entities.js'
+import { button, W2, H2, uiLayer, renderLayer, pause, renderUI, quit, onpacket, send, voice } from 'api'
 import { getblock, gridEvents, sound, entityMap, pointer, cam, world, configLoaded } from 'world'
 import { Item, BlockParticle, blockBreak, ephemeralInterfaces } from 'definitions'
 import { AshParticle, BlastParticle, explode } from './defs.js'
 import { terrainPng } from './blocks.js'
-import "./interfaces.js"
-import "./voice.js"
+import './interfaces.js'
+import './voice.js'
 const { Texture } = loader(import.meta)
 
 const BREAKING = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].mmap(x => terrainPng.at(x, 15))
@@ -245,7 +245,7 @@ uiLayer(1000, (c, w, h) => {
 			c.shadowColor = '#0000'
 		}
 	}
-	if(me.state&0x8000){
+	if(me.health <= 0){
 		const h3 = h / 3
 		c.fillStyle = '#f003'
 		c.fillRect(0, 0, w, h)
@@ -262,7 +262,7 @@ uiLayer(1000, (c, w, h) => {
 			: 0
 		: 0
 		if(!respawnClicked){
-			customPause()
+			pause()
 			c.image(uiButtons.large, (w - btnW) / 2, h3)
 			c.fillStyle = '#333'
 			c.fillText('Respawn', w / 2 + 1, h3 + 6, 10)
@@ -297,6 +297,7 @@ uiLayer(1000, (c, w, h) => {
 	const action = invAction
 	invAction = 0
 	if(!invInterface) return
+	pause()
 	resetSlot()
 	c.fillStyle = '#000'
 	c.globalAlpha = 0.2
@@ -371,20 +372,17 @@ button(LBUTTON, () => {invAction = 1})
 button(RBUTTON, () => {invAction = 2})
 button(MBUTTON, () => {invAction = 3})
 
-onpause(() => {
-	if(!paused && invInterface){
-		const buf = new DataWriter()
-		buf.byte(15)
-		send(buf)
-	}
-})
-
 function openInventory(){
 	const buf = new DataWriter()
 	buf.byte(13)
 	send(buf)
 }
-function closeInterface(){ pause(false) }
+function closeInterface(){
+	invInterface = null
+	const buf = new DataWriter()
+	buf.byte(15)
+	send(buf)
+}
 
 onpacket(12, buf => {
 	const kind = buf.short()
@@ -421,7 +419,7 @@ onpacket(32, buf => {
 })
 
 button(KEYS.E, GAMEPAD.X, () => {
-	if(paused) return closeInterface()
+	if(invInterface) return closeInterface()
 	openInventory()
 })
 
@@ -433,20 +431,21 @@ button(KEYS.Q, GAMEPAD.Y, GAMEPAD.DOWN, () => {
 
 gridEvents[4] = (buf, x, y) => {
 	let time = 0
-	const toBreak = buf.float() / TPS
+	const toBreak = buf.float() / world.tps
 	let lastParticle = t
 	return c => {
 		if(!toBreak) return
 		const block = getblock(x, y)
 		if(t - lastParticle > .1) new BlockParticle(block, floor(random() * 16), x, y), lastParticle = t
 		
-		if(toBreak == Infinity) return
-		c.save()
-			c.globalCompositeOperation = 'multiply'
-			block.trace(c)
-			c.clip()
-			c.image(BREAKING[min(9, floor(time / toBreak * 10)) || 0], 0, 0, 1, 1)
-		c.restore()
+		if(Number.isFinite(toBreak)){
+			c.save()
+				c.globalCompositeOperation = 'multiply'
+				block.trace(c)
+				c.clip()
+				c.image(BREAKING[min(9, floor(time / toBreak * 10)) || 0], 0, 0, 1, 1)
+			c.restore()
+		}
 		if(floor(time * 5) != floor((time += dt) * 5))
 			if(block.punch) block.punch(x, y)
 	}

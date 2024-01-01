@@ -1,18 +1,16 @@
-import { getblock, setblock, gridEventMap, gridEvents, map, entityMap, server, world, CONFIG } from 'world'
+import { getblock, setblock, gridEventMap, gridEvents, map, entityMap, server, world, CONFIG, bigintOffset, configLoaded } from 'world'
 import { Chunk } from './chunk.js'
 import { queue } from './sounds.js'
 import { moveEntity } from './entity.js'
-import { BlockIDs, EntityIDs, foundMe } from 'definitions'
+import { BlockIDs, EntityIDs, foundMe, Classes, Entity } from 'definitions'
 import { codes } from 'api'
-import { Classes } from './definitions.js'
-import { bigintOffset, configLoaded } from './world.js'
 
 function rubberPacket(data){
-	meid = data.uint32() + data.uint16() * 4294967296
-	const e = entityMap.get(meid)
+	Entity.meid = data.uint32() + data.uint16() * 4294967296
+	const e = entityMap.get(Entity.meid)??recentlyDeleted.get(Entity.meid)
 	if(e && (e != me)) foundMe(e)
-	r = data.byte()
-	TPS = data.float()
+	world.r = data.byte()
+	world.tps = data.float()
 	perms = data.byte()
 }
 function dimensionPacket(data){
@@ -80,12 +78,14 @@ function blockSetPacket(buf){
 		}
 	}
 }
+const recentlyDeleted = new Map
 function entityPacket(buf){
+	recentlyDeleted.clear()
 	while(buf.left){
 		let mv = buf.byte()
 		const id = buf.uint32() + buf.uint16() * 4294967296
 		let e = entityMap.get(id)
-		if(!mv){e?.remove();continue}
+		if(!mv){if(e)e.remove(),recentlyDeleted.set(id, e); continue}
 		if(!e){
 			if(mv & 64){
 				mv |= 256
@@ -93,7 +93,8 @@ function entityPacket(buf){
 				e.netId = id
 				e.age = buf.double()
 				buf.read(e.savedata, e)
-			}else throw 'Not supposed to happen!'
+			}else if(Entity.meid === id) e = me
+			else throw 'Not supposed to happen!'
 		}else if(mv & 64)Object.setPrototypeOf(e, EntityIDs[buf.short()].prototype), e.age = buf.double(), buf.read(e.savedata, e)
 		if(mv & 1)if(abs(e.x - (e.x = buf.double()||0)) > 16 || e == me)e.ix = e.x
 		if(mv & 2)if(abs(e.y - (e.y = buf.double()||0)) > 16 || e == me)e.iy = e.y

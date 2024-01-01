@@ -28,10 +28,10 @@ NONE.esc = hideUI
 document.body.append(NONE)
 
 export let ptrSuccess = Function.prototype, ptrFail = Function.prototype
-const ptrlock = () => new Promise((r, c) => {
+export const ptrlock = () => new Promise((r, c) => {
 	const fs = options.fsc ? document.documentElement.requestFullscreen({navigationUI: 'hide'}) : undefined
-	if(fs instanceof Promise) fs.catch(e=>null).then(() => document.body.requestPointerLock())
-	else document.body.requestPointerLock()
+	if(fs instanceof Promise) fs.catch(e=>null).then(() => document.body.requestPointerLock?.().catch(e=>null))
+	else document.body.requestPointerLock?.().catch(e=>null)
 	ptrSuccess = r; ptrFail = c
 })
 

@@ -8,7 +8,7 @@
 	0%{background-position-x: 0}
 	100%{background-position-x: -2560px;}
 }
-html{font-size:2px}
+html{font-size:2px;overscroll-behavior:none}
 body{
 	width: 100%;
 	height: 100%;
@@ -27,9 +27,8 @@ body{
 	animation: spin 1s infinite;
 	image-rendering: pixelated;
 	text-shadow: 1rem 1rem #3f3f3f;
-	overscroll-behavior-x: none;
 }
-*{margin:0;box-sizing:border-box;padding:0;line-height:1;min-width:0;flex-shrink:0}
+*{margin:0;box-sizing:border-box;padding:0;line-height:1;min-width:0;flex-shrink:0;-webkit-tap-highlight-color:transparent}
 input, textarea{
 	font: inherit;
 	border: unset;
@@ -50,6 +49,7 @@ in{
 	z-index: 0;
 	--padding: 3rem;
 	width: 200rem;
+	height: 20rem;
 }
 in.tall{
 	height: 5em;
@@ -200,7 +200,7 @@ hr{
 	z-index: 1001;
 }
 #ui.noshade{ background-color: #0000 }
-#ui.dirtbg{ background: url('./img/bg32.png') center/48px }
+#ui.dirtbg{ background: url('./img/bg32.png') 0 0/48px }
 
 .menu{
 	display: flex;
@@ -211,6 +211,8 @@ row{
 	display: flex;
 	flex-direction: row;
 	gap: 8rem;
+	width: 100%;
+	justify-content: center;
 }
 
 column{
@@ -246,9 +248,9 @@ column{
 #chat.voice:after{
 	content: '';
 	background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACMAAAALCAYAAAD1JjQCAAAAAXNSR0IArs4c6QAAANFJREFUOE+9lFsOwyAMBM2p2yO0pyZa1IlWK5I2QWqUH/BrWGxa2derupZt/P//9qKAgLACpFx34g9h3lX1XFDoVdWvxv8Ekyf1tSuKGt/sUn8W1wjMa5Iyj0//yOZKscYuFVQg/c/sAs+4AUMhgLQmuduUAHglUrEjSA6T101cjof8RnKfIKfVvsNkgTPFZjB+CxzYoUbP5BXhQACN6Kr4nk9gKpa9QWNPe4ZELp9T50TMpgQ1lQt/95vZ5Zv7p8rceStWnsp9tJ3SE159K1ZgNm64fhq/G7yuAAAAAElFTkSuQmCC) 0/cover;
-	height: 22px; width: 70px;
+	height: 11rem; width: 35rem;
 	position: absolute;
-	bottom: -50px; left: 2px;
+	bottom: -25rem; left: 1rem;
 	filter: drop-shadow(0 0 3px black)
 }
 #chatbox{
@@ -270,7 +272,8 @@ column{
 	background: #0004;
 	padding: 5rem;
 	width: 100%;
-	flex-grow: 1;
+	flex-grow: 10;
+	min-height: 200px;
 	overflow-y: auto;
 }
 #serverlist > row{
@@ -312,4 +315,49 @@ column{
 	.serverlist > row{
 		padding: 4rem;
 	}
+}
+@media (max-height: 380px){
+	#serverlist img{
+		width: 32rem; height: 32rem;
+	}
+	#serverlist > row{ height: 38rem }
+	#serverlist{ padding: 1rem }
+	.serverlist > row{
+		padding: 2rem;
+	}
+}
+@media (max-height: 336px) {
+	body{
+		width: 125%;
+		height: 125%;
+		transform-origin: top left;
+		transform: scale(0.8);
+	}
+}
+
+@media (pointer: coarse){
+	in:has(input:focus){
+		position: fixed;
+		left: 50%; top: 20%;
+		transform: translate(-50%, -50%);
+		box-shadow: 0 0 100px 50px #000;
+	}
+}
+
+#spacing{
+	flex-basis: 15%;
+}
+
+#errors{
+	position: fixed;
+	top: 0; left: 0;
+	z-index: 2147483647;
+	display: flex;
+	color: red;
+	flex-direction: column;
+	white-space: pre-wrap;
+	width: 75%;
+	height: 0;
+	pointer-events: none;
+	touch-action: none;
 }

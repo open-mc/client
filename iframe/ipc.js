@@ -1,8 +1,9 @@
 import { DataReader, jsonToType } from '/server/modules/dataproto.js'
 import { frame } from './index.js'
-import { options, listen, _cbs, _mouseMoveCb, _joypadMoveCbs, _pauseCb, _wheelCb, _optionListeners, fakePause, codes, paused, _onvoice, voice } from 'api'
+import { options, listen, _cbs, _mouseMoveCb, _joypadMoveCbs, _wheelCb, _optionListeners, codes, paused, _onvoice, voice } from 'api'
 import { Blocks, Items, Entities, BlockIDs, ItemIDs, EntityIDs, Block, Item, Entity, Classes } from 'definitions'
 import 'world'
+import { _updatePaused } from './api.js'
 
 Classes[0] = {savedata: null, savedatahistory: []}
 
@@ -118,7 +119,7 @@ const onMsg = ({data,origin}) => {
 			changed.set(data)
 			if(_cbs[data])for(const f of _cbs[data])f()
 		}else buttons.unset(~data), changed.set(~data)
-	}else if(typeof data == 'boolean') fakePause(data)
+	}else if(typeof data == 'boolean') _updatePaused(data)
 }
 const m = msgQueue; msgQueue = []
 for(const data of m) try{ onMsg({data}) }catch(e){console.error(e)}

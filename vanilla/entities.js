@@ -2,7 +2,7 @@ import { particlePng, explode, AshParticle, BlastParticle, hurt } from './defs.j
 import { audioSet, renderItem, renderItemCount, renderSlot } from './effects.js'
 import { Entities, Entity, Item, Blocks, BlockIDs } from 'definitions'
 import { renderF3, uiLayer } from 'api'
-import { getblock, cam, worldEvents } from 'world'
+import { getblock, cam, worldEvents, world } from 'world'
 
 const {Audio, Texture} = loader(import.meta)
 
@@ -36,7 +36,7 @@ export class LivingEntity extends Entity{
 		this.health = buf.byte()
 		const fields = buf.byte()
 		if(this.health < oldHealth){
-			if(this == me) cam.rot = 0.15
+			if(this == me) cam.f = cam.baseF + 0.15
 			this.sound(hurt)
 			if(fields & 1){
 				if(this.health) this.hitTimer = 0.5
@@ -49,21 +49,21 @@ export class LivingEntity extends Entity{
 	render(c){
 		this.hitTimer -= dt
 		if(this.hitTimer < 0) this.hitTimer = 0
-		if((this.state&0x8000) && !this.hitTimer) return true
+		if(false && !this.hitTimer) return true
 		const xs = this.f >= 0 ? 1 : -1, ys = this.name == 'Dinnerbone' || this.name == 'Grumm' ? -1 : 1
 		if(this.name && (renderF3 || this != me)){
 			c.textAlign = 'center'
 			const {width, top, bottom} = c.measureText(this.name, 0.3)
 			c.fillStyle = '#000'
-			c.globalAlpha = 0.2
+			c.globalAlpha *= 0.2
 			c.fillRect(width * -0.5 - 0.05, this.height + 0.15 - 0.05, width + 0.1, bottom + top + 0.1)
-			c.globalAlpha = 1
+			c.globalAlpha /= .2
 			c.fillStyle = this.state&0x100?'#f44':'#fff'
 			c.fillText(this.name, 0, this.height + 0.15 + bottom * 0.3, 0.3)
 		}
 		if(ys < 0) c.translate(0, this.height)
 		c.scale(xs, ys)
-		if(this.state&0x8000) c.rotate(PI * (this.hitTimer*this.hitTimer - 1) * ((this.flags&1) - .5) * xs)
+		//if(this.state&0x8000) c.rotate(PI * (this.hitTimer*this.hitTimer - 1) * ((this.flags&1) - .5) * xs)
 	}
 	blocksWalked = 0
 	update(){
@@ -342,7 +342,7 @@ Entities.end_crystal = class extends Entity{
 	static width = 0.99
 	static height = 1.99
 	render(c){
-		const t = this.age / TPS
+		const t = this.age / world.tps
 		c.push()
 		c.translate(0, 1.2 + sin(t * 4) / 3)
 		c.rotate(t*-0.5)

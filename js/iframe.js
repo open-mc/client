@@ -4,7 +4,6 @@ import { pause } from '../uis/pauseui.js'
 import { serverlist } from '../uis/serverlist.js'
 
 export let iframe = document.createElement('iframe'), win = null
-
 // Security druggie
 iframe.sandbox = 'allow-scripts'
 iframe.allow = 'cross-origin-isolated; autoplay'
@@ -39,6 +38,13 @@ empty.esc = pause
 
 onmessage = ({data, source}) => {
 	if(source != iframe.contentWindow || !iframe.contentWindow) return
+	if(typeof data != 'object'){
+		if(data === true) showUI(null)
+		else if(data === false) hideUI()
+		else if(data !== data) serverlist()
+		else if(data === Infinity) voiceOn()
+		else if(data === -Infinity) voiceOff()
+	}
 	if(data === null){
 		win = iframe.contentWindow
 		if(!win) return
@@ -47,13 +53,7 @@ onmessage = ({data, source}) => {
 		win.postMessage(files, '*')
 		for(let i = 0; i < queue.length; i += 2)queue[i](queue[i+1])
 		queue.length = 0
-	}else if(data === true) showUI(null)
-	else if(data === false) hideUI()
-	else if(data == 'custompause') showUI(empty)
-	else if(data == 'quit') serverlist()
-	else if(data == 'voice') voiceOn()
-	else if(data == 'novoice') voiceOff()
-	else if(data instanceof ArrayBuffer && globalThis.ws) ws.send(data)
+	}else if(data instanceof ArrayBuffer && globalThis.ws) ws.send(data)
 	else if(data instanceof Blob){
 		let d = new Date()
 		const a = document.createElement("a")
@@ -61,7 +61,7 @@ onmessage = ({data, source}) => {
 		a.download = `screenshot-${d.getYear()+1900}-${('0'+d.getMonth()).slice(-2)}-${('0'+d.getDay()).slice(-2)}-at-${('0'+d.getHours()).slice(-2)}-${('0'+d.getMinutes()).slice(-2)}-${('0'+d.getSeconds()).slice(-2)}`
 		a.click()
 		URL.revokeObjectURL(a.href)
-	}
+	}else if(Array.isArray(data)) onerror(undefined,''+data[1],+data[2],+data[3],data[0])
 }
 
 export function destroyIframe(){

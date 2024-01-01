@@ -5,10 +5,10 @@ import * as pointer from './pointer.js'
 import { EPSILON } from './entity.js'
 
 export function foundMe(e){
-	if(!me)postMessage(false, '*')
+	if(!me) postMessage(false, '*')
 	me = e
-	cam.x = me.ix = me.x
-	cam.y = me.iy = me.y
+	me.ix = me.x
+	me.iy = me.y
 	pointer.reset(e.f)
 }
 
@@ -75,16 +75,18 @@ export class Item{
 registerTypes({Item})
 //chunk exists
 export class Entity{
+	static meid = -1
 	ix = 0; x = 0
 	iy = 0; y = 0
 	dx = 0; dy = 0
 	impactDx = 0; impactDy = 0
 	chunk = null
-	netId = 0
+	netId = -1
 	state = 0
 	age = 0
 	flags = 0
 	f = PI / 2
+	get linked(){return this.netId>=0}
 	shouldSimulate(){
 		const x = floor(this.x)>>6, y = floor(this.y)>>6
 		if(!map.has((x&0x3FFFFFF)+(y&0x3FFFFFF)*0x4000000)) return false
@@ -98,7 +100,7 @@ export class Entity{
 		if(entityMap.has(this.netId)) return false
 		entityMap.set(this.netId, this)
 		this.ix = this.x; this.iy = this.y
-		if(meid === this.netId && me != this) foundMe(this)
+		if(Entity.meid === this.netId && me != this) foundMe(this)
 		return true
 	}
 	remove(){
@@ -228,14 +230,14 @@ export class BlockParticle extends Particle{
 			(random()+.5)/2, x + (frac & 3) / 4 + .125, y + (frac >> 2) / 4 + .125,
 			(frac & 3) + random()*2 - 2.5 , 2 + (frac >> 2) + random()*2
 		)
-		this.block = block
+		this.tex = block ? block.particleTexture ?? block.texture : null
 		this.frac = (random() * 16) | 0
 	}
 	render(c){
-		if(!this.block || !this.block.texture) return
+		if(!this.tex) return
 		const w = (this.frac&2)+2, h = (this.frac<<1&2)+2
-		const {w: tw, h: th} = this.block.texture
-		c.image(this.block.texture, -0.1, -0.1, w/20, h/20, (this.frac & 3) << 2, (this.frac & 12) + (world.tick%floor(th/tw))*tw, w, h)
+		const {w: tw, h: th} = this.tex
+		c.image(this.tex, -0.1, -0.1, w/20, h/20, (this.frac & 3) << 2, (this.frac & 12) + (world.tick%floor(th/tw))*tw, w, h)
 	}
 }
 export function blockBreak(block, x, y){

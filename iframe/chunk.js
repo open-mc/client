@@ -129,7 +129,7 @@ export class Chunk extends Uint16Array{
 				let pos = i<<5|(31-clz32(int))
 				int &= ~(1 << (pos&31))
 				const b = this[pos]
-				const {texture} = b==65535 ? this.tileData.get(x|(y<<6)) : BlockIDs[b]
+				const {texture} = b==65535 ? this.tileData.get(pos) : BlockIDs[b]
 				const x = (pos&63), y = (63-(pos>>6))
 				this.ctx.clearRect(x, y, 1, 1)
 				this.ctx.drawImage(texture.canvas, texture.x, texture.y + (world.tick % floor(texture.h / texture.w)) * texture.w, texture.w, texture.w, x, y, 1, 1)
