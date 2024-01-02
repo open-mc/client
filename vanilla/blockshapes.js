@@ -47,9 +47,10 @@ export const slabifyItem = (I, B) => class extends I{
 	static defaultName = I.defaultName + ' slab'
 }
 
-export const itemify = (B, n) => class extends Item{
+export const itemify = (B, n, cat) => class extends Item{
 	static texture = B.texture
 	static defaultName = n
+	static categories = cat
 	places(){return B}
 }
 

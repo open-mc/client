@@ -1,12 +1,11 @@
 import { Blocks, Items, Item } from 'definitions'
 import { itemify, slabifyItem } from './blockshapes.js'
-import { chestTop } from './blocks.js'
+import { chestTop, commandBlockTexs } from './blocks.js'
 import { getblock } from 'world'
 
 const {Texture} = loader(import.meta)
 
 export const itemsPng = Texture("items.png")
-
 Items.oak_log = itemify(Blocks.oak_log, 'Oak log')
 Items.birch_log = itemify(Blocks.birch_log, 'Birch log')
 Items.spruce_log = itemify(Blocks.spruce_log, 'Spruce log')
@@ -130,6 +129,20 @@ Items.end_portal_frame = itemify(Blocks.end_portal_frame, 'End portal frame')
 Items.eye_of_ender = class extends Item{
 	static texture = itemsPng.at(1, 10)
 	static defaultName = 'Eye of ender'
+}
+
+Items.command_block = class extends Item{
+	render(c){
+		const a = floor(t*2)&3
+		const alpha = c.globalAlpha==1
+		c.image(commandBlockTexs[0], 0, 0, 1, 1, 0, a<<4, 16, 16)
+		if(alpha){
+			c.globalAlpha = (t*2)%1
+			c.image(commandBlockTexs[0], 0, 0, 1, 1, 0, (a+1&3)<<4, 16, 16)
+			c.globalAlpha = 1
+		}
+	}
+	static defaultName = 'Command block'
 }
 
 Items.endstone = itemify(Blocks.endstone, 'Endstone')

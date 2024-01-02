@@ -30,8 +30,8 @@ document.body.append(NONE)
 export let ptrSuccess = Function.prototype, ptrFail = Function.prototype
 export const ptrlock = () => new Promise((r, c) => {
 	const fs = options.fsc ? document.documentElement.requestFullscreen({navigationUI: 'hide'}) : undefined
-	if(fs instanceof Promise) fs.catch(e=>null).then(() => document.body.requestPointerLock?.().catch(e=>null))
-	else document.body.requestPointerLock?.().catch(e=>null)
+	if(fs instanceof Promise) fs.catch(e=>null).then(() => document.body.requestPointerLock?.()?.catch(e=>null))
+	else document.body.requestPointerLock?.()?.catch(e=>null)
 	ptrSuccess = r; ptrFail = c
 })
 

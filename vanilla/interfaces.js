@@ -15,16 +15,19 @@ ephemeralInterfaces[1] = class{
 			}else this.slots[slot] = item
 		}else return true
 	}
-	drawInterface(id, c){
+	drawInterface(id, c, drawInv){
 		if(id == 0){
-			c.image(craftingInterface, 0, 0)
-			c.translate(74, -7)
+			c.image(craftingInterface, -88, 0)
+			c.push()
+			c.translate(-14, -7)
 			c.scale(16, 16)
 			for(let i = 0; i < 9; i++){
 				if(i%3) c.translate(1.125, 0)
 				else c.translate(-2.25, 1.125)
 				renderSlot(c, this, i, 0)
 			}
+			c.pop()
+			drawInv(0, 0)
 		}
 	}
 }

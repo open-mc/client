@@ -114,7 +114,7 @@ async function microphone(){
 		a.onaudioprocess = ({inputBuffer}) => {
 			if(!voice) return
 			const f32 = r?r(inputBuffer.getChannelData(0)):inputBuffer.getChannelData(0)
-			win.postMessage(f32, '*', [f32.buffer])
+			win.postMessage(f32, '*')
 		}
 		m.source=ctx.createMediaStreamSource(m);m.source.connect(a)
 		a.connect(ctx.destination)

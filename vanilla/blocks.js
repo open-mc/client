@@ -1,7 +1,8 @@
-import { audioSet, lava, renderSlot, water } from './effects.js'
+import { uiButtons, audioSet, lava, renderSlot, water } from './effects.js'
 import { sound, cam } from 'world'
 import { Blocks, Block, Items } from 'definitions'
 import { BlockShape, blockShaped, fluidify } from './blockshapes.js'
+import { closeInterface } from './index.js'
 const {Texture, Audio} = loader(import.meta)
 
 export const terrainPng = Texture("terrain.png")
@@ -238,11 +239,11 @@ Blocks.chest = class extends Block{
 		if(id == 0) this.items[slot] = item
 		else return true
 	}
-	drawInterface(id, c){
+	drawInterface(id, c, drawInv){
 		if(id == 0){
-			c.image(containerInterface, 0, 0)
+			c.image(containerInterface, -88, 0)
 			c.push()
-			c.translate(16, 46)
+			c.translate(-72, 46)
 			c.scale(16, 16)
 			for(let i = 0; i < 27; i++){
 				renderSlot(c, this, i)
@@ -253,8 +254,12 @@ Blocks.chest = class extends Block{
 			c.textAlign = 'left'
 			c.textBaseline = 'alphabetic'
 			c.fillStyle = '#505050'
-			c.fillText(this.name||Items.chest.defaultName, 8, 65, 10)
-			c.fillText('Inventory', 8, -1, 10)
+			c.fillText(this.name||Items.chest.defaultName, -80, 65, 10)
+			drawInv(0, 0)
+			c.textAlign = 'left'
+			c.textBaseline = 'alphabetic'
+			c.fillStyle = '#505050'
+			c.fillText('Inventory', -80, -1, 10)
 		}
 	}
 	name = ''
@@ -495,7 +500,7 @@ Blocks.lit_furnace = class extends Blocks.furnace{
 	static interactible = true
 }
 const commandBlockTex = Texture('command_blocks.png')
-const commandBlockTexs = [0,1,2,3,4,5].mmap(a => commandBlockTex.crop(a<<4,0,16,64))
+export const commandBlockTexs = [0,1,2,3,4,5].mmap(a => commandBlockTex.crop(a<<4,0,16,64))
 Blocks.command_block = class extends Stone{
 	type = 0
 	commands = []
@@ -510,4 +515,43 @@ Blocks.command_block = class extends Stone{
 	get particleTexture(){ return commandBlockTexs[this.type] }
 	static breaktime = Infinity
 	static tool = 'pick'
+	static interactible = true
+	drawInterface(id, c){
+		if(id == 0){
+			const buttonsY = -160
+			const btnW = uiButtons.large.w
+			const btnH = uiButtons.large.h
+			const halfBtnW = btnW / 2
+			const halfBtnH = btnH / 2
+			const doneX = -btnW - 4
+			c.textAlign = 'center'
+			c.textBaseline = 'middle'
+			c.image(uiButtons.large, doneX, buttonsY)
+			c.fillStyle = '#333'
+			c.fillText('Done', doneX + halfBtnW + 1, buttonsY + halfBtnH - 1, 10)
+			const doneHit = c.button(doneX, buttonsY, btnW, btnH)
+			c.fillStyle = doneHit ? '#fff' : '#999'
+			c.fillText('Done', doneX + halfBtnW, buttonsY + halfBtnH, 10)
+			const cancelX = 4
+			c.image(uiButtons.large, cancelX, buttonsY)
+			c.fillStyle = '#333'
+			c.fillText('Cancel', cancelX + halfBtnW + 1, buttonsY + halfBtnH - 1, 10)
+			const cancelHit = c.button(cancelX, buttonsY, btnW, btnH)
+			c.fillStyle = cancelHit ? '#fff' : '#999'
+			c.fillText('Cancel', cancelX + halfBtnW, buttonsY + halfBtnH, 10)
+
+			if (cancelHit == 2) return closeInterface()
+
+			c.fillStyle = '#333'
+			c.fillRect(-160, -120, 320, 240)
+
+			c.textAlign = 'left'
+			c.textBaseline = 'alphabetic'
+			c.fillStyle = '#fff'
+			c.fillText('Set console command for Block', -180, 160, 14)
+			c.fillStyle = '#505050'
+			c.fillText('Console command', -150, 160, 10)
+		}
+	}
+
 }

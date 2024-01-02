@@ -209,14 +209,16 @@ uiLayer(1000, (c, w, h) => {
 			if(i == me.selected) c.image(selected, -0.75, -0.25, 1.5, 1.5)
 			c.translate(1.25, 0)
 		}
-		c.peek()
-		c.translate(hotBarLeft, hotbar.h + 6)
-		const wiggle = me.health < 5 ? (t*24&2)-1 : 0
-		for(let h = 0; h < 20; h+=2){
-			const x = h*4, y = (wiggle * ((h&2)-1) + 1) / 2
-			c.image(heartEmpty,x,y,9,9)
-			if(me.health>h+1) c.image(heart,x,y,9,9)
-			else if(me.health>h) c.image(halfHeart,x,y,9,9)
+		if(me.mode < 1){
+			c.peek()
+			c.translate(hotBarLeft, hotbar.h + 6)
+			const wiggle = me.health < 5 ? (t*24&2)-1 : 0
+			for(let h = 0; h < 20; h+=2){
+				const x = h*4, y = (wiggle * ((h&2)-1) + 1) / 2
+				c.image(heartEmpty,x,y,9,9)
+				if(me.health>h+1) c.image(heart,x,y,9,9)
+				else if(me.health>h) c.image(halfHeart,x,y,9,9)
+			}
 		}
 		c.pop()
 		c.textAlign = 'center'; c.textBaseline = 'middle'
@@ -299,27 +301,28 @@ uiLayer(1000, (c, w, h) => {
 	if(!invInterface) return
 	pause()
 	resetSlot()
-	c.fillStyle = '#000'
-	c.globalAlpha = 0.2
+	c.fillStyle = '#0006'
 	c.fillRect(0, 0, w, h)
-	c.globalAlpha = 1
-	c.translate(w / 2 - 88, h / 2)
+	c.translate(w / 2, h / 2)
 	c.push()
-	c.image(inventory, 0, -inventory.h)
-	c.translate(16,8 - inventory.h)
-	c.scale(16,16)
-	for(let i = 0; i < 9; i++){
-		renderSlot(c, me, i)
-		c.translate(1.125,0)
-	}
-	c.translate(-10.125, 1.375)
-	for(let i = 9; i < 36; i++){
-		renderSlot(c, me, i)
-		if(i % 9 == 8) c.translate(-9, 1.125)
-		else c.translate(1.125,0)
-	}
-	c.peek()
-	invInterface.drawInterface?.(interfaceId, c)
+	invInterface.drawInterface?.(interfaceId, c, (x, y) => {
+		c.push()
+		c.translate(x, y)
+		c.image(inventory, -88, -inventory.h)
+		c.translate(-72,8 - inventory.h)
+		c.scale(16,16)
+		for(let i = 0; i < 9; i++){
+			renderSlot(c, me, i)
+			c.translate(1.125,0)
+		}
+		c.translate(-10.125, 1.375)
+		for(let i = 9; i < 36; i++){
+			renderSlot(c, me, i)
+			if(i % 9 == 8) c.translate(-9, 1.125)
+			else c.translate(1.125,0)
+		}
+		c.pop()
+	}, w/2, h/2)
 	let slot = slotI
 	if(action == 1 && slot > -1){
 		const int = slot > 127 ? invInterface : me, id = slot > 127 ? interfaceId : 0
@@ -358,10 +361,8 @@ uiLayer(1000, (c, w, h) => {
 	c.translate(x, y - .5)
 	renderItem(c, me.inv[36])
 	renderItemCount(c, me.inv[36])
-
 	c.peek()
-	if(!me.inv[36]) renderTooltip(c, me)
-
+	if(!me.inv[36]) renderTooltip(c, slotI > 127 ? me.items[slotI & 127] : slotI >= 0 ? me.inv[slotI] : null)
 	c.pop()
 })
 
@@ -377,7 +378,7 @@ function openInventory(){
 	buf.byte(13)
 	send(buf)
 }
-function closeInterface(){
+export function closeInterface(){
 	invInterface = null
 	const buf = new DataWriter()
 	buf.byte(15)

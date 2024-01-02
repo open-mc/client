@@ -3,6 +3,7 @@ import { audioSet, renderItem, renderItemCount, renderSlot } from './effects.js'
 import { Entities, Entity, Item, Blocks, BlockIDs } from 'definitions'
 import { renderF3, uiLayer } from 'api'
 import { getblock, cam, worldEvents, world } from 'world'
+import { renderLeft, renderRight } from './creativeInventory.js'
 
 const {Audio, Texture} = loader(import.meta)
 
@@ -102,6 +103,7 @@ Entities.player = class extends LivingEntity{
 	static alive = true
 	inv = Array.null(37)
 	items = [null, null, null, null, null]
+	mode = 0
 	getItem(id, slot){return id == 0 ? this.inv[slot] : id == 1 ? this.items[slot] : undefined}
 	setItem(id, slot, item, force = 0){
 		if(id == 0 && slot < 36+force) this.inv[slot] = item
@@ -208,21 +210,19 @@ Entities.player = class extends LivingEntity{
 		super.update()
 		if(this == me && perms<3)this.state&=-2
 	}
-	drawInterface(id, c){
-		// x=0, y=0 => left middle
-		// x=176 => right
+	drawInterface(id, c, drawInv, w, h){
 		if(id == 1){
-			c.image(meInterface, 0, 0)
+			c.image(meInterface, -88, 0)
 			c.push()
-			c.translate(50,5)
+			c.translate(-38,5)
 			c.scale(32,32)
 			const f = this.f
 			const {x, y} = c.mouse()
 			this.f = atan2(x, y - me.head)
 			this.render(c)
 			this.f = f
-			c.pop()
-			c.translate(16, 2)
+			c.peek()
+			c.translate(-72, 2)
 			c.scale(16,16)
 			for(let i = 0; i < 4; i++){
 				renderSlot(c, this, i, 1)
@@ -230,8 +230,20 @@ Entities.player = class extends LivingEntity{
 			}
 			c.translate(4.3125, -4.5)
 			renderSlot(c, this, 4, 1)
+			c.pop()
+			drawInv(0, 0)
+			if(this.mode == 1){
+				c.translate(-w, h)
+				c.push()
+				renderLeft(c)
+				c.pop()
+				c.translate(w*2, 0)
+				c.push()
+				renderRight(c)
+			}
 		}
 	}
+	20(buf){ this.mode = buf.byte() }
 }
 
 Entity[13] = function(buf){

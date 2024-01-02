@@ -9,6 +9,7 @@ let gamepadToggleCrouch = false
 button(GAMEPAD.B, () => gamepadToggleCrouch=!gamepadToggleCrouch)
 export const playerControls = () => {
 	if(paused) return
+	if((me.state&1)&&me.mode<1) me.state &= ~1
 	const r = buttons.has(KEYS.RIGHT) || buttons.has(KEYS.D) || cursor.jlx > 0.4
 	const l = buttons.has(KEYS.LEFT) || buttons.has(KEYS.A) || cursor.jlx < -0.4
 	const u = buttons.has(KEYS.UP) || buttons.has(KEYS.W) || buttons.has(KEYS.SPACE) || buttons.has(GAMEPAD.A) || cursor.jly > 0.4
@@ -27,7 +28,7 @@ export const playerControls = () => {
 	}
 	if(u&&!U){
 		if(lastPressUp > t - .3){
-			if(perms>=3)me.state ^= 1
+			if(me.mode>=1)me.state ^= 1
 			lastPressUp = 0
 		}else lastPressUp = t
 	}

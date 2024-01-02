@@ -56,7 +56,7 @@ let wasShowingUI = true
 requestAnimationFrame(function checkInputs(){
 	requestAnimationFrame(checkInputs)
 	dxs.fill(0), dys.fill(0)
-	for(const d of navigator.getGamepads()){
+	if (navigator.getGamepads) for(const d of navigator.getGamepads()){
 		if(!d) continue
 		if(d.mapping != 'standard'){
 			let i = 320

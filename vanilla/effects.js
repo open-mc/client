@@ -50,30 +50,48 @@ export const water = {
 
 export function renderItem(c, item, respectModel = false){
 	if(item && item.texture){
+		const h = floor(t*20)%(item.texture.h>>4)<<4
 		if(!respectModel || item.model == 0){
 			c.push()
 			c.translate(-0.5, 0)
-			c.image(item.texture, 0, 0, 1, 1)
+			c.image(item.texture, 0, 0, 1, 1, 0, h, 16, 16)
 			item.render?.(c, 0)
 			c.pop()
 		}else if(item.model == 1){
 			c.push()
-			c.translate(0.5,0)
-			c.translate(-1.2,1.2)
+			c.translate(-0.7,1.2)
 			c.rotate(PI * -0.75)
 			c.scale(-1.6, 1.6)
 			c.translate(-0.5, 0)
-			c.image(item.texture, 0, 0, 1, 1)
+			c.image(item.texture, 0, 0, 1, 1, 0, h, 16, 16)
 			item.render?.(c, 1)
 			c.pop()
 		}else if(item.model == 2){
 			c.push()
 			c.translate(-0.75, -0.25)
 			c.scale(1.5, 1.5)
-			c.image(item.texture, 0, 0, 1, 1)
+			c.image(item.texture, 0, 0, 1, 1, 0, h, 16, 16)
 			item.render?.(c, 2)
 			c.pop()
 		}
+	}else if(item && item.render){
+		c.push()
+		if(!respectModel || item.model == 0){
+			c.translate(-0.5, 0)
+			item.render(c, 0)
+		}else if(item.model == 1){
+			c.translate(0.5,0)
+			c.translate(-1.2,1.2)
+			c.rotate(PI * -0.75)
+			c.scale(-1.6, 1.6)
+			c.translate(-0.5, 0)
+			item.render(c, 1)
+		}else if(item.model == 2){
+			c.translate(-0.75, -0.25)
+			c.scale(1.5, 1.5)
+			item.render(c, 2)
+		}
+		c.pop()
 	}
 }
 
@@ -111,16 +129,15 @@ export function renderSlot(c, e, i, id=0){
 		slotI = e == me && id == 0 ? i : i|128
 	}
 }
-export function renderTooltip(c, e){
-	if(slotI < 0) return
-	const item = slotI > 127 ? e.items[slotI & 127] : me.inv[slotI]
+export function renderTooltip(c, item, l = false){
 	if(!item) return
 	const {x, y} = c.mouse()
 	const lines = [item.name || item.defaultName], styles = [15]
 	if(renderF3) lines.push(`${item.className}*${item.count}${(item.savedata?'+NBT':'')} (${item.id})`), styles.push(8)
 	let width = 0
 	for(const l of lines) width = max(c.measureText(l, 10).width, width)
-	c.translate(x + 12, y + 8)
+	if(l) c.translate(x - width - 12, y)
+	else c.translate(x + 12, y + 8)
 	c.fillStyle = '#110010e4'
 	c.fillRect(-1, lines.length*-12-2, width+8, lines.length*12+2)
 	c.fillRect(0, lines.length*-12-3, width+6, lines.length*12+4)
