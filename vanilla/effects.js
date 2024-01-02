@@ -11,7 +11,10 @@ const btns = Texture('../img/button.png')
 export const uiButtons = {
 	large: btns.crop(124,20,200,20),
 	largeSelected: btns.crop(124,40,200,20),
-	largeDisabled: btns.crop(124,0,200,20)
+	largeDisabled: btns.crop(124,0,200,20),
+	tiny: btns.crop(8,20,20,20),
+	tinySelected: btns.crop(8,40,20,20),
+	tinyDisabled: btns.crop(8,0,20,20),
 }
 
 music('overworld',
@@ -129,14 +132,17 @@ export function renderSlot(c, e, i, id=0){
 		slotI = e == me && id == 0 ? i : i|128
 	}
 }
-export function renderTooltip(c, item, l = false){
+export function renderTooltip(c, item){
 	if(!item) return
-	const {x, y} = c.mouse()
 	const lines = [item.name || item.defaultName], styles = [15]
 	if(renderF3) lines.push(`${item.className}*${item.count}${(item.savedata?'+NBT':'')} (${item.id})`), styles.push(8)
+	renderGenericTooltip(c, lines, styles, l)
+}
+export function renderGenericTooltip(c, lines, styles){
+	const {x, y} = c.mouse()
 	let width = 0
 	for(const l of lines) width = max(c.measureText(l, 10).width, width)
-	if(l) c.translate(x - width - 12, y)
+	if(x+width+20 >= c.width || y+(lines.length+1)*12 >= c.height) c.translate(x - width - 12, y)
 	else c.translate(x + 12, y + 8)
 	c.fillStyle = '#110010e4'
 	c.fillRect(-1, lines.length*-12-2, width+8, lines.length*12+2)

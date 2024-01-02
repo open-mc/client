@@ -1,4 +1,4 @@
-import { uiButtons, audioSet, lava, renderSlot, water } from './effects.js'
+import { uiButtons, audioSet, lava, renderSlot, water, click, renderTooltip, renderGenericTooltip } from './effects.js'
 import { sound, cam } from 'world'
 import { Blocks, Block, Items } from 'definitions'
 import { BlockShape, blockShaped, fluidify } from './blockshapes.js'
@@ -501,6 +501,7 @@ Blocks.lit_furnace = class extends Blocks.furnace{
 }
 const commandBlockTex = Texture('command_blocks.png')
 export const commandBlockTexs = [0,1,2,3,4,5].mmap(a => commandBlockTex.crop(a<<4,0,16,64))
+const commandBlockNames = ['Impulse','Impulse (inversed)','Repeating','Repeating (needs redstone)','Callable','Callable (once per tick)']
 Blocks.command_block = class extends Stone{
 	type = 0
 	commands = []
@@ -523,34 +524,42 @@ Blocks.command_block = class extends Stone{
 			const btnH = uiButtons.large.h
 			const halfBtnW = btnW / 2
 			const halfBtnH = btnH / 2
-			const doneX = -btnW - 4
 			c.textAlign = 'center'
 			c.textBaseline = 'middle'
-			c.image(uiButtons.large, doneX, buttonsY)
+			const doneHit = c.button(-halfBtnW, buttonsY, btnW, btnH)
+			c.image(doneHit ? uiButtons.largeSelected : uiButtons.large, -halfBtnW, buttonsY)
 			c.fillStyle = '#333'
-			c.fillText('Done', doneX + halfBtnW + 1, buttonsY + halfBtnH - 1, 10)
-			const doneHit = c.button(doneX, buttonsY, btnW, btnH)
+			c.fillText('Done', 1, buttonsY + halfBtnH - 1, 10)
 			c.fillStyle = doneHit ? '#fff' : '#999'
-			c.fillText('Done', doneX + halfBtnW, buttonsY + halfBtnH, 10)
-			const cancelX = 4
-			c.image(uiButtons.large, cancelX, buttonsY)
-			c.fillStyle = '#333'
-			c.fillText('Cancel', cancelX + halfBtnW + 1, buttonsY + halfBtnH - 1, 10)
-			const cancelHit = c.button(cancelX, buttonsY, btnW, btnH)
-			c.fillStyle = cancelHit ? '#fff' : '#999'
-			c.fillText('Cancel', cancelX + halfBtnW, buttonsY + halfBtnH, 10)
+			c.fillText('Done', 0, buttonsY + halfBtnH, 10)
+			const typeHit = c.button(-halfBtnW - btnH*1.5, buttonsY, btnH, btnH)
+			if(typeHit == 2) this.type = (this.type+1)%6, click()
+			c.image(typeHit ? uiButtons.tinySelected : uiButtons.tiny, -halfBtnW - btnH*1.5, buttonsY, btnH, btnH)
+			c.push()
+			c.translate(-halfBtnW - btnH*1.5+4, buttonsY+4)
+			c.scale(12, 12)
+			this.render(c)
+			c.peek()
+			if(typeHit) renderGenericTooltip(c, [commandBlockNames[this.type]], [15])
+			c.pop()
 
-			if (cancelHit == 2) return closeInterface()
+			if(doneHit == 2){
+				closeInterface()
+				click()
+			}
 
-			c.fillStyle = '#333'
-			c.fillRect(-160, -120, 320, 240)
+			c.textAlign = 'center'
+			c.textBaseline = 'alphabetic'
+			c.fillStyle = '#fff'
+			c.fillText('Set console command for block', 0, 150, 10)
 
 			c.textAlign = 'left'
 			c.textBaseline = 'alphabetic'
-			c.fillStyle = '#fff'
-			c.fillText('Set console command for Block', -180, 160, 14)
-			c.fillStyle = '#505050'
-			c.fillText('Console command', -150, 160, 10)
+			c.fillStyle = '#000'
+			c.strokeStyle = '#a0a0a0'
+			c.fillRect(-160, -120, 320, 240)
+			c.lineWidth = 1
+			c.strokeRect(-160, -120, 320, 240)
 		}
 	}
 

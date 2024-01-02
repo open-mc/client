@@ -145,8 +145,8 @@
 		C.button = function(x0, y0, w, h){
 			const {x, y} = this.mouse()
 			if(x<x0|x>x0+w|y<y0|y>y0+h) return 0
-			if(buttons.has(LBUTTON) && changed.has(LBUTTON)) return 2
-			if(buttons.has(RBUTTON) && changed.has(RBUTTON)) return 3
+			if(changed.has(LBUTTON) && buttons.pop(LBUTTON)) return 2
+			if(changed.has(RBUTTON) && buttons.pop(RBUTTON)) return 3
 			return 1
 		}
 		C.input = function(i, x0, y0, w, h, size = 32){

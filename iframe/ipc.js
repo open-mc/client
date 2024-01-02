@@ -118,7 +118,7 @@ const onMsg = ({data,origin}) => {
 			buttons.set(data)
 			changed.set(data)
 			if(_cbs[data])for(const f of _cbs[data])f()
-		}else buttons.unset(~data), changed.set(~data)
+		}else buttons.pop(~data) && changed.set(~data)
 	}else if(typeof data == 'boolean') _updatePaused(data)
 }
 const m = msgQueue; msgQueue = []

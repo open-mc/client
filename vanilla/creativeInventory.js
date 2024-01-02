@@ -122,7 +122,8 @@ export function renderLeft(c){
 			if(L) catPreview = cat
 		}
 		if(L == 2){
-			selectedCat = cat
+			if(cat === selectedCat) selectedCat = null
+			else selectedCat = cat
 			click()
 		}
 		c.fillStyle = '#fff'
@@ -169,5 +170,5 @@ export function renderRight(c){
 		}
 	}
 	c.pop()
-	if(sel) renderTooltip(c, sel, true)
+	if(sel) renderTooltip(c, sel)
 }
