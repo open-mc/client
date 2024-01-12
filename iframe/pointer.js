@@ -170,12 +170,12 @@ let didHit = false
 export function checkBlockPlacing(buf){
 	const hasP = buttons.has(options.click ? LBUTTON : RBUTTON) || buttons.has(options.click ? GAMEPAD.LT : GAMEPAD.RT)
 	const hasB = buttons.has(options.click ? RBUTTON : LBUTTON) || buttons.has(options.click ? GAMEPAD.RT : GAMEPAD.LT)
-	if(hasP && t > lastPlace + .12 && !paused && bpx == bpx){
+	if(hasP && ((me.mode == 1 && buttons.has(KEYS.ALT)) || t > lastPlace + .12) && !paused && bpx == bpx){
 		if(blockPlacing) setblock(bpx, bpy, blockPlacing)
 		buf.byte(me.selected)
 		buf.float(x); buf.float(y)
 		lastPlace = t
-	}else if(hasB && bx == bx && !paused){
+	}else if(hasB && bx == bx && !paused && !(me.mode == 1 && !buttons.has(KEYS.ALT) && t <= lastPlace + .12)){
 		buf.byte(me.selected | 128)
 		buf.float(x); buf.float(y)
 		blockbreakx = bx; blockbreaky = by

@@ -15,23 +15,20 @@ setInterval(function(){
 	t = performance.now()/1000
 	eluStart()
 	const now = performance.now()
-	let update = 1000 / world.tps
+	const update = 1000 / world.tps
 	let dt = now - last
 	elusmooth += (elu / (dt || 1) - elusmooth) / count
 	last = now
 	elu = 0
 	if(!me) return
-	let ticked = 0
-	while(dt > update){
-		dt -= update
-		if(ticked < 20) tick()
-		ticked++
-	}
+	let tickcount = floor(dt/update)
+	dt -= tickcount*update
+	while(tickcount--) tick()
 	last -= dt
 })
 
 const sendDelay = 1 //send packet every tick
-function tick(){ //20 times a second
+function tick(){
 	if(dt < 1/20000)dt = 1/20000
 	if(world.tick % sendDelay == 0 && me && !(me.health <= 0)){
 		let buf = new DataWriter()

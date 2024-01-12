@@ -93,14 +93,17 @@ Items.end_crystal = class extends Item{
 	static texture = itemsPng.at(0,10)
 	static defaultName = 'End crystal'
 }
-class Mineral extends Item{}
+const mineral = (name, tex) => class extends Item{
+	static defaultName = name
+	static texture = tex
+}
 
-Items.lapis = Mineral
-Items.coal = Mineral
-Items.iron = Mineral
-Items.gold = Mineral
-Items.emerald = Mineral
-Items.diamond = Mineral
+Items.lapis = mineral('Lapis', itemsPng.at(15, 8))
+Items.coal = mineral('Coal', itemsPng.at(16, 5))
+Items.iron = mineral('Iron ingot', itemsPng.at(4, 14))
+Items.gold = mineral('Gold ingot', itemsPng.at(9, 13))
+Items.emerald = mineral('Emerald', itemsPng.at(13, 9))
+Items.diamond = mineral('Diamond', itemsPng.at(5, 8))
 
 Items.cut_sandstone = class extends Items.sandstone{
 	static defaultName = 'Cut sandstone'

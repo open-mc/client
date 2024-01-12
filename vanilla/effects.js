@@ -136,7 +136,7 @@ export function renderTooltip(c, item){
 	if(!item) return
 	const lines = [item.name || item.defaultName], styles = [15]
 	if(renderF3) lines.push(`${item.className}*${item.count}${(item.savedata?'+NBT':'')} (${item.id})`), styles.push(8)
-	renderGenericTooltip(c, lines, styles, l)
+	renderGenericTooltip(c, lines, styles)
 }
 export function renderGenericTooltip(c, lines, styles){
 	const {x, y} = c.mouse()
