@@ -323,34 +323,36 @@ uiLayer(1000, (c, w, h) => {
 		}
 		c.pop()
 	}, w/2, h/2)
-	let slot = slotI
-	if(action == 1 && slot > -1){
-		const int = slot > 127 ? invInterface : me, id = slot > 127 ? interfaceId : 0
-		const t = int.getItem(id, slot&127), h = me.getItem(0, 36)
-		if(t && !h) int.setItem(id, slot&127, null) || me.setItem(0, 36, t, true)
-		else if(h && !t) int.setItem(id, slot&127, h) || me.setItem(0, 36, null, true)
-		else if(h && t && h.constructor == t.constructor && !h.savedata){
-			const add = min(h.count, t.maxStack - t.count)
-			if(!(h.count -= add)) me.setItem(0, 36, null, true)
-			t.count += add
-		}else int.setItem(id, slot&127, h) || me.setItem(0, 36, t, true)
+	const slot = slotI&127
+	a: if(action == 1 && slot > -1){
+		const int = slotI > 127 ? invInterface : me, id = slotI > 127 ? interfaceId : 0
+		const t = int.getItem(id, slot), h = me.getItem(2, 0)
+		if(!t && !h) break a
+		if(t&&h&&(t.constructor!=h.constructor||t.savedata)){
+			if(int.swapItems(id, slot, h) != h) me.setItem(2, 0, t)
+			else break a
+		}else{
+			const itm = t && !h ? int.takeItems(id, slot) : int.putItems(id, slot, h)
+			me.setItem(2, 0, itm)
+		}
 		const buf = new DataWriter()
 		buf.byte(32); buf.byte(slot)
 		send(buf)
 	}else if(action == 2 && slot > -1){
-		const int = slot > 127 ? invInterface : me, id = slot > 127 ? interfaceId : 0
-		const t = int.getItem(id, slot&127), h = me.getItem(0, 36)
+		const int = slotI > 127 ? invInterface : me, id = slotI > 127 ? interfaceId : 0
+		const t = int.getItem(id, slot), h = me.getItem(2, 0)
+		if(!t && !h) break a
 		if(t && !h){
-			me.setItem(0, 36, new t.constructor(t.count - (t.count >>= 1)), true)
-			if(!t.count) int.setItem(id, slot&127, null, true)
-		}else if(h && !t){
-			if(!int.setItem(id, slot&127, new h.constructor(1))){
-				if(!--h.count) me.setItem(0, 36, null, true)
-			}
-		}else if(h && t && h.constructor == t.constructor && !h.savedata && t.count < t.maxStack){
-			t.count++
-			if(!--h.count) me.setItem(0, 36, null, true)
-		}else int.setItem(id, slot&127, h) || me.setItem(0, 36, t, true)
+			const itm = int.takeItems(id, slot, t.count>>1)
+			me.setItem(2, 0, itm)
+		}else if(t&&h&&(t.constructor!=h.constructor||t.savedata)){
+			if(int.swapItems(id, slot, h) != h) me.setItem(2, 0, t)
+			else break a
+		}else{
+			const s = new h.constructor(1)
+			int.putItems(id, slot, s)
+			if(!--h.count) me.setItem(2, 0, null)
+		}
 		const buf = new DataWriter()
 		buf.byte(33); buf.byte(slot)
 		send(buf)
@@ -414,7 +416,7 @@ onpacket(32, buf => {
 		const id = buf.byte()
 		while(buf.left&&(i=buf.byte())<128){
 			const itm = Item.decode(buf)
-			e.setItem?.(id, i, itm, true)
+			e.setItem?.(id, i, itm)
 		}
 	}
 })

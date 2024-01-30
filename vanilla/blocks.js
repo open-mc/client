@@ -236,8 +236,9 @@ Blocks.chest = class extends Block{
 	items = Array.null(27)
 	getItem(id, slot){ return id == 0 ? this.items[slot] : null}
 	setItem(id, slot, item){
-		if(id == 0) this.items[slot] = item
-		else return true
+		let old = item
+		if(id == 0) old = this.items[slot], this.items[slot] = item
+		return old
 	}
 	drawInterface(id, c, drawInv){
 		if(id == 0){

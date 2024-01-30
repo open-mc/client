@@ -163,15 +163,13 @@ HTMLElement.prototype.requestFullscreen = HTMLElement.prototype.requestFullscree
 let wasFullscreen = false
 let ignoreEsc = false
 document.onpointerlockerror = document.onpointerlockchange = function(e){
-	if(e.type == 'error' || e.type == 'pointerlockerror') ptrFail()//, keyMsg(true)
+	if(e.type == 'error' || e.type == 'pointerlockerror') ptrFail()
 	else if(e.type == 'pointerlockchange' && document.pointerLockElement){
 		ptrSuccess()
 		keyMsg(false)
-		//if(wasFullscreen)document.documentElement.requestFullscreen()
 	}else{
-		//keyMsg(true)
 		wasFullscreen = !!(!ui && document.fullscreenElement)
 		if(wasFullscreen)document.exitFullscreen ? document.exitFullscreen().catch(Function.prototype) : document.webkitExitFullscreen()
-		if(!ui)pause(), ignoreEsc = true
+		if(!ui) pause(), ignoreEsc = true
 	}
 }

@@ -7,8 +7,8 @@ import { EPSILON } from './entity.js'
 export function foundMe(e){
 	if(!me) postMessage(false, '*')
 	me = e
-	me.ix = me.x
-	me.iy = me.y
+	cam.x = me.ix = me.x
+	cam.y = me.iy = me.y
 	pointer.reset(e.f)
 }
 
@@ -45,6 +45,34 @@ export class Block{
 		}
 		c.closePath?.()
 	}
+	getItem(id, slot){return null}
+	setItem(id, slot, item){}
+	swapItems(id, slot, item){
+		const a = this.getItem(id, slot)
+		this.setItem(id, slot, item)
+		return a
+	}
+	putItems(id, slot, stack){
+		const i = this.getItem(id, slot)
+		if(!i){
+			const s = new stack.constructor(stack.count)
+			if(this.swapItems(id, slot, s) !== s) return stack.count = 0, null
+			return stack
+		}
+		if(i.constructor != stack.constructor || i.savedata) return stack
+		const c = min(stack.count, i.maxStack - i.count)
+		stack.count -= c
+		i.count += c
+		return stack.count ? stack : null
+	}
+	takeItems(id, slot, count = Infinity){
+		const i = this.getItem(id, slot)
+		count = min(i.count, count)
+		i.count -= count
+		if(!i.count) this.setItem(id, slot, null)
+		if(!count) return null
+		return new i.constructor(count)
+	}
 }
 export class Item{
 	constructor(a,n=''){ this.count=a&255; this.name=n }
@@ -52,7 +80,7 @@ export class Item{
 	static maxStack = 64
 	static model = 0
 	static decode(buf, target){
-		const count = buf.getUint8(buf.i++)
+		const count = buf.flint2()
 		if(!count) return null
 		const item = ItemIDs[buf.getUint16(buf.i)]
 		buf.i += 2
@@ -66,7 +94,7 @@ export class Item{
 	static encode(buf, v){
 		if(buf.i > buf.cur.byteLength - 3)buf.allocnew();
 		if(!v || !v.count){buf.cur.setUint8(buf.i++, 0); return}
-		buf.cur.setUint8(buf.i++, v.count)
+		buf.flint2(v.count)
 		buf.cur.setUint16(buf.i, v.id); buf.i += 2
 		buf.string(v.name)
 		if(v.savedata)buf.write(v.savedatahistory[buf.flint()] || v.savedata, v)
@@ -116,6 +144,34 @@ export class Entity{
 	static gx = 1
 	static gy = 1
 	static alive = false
+	getItem(id, slot){return null}
+	setItem(id, slot, item){}
+	swapItems(id, slot, item){
+		const a = this.getItem(id, slot)
+		this.setItem(id, slot, item)
+		return a
+	}
+	putItems(id, slot, stack){
+		const i = this.getItem(id, slot)
+		if(!i){
+			const s = new stack.constructor(stack.count)
+			if(this.swapItems(id, slot, s) !== s) return stack.count = 0, null
+			return stack
+		}
+		if(i.constructor != stack.constructor || i.savedata) return stack
+		const c = min(stack.count, i.maxStack - i.count)
+		stack.count -= c
+		i.count += c
+		return stack.count ? stack : null
+	}
+	takeItems(id, slot, count = Infinity){
+		const i = this.getItem(id, slot)
+		count = min(i.count, count)
+		i.count -= count
+		if(!i.count) this.setItem(id, slot, null)
+		if(!count) return null
+		return new i.constructor(count)
+	}
 }
 
 export const Blocks = {}
@@ -264,3 +320,33 @@ export function punchParticles(block, x, y){
 export const Classes = []
 
 export const ephemeralInterfaces = {}
+export class EphemeralInterface{
+	getItem(id, slot){return null}
+	setItem(id, slot, item){}
+	swapItems(id, slot, item){
+		const a = this.getItem(id, slot)
+		this.setItem(id, slot, item)
+		return a
+	}
+	putItems(id, slot, stack){
+		const i = this.getItem(id, slot)
+		if(!i){
+			const s = new stack.constructor(stack.count)
+			if(this.swapItems(id, slot, s) !== s) return stack.count = 0, null
+			return stack
+		}
+		if(i.constructor != stack.constructor || i.savedata) return stack
+		const c = min(stack.count, i.maxStack - i.count)
+		stack.count -= c
+		i.count += c
+		return stack.count ? stack : null
+	}
+	takeItems(id, slot, count = Infinity){
+		const i = this.getItem(id, slot)
+		count = min(i.count, count)
+		i.count -= count
+		if(!i.count) this.setItem(id, slot, null)
+		if(!count) return null
+		return new i.constructor(count)
+	}
+}
