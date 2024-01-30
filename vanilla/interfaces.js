@@ -6,7 +6,7 @@ const craftingInterface = Texture('crafting.png')
 ephemeralInterfaces[1] = class extends EphemeralInterface{
 	slots = [null, null, null, null, null, null, null, null, null]
 	output = null
-	getItem(id, slot){ return id == 0 ? slot == 10 ? this.output : this.slots[slot] : undefined }
+	getItem(id, slot){ return id == 1 ? this.output : id == 0 ? this.slots[slot] : null }
 	setItem(id, slot, item){
 		// TODO
 		if(id == 0) this.slots[slot] = item
@@ -23,6 +23,8 @@ ephemeralInterfaces[1] = class extends EphemeralInterface{
 				else c.translate(-2.25, 1.125)
 				renderSlot(c, this, i, 0)
 			}
+			c.translate(3.625, -1.125)
+			renderSlot(c, this, 0, 1)
 			c.pop()
 			drawInv(0, 0)
 		}

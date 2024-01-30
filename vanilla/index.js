@@ -336,7 +336,7 @@ uiLayer(1000, (c, w, h) => {
 			me.setItem(2, 0, itm)
 		}
 		const buf = new DataWriter()
-		buf.byte(32); buf.byte(slot)
+		buf.byte(32); buf.byte(slotI)
 		send(buf)
 	}else if(action == 2 && slot > -1){
 		const int = slotI > 127 ? invInterface : me, id = slotI > 127 ? interfaceId : 0
@@ -354,7 +354,7 @@ uiLayer(1000, (c, w, h) => {
 			if(!--h.count) me.setItem(2, 0, null)
 		}
 		const buf = new DataWriter()
-		buf.byte(33); buf.byte(slot)
+		buf.byte(33); buf.byte(slotI)
 		send(buf)
 	}
 	c.peek()
@@ -381,7 +381,6 @@ function openInventory(){
 	send(buf)
 }
 export function closeInterface(){
-	invInterface = null
 	const buf = new DataWriter()
 	buf.byte(15)
 	send(buf)
