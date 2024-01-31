@@ -5,7 +5,7 @@ import { gridEventMap, getblock, entityMap, map, cam, server, world } from 'worl
 import * as pointer from './pointer.js'
 import { button, drawPhase, renderLayer, uiLayer, W, H, W2, H2, SCALE, options, paused, _recalcDimensions, _renderPhases, renderBoxes, renderF3, send, download, pause } from 'api'
 import { particles } from 'definitions'
-import { VERSION } from '../version.js'
+import { VERSION } from '../server/version.js'
 import { bigintOffset } from './world.js'
 import { _updatePaused } from './api.js'
 

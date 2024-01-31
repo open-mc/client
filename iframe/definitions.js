@@ -68,6 +68,7 @@ export class Block{
 	}
 	takeItems(id, slot, count = Infinity){
 		const i = this.getItem(id, slot)
+		if(!i) return null
 		count = min(i.count, count)
 		i.count -= count
 		if(!i.count) this.setItem(id, slot, null)
@@ -168,6 +169,7 @@ export class Entity{
 	}
 	takeItems(id, slot, count = Infinity){
 		const i = this.getItem(id, slot)
+		if(!i) return null
 		count = min(i.count, count)
 		i.count -= count
 		if(!i.count) this.setItem(id, slot, null)
@@ -346,6 +348,7 @@ export class EphemeralInterface{
 	}
 	takeItems(id, slot, count = Infinity){
 		const i = this.getItem(id, slot)
+		if(!i) return null
 		count = min(i.count, count)
 		i.count -= count
 		if(!i.count) this.setItem(id, slot, null)

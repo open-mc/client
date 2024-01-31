@@ -34,6 +34,8 @@ body{
 	flex-shrink:0;-webkit-tap-highlight-color:transparent;
 	overscroll-behavior: none;
 }
+/* Fixes 90% of ugly text rendering on windows
+span:before, btn:not(.scale):before, #chat > div:before{ content: ''; padding: 0 0 0 0.5px; display: inline } */
 input, textarea{
 	font: inherit;
 	border: unset;
@@ -275,7 +277,7 @@ column{
 #serverlist{
 	box-shadow: inset 0 0 10rem black;
 	background: #0004;
-	padding: 5rem;
+	padding: 7rem;
 	width: 100%;
 	flex-grow: 10;
 	min-height: 200px;
@@ -283,7 +285,7 @@ column{
 }
 #serverlist > row{
 	padding: 1rem;
-	margin: 2rem;
+	margin-bottom: 4rem;
 	height: 54rem;
 }
 #serverlist span{
@@ -316,20 +318,16 @@ column{
 		width: 40rem; height: 40rem;
 	}
 	#serverlist > row{ height: 46rem }
-	#serverlist{ padding: 3rem }
-	.serverlist > row{
-		padding: 4rem;
-	}
+	#serverlist{ padding: 5rem }
+	.serverlist > row{ padding: 4rem }
 }
 @media (max-height: 380px){
 	#serverlist img{
 		width: 32rem; height: 32rem;
 	}
 	#serverlist > row{ height: 38rem }
-	#serverlist{ padding: 1rem }
-	.serverlist > row{
-		padding: 2rem;
-	}
+	#serverlist{ padding: 3rem }
+	.serverlist > row{ padding: 2rem }
 }
 @media (max-height: 336px) {
 	body{

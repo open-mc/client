@@ -4,7 +4,7 @@ self.addEventListener('install', self.skipWaiting)
 self.addEventListener('activate', e => e.waitUntil(activated()))
 let cache = null
 async function activated(){
-	const req = new Request('/version.js'), [old, [res, nw]] = await Promise.all([
+	const req = new Request('/server/version.js'), [old, [res, nw]] = await Promise.all([
 		caches.open('cache').then(c => (cache=c).match(req).then(k => k?.text())),
 		fetch(req).then(a=>a.clone().text().then(k=>[a,k])).catch(e=>[null,null])
 	])

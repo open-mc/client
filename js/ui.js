@@ -173,8 +173,8 @@ function _scale(c, change){
 	el.style.position = 'relative'
 	return el
 }
-export const ScaleSmall = _scale.bind(undefined, 'disabled small')
-export const Scale = _scale.bind(undefined, 'disabled')
+export const ScaleSmall = _scale.bind(undefined, 'disabled small scale')
+export const Scale = _scale.bind(undefined, 'disabled scale')
 
 export const Btn = (text, onclick, classes = '') => {
 	let btn = document.createElement('btn')
