@@ -7,7 +7,7 @@ import { button, drawPhase, renderLayer, uiLayer, W, H, W2, H2, SCALE, options, 
 import { particles } from 'definitions'
 import { VERSION } from '../server/version.js'
 import { bigintOffset } from './world.js'
-import { _updatePaused } from './api.js'
+import { _updatePaused, toBlockExact } from './api.js'
 
 let last = performance.now(), count = 1.1, timeToFrame = 0
 t = performance.now()/1000
@@ -60,8 +60,8 @@ export let zoom_correction = 0
 let camMovingX = false, camMovingY = false
 
 
-const c = Can(0, 0, {alpha: false, desynchronized: true})
-c.canvas.style = 'width: 100%; height: 100%; position: fixed; top: 0; left: 0; z-index: 0;'
+const c = Can(0, 0, {alpha: true, desynchronized: true})
+c.canvas.style = 'transform-origin:top left; position: fixed; top: 0; left: 0; z-index: 0;'
 document.body.append(c.canvas)
 
 globalThis.FONT = '1000px mc, Arial'
@@ -145,9 +145,8 @@ export function frame(){
 globalThis.cam = cam
 drawPhase(200, (c, w, h) => {
 	const hitboxes = renderBoxes + buttons.has(KEYS.SYMBOL)
-	c.setTransform(1,0,0,1,W2*SCALE,h-H2*SCALE)
+	c.setTransform(1,0,0,1,W/2,H/2)
 	c.rotate(cam.f)
-	//c.translate(-W2*SCALE,H2*SCALE)
 	const expectedDetail = max(1, min(TEX_SIZE, 2**ceil(log2(cam.z*1.189207115+2)+2)))
 	const sr = sin(cam.f), cr = cos(cam.f)
 	const x0 = -w*cr+h*sr, x1 = w*cr-h*sr, x2 = w*cr+h*sr, x3 = -w*cr-h*sr
@@ -194,9 +193,9 @@ drawPhase(200, (c, w, h) => {
 	}
 	c.fillStyle = '#00f'
 	if(hitboxes >= 2 && abs(cam.x) <= W2 + 0.0625)
-		c.fillRect((W2-cam.x-0.0625)*SCALE,0,0.125*SCALE,-h)
+		c.fillRect((-cam.x-0.0625)*SCALE,-h/2,0.125*SCALE,h)
 	if(hitboxes >= 2 && abs(cam.y) <= H2 + 0.0625)
-		c.fillRect(0,(cam.y-H2-0.0625)*SCALE,w,0.125*SCALE)
+		c.fillRect(-w/2,(cam.y-0.0625)*SCALE,w,0.125*SCALE)
 	if(hitboxes >= 2 && abs(ifloat(cam.x + 2147483648)) <= W2 + 0.0625)
 		c.fillRect(ifloat(W2-cam.x+2147483648-0.0625)*SCALE,0,0.125*SCALE,-h)
 	if(hitboxes >= 2 && abs(ifloat(cam.y + 2147483648)) <= H2 + 0.0625)
@@ -227,7 +226,7 @@ drawPhase(300, (c, w, h) => {
 	c.rotate(-cam.f)
 	c.push()
 	for(const ev of gridEventMap.values()){
-		c.translate(ifloat(ev.x - cam.x), ifloat(ev.y - cam.y))
+		toBlockExact(c, ev.x, ev.y)
 		if(!map.has((ev.x>>>6)+(ev.y>>>6)*0x4000000) || ev(c))gridEventMap.delete(ev.i)
 		c.peek()
 	}

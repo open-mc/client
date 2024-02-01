@@ -1,8 +1,8 @@
 import { setblock, onPlayerLoad, getblock, map, cam } from 'world'
 import './controls.js'
-import { button, onmousemove, onjoypad, W2, H2, options, paused, renderUI } from 'api'
-import { drawPhase } from './api.js'
+import { button, onmousemove, onjoypad, W2, H2, options, paused, renderUI, drawPhase, SCALE } from 'api'
 import { Entity } from 'definitions'
+import { toBlockExact } from './api.js'
 
 export let x = 2, y = 0
 export let bx = 0, by = 0, bpx = 0, bpy = 0, bpfx = 0, bpfy = 0
@@ -135,8 +135,8 @@ export function drawPointer(c){
 			c.globalAlpha = 0.5
 			let {blockShape = DEFAULT_BLOCKSHAPE} = getblock(bx, by)
 			if(bx == bx && by == by){
-				c.translate(ifloat(bx-cam.x), ifloat(by-cam.y))
 				c.save()
+				toBlockExact(c, bx, by)
 				c.beginPath()
 				if(blockShape.length == 0) blockShape = DEFAULT_BLOCKSHAPE
 				for(let i = 0; i < blockShape.length; i += 4){

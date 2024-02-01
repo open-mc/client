@@ -10,9 +10,10 @@ export let W2 = 0, H2 = 0, W = 0, H = 0, SCALE = 1
 
 export function _recalcDimensions(c, camZ){
 	const dpx = devicePixelRatio * 2**(options.supersample*6-3)
+	//c.canvas.style.transform = 'scale('+1/dpx+')'
 	SCALE = camZ * TEX_SIZE * dpx
-	W2 = (W = round(visualViewport.width * visualViewport.scale * dpx)) / SCALE / 2
-	H2 = (H = round(visualViewport.height * visualViewport.scale * dpx)) / SCALE / 2
+	W2 = (W = round(visualViewport.width * visualViewport.scale * dpx)+1&-2) / SCALE / 2
+	H2 = (H = round(visualViewport.height * visualViewport.scale * dpx)+1&-2) / SCALE / 2
 	if(W != c.canvas.width || H != c.canvas.height) c.resize(W, H)
 	else if(c.reset) c.reset()
 	else c.resetTransform(),c.clearRect(0, 0, W, H)
@@ -50,6 +51,14 @@ export function drawPhase(prio, fn){
 	fn.coordSpace = 'none'
 	i++
 	_renderPhases[i] = fn
+}
+
+export function toBlockExact(c, bx, by){
+	const a = round(ifloat((bx&-64)-cam.x)*SCALE), b = round(((bx&-64)+64-cam.x)*SCALE)
+	const d = round(ifloat((by&-64)-cam.y)*SCALE), e = round(((by&-64)+64-cam.y)*SCALE)
+	c.setTransform(SCALE, 0, 0, -SCALE, W/2, H/2)
+	c.rotate(-cam.f)
+	c.translate(round(a+ifloat(b-a)*(bx&63)/64)/SCALE, round(d+ifloat(e-d)*(by&63)/64)/SCALE)
 }
 
 
