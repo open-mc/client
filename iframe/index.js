@@ -60,9 +60,7 @@ export let zoom_correction = 0
 let camMovingX = false, camMovingY = false
 
 
-const c = Can(0, 0, {alpha: true, desynchronized: true})
-c.canvas.style = 'transform-origin:top left; position: fixed; top: 0; left: 0; z-index: 0;'
-document.body.append(c.canvas)
+let c = null
 
 globalThis.FONT = '1000px mc, Arial'
 export function frame(){
@@ -77,8 +75,7 @@ export function frame(){
 	for(const entity of entityMap.values()) stepEntity(entity)
 	const tzoom = (me.state & 4 ? -0.13 : 0) * ((1 << options.ffx * (options.camera != 4)) - 1) + 1
 	cam.z = sqrt(sqrt(cam.z * cam.z * cam.z * 2 ** (options.zoom * 10 - 6) * tzoom * 2**cam.baseZ))
-	_recalcDimensions(c, cam.z)
-	c.transforms.length = 0
+	c = _recalcDimensions(c, cam.z)
 	c.imageSmoothingEnabled = false
 	const reach = pointer.effectiveReach()
 	if(options.camera == 0){
@@ -299,7 +296,7 @@ uiLayer(1000, (c, w, h) => {
 	let y = h - 1
 	const trueX = toString(bigintOffset.x, me.x, 3), trueY = toString(bigintOffset.y, me.y, 3)
 
-	for(const t of `Paper Minecraft ${VERSION}
+	for(const t of `Paper MC ${VERSION}
 FPS: ${round(1/dt)} (${timeToFrame.toFixed(2).padStart(5,'\u2007')}ms)
 ELU: ${min(100,elusmooth*100).toFixed(1).padStart(4,'\u2007')}%${performance.memory ? ', MEM: '+(performance.memory.usedJSHeapSize/1048576).toFixed(1)+'MB' : ''}
 Ch: ${map.size}, E: ${entityMap.size}, P: ${particles.size}

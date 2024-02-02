@@ -47,6 +47,15 @@ export class Block{
 	}
 	getItem(id, slot){return null}
 	setItem(id, slot, item){}
+	slotClicked(id, slot, holding, player){
+		
+	}
+	slotAltClicked(id, slot, holding, player){
+		
+	}
+	mapItems(id, cb){
+
+	}
 	swapItems(id, slot, item){
 		const a = this.getItem(id, slot)
 		this.setItem(id, slot, item)

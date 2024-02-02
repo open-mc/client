@@ -28,7 +28,7 @@ const onpending = function(str){
 }
 let blurred = false, notifs = 0
 
-function notif(){
+function notif(force = false){
 	if(!blurred || !ws) return
 	document.title = '(🔴' + (++notifs) + ') ' + ws.name + ' | pMC'
 	ping()
@@ -37,7 +37,7 @@ function notif(){
 onfocus = () => {
 	blurred = false
 	notifs = 0
-	document.title = ws ? ws.name + ' | pMC' : 'Paper Minecraft'
+	document.title = ws ? ws.name + ' | pMC' : 'Paper MC'
 }
 onblur = () => blurred = true
 
@@ -95,6 +95,7 @@ export function preconnect(ip, cb = Function.prototype, instant = false){
 	let timeout = setTimeout(ws.close.bind(ws), 5000)
 	ws.onmessage = function({data}){
 		if(ws != globalThis.ws){
+			if(typeof data == 'string') return
 			const packet = new DataReader(data)
 			ws.name = packet.string()
 			const motdString = packet.string()
@@ -114,6 +115,7 @@ export function preconnect(ip, cb = Function.prototype, instant = false){
 		}
 		ws.challenge = null
 		if(typeof data === 'string'){
+			if(!data.length) return void ping()
 			const style = parseInt(data.slice(0,2), 16)
 			if(style === -1) return onerror(data.slice(2))
 			else if(style === -2) return onpending(data.slice(2))
@@ -132,7 +134,7 @@ export function preconnect(ip, cb = Function.prototype, instant = false){
 			box.classList = `c${style&15} s${style>>4}`
 			const {color, fontStyle, fontWeight, textDecoration} = getComputedStyle(box)
 			console.log('%c'+data.slice(2), 'color:'+color+';font-size:12px;font-family:mc,monospace,Arial;font-weight:'+fontWeight+';font-style:'+fontStyle+';text-decoration:'+textDecoration)
-			if(options.notifs === 2 || (options.notifs === 1 && pingRegex.test(box.textContent))) notif()
+			if(options.notifs === 2 || (options.notifs === 1 && pingRegex.test(box.textContent))) notif(), box.style.backgroundColor = '#8608'
 		}else fwPacket(data)
 	}
 	ws.onclose = () => {

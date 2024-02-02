@@ -1,6 +1,6 @@
-node_modules
-*/node_modules
-package-lock.json
-.DS_Store
-*/.DS_Store
+**/node_modules
+**/package-lock.json
+**/.DS_Store
 .vscode
+server/node/static/**
+server/node/index.html

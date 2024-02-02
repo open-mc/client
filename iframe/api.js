@@ -9,6 +9,13 @@ export const _optionListeners = {}
 export let W2 = 0, H2 = 0, W = 0, H = 0, SCALE = 1
 
 export function _recalcDimensions(c, camZ){
+	if(!c || c.isContextLost?.()){
+		// Auto restoring when available
+		if(c) c.canvas.remove()
+		c = Can(W = 0, H = 0, {desynchronized: true})
+		c.canvas.style = 'transform-origin:top left; position: fixed; top: 0; left: 0; z-index: 0;'
+		document.body.append(c.canvas)
+	}
 	const dpx = devicePixelRatio * 2**(options.supersample*6-3)
 	//c.canvas.style.transform = 'scale('+1/dpx+')'
 	SCALE = camZ * TEX_SIZE * dpx
@@ -17,6 +24,8 @@ export function _recalcDimensions(c, camZ){
 	if(W != c.canvas.width || H != c.canvas.height) c.resize(W, H)
 	else if(c.reset) c.reset()
 	else c.resetTransform(),c.clearRect(0, 0, W, H)
+	c.transforms.length = 0
+	return c
 }
 
 export function renderLayer(prio, fn){

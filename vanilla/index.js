@@ -324,7 +324,7 @@ uiLayer(1000, (c, w, h) => {
 		c.pop()
 	}, w/2, h/2)
 	const slot = slotI&127
-	a: if(action == 1 && slot > -1){
+	a: if(action == 1 && slotI > -1){
 		const int = slotI > 127 ? invInterface : me, id = slotI > 127 ? interfaceId : 0
 		const t = int.getItem(id, slot), h = me.getItem(2, 0)
 		if(!t && !h) break a
@@ -338,7 +338,7 @@ uiLayer(1000, (c, w, h) => {
 		const buf = new DataWriter()
 		buf.byte(32); buf.byte(slotI)
 		send(buf)
-	}else if(action == 2 && slot > -1){
+	}else if(action == 2 && slotI > -1){
 		const int = slotI > 127 ? invInterface : me, id = slotI > 127 ? interfaceId : 0
 		const t = int.getItem(id, slot), h = me.getItem(2, 0)
 		if(!t && !h) break a
