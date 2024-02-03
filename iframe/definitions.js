@@ -12,6 +12,58 @@ export function foundMe(e){
 	pointer.reset(e.f)
 }
 
+export class EphemeralInterface{
+	getItem(id, slot){}
+	setItem(id, slot, item){}
+	slotClicked(id, slot, holding, player){
+		const t = this.getItem(id, slot)
+		if(t === undefined) return holding
+		if(!t && !holding) return
+		if(t&&holding&&(t.constructor!==holding.constructor||t.savedata)){
+			this.setItem(id, slot, holding)
+		}else if(t && !holding){
+			this.setItem(id, slot, null)
+		}else{
+			if(!t){
+				this.setItem(id, slot, holding)
+				return null
+			}
+			if(t.constructor !== holding.constructor || t.savedata) return holding
+			const c = min(holding.count, t.maxStack - t.count)
+			holding.count -= c
+			t.count += c
+			return holding.count ? holding : null
+		}
+		return t
+	}
+	slotAltClicked(id, slot, holding, player){
+		const t = this.getItem(id, slot)
+		if(t === undefined) return holding
+		if(!t && !holding) return
+		if(t && !holding){
+			const count = t.count>>1
+			if(!count) return null
+			t.count -= count
+			if(!t.count) this.setItem(id, slot, null)
+			return new t.constructor(count)
+		}else if(t&&holding&&(t.constructor!==holding.constructor||t.savedata)){
+			this.setItem(id, slot, holding)
+			return t
+		}else{
+			if(!t){
+				const stack = new holding.constructor(1)
+				this.setItem(id, slot, stack)
+			}else if(t.constructor === holding.constructor && !t.savedata && t.count < t.maxStack){
+				t.count++
+			}else return holding
+			return --holding.count ? holding : null
+		}
+	}
+	mapItems(id, cb){
+
+	}
+}
+
 export class Block{
 	static placeSounds = []; static stepSounds = []
 	static solid = true
@@ -45,45 +97,11 @@ export class Block{
 		}
 		c.closePath?.()
 	}
-	getItem(id, slot){return null}
+	getItem(id, slot){}
 	setItem(id, slot, item){}
-	slotClicked(id, slot, holding, player){
-		
-	}
-	slotAltClicked(id, slot, holding, player){
-		
-	}
-	mapItems(id, cb){
-
-	}
-	swapItems(id, slot, item){
-		const a = this.getItem(id, slot)
-		this.setItem(id, slot, item)
-		return a
-	}
-	putItems(id, slot, stack){
-		if(!stack) return null
-		const i = this.getItem(id, slot)
-		if(!i){
-			const s = new stack.constructor(stack.count)
-			if(this.swapItems(id, slot, s) !== s) return stack.count = 0, null
-			return stack
-		}
-		if(i.constructor != stack.constructor || i.savedata) return stack
-		const c = min(stack.count, i.maxStack - i.count)
-		stack.count -= c
-		i.count += c
-		return stack.count ? stack : null
-	}
-	takeItems(id, slot, count = Infinity){
-		const i = this.getItem(id, slot)
-		if(!i) return null
-		count = min(i.count, count)
-		i.count -= count
-		if(!i.count) this.setItem(id, slot, null)
-		if(!count) return null
-		return new i.constructor(count)
-	}
+	static slotClicked = EphemeralInterface.prototype.slotClicked
+	static slotAltClicked = EphemeralInterface.prototype.slotAltClicked
+	static mapItems = EphemeralInterface.prototype.mapItems
 }
 export class Item{
 	constructor(a,n=''){ this.count=a&255; this.name=n }
@@ -155,36 +173,11 @@ export class Entity{
 	static gx = 1
 	static gy = 1
 	static alive = false
-	getItem(id, slot){return null}
+	getItem(id, slot){}
 	setItem(id, slot, item){}
-	swapItems(id, slot, item){
-		const a = this.getItem(id, slot)
-		this.setItem(id, slot, item)
-		return a
-	}
-	putItems(id, slot, stack){
-		if(!stack) return null
-		const i = this.getItem(id, slot)
-		if(!i){
-			const s = new stack.constructor(stack.count)
-			if(this.swapItems(id, slot, s) !== s) return stack.count = 0, null
-			return stack
-		}
-		if(i.constructor != stack.constructor || i.savedata) return stack
-		const c = min(stack.count, i.maxStack - i.count)
-		stack.count -= c
-		i.count += c
-		return stack.count ? stack : null
-	}
-	takeItems(id, slot, count = Infinity){
-		const i = this.getItem(id, slot)
-		if(!i) return null
-		count = min(i.count, count)
-		i.count -= count
-		if(!i.count) this.setItem(id, slot, null)
-		if(!count) return null
-		return new i.constructor(count)
-	}
+	static slotClicked = EphemeralInterface.prototype.slotClicked
+	static slotAltClicked = EphemeralInterface.prototype.slotAltClicked
+	static mapItems = EphemeralInterface.prototype.mapItems
 }
 
 export const Blocks = {}
@@ -333,35 +326,3 @@ export function punchParticles(block, x, y){
 export const Classes = []
 
 export const ephemeralInterfaces = {}
-export class EphemeralInterface{
-	getItem(id, slot){return null}
-	setItem(id, slot, item){}
-	swapItems(id, slot, item){
-		const a = this.getItem(id, slot)
-		this.setItem(id, slot, item)
-		return a
-	}
-	putItems(id, slot, stack){
-		if(!stack) return null
-		const i = this.getItem(id, slot)
-		if(!i){
-			const s = new stack.constructor(stack.count)
-			if(this.swapItems(id, slot, s) !== s) return stack.count = 0, null
-			return stack
-		}
-		if(i.constructor != stack.constructor || i.savedata) return stack
-		const c = min(stack.count, i.maxStack - i.count)
-		stack.count -= c
-		i.count += c
-		return stack.count ? stack : null
-	}
-	takeItems(id, slot, count = Infinity){
-		const i = this.getItem(id, slot)
-		if(!i) return null
-		count = min(i.count, count)
-		i.count -= count
-		if(!i.count) this.setItem(id, slot, null)
-		if(!count) return null
-		return new i.constructor(count)
-	}
-}

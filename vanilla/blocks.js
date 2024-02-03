@@ -234,7 +234,7 @@ Blocks.chest = class extends Block{
 	static stepSounds = Wood.stepSounds
 	static interactible = true
 	items = Array.null(27)
-	getItem(id, slot){ return id == 0 ? this.items[slot] : null}
+	getItem(id, slot){ return id == 0 ? this.items[slot] : undefined}
 	setItem(id, slot, item){
 		let old = item
 		if(id == 0) old = this.items[slot], this.items[slot] = item

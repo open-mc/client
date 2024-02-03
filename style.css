@@ -34,8 +34,6 @@ body{
 	flex-shrink:0;-webkit-tap-highlight-color:transparent;
 	overscroll-behavior: none;
 }
-/* Fixes 90% of ugly text rendering on windows
-span:before, btn:not(.scale):before, #chat > div:before{ content: ''; padding: 0 0 0 0.5px; display: inline } */
 input, textarea{
 	font: inherit;
 	border: unset;
@@ -205,6 +203,8 @@ hr{
 	top: 0; left: 0;
 	bottom: 0; right: 0;
 	z-index: 1001;
+	/* No BGR antialiasing on windows 10 (it looks really ugly) */
+	filter: invert(0);
 }
 #ui.noshade{ background-color: #0000 }
 #ui.dirtbg{ background: url('./img/bg32.png') 0 0/48px }

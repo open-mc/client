@@ -44,8 +44,8 @@ const FF = `
 You seem to be using firefox, meaning you may occasionally experience low performance while playing this game. If this becomes an issue, consider switching to chromium (for privacy enthusiasts) or any other chromium-based browsers (e.g brave, opera gx, ...).`
 const MOBILE = `
 We currently provide no touch control support\nCome back on a desktop device.`
-const w = document.createElement("canvas").getContext("webgl"); w.width = w.height = 1
-const d = w.getExtension('WEBGL_debug_renderer_info')
+let w = document.createElement("canvas"); w.width = w.height = 1; w = w.getContext("webgl")
+const d = w?.getExtension('WEBGL_debug_renderer_info')
 const g = d && w.getParameter(d.UNMASKED_RENDERER_WEBGL) || ""
 if (/Apple/.test(g) && !/Apple GPU/.test(g))
 	defects.m1 = true

@@ -238,3 +238,11 @@ export const Column = (...a) => {
 	for(const c of a)el.append(c)
 	return el
 }
+if(devicePixelRatio == 1){
+	document.body.style.left = '0.4px'
+	onresize = () => {
+		document.body.style.width = (innerWidth+1&-2)+'px'
+		document.body.style.height = (innerHeight+1&-2)+'px'
+	}
+	onresize()
+}

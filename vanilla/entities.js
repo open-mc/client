@@ -104,7 +104,7 @@ Entities.player = class extends LivingEntity{
 	inv = Array.null(37)
 	items = [null, null, null, null, null]
 	mode = 0
-	getItem(id, slot){return id == 0 && slot < 36 ? this.inv[slot] : id == 1 && slot < 5 ? this.items[slot] : id == 2 ? this.inv[36] : null}
+	getItem(id, slot){return id == 0 && slot < 36 ? this.inv[slot] : id == 1 && slot < 5 ? this.items[slot] : id == 2 && slot == 0 ? this.inv[36] : undefined}
 	setItem(id, slot, item){
 		if(id == 0 && slot < 36) this.inv[slot] = item
 		else if(id == 1) this.items[slot] = item

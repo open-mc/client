@@ -6,11 +6,19 @@ const craftingInterface = Texture('crafting.png')
 ephemeralInterfaces[1] = class extends EphemeralInterface{
 	slots = [null, null, null, null, null, null, null, null, null]
 	output = null
-	getItem(id, slot){ return slot >= 9 ? this.output : this.slots[slot] }
+	getItem(id, slot){ return slot == 9 ? this.output : slot < 9 ? this.slots[slot] : null }
 	setItem(id, slot, item){
 		// TODO
 		if(slot < 9) this.slots[slot] = item
 		else this.output = item
+	}
+	slotClicked(id, slot, holding){
+		if(slot < 9) return super.slotClicked(id, slot, holding)
+		else return holding
+	}
+	slotAltClicked(id, slot, holding){
+		if(slot < 9) return super.slotAltClicked(id, slot, holding)
+		else return holding
 	}
 	drawInterface(id, c, drawInv){
 		if(id == 0){

@@ -323,39 +323,24 @@ uiLayer(1000, (c, w, h) => {
 		}
 		c.pop()
 	}, w/2, h/2)
-	const slot = slotI&127
-	a: if(action == 1 && slotI > -1){
+	if(action == 1 && slotI > -1){
 		const int = slotI > 127 ? invInterface : me, id = slotI > 127 ? interfaceId : 0
-		const t = int.getItem(id, slot), h = me.getItem(2, 0)
-		if(!t && !h) break a
-		if(t&&h&&(t.constructor!=h.constructor||t.savedata)){
-			if(int.swapItems(id, slot, h) != h) me.setItem(2, 0, t)
-			else break a
-		}else{
-			const itm = t && !h ? int.takeItems(id, slot) : int.putItems(id, slot, h)
-			me.setItem(2, 0, itm)
+		const r = int.slotClicked(id, slotI&127, me.getItem(2, 0), me)
+		if(r !== undefined){
+			me.setItem(2, 0, r)
+			const buf = new DataWriter()
+			buf.byte(32); buf.byte(slotI)
+			send(buf)
 		}
-		const buf = new DataWriter()
-		buf.byte(32); buf.byte(slotI)
-		send(buf)
-	}else if(action == 2 && slotI > -1){
+	}else a: if(action == 2 && slotI > -1){
 		const int = slotI > 127 ? invInterface : me, id = slotI > 127 ? interfaceId : 0
-		const t = int.getItem(id, slot), h = me.getItem(2, 0)
-		if(!t && !h) break a
-		if(t && !h){
-			const itm = int.takeItems(id, slot, t.count>>1)
-			me.setItem(2, 0, itm)
-		}else if(t&&h&&(t.constructor!=h.constructor||t.savedata)){
-			if(int.swapItems(id, slot, h) != h) me.setItem(2, 0, t)
-			else break a
-		}else{
-			const s = new h.constructor(1)
-			int.putItems(id, slot, s)
-			if(!--h.count) me.setItem(2, 0, null)
+		const r = int.slotAltClicked(id, slotI&127, me.getItem(2, 0), me)
+		if(r !== undefined){
+			me.setItem(2, 0, r)
+			const buf = new DataWriter()
+			buf.byte(33); buf.byte(slotI)
+			send(buf)
 		}
-		const buf = new DataWriter()
-		buf.byte(33); buf.byte(slotI)
-		send(buf)
 	}
 	c.peek()
 	c.scale(16,16)
@@ -388,8 +373,8 @@ export function closeInterface(){
 
 onpacket(12, buf => {
 	const kind = buf.short()
-	invInterface = new ephemeralInterfaces[kind]()
 	interfaceId = buf.byte()
+	invInterface = new ephemeralInterfaces[kind](buf)
 	pause(true)
 })
 onpacket(13, buf => {
