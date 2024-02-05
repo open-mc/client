@@ -103,12 +103,25 @@ Entities.player = class extends LivingEntity{
 	static alive = true
 	inv = Array.null(37)
 	items = [null, null, null, null, null]
+	craftingSlots = [null, null, null, null]
+	output = null
 	mode = 0
-	getItem(id, slot){return id == 0 && slot < 36 ? this.inv[slot] : id == 1 && slot < 5 ? this.items[slot] : id == 2 && slot == 0 ? this.inv[36] : undefined}
+	getItem(id, slot){return id == 0 && slot < 36 ? this.inv[slot] : id == 1 ? slot < 5 ? this.items[slot] : slot < 9 ? this.craftingSlots[slot-5] : slot == 10 ? this.output : undefined : id == 2 && slot == 0 ? this.inv[36] : undefined}
 	setItem(id, slot, item){
 		if(id == 0 && slot < 36) this.inv[slot] = item
-		else if(id == 1) this.items[slot] = item
-		else if(id == 2) this.inv[36] = item
+		else if(id == 1){
+			if(slot < 5) this.items[slot] = item
+			else if(slot < 9) this.craftingSlots[slot-5] = item
+			else if(slot == 10) this.output = item
+		}else if(id == 2) this.inv[36] = item
+	}
+	slotClicked(id, slot, holding, player){
+		if(id != 1 || slot < 9) return super.slotClicked(id, slot, holding, player)
+		return holding
+	}
+	slotAltClicked(id, slot, holding, player){
+		if(id != 1 || slot < 9) return super.slotAltClicked(id, slot, holding, player)
+		return holding
 	}
 	selected = 0
 	skin = null
@@ -118,7 +131,7 @@ Entities.player = class extends LivingEntity{
 		if(!this.textures) return
 		const angle = (this.state & 3) == 2 ? sin(t * 4) * this.dx / 5 : sin(t * 12) * this.dx / 10
 		const extraAngle = this.state & 8 ? ((-5*t%1+1)%1)*((-5*t%1+1)%1)/3 : 0
-		c.scale(0.9,0.9)
+		c.scale(0.9, 0.9)
 		if(this.hitTimer) c.beginPath()
 		c.fillStyle = '#0003'
 		if(this.state & 2){
@@ -230,6 +243,16 @@ Entities.player = class extends LivingEntity{
 			}
 			c.translate(4.3125, -4.5)
 			renderSlot(c, this, 4, 1)
+			c.translate(1.3125, 1.625)
+			renderSlot(c, this, 5, 1)
+			c.translate(1.125, 0)
+			renderSlot(c, this, 6, 1)
+			c.translate(-1.125, 1.125)
+			renderSlot(c, this, 7, 1)
+			c.translate(1.125, 0)
+			renderSlot(c, this, 8, 1)
+			c.translate(2.375, -0.625)
+			renderSlot(c, this, 10, 1)
 			c.pop()
 			drawInv(0, 0)
 			if(this.mode == 1){

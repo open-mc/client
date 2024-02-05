@@ -1,5 +1,5 @@
 import { uiButtons, audioSet, lava, renderSlot, water, click, renderTooltip, renderGenericTooltip } from './effects.js'
-import { sound, cam } from 'world'
+import { sound, cam, world } from 'world'
 import { Blocks, Block, Items } from 'definitions'
 import { BlockShape, blockShaped, fluidify } from './blockshapes.js'
 import { closeInterface } from './index.js'
@@ -491,14 +491,67 @@ Blocks.crafting_table = class extends Planks{
 	static texture = terrainPng.at(12, 3)
 	static interactible = true
 }
-
+const litFurnaceTex = terrainPng.at(13, 3)
+const furnaceInterface = Texture('furnace.png')
+const furnaceUI = furnaceInterface.crop(0, 0, 176, 80), cookArrow = furnaceInterface.crop(176, 14, 24, 17), fuelIndicator = furnaceInterface.crop(176, 0, 15, 14)
 Blocks.furnace = class extends Stone{
 	static texture = terrainPng.at(12, 2)
 	static interactible = true
-}
-Blocks.lit_furnace = class extends Blocks.furnace{
-	static texture = terrainPng.at(13, 3)
-	static interactible = true
+	render(c){ if(this.fuelTime>t) c.image(litFurnaceTex, 0, 0, 1, 1) }
+	drawInterface(id, c, drawInv){
+		if(id == 0){
+			c.push()
+			c.image(furnaceUI, -88, 0)
+			c.translate(-24, 11)
+			c.scale(16, 16)
+			renderSlot(c, this, 1, 0)
+			c.translate(0, 2.25)
+			renderSlot(c, this, 0, 0)
+			c.translate(3.75, -1.125)
+			renderSlot(c, this, 2, 0)
+			c.peek()
+			const w = max(0, ceil(24-(t>=this.cookTime?10:this.cookTime-t)/10*24))
+			c.image(cookArrow, -9, 28, w, 17, 0, 0, w, 17)
+			const h = max(0, ceil(((this.fuelTime-t)/this._fuelCap||0)*15))
+			c.image(fuelIndicator, -32, 29, 14, h, 0, 15-h, 14, h)
+			c.pop()
+			drawInv(0, 0)
+		}
+	}
+	10(buf){
+		this._cookTime = t+buf.byte()/world.tps
+		const time = buf.short(), cap = buf.short()/world.tps
+		this._fuelTime = t+time/world.tps
+		if(cap) this._fuelCap = cap
+	}
+	_fuelTime = 0; _cookTime = 0; _fuelCap = 0
+	set fuelTime(a){this._fuelTime = t+(this._fuelCap = a/world.tps)}
+	get fuelTime(){return this._fuelTime}
+	set cookTime(a){this._cookTime = t+a/world.tps}
+	get cookTime(){return this._cookTime}
+	input = null; fuel = null; output = null
+	getItem(id, slot){return slot == 0 ? this.input : slot == 1 ? this.fuel : slot == 2 ? this.output : undefined}
+	setItem(id, slot, item){
+		if(slot == 0) this.input = item
+		else if(slot == 1) this.fuel = item
+		else if(slot == 2) this.output = item
+	}
+	slotClicked(id, slot, holding, player){
+		if(slot == 1) return holding
+		else if(slot < 2) return super.slotClicked(id, slot, holding, player)
+		if(holding) return holding
+		const o = this.output
+		this.output = null
+		return o
+	}
+	slotAltClicked(id, slot, holding, player){
+		if(slot == 1) return holding
+		else if(slot < 2) return super.slotAltClicked(id, slot, holding, player)
+		if(holding || !this.output) return holding
+		const o = this.output
+		if(!--this.output.count) this.output = null
+		return new o.constructor(1)
+	}
 }
 const commandBlockTex = Texture('command_blocks.png')
 export const commandBlockTexs = [0,1,2,3,4,5].mmap(a => commandBlockTex.crop(a<<4,0,16,64))
@@ -563,5 +616,4 @@ Blocks.command_block = class extends Stone{
 			c.strokeRect(-160, -120, 320, 240)
 		}
 	}
-
 }
