@@ -166,37 +166,31 @@
 			return document.activeElement === i
 		}
 		/*const f32_8 = new Float32Array(8)
-		C.drawShader = function(x, y, w, h){
+		C.drawShader = function(shader, x, y, w, h){
 			const {a, b, c, d, e, f} = this.getTransform()
 			// x y 1
 			// a c e -> x
 			// b d f -> y
-			const x0 = x*a+y*c+e, y0 = x*b+y*d+f
-			const x1 = (x+w)*a+y*c+e, y1 = (x+w)*b+y*d+f
-			const x2 = x*a+(y+h)*c+e, y2 = x*b+(y+h)*d+f
-			const x3 = (x+w)*a+(y+h)*c+e, y3 = (x+w)*b+(y+h)*d+f
-			const xmin = floor(max(min(x0, x1, x2, x3), 0)), xw = ceil(min(max(x0, x1, x2, x3), this.w) - xmin)
-			const ymin = floor(max(min(y0, y1, y2, y3), 0)), yh = ceil(min(max(f32_8[1], y1, y2, y3), this.h) - ymin)
+			const xa=x*a,xb=x*b,yc=y*c,yd=y*d,wb=w*b+xb,hd=h*d+yd,wa=w*a+xa,hc=h*c+yc
+			const x0 = xa+yc+e, x1 = wa+yc+e, x2 = xa+hc+e, x3 = wa+hc+e
+			const y0 = xb+yd+f, y1 = wb+yd+f, y2 = xb+hd+f, y3 = wb+hd+f
+			const xmin = floor(max(min(x0, x1, x2, x3, this.w), 0)), xw = ceil(min(max(x0, x1, x2, x3, 0), this.w)) - xmin
+			const ymin = floor(max(min(y0, y1, y2, y3, this.h), 0)), yh = ceil(min(max(y0, y1, y2, y3, 0), this.h)) - ymin
 			if(!xw | !yh) return
-			const gl = xw <= 256 && yh <= 256 ? gl_big : gl_big
 			if(xw > gl.canvas.width | yh > gl.canvas.height){
 				gl.canvas.width = -2147483648>>>Math.clz32(xw-1)-1
 				gl.canvas.height = -2147483648>>>Math.clz32(yh-1)-1
 			}
 			gl.viewport(0, 0, xw, yh)
-			//gl.linkProgram(gl.prog)
-			//gl.useProgram(gl.prog)
 			gl.clear(gl.COLOR_BUFFER_BIT)
-			gl.bindBuffer(gl.ARRAY_BUFFER, gl.buf)
 			f32_8[0] = (x2-xmin)/xw; f32_8[1] = (y2-ymin)/yh
 			f32_8[2] = (x3-xmin)/xw; f32_8[3] = (y3-ymin)/yh
 			f32_8[4] = (x0-xmin)/xw; f32_8[5] = (y0-ymin)/yh
 			f32_8[6] = (x1-xmin)/xw; f32_8[7] = (y1-ymin)/yh
-			gl.bufferSubData(gl.ARRAY_BUFFER, 0, f32_8)
-			gl.vertexAttribPointer(gl.posLoc, 2, gl.FLOAT, false, 0, 0)
+			gl.bufferData(gl.ARRAY_BUFFER, f32_8, gl.STREAM_DRAW)
 			gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
 			this.setTransform(1, 0, 0, 1, 0, 0)
-			this.drawImage(gl.canvas, 0, gl.canvas.height-yh, xw, yh, xmin, ymin, xw, yh)
+			//this.drawImage(gl.canvas, 0, gl.canvas.height-yh, xw, yh, xmin, ymin, xw, yh)
 			this.setTransform(a, b, c, d, e, f)
 		}*/
 	})(CanvasRenderingContext2D.prototype)
@@ -397,7 +391,8 @@ const loader = (meta) => {
 		return res
 	}
 	/*function makeGl(){
-		const gl = document.createElement('canvas').getContext('webgl2', {desynchronized: false})
+		const gl = document.createElement('canvas').getContext('webgl2', {desynchronized: true, depth: false, stencil: false, preserveDrawingBuffer: false, antialias: false})
+		gl.canvas.width = gl.canvas.height = 48
 		gl.prog = gl.createProgram()
 		gl.vert = gl.createShader(gl.VERTEX_SHADER)
 		gl.shaderSource(gl.vert, `#version 300 es
@@ -418,17 +413,18 @@ const loader = (meta) => {
 		gl.attachShader(gl.prog, gl.frag)
 		gl.buf = gl.createBuffer()
 		gl.bindBuffer(gl.ARRAY_BUFFER, gl.buf)
-		gl.bufferData(gl.ARRAY_BUFFER, 32, gl.DYNAMIC_DRAW)
+		gl.bufferData(gl.ARRAY_BUFFER, 32, gl.STREAM_DRAW)
 		gl.linkProgram(gl.prog)
 		gl.useProgram(gl.prog)
 		gl.posLoc = gl.getAttribLocation(gl.prog, '_pos')
 		gl.enableVertexAttribArray(gl.posLoc)
+		gl.vertexAttribPointer(gl.posLoc, 2, gl.FLOAT, false, 0, 0)
 		gl.clearColor(0,0,0,0)
 		gl.disable(gl.DEPTH_TEST)
+		gl.ctx2 = document.createElement('canvas').getContext('bitmaprenderer')
 		return gl
 	}
-	const gl_small = makeGl(), gl_big = makeGl()
-	gl_small.canvas.width = gl_small.canvas.height = 512*/
+	const gl = makeGl()*/
 </script>
 <script async src="/img/_pako.js"></script>
 <script type="module">

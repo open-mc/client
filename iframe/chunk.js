@@ -3,15 +3,20 @@ import { world } from 'world'
 import { Classes } from './definitions.js'
 
 const canvasPool = []
+const lightData = new ImageData(64, 64)
+
+//export const lightToRgba = Array.from({length:1024}, (_,i) => )
+
 export class Chunk extends Uint16Array{
 	constructor(buf){
 		super(4096)
+		this.light = new Uint16Array(4096)
 		this.tileData = new Map
 		this.x = buf.int()
 		this.y = buf.int()
 		this.ref = 0
 		this.entities = new Set()
-		this.ctx = null
+		this.ctx2 = this.ctx = null
 		this.lastFrame = 0
 		this.animatedTiles = new Uint32Array(128)
 		const Schema = Chunk.savedatahistory[buf.flint()] || Chunk.savedata
@@ -85,20 +90,20 @@ export class Chunk extends Uint16Array{
 	static savedatahistory = []
 	hide(){
 		if(!this.ctx) return
-		if(this.ctx.width === 64) canvasPool2.push(this.ctx)
-		else canvasPool.push(this.ctx)
+		canvasPool.push(this.ctx, this.ctx2)
 		this.ctx.clearRect(0, 0, 64, 64)
 		this.ctx = null
 		this.rerenders.length = 0
 		for(let i = 0; i < 128; i++) this.animatedTiles[i] = 0
 	}
-	draw(detail){
+	draw(det){
 		if(this.ctx) this.hide()
 		this.ctx = canvasPool.pop()
-		if(!this.ctx)this.ctx = Can(detail*64, detail*64), this.ctx.scale(detail,detail)
-		else if(this.ctx.w != detail*64){
-			this.ctx.resize(detail*64, detail*64)
-			this.ctx.scale(detail,detail)
+		this.ctx2 = canvasPool.pop()
+		if(!this.ctx)this.ctx = Can(det*64, det*64), this.ctx.scale(det,det), this.ctx2 = Can(64, 64)
+		else if(this.ctx.w != det*64){
+			this.ctx.resize(det*64, det*64)
+			this.ctx.scale(det,det)
 		}
 		this._draw()
 	}
@@ -118,6 +123,10 @@ export class Chunk extends Uint16Array{
 			}
 		}
 		this.lastFrame = world.tick
+		for(let i = 0; i < 4096; i += 8){
+
+		}
+		this.ctx2.putImageData(lightData, 0, 0)
 	}
 	animate(){
 		if(this.lastFrame == world.tick) return

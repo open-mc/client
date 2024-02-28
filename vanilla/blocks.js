@@ -8,7 +8,11 @@ const {Texture, Audio} = loader(import.meta)
 export const terrainPng = Texture("terrain.png")
 export const animatedPng = Texture("animated.png")
 
-Blocks.air = class extends Block{ static solid = false; static replacable = true }
+Blocks.air = class extends Block{
+	static solid = false
+	static replacable = true
+	static translucency = 0
+}
 Blocks.grass = class extends Block{
 	static dirt = true
 	static texture = terrainPng.at(0, 0)

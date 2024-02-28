@@ -72,6 +72,7 @@ export class Block{
 	static climbable = false
 	static viscosity = 0
 	static breaktime = 3
+	static translucency = 3
 	punch(x, y){
 		if(this.stepSounds.length)
 			sound(this.stepSounds, x, y, 0.1375, 0.5)

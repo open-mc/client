@@ -140,6 +140,7 @@ export function frame(){
 	_updatePaused()
 }
 globalThis.cam = cam
+const chunkCan = Can(0, 0)
 drawPhase(200, (c, w, h) => {
 	const hitboxes = renderBoxes + buttons.has(KEYS.SYMBOL)
 	c.setTransform(1,0,0,1,W/2,H/2)
@@ -149,7 +150,7 @@ drawPhase(200, (c, w, h) => {
 	const x0 = -w*cr+h*sr, x1 = w*cr-h*sr, x2 = w*cr+h*sr, x3 = -w*cr-h*sr
 	const y0 = -w*sr+h*cr, y1 = w*sr-h*cr, y2 = w*sr+h*cr, y3 = -w*sr-h*cr
 	const limX = max(x0,x1,x2,x3)/2, limY = max(y0,y1,y2,y3)/2
-	for(const chunk of map.values()){
+		for(const chunk of map.values()){
 		const cxs = chunk.x << 6, cys = chunk.y << 6
 		const x0 = round(ifloat(cxs - cam.x) * SCALE)
 		const x1 = round(ifloat(cxs + 64 - cam.x) * SCALE)
@@ -157,7 +158,7 @@ drawPhase(200, (c, w, h) => {
 		const y1 = round(ifloat(cys + 64 - cam.y) * SCALE)
 		if(x1 <= -limX || y1 <= -limY || x0 >= limX || y0 >= limY){ chunk.hide(); continue }
 		if(!chunk.ctx || chunk.ctx.w < expectedDetail*64 || chunk.ctx.w > expectedDetail*128) chunk.draw(expectedDetail)
-		c.push()
+				c.push()
 		c.translate(x0,-y0)
 		c.scale((x1-x0)/64,(y0-y1)/64)
 		chunk.animate()
@@ -217,7 +218,7 @@ drawPhase(200, (c, w, h) => {
 			c.restore()
 		}
 	}
-})
+	})
 drawPhase(300, (c, w, h) => {
 	c.setTransform(SCALE, 0, 0, -SCALE, W2 * SCALE, h - H2 * SCALE)
 	c.rotate(-cam.f)
