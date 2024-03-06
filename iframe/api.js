@@ -17,7 +17,7 @@ export function _recalcDimensions(c, camZ){
 		document.body.append(c.canvas)
 	}
 	const dpx = devicePixelRatio * 2**(options.supersample*6-3)
-	//c.canvas.style.transform = 'scale('+1/dpx+')'
+	c.canvas.style.transform = 'scale('+1/dpx+')'
 	SCALE = camZ * TEX_SIZE * dpx
 	W2 = (W = round(visualViewport.width * visualViewport.scale * dpx)+1&-2) / SCALE / 2
 	H2 = (H = round(visualViewport.height * visualViewport.scale * dpx)+1&-2) / SCALE / 2

@@ -1,22 +1,24 @@
 <canvas id="canvas" width="500" height="300"></canvas>
 <canvas id="canvas2" width="500" height="300"></canvas>
+<canvas id="canvas3" width="500" height="300"></canvas>
 <div id="result" style="white-space:pre-wrap;"></div>
-<script>
-	let renderGl = true, render2d = false
+<script type="module">
+	import './surface.js'
+	let renderGl = true, render2d = false, renderSurface = true
 	canvas.onclick = () => renderGl = !renderGl
 	canvas2.onclick = () => render2d = !render2d
-	const PCOUNT = 100_000
-	/**
-	 * @type WebGL2RenderingContext
-	 */
+	canvas3.onclick = () => renderSurface = !renderSurface
+	const PCOUNT = 20_000
 	const gl = canvas.getContext('webgl2', {preserveDrawingBuffer: false})
 	const ctx = canvas2.getContext('2d')
+	const st = setTargetCanvas(canvas3)
 	gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true)
 	const img1 = new Image(), img2 = new Image()
 	img1.src = './img/beacon.png'
 	img2.src = './img/grassicon.png'
 	const tex1 = gl.createTexture(), tex2 = gl.createTexture()
 	let ctex1, ctex2
+	const stex1 = Texture(), stex2 = Texture()
 	Promise.all([new Promise(r => img1.onload = r), new Promise(r => img2.onload = r)]).then(async () => {
 		ctex1 = await createImageBitmap(img1, {imageOrientation: 'flipY'})
 		ctex2 = await createImageBitmap(img2, {imageOrientation: 'flipY'})
@@ -27,6 +29,8 @@
 		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img2)
 		gl.generateMipmap(gl.TEXTURE_2D)
 		frame()
+		stex1.from(img1)
+		stex2.from(img2)
 	})
 	const p = gl.createProgram()
 	const vert = gl.createShader(gl.VERTEX_SHADER)
@@ -39,7 +43,6 @@ void main(){
 	gl_Position = vec4((pos.xy+off)/vw*2.-1., 0., 1.);
 }`)
 	gl.compileShader(vert)
-	console.log(gl.getShaderInfoLog(vert))
 	const frag = gl.createShader(gl.FRAGMENT_SHADER)
 	gl.shaderSource(frag, `#version 300 es
 	precision mediump float;
@@ -48,13 +51,11 @@ void main(){
 	col = texture(tex, vtexcoord);
 }`)
 	gl.compileShader(frag)
-	console.log(gl.getShaderInfoLog(frag))
 	gl.disable(gl.DEPTH_TEST)
 	gl.attachShader(p, vert)
 	gl.attachShader(p, frag)
 	gl.linkProgram(p)
 	gl.useProgram(p)
-	console.log(gl.getProgramInfoLog(p))
 	const uTex = gl.getUniformLocation(p, 'tex')
 	const uVw = gl.getUniformLocation(p, 'vw')
 	const buf = gl.createBuffer()
@@ -89,14 +90,27 @@ void main(){
 	function ctxDraw(){
 		ctx.setTransform(1, 0, 0, -1, 0, ctx.canvas.height += 0)
 		let lastX = 0, lastY = 0
-		let r = t, i = 0
+		let r = t
 		for(const {x, y} of particles){
 			ctx.translate(x - lastX, y - lastY); lastX = x; lastY = y
 			ctx.rotate(-r)
-			ctx.drawImage(i&1?ctex2:ctex1, -8, -8)
+			ctx.drawImage(ctex1, -8, -8)
 			ctx.rotate(r)
-			r *= .999; i++
+			r *= .999
 		}
+	}
+	function surfaceDraw(){
+		const buf = new CommandBuffer()
+		let r = t, i = 0
+		for(const {x, y} of particles){
+			const m = buf.base()
+			m.translate(x, y)
+			m.rotate(r)
+			m.box(-8, -8, 16, 16)
+			m.add(0, 0, 16, 16)
+			r *= .999
+		}
+		st.draw(buf)
 	}
 	const particles = []
 	let t = 0, dt = 0
@@ -118,7 +132,7 @@ void main(){
 		get y(){return this.#y}
 	}
 	for(let i = 0; i < PCOUNT; i++) particles.push(new Particle())
-	let dt1 = 0, dt2 = 0, dt0 = 0
+	let dt1 = 0, dt2 = 0, dt0 = 0, dt3 = 0
 	function frame(){
 		dt = -(t-(t=performance.now()/1000))
 		requestAnimationFrame(frame)
@@ -134,6 +148,11 @@ void main(){
 			ctxDraw()
 			dt2 = performance.now() - a
 		}
-		result.textContent = 'physics: '+dt0.toFixed(3)+'ms\ngl: '+dt1.toFixed(3)+'ms\nctx: '+dt2.toFixed(3)+'ms\nparticles: '+particles.length.toLocaleString()
+		if(renderSurface){
+			const a = performance.now()
+			surfaceDraw()
+			dt3 = performance.now() - a
+		}
+		result.textContent = 'physics: '+dt0.toFixed(3)+'ms\ngl: '+dt1.toFixed(3)+'ms\nctx: '+dt2.toFixed(3)+'ms\nsurface: '+dt3.toFixed(3)+'ms\nparticles: '+particles.length.toLocaleString()
 	}
 </script>
