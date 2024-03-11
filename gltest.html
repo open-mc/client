@@ -9,7 +9,7 @@
 		border: 2px #333 solid;
 	}
 </style>
-<script src="surface.min.js"></script>
+<script src="target.min.js"></script>
 <script>
 	let renderGl = true, render2d = true, renderSurface = true
 	canvas.onclick = () => renderGl = !renderGl
@@ -19,6 +19,7 @@
 	let gl = canvas.getContext('webgl2', {preserveDrawingBuffer: false, depth: false})
 	const ctx = canvas2.getContext('2d')
 	const st = setTargetCanvas(canvas3)
+	st.resize(500,300)
 	gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true)
 	const img1 = new Image(), img2 = new Image()
 	img1.src = './img/beacon.png'
@@ -106,6 +107,7 @@ void main(){
 			r *= .9999
 		}
 	}
+
 	function surfaceDraw(){
 		const buf = CommandBuffer()
 		let r = t, i = 0

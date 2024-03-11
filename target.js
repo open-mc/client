@@ -1,4 +1,4 @@
-{const NS = globalThis[new URLSearchParams(new URL(document.currentScript.src).search).get('ns')??'globalThis']??={}
+{const NS = globalThis[new URL(document.currentScript.src).hash.slice(1)||'globalThis']??={}
 
 /** @type {WebGL2RenderingContext} */
 let gl = null
@@ -17,7 +17,7 @@ NS.Formats = {
 	R32F: [GL.R32F, RI, F], RG32F: [GL.RG32F, RGI, F], RGB32F: [GL.RGB32F, RBI, F], RGBA32F: [GL.RGBA32F, RAI, F],
 }
 let defaultOptions = 0
-NS.Texture = (w=0,h=0,format=NS.Formats.RGBA,options=defaultOptions) => {
+NS.Texture = (w=0,h=0,format=NS.Formats.RGBA8,options=defaultOptions) => {
 	const t = gl.createTexture()
 	t.unit = -1
 	t.width = 0
@@ -37,7 +37,7 @@ function bindt(t){
 	gl.bindTexture(GL.TEXTURE_2D, t)
 }
 Object.assign(WebGLTexture.prototype, {
-	from(thing, format = NS.Formats.RGBA, options = defaultOptions){
+	from(thing, format = NS.Formats.RGBA8, options = defaultOptions){
 		if(typeof thing != 'object') return
 		this.format = format
 		if(thing instanceof Blob) thing = createImageBitmap(thing)
@@ -64,11 +64,11 @@ Object.assign(WebGLTexture.prototype, {
 		gl.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_WRAP_T, options&128?GL.MIRRORED_REPEAT:options&64?GL.CLAMP_TO_EDGE:GL.REPEAT)
 		return this
 	},
-	of(width = 0, height = 0, format = NS.Formats.RGBA, options = defaultOptions){
+	of(width = 0, height = 0, format = NS.Formats.RGBA8, options = defaultOptions){
 		bindt(this)
 		const {0: A, 1: B, 2: C} = format
 		this.format = format
-		gl.texStorage2D(GL.TEXTURE_2D, 0, A, this.width = width, this.height = height)
+		gl.texStorage2D(GL.TEXTURE_2D, 1, A, this.width = width, this.height = height)
 		gl.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MAG_FILTER, (~options&1)+GL.NEAREST)
 		const f = (~options>>1)&3
 		if(options&8) gl.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MIN_FILTER, (f&1)+GL.NEAREST)
@@ -194,6 +194,7 @@ class Target{
 	fb;#a;#b;#c;#d;#e;#f;#ux;#uy;#uz;#uw;#vx;#vy;#vz;#vw
 	get width(){return this.fb?this.fb.width:gl.canvas.width}
 	get height(){return this.fb?this.fb.height:gl.canvas.height}
+	get texture(){return this.fb?.texture}
 	download(x=0,y=0,w=this.width,h=this.height,arr=null){
 		gl.bindFramebuffer(GL.READ_FRAMEBUFFER, this.fb)
 		const f = this.fb?this.fb.format[2]:UB
@@ -205,7 +206,7 @@ class Target{
 		gl.readPixels(x,y,w,h,this.fb?this.fb.format[1]:GL.RGBA,f,arr)
 		return arr
 	}
-	resize(width = this.width, height = this.height, format = NS.Formats.RGBA){
+	resize(width = this.width, height = this.height, format = NS.Formats.RGBA8){
 		if(this.fb){
 			this.fb.texture = null
 			gl.bindFramebuffer(GL.READ_FRAMEBUFFER, this.fb)
@@ -224,10 +225,10 @@ class Target{
 			gl.canvas.height = height
 			// No universal support, but too cool to miss out
 			if(gl.drawingBufferStorage) gl.drawingBufferStorage(format[0], width, height)
-			else if(warns&(format!=NS.Formats.RGBA)) warns&=-2,console.warn('Browser does not support specifying format for main target')
+			else if(warns&(format!=NS.Formats.RGBA8)) warns&=-2,console.warn('Browser does not support specifying format for main target')
 		}
 	}
-	texture(tex){
+	setTexture(tex){
 		if(!this.fb) throw new TypeError('Cannot attach a texture to the main target (its output must always be the <canvas>, use .resize() to change size/format)')
 		gl.bindFramebuffer(GL.READ_FRAMEBUFFER, this.fb)
 		if(this.fb.texture === tex){
@@ -334,7 +335,7 @@ class Target{
 			gl.uniform4f(curProgram.uni1, ux=this.#ux, uy=this.#uy, uz=this.#uz, uw=this.#uw)
 		if(vx!=this.#vx||vy!=this.#vy||vz!=this.#vz||vw!=this.#vw)
 			gl.uniform4f(curProgram.uni2, vx=this.#vx, vy=this.#vy, vz=this.#vz, vw=this.#vw)
-		mask = mask&255|blend<<8
+		mask = mask&2281701631|blend<<8
 		if((pmask^mask)&15) gl.colorMask(mask&1,mask&2,mask&4,mask&8)
 		if((pmask^mask)&496){
 			if(mask&240){
@@ -347,8 +348,9 @@ class Target{
 				}
 			}else if(pmask&240) gl.disable(GL.STENCIL_TEST)
 		}
-		if((pmask^mask)&-16777216) gl.blendEquationSeparate((mask>>24&15)+32773,(mask>>28)+32773)
+		if((pmask^mask)&1996488704) gl.blendEquationSeparate((mask>>24&7)+32773,(mask>>28&7)+32773)
 		if((pmask^mask)&16776960) gl.blendFuncSeparate((mask>>8&15)+766*!!(mask&3584), (mask>>16&15)+766*!!(mask&917504), (mask>>12&15)+766*!!(mask&57344), (mask>>20&15)+766*!!(mask&14680064))
+		if((mask^pmask)&134217728) if(mask&134217728) gl.enable(GL.DITHER); else gl.disable(GL.DITHER)
 		pmask = mask
 		if(Array.isArray(textures)){
 			if(textures.length > 8) throw new RangeError('.draw(): Cannot use more than 8 textures at a time')
@@ -420,6 +422,8 @@ NS.setTargetCanvas = c => {
 	gl.stencilMask(1)
 	gl.disable(GL.DEPTH_TEST)
 	gl.enable(GL.BLEND)
+	gl.disable(GL.DITHER)
+	for(const ext of ['EXT_color_buffer_float', 'EXT_color_buffer_half_float']) gl.getExtension(ext)
 	fb = bvo = null
 	mainStencil = 0
 	pmask = 285217039
@@ -435,6 +439,7 @@ Object.assign(NS, {
 	UNSET: 64,
 	SET: 128,
 	FLIP: 192,
+	DITHERING: 134217728,
 	ONE: 17,
 	RGB_ONE: 1,
 	A_ONE: 16,
@@ -484,8 +489,9 @@ Object.assign(NS, {
 NS.Blend = (src = 17, dst = 0, combine = 17) => src|dst<<8|combine<<16
 NS.Blend.REPLACE = 1114129
 NS.PI ??= Math.PI
+NS.colorSpace = space => {gl.drawingBufferColorSpace = space}
 
-NS.Target = (w = 0, h = 0, format = NS.Formats.RGBA, no_stencil = false) => {
+NS.Target = (w = 0, h = 0, format = NS.Formats.RGBA8, no_stencil = false) => {
 	const t = gl.createFramebuffer()
 	gl.bindFramebuffer(GL.READ_FRAMEBUFFER, t)
 	t.stencil = NaN
