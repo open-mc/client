@@ -89,6 +89,7 @@ Object.assign(WebGLTexture.prototype, {
 		if(gl.getTexParameter(GL.TEXTURE_2D,GL.TEXTURE_MIN_FILTER)>=GL.NEAREST_MIPMAP_NEAREST)
 			gl.generateMipmap(GL.TEXTURE_2D)
 	}
+	uv(x=0,y=0,w=0,h=0){ return {x:x/this.width,y:y/this.height,w:w/this.width,h:h/this.height,sub} }
 })
 const fpool = []
 NS.CommandBuffer = () => {
@@ -97,17 +98,18 @@ NS.CommandBuffer = () => {
 	a.i = 0
 	return new M(a)
 }
-NS.CommandBuffer.single = (a=NS.Tex,b=0,c=0,d=0,e=0)=>NS.CommandBuffer.singleMat(a,1,0,0,1,0,0,b,c,d,e)
-NS.CommandBuffer.singleRect = (a=NS.Tex,b=0,c=0,d=1,e=1,f=0,g=0,h=0,i=0)=>NS.CommandBuffer.singleMat(a,d,0,0,e,b,c,f,g,h,i)
-NS.CommandBuffer.singleMat = ({0:tx,1:ty,2:tw,3:th}=NS.Tex,a=0,b=0,c=0,d=0,e=0,f=0,t1=0,t2=0,t3=0,t4=0) => {
+NS.CommandBuffer.single = (a=whole,b=0,c=0,d=0,e=0)=>NS.CommandBuffer.singleMat(a,1,0,0,1,0,0,b,c,d,e)
+NS.CommandBuffer.singleRect = (a=whole,b=0,c=0,d=1,e=1,f=0,g=0,h=0,i=0)=>NS.CommandBuffer.singleMat(a,d,0,0,e,b,c,f,g,h,i)
+NS.CommandBuffer.singleMat = ({x:tx,y:ty,w:tw,h:th}=whole,a=0,b=0,c=0,d=0,e=0,f=0,t1=0,t2=0,t3=0,t4=0) => {
 	const x = new Float32Array(14)
 	x[0] = a; x[1] = c; x[2] = e; x[3] = b; x[4] = d; x[5] = f
 	x[6] = tx; x[7] = ty; x[8] = tw; x[9] = th
 	x[10] = t1; x[11] = t2; x[12] = t3; x[13] = t4
 	return x
 }
-function sub(a,b,c,d){return {0:this[0]+a*this[2],1:this[1]+b*this[3],2:this[2]*c,3:this[3]*d,sub}}
-NS.Tex = {0: 0, 1: 0, 2: 1, 3: 1, sub}
+function sub(a,b,c,d){return {x:this.x+a*this.w,y:this.y+b*this.h,w:this.w*c,h:this.h*d,sub}}
+NS.uv = (x=0,y=0,w=1,h=1)=>({x,y,w,h,sub})
+const whole = NS.uv()
 NS._ = undefined
 class M{
 	arr;#a;#b;#c;#d;#e;#f
@@ -138,7 +140,7 @@ class M{
 		}
 	}
 	copy(){ return new M(this.arr,this.#a,this.#b,this.#c,this.#d,this.#e,this.#f) }
-	add({0:tx,1:ty,2:tw,3:th} = NS.Tex, t1=0, t2=0, t3=0, t4=0){
+	add({x:tx,y:ty,w:tw,h:th} = whole, t1=0, t2=0, t3=0, t4=0){
 		const j = (this.arr.i+=14)-14, cur = this.arr.cur
 		cur[j  ] = this.#a; cur[j+1] = this.#c; cur[j+2] = this.#e
 		cur[j+3] = this.#b; cur[j+4] = this.#d; cur[j+5] = this.#f
@@ -146,7 +148,7 @@ class M{
 		cur[j+10] = t1; cur[j+11] = t2; cur[j+12] = t3; cur[j+13] = t4
 		if(j === 8176) this.arr.push(cur), this.arr.cur = fpool.pop() ?? new Float32Array(8190),this.arr.i=0
 	}
-	addRect({0:tx,1:ty,2:tw,3:th} = NS.Tex, x=0, y=0, w=1, h=1, t1=0, t2=0, t3=0, t4=0){
+	addRect({x:tx,y:ty,w:tw,h:th} = whole, x=0, y=0, w=1, h=1, t1=0, t2=0, t3=0, t4=0){
 		const j = (this.arr.i+=14)-14, cur = this.arr.cur
 		cur[j  ] = this.#a*w; cur[j+1] = this.#c*h; cur[j+2] = this.#e+x*this.#a+y*this.#c
 		cur[j+3] = this.#b*w; cur[j+4] = this.#d*h; cur[j+5] = this.#f+x*this.#b+y*this.#d
@@ -154,7 +156,7 @@ class M{
 		cur[j+10] = t1; cur[j+11] = t2; cur[j+12] = t3; cur[j+13] = t4
 		if(j === 8176) this.arr.push(cur), this.arr.cur = fpool.pop() ?? new Float32Array(8190),this.arr.i=0
 	}
-	addMat({0:tx,1:ty,2:tw,3:th} = NS.Tex, a=1, b=0, c=0, d=1, e=0, f=0, t1=0, t2=0, t3=0, t4=0){
+	addMat({x:tx,y:ty,w:tw,h:th} = whole, a=1, b=0, c=0, d=1, e=0, f=0, t1=0, t2=0, t3=0, t4=0){
 		const j = (this.arr.i+=14)-14, cur = this.arr.cur
 		const ta=this.#a,tb=this.#b,tc=this.#c,td=this.#d,te=this.#e,tf=this.#f
 		cur[j  ] = a*ta+c*tb; cur[j+1] = a*tc+c*td; cur[j+2] = a*te+c*tf+e
@@ -328,8 +330,8 @@ class Target{
 		const W = this.fb?this.fb.width:gl.canvas.width, H = this.fb?this.fb.height:gl.canvas.height
 		if(!W|!H) return
 		if(vpw!=W||vph!=H) gl.viewport(0,0,W,H)
-		mat2x3[0] = this.#a/W*2; mat2x3[3] = this.#b/H*2; mat2x3[1] = this.#c/W*2
-		mat2x3[4] = this.#d/H*2; mat2x3[2] = this.#e/W*2-1; mat2x3[5] = this.#f/H*2-1
+		mat2x3[0] = this.#a*2; mat2x3[3] = this.#b*2; mat2x3[1] = this.#c*2
+		mat2x3[4] = this.#d*2; mat2x3[2] = this.#e*2-1; mat2x3[5] = this.#f*2-1
 		if(fb!=this.fb) gl.bindFramebuffer(GL.FRAMEBUFFER, fb = this.fb)
 		let b = this.fb?.texture?.unit??-1
 		if(b>-1){
