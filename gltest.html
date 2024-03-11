@@ -2,20 +2,27 @@
 <canvas id="canvas2" width="500" height="300"></canvas>
 <canvas id="canvas3" width="500" height="300"></canvas>
 <div id="result" style="white-space:pre-wrap;"></div>
-<script type="module">
-	import './surface.js'
-	let renderGl = true, render2d = false, renderSurface = true
+<style>
+	canvas{
+		user-select: none;
+		background-color: #bbb;
+		border: 2px #333 solid;
+	}
+</style>
+<script src="surface.min.js"></script>
+<script>
+	let renderGl = true, render2d = true, renderSurface = true
 	canvas.onclick = () => renderGl = !renderGl
 	canvas2.onclick = () => render2d = !render2d
 	canvas3.onclick = () => renderSurface = !renderSurface
-	const PCOUNT = 20_000
-	const gl = canvas.getContext('webgl2', {preserveDrawingBuffer: false})
+	const PCOUNT = 10_000
+	let gl = canvas.getContext('webgl2', {preserveDrawingBuffer: false, depth: false})
 	const ctx = canvas2.getContext('2d')
 	const st = setTargetCanvas(canvas3)
 	gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true)
 	const img1 = new Image(), img2 = new Image()
 	img1.src = './img/beacon.png'
-	img2.src = './img/grassicon.png'
+	img2.src = './img/pack.png'
 	const tex1 = gl.createTexture(), tex2 = gl.createTexture()
 	let ctex1, ctex2
 	const stex1 = Texture(), stex2 = Texture()
@@ -78,7 +85,7 @@ void main(){
 		for(const {x, y} of particles){
 			f[i] = x; f[i+1] = y
 			f[i+2] = r
-			i+=3; r *= .999
+			i+=3; r *= .9999
 		}
 		gl.uniform1i(uTex, 0)
 		gl.bindBuffer(gl.ARRAY_BUFFER, buf)
@@ -96,21 +103,20 @@ void main(){
 			ctx.rotate(-r)
 			ctx.drawImage(ctex1, -8, -8)
 			ctx.rotate(r)
-			r *= .999
+			r *= .9999
 		}
 	}
 	function surfaceDraw(){
-		const buf = new CommandBuffer()
+		const buf = CommandBuffer()
 		let r = t, i = 0
 		for(const {x, y} of particles){
-			const m = buf.base()
+			const m = buf.copy()
 			m.translate(x, y)
 			m.rotate(r)
-			m.box(-8, -8, 16, 16)
-			m.add(0, 0, 16, 16)
-			r *= .999
+			m.addRect(_, -8, -8, 16, 16)
+			r *= .9999
 		}
-		st.draw(buf)
+		st.draw(buf, stex1)
 	}
 	const particles = []
 	let t = 0, dt = 0
@@ -134,10 +140,12 @@ void main(){
 	for(let i = 0; i < PCOUNT; i++) particles.push(new Particle())
 	let dt1 = 0, dt2 = 0, dt0 = 0, dt3 = 0
 	function frame(){
-		dt = -(t-(t=performance.now()/1000))
 		requestAnimationFrame(frame)
-		for(let i = 0; i < PCOUNT; i++) particles[i].step()
-		dt0 = performance.now() - t*1000
+		dt = -(t-(t=performance.now()/1000))
+		if(render2d|renderGl|renderSurface){
+			for(let i = 0; i < PCOUNT; i++) particles[i].step()
+			dt0 = performance.now() - t*1000
+		}
 		if(renderGl){
 			const a = performance.now()
 			glDraw()
@@ -153,6 +161,6 @@ void main(){
 			surfaceDraw()
 			dt3 = performance.now() - a
 		}
-		result.textContent = 'physics: '+dt0.toFixed(3)+'ms\ngl: '+dt1.toFixed(3)+'ms\nctx: '+dt2.toFixed(3)+'ms\nsurface: '+dt3.toFixed(3)+'ms\nparticles: '+particles.length.toLocaleString()
+		result.textContent = 'physics: '+dt0.toFixed(1)+'ms\nwebgl2: '+dt1.toFixed(1)+'ms\ncanvas2d: '+dt2.toFixed(1)+'ms\nsurface.js: '+dt3.toFixed(1)+'ms\nparticles: '+particles.length.toLocaleString()
 	}
 </script>
