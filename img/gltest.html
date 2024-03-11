@@ -107,8 +107,9 @@ void main(){
 			r *= .9999
 		}
 	}
-	const tex = Texture(100, 100, Formats.RGB565)
 	function surfaceDraw(){
+		st.reset()
+		st.scale(1/st.width,1/st.height)
 		const buf = CommandBuffer()
 		let r = t, i = 0
 		for(const {x, y} of particles){
