@@ -54,6 +54,16 @@ Object.assign(WebGLTexture.prototype, {
 		if(!(options&8)) gl.generateMipmap(GL.TEXTURE_2D)
 		return this
 	},
+	put(thing, x=0, y=0){
+		if(typeof thing != 'object') return
+		if(thing instanceof Blob) thing = createImageBitmap(thing)
+		if(thing.then) return thing.then(thing => this.put(thing, x, y))
+		bindt(this)
+		gl.texSubImage2D(GL.TEXTURE_2D, 0, x, y, thing.width, thing.height, 0, this.format[1], this.format[2], thing)
+		if(gl.getTexParameter(GL.TEXTURE_2D,GL.TEXTURE_MIN_FILTER)>=GL.NEAREST_MIPMAP_NEAREST)
+			gl.generateMipmap(GL.TEXTURE_2D)
+		return this
+	},
 	options(options = defaultOptions){
 		bindt(this)
 		gl.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MAG_FILTER, (~options&1)+GL.NEAREST)
@@ -83,9 +93,9 @@ Object.assign(WebGLTexture.prototype, {
 		if(!(options&8)) gl.generateMipmap(GL.TEXTURE_2D)
 		return this
 	},
-	upload(sx=0, sy=0, sw, sh, data){
+	putData(sx=0, sy=0, sw, sh, data, format=this.format){
 		bindt(this)
-		gl.texSubImage2D(GL.TEXTURE_2D, 0, sx, sy, sw, sh, this.format[1], this.format[2], data)
+		gl.texSubImage2D(GL.TEXTURE_2D, 0, sx, sy, sw, sh, format[1], format[2], data)
 		if(gl.getTexParameter(GL.TEXTURE_2D,GL.TEXTURE_MIN_FILTER)>=GL.NEAREST_MIPMAP_NEAREST)
 			gl.generateMipmap(GL.TEXTURE_2D)
 	}
@@ -204,7 +214,7 @@ class Target{
 	get width(){return this.fb?this.fb.width:gl.canvas.width}
 	get height(){return this.fb?this.fb.height:gl.canvas.height}
 	get texture(){return this.fb?.texture}
-	download(x=0,y=0,w=this.width,h=this.height,arr=null){
+	getData(x=0,y=0,w=this.width,h=this.height,arr=null){
 		gl.bindFramebuffer(GL.READ_FRAMEBUFFER, this.fb)
 		const f = this.fb?this.fb.format[2]:UB
 		if(!arr){
