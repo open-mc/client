@@ -51,7 +51,7 @@ Object.assign(WebGLTexture.prototype, {
 		else gl.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MIN_FILTER, GL.NEAREST_MIPMAP_NEAREST + f)
 		gl.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_WRAP_S, options&32?GL.MIRRORED_REPEAT:options&16?GL.CLAMP_TO_EDGE:GL.REPEAT)
 		gl.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_WRAP_T, options&128?GL.MIRRORED_REPEAT:options&64?GL.CLAMP_TO_EDGE:GL.REPEAT)
-		gl.generateMipmap(GL.TEXTURE_2D)
+		if(!(options&8)) gl.generateMipmap(GL.TEXTURE_2D)
 		return this
 	},
 	options(options = defaultOptions){
@@ -59,7 +59,12 @@ Object.assign(WebGLTexture.prototype, {
 		gl.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MAG_FILTER, (~options&1)+GL.NEAREST)
 		const f = (~options>>1)&3
 		if(options&8) gl.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MIN_FILTER, (f&1)+GL.NEAREST)
-		else gl.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MIN_FILTER, GL.NEAREST_MIPMAP_NEAREST + f)
+		else{
+			const o = gl.getTexParameter(GL.TEXTURE_2D,GL.TEXTURE_MIN_FILTER)
+			gl.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MIN_FILTER, GL.NEAREST_MIPMAP_NEAREST + f)
+			if(o<GL.NEAREST_MIPMAP_NEAREST)
+				gl.generateMipmap(GL.TEXTURE_2D)
+		}
 		gl.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_WRAP_S, options&32?GL.MIRRORED_REPEAT:options&16?GL.CLAMP_TO_EDGE:GL.REPEAT)
 		gl.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_WRAP_T, options&128?GL.MIRRORED_REPEAT:options&64?GL.CLAMP_TO_EDGE:GL.REPEAT)
 		return this
@@ -75,12 +80,14 @@ Object.assign(WebGLTexture.prototype, {
 		else gl.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MIN_FILTER, GL.NEAREST_MIPMAP_NEAREST + f)
 		gl.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_WRAP_S, options&32?GL.MIRRORED_REPEAT:options&16?GL.CLAMP_TO_EDGE:GL.REPEAT)
 		gl.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_WRAP_T, options&128?GL.MIRRORED_REPEAT:options&64?GL.CLAMP_TO_EDGE:GL.REPEAT)
-		gl.generateMipmap(GL.TEXTURE_2D)
+		if(!(options&8)) gl.generateMipmap(GL.TEXTURE_2D)
 		return this
 	},
 	upload(sx=0, sy=0, sw, sh, data){
 		bindt(this)
 		gl.texSubImage2D(GL.TEXTURE_2D, 0, sx, sy, sw, sh, this.format[1], this.format[2], data)
+		if(gl.getTexParameter(GL.TEXTURE_2D,GL.TEXTURE_MIN_FILTER)>=GL.NEAREST_MIPMAP_NEAREST)
+			gl.generateMipmap(GL.TEXTURE_2D)
 	}
 })
 const fpool = []
@@ -482,7 +489,7 @@ Object.assign(NS, {
 	RGB_MAX: 3,
 	A_MAX: 48,
 
-	UPSCALE_PIXELATED: 1, DOWNSCALE_PIXELATED: 2, DOWNSCALE_MIPMAP_PIXELATED: 4,
+	UPSCALE_PIXELATED: 1, DOWNSCALE_PIXELATED: 2, DOWNSCALE_MIPMAP_NEAREST: 4,
 	PIXELATED: 7, NO_MIPMAPS: 8,
 	CLAMP_X: 16, REPEAT_MIRRORED_X: 32, CLAMP_Y: 64, REPEAT_MIRRORED_Y: 128
 })
