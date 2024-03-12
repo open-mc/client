@@ -40,7 +40,7 @@ Object.assign(WebGLTexture.prototype, {
 	from(thing, format = NS.Formats.RGBA8, options = defaultOptions){
 		if(typeof thing != 'object') return
 		this.format = format
-		if(thing instanceof Blob) thing = createImageBitmap(thing)
+		if(thing instanceof Blob) thing = createImageBitmap(thing,{imageOrientation:'flipY'})
 		if(thing.then) return thing.then(thing => this.from(thing, format, options))
 		bindt(this)
 		const {0: A, 1: B, 2: C} = format
@@ -56,7 +56,7 @@ Object.assign(WebGLTexture.prototype, {
 	},
 	put(thing, x=0, y=0){
 		if(typeof thing != 'object') return
-		if(thing instanceof Blob) thing = createImageBitmap(thing)
+		if(thing instanceof Blob) thing = createImageBitmap(thing,{imageOrientation:'flipY'})
 		if(thing.then) return thing.then(thing => this.put(thing, x, y))
 		bindt(this)
 		gl.texSubImage2D(GL.TEXTURE_2D, 0, x, y, thing.width, thing.height, 0, this.format[1], this.format[2], thing)
