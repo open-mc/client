@@ -23,6 +23,7 @@ NS.Texture = (w=0,h=0,format=NS.Formats.RGBA8,options=defaultOptions) => {
 	t.width = 0
 	t.height = 0
 	t.format = format
+	t.mipmap = ~options>>2&2
 	if(w|h) t.of(w, h, format, options)
 	return t
 }
@@ -47,11 +48,10 @@ Object.assign(WebGLTexture.prototype, {
 		gl.texImage2D(GL.TEXTURE_2D, 0, A, this.width = thing.width, this.height = thing.height, 0, B, C, thing)
 		gl.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MAG_FILTER, (~options&1)+GL.NEAREST)
 		const f = (~options>>1)&3
-		if(options&8) gl.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MIN_FILTER, (f&1)+GL.NEAREST)
-		else gl.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MIN_FILTER, GL.NEAREST_MIPMAP_NEAREST + f)
+		if(options&8) gl.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MIN_FILTER, (f&1)+GL.NEAREST),this.mipmap=1
+		else gl.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MIN_FILTER, GL.NEAREST_MIPMAP_NEAREST + f),this.mipmap=3
 		gl.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_WRAP_S, options&32?GL.MIRRORED_REPEAT:options&16?GL.CLAMP_TO_EDGE:GL.REPEAT)
 		gl.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_WRAP_T, options&128?GL.MIRRORED_REPEAT:options&64?GL.CLAMP_TO_EDGE:GL.REPEAT)
-		if(!(options&8)) gl.generateMipmap(GL.TEXTURE_2D)
 		return this
 	},
 	put(thing, x=0, y=0){
@@ -60,21 +60,15 @@ Object.assign(WebGLTexture.prototype, {
 		if(thing.then) return thing.then(thing => this.put(thing, x, y))
 		bindt(this)
 		gl.texSubImage2D(GL.TEXTURE_2D, 0, x, y, thing.width, thing.height, 0, this.format[1], this.format[2], thing)
-		if(gl.getTexParameter(GL.TEXTURE_2D,GL.TEXTURE_MIN_FILTER)>=GL.NEAREST_MIPMAP_NEAREST)
-			gl.generateMipmap(GL.TEXTURE_2D)
+		this.mipmap|=1
 		return this
 	},
 	options(options = defaultOptions){
 		bindt(this)
 		gl.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MAG_FILTER, (~options&1)+GL.NEAREST)
 		const f = (~options>>1)&3
-		if(options&8) gl.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MIN_FILTER, (f&1)+GL.NEAREST)
-		else{
-			const o = gl.getTexParameter(GL.TEXTURE_2D,GL.TEXTURE_MIN_FILTER)
-			gl.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MIN_FILTER, GL.NEAREST_MIPMAP_NEAREST + f)
-			if(o<GL.NEAREST_MIPMAP_NEAREST)
-				gl.generateMipmap(GL.TEXTURE_2D)
-		}
+		if(options&8) gl.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MIN_FILTER, (f&1)+GL.NEAREST),this.mipmap|=2
+		else gl.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MIN_FILTER, GL.NEAREST_MIPMAP_NEAREST + f),this.mipmap&=-3
 		gl.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_WRAP_S, options&32?GL.MIRRORED_REPEAT:options&16?GL.CLAMP_TO_EDGE:GL.REPEAT)
 		gl.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_WRAP_T, options&128?GL.MIRRORED_REPEAT:options&64?GL.CLAMP_TO_EDGE:GL.REPEAT)
 		return this
@@ -86,18 +80,16 @@ Object.assign(WebGLTexture.prototype, {
 		gl.texStorage2D(GL.TEXTURE_2D, 1, A, this.width = width, this.height = height)
 		gl.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MAG_FILTER, (~options&1)+GL.NEAREST)
 		const f = (~options>>1)&3
-		if(options&8) gl.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MIN_FILTER, (f&1)+GL.NEAREST)
-		else gl.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MIN_FILTER, GL.NEAREST_MIPMAP_NEAREST + f)
+		if(options&8) gl.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MIN_FILTER, (f&1)+GL.NEAREST),this.mipmap=1
+		else gl.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MIN_FILTER, GL.NEAREST_MIPMAP_NEAREST + f),this.mipmap=3
 		gl.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_WRAP_S, options&32?GL.MIRRORED_REPEAT:options&16?GL.CLAMP_TO_EDGE:GL.REPEAT)
 		gl.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_WRAP_T, options&128?GL.MIRRORED_REPEAT:options&64?GL.CLAMP_TO_EDGE:GL.REPEAT)
-		if(!(options&8)) gl.generateMipmap(GL.TEXTURE_2D)
 		return this
 	},
 	putData(sx=0, sy=0, sw, sh, data, format=this.format){
 		bindt(this)
 		gl.texSubImage2D(GL.TEXTURE_2D, 0, sx, sy, sw, sh, format[1], format[2], data)
-		if(gl.getTexParameter(GL.TEXTURE_2D,GL.TEXTURE_MIN_FILTER)>=GL.NEAREST_MIPMAP_NEAREST)
-			gl.generateMipmap(GL.TEXTURE_2D)
+		this.mipmap|=1
 	},
 	uv(x=0,y=0,w=0,h=0){ return {x:x/this.width,y:y/this.height,w:w/this.width,h:h/this.height,sub} }
 })
@@ -248,7 +240,7 @@ class Target{
 		}
 	}
 	setTexture(tex){
-		if(!this.fb) throw new TypeError('Cannot attach a texture to the main target (its output must always be the <canvas>, use .resize() to change size/format)')
+		if(!this.fb) return void((warns&2)&&(warns&=-3,console.warn('Cannot attach a texture to the main target (its output must always be the <canvas>, use .resize() to change size/format)'))
 		gl.bindFramebuffer(GL.READ_FRAMEBUFFER, this.fb)
 		if(this.fb.texture === tex){
 			this.fb.width = tex.width
@@ -371,12 +363,20 @@ class Target{
 		if((pmask^mask)&16776960) gl.blendFuncSeparate((mask>>8&15)+766*!!(mask&3584), (mask>>16&15)+766*!!(mask&917504), (mask>>12&15)+766*!!(mask&57344), (mask>>20&15)+766*!!(mask&14680064))
 		if((mask^pmask)&134217728) if(mask&134217728) gl.enable(GL.DITHER); else gl.disable(GL.DITHER)
 		pmask = mask
+		let tt = this.fb?.texture
 		if(Array.isArray(textures)){
-			if(textures.length > 8) throw new RangeError('.draw(): Cannot use more than 8 textures at a time')
+			if(textures.length > 8) return void((warns&4)&&(warns&=-5,console.warn('.draw(): Cannot use more than 8 textures at a time'))
 			let av = 255
 			for(let i = 0; i < textures.length; i++){
 				const t = textures[i]
-				if(t.unit > -1) av &= -129>>t.unit, gl.uniform1i(curProgram.tunis[i], t.unit)
+				if(t==tt) return void((warns&8)&&(warns&=-9,console.warn('.draw(): Cannot use texture that is also being drawn to'))
+				if(t.unit > -1){
+					av &= -129>>t.unit, gl.uniform1i(curProgram.tunis[i], t.unit)
+					if(t.mipmap&1){
+			  	if(currentUnit!=t.unit) gl.activeTexture(GL.TEXTURE0+(currentUnit=t.unit))
+			  	gl.generateMipmap(GL.TEXTURE_2D)
+	  		}
+				}
 			}
 			for(let i = 0; i < textures.length; i++){
 				const t = textures[i]
@@ -386,15 +386,22 @@ class Target{
 				gl.activeTexture(GL.TEXTURE0+currentUnit)
 				bindt(t)
 				gl.uniform1i(curProgram.tunis[i], currentUnit)
+				if(t.mipmap&1) gl.generateMipmap(GL.TEXTURE_2D)
 			}
 		}else if(textures){
-			if(textures.unit > -1) gl.uniform1i(curProgram.tunis[0], textures.unit)
-			else{
-				if(currentUnit != 0) gl.activeTexture(GL.TEXTURE0+(currentUnit=0))
+			if(textures.unit > -1){
+				gl.uniform1i(curProgram.tunis[0], textures.unit)
+				if(textures.mipmap&1){
+			 	if(currentUnit!=textures.unit) gl.activeTexture(GL.TEXTURE0+(currentUnit=textures.unit))
+			 	gl.generateMipmap(GL.TEXTURE_2D)
+		 	}
+			}else{
 				bindt(textures)
-				gl.uniform1i(curProgram.tunis[0], 0)
+				gl.uniform1i(curProgram.tunis[0], currentUnit)
+				if(textures.mipmap&1) gl.generateMipmap(GL.TEXTURE_2D)
 			}
 		}
+		if(tt) tt.mipmap|=1
 		if(buf instanceof WebGLVertexArrayObject){
 			if(bvo != buf) gl.bindVertexArray(bvo = buf)
 			gl.drawArraysInstanced(GL.TRIANGLE_STRIP, 0, 4, buf.count)
