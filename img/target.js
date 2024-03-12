@@ -61,7 +61,6 @@ Object.assign(WebGLTexture.prototype, {
 		bindt(this)
 		gl.texSubImage2D(GL.TEXTURE_2D, 0, x, y, thing.width, thing.height, 0, this.format[1], this.format[2], thing)
 		this.mipmap|=1
-		return this
 	},
 	options(options = defaultOptions){
 		bindt(this)
@@ -372,7 +371,7 @@ class Target{
 				if(t==tt) return void((warns&8)&&(warns&=-9,console.warn('.draw(): Cannot use texture that is also being drawn to')))
 				if(t.unit > -1){
 					av &= -129>>t.unit, gl.uniform1i(curProgram.tunis[i], t.unit)
-					if(t.mipmap&1){
+					if((t.mipmap&3)==3){
 			  	if(currentUnit!=t.unit) gl.activeTexture(GL.TEXTURE0+(currentUnit=t.unit))
 			  	gl.generateMipmap(GL.TEXTURE_2D)
 	  		}
@@ -386,19 +385,19 @@ class Target{
 				gl.activeTexture(GL.TEXTURE0+currentUnit)
 				bindt(t)
 				gl.uniform1i(curProgram.tunis[i], currentUnit)
-				if(t.mipmap&1) gl.generateMipmap(GL.TEXTURE_2D)
+				if((t.mipmap&3)==3) gl.generateMipmap(GL.TEXTURE_2D)
 			}
 		}else if(textures){
 			if(textures.unit > -1){
 				gl.uniform1i(curProgram.tunis[0], textures.unit)
-				if(textures.mipmap&1){
+				if((textures.mipmap&3)==3){
 			 	if(currentUnit!=textures.unit) gl.activeTexture(GL.TEXTURE0+(currentUnit=textures.unit))
 			 	gl.generateMipmap(GL.TEXTURE_2D)
 		 	}
 			}else{
 				bindt(textures)
 				gl.uniform1i(curProgram.tunis[0], currentUnit)
-				if(textures.mipmap&1) gl.generateMipmap(GL.TEXTURE_2D)
+				if((textures.mipmap&3)==3) gl.generateMipmap(GL.TEXTURE_2D)
 			}
 		}
 		if(tt) tt.mipmap|=1
