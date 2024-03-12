@@ -240,7 +240,7 @@ class Target{
 		}
 	}
 	setTexture(tex){
-		if(!this.fb) return void((warns&2)&&(warns&=-3,console.warn('Cannot attach a texture to the main target (its output must always be the <canvas>, use .resize() to change size/format)'))
+		if(!this.fb) return void((warns&2)&&(warns&=-3,console.warn('Cannot attach a texture to the main target (its output must always be the <canvas>, use .resize() to change size/format)')))
 		gl.bindFramebuffer(GL.READ_FRAMEBUFFER, this.fb)
 		if(this.fb.texture === tex){
 			this.fb.width = tex.width
@@ -365,11 +365,11 @@ class Target{
 		pmask = mask
 		let tt = this.fb?.texture
 		if(Array.isArray(textures)){
-			if(textures.length > 8) return void((warns&4)&&(warns&=-5,console.warn('.draw(): Cannot use more than 8 textures at a time'))
+			if(textures.length > 8) return void((warns&4)&&(warns&=-5,console.warn('.draw(): Cannot use more than 8 textures at a time')))
 			let av = 255
 			for(let i = 0; i < textures.length; i++){
 				const t = textures[i]
-				if(t==tt) return void((warns&8)&&(warns&=-9,console.warn('.draw(): Cannot use texture that is also being drawn to'))
+				if(t==tt) return void((warns&8)&&(warns&=-9,console.warn('.draw(): Cannot use texture that is also being drawn to')))
 				if(t.unit > -1){
 					av &= -129>>t.unit, gl.uniform1i(curProgram.tunis[i], t.unit)
 					if(t.mipmap&1){
