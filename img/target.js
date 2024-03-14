@@ -453,7 +453,7 @@ class Target{
 			gl.bufferData(GL.ARRAY_BUFFER, buf.arr.length*32760+buf.arr.i*4, GL.STREAM_DRAW)
 			for(let i = 0; i < buf.arr.length; i++)
 				gl.bufferSubData(GL.ARRAY_BUFFER, i*32760, buf.arr[i])
-			gl.bufferSubData(GL.ARRAY_BUFFER, buf.arr.length*32760, buf.arr.cur, 0, buf.arr.i)
+			gl.bufferSubData(GL.ARRAY_BUFFER, buf.arr.length*32760, buf.arr.cur, 0, buf.arr.i*4)
 			gl.drawArraysInstanced(GL.TRIANGLE_STRIP, 0, 4, Math.min(count, buf.count))
 			buf.delete()
 		}
