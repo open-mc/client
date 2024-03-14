@@ -234,7 +234,7 @@ class Target{
 			fb.texture = null
 			gl.bindFramebuffer(GL.READ_FRAMEBUFFER, fb)
 			if(fb.colorR) gl.deleteRenderbuffer(fb.colorR)
-			const s = fb.stencilR = gl.createRenderbuffer()
+			const s = fb.colorR = gl.createRenderbuffer()
 			gl.bindRenderbuffer(GL.RENDERBUFFER, s)
 			gl.renderbufferStorage(GL.RENDERBUFFER, format[0], w, h)
 			gl.framebufferRenderbuffer(GL.READ_FRAMEBUFFER, GL.COLOR_ATTACHMENT0, GL.RENDERBUFFER, s)
@@ -271,7 +271,7 @@ class Target{
 		this.fb.texture = tex
 		this.fb.width = tex.width
 		this.fb.height = tex.height
-		if(this.fb.colorR) gl.deleteRenderbuffer(this.fb.colorR)
+		if(this.fb.colorR) gl.deleteRenderbuffer(this.fb.colorR),this.fb.colorR=null
 		gl.framebufferTexture2D(GL.READ_FRAMEBUFFER, GL.COLOR_ATTACHMENT0, GL.TEXTURE_2D, tex, 0)
 		if(this.fb.stencil>=0){
 			if(this.fb.stencilR) gl.deleteRenderbuffer(this.fb.stencilR)
@@ -452,10 +452,9 @@ NS.setTargetCanvas = c => {
 	gl.pixelStorei(37440, 1) // flip y
 	gl.pixelStorei(37441, 1) // premultiplied alpha
 	glbuf = gl.createBuffer()
-	gl.bindBuffer(GL.ARRAY_BUFFER, glbuf)
-	gl.bufferData(GL.ARRAY_BUFFER, 32760, GL.STREAM_DRAW)
 	vbo = gl.createVertexArray()
 	gl.bindVertexArray(bvo = vbo)
+	gl.bindBuffer(GL.ARRAY_BUFFER, glbuf)
 	gl.vertexAttribPointer(0, 3, F, false, 56, 0)
 	gl.vertexAttribPointer(1, 3, F, false, 56, 12)
 	gl.vertexAttribPointer(2, 4, F, false, 56, 24)
