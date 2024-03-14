@@ -188,7 +188,7 @@ class M{
 		}
 		v.count = L/56
 		v.buf = b
-		if(fpool.length < 128) fpool.push(this.arr.cur); this.arr.cur = null
+		if(fpool.length < 128) fpool.push(this.arr.cur)
 		for(let i = Math.min(this.arr.length, 128-fpool.length); i >= 0; i--) fpool.push(this.arr[i])
 		this.arr.length = 0
 		return v
@@ -196,9 +196,31 @@ class M{
 	get count(){ return this.arr.length*585+this.arr.i/14 }
 	delete(){
 		if(!this.arr) return
-		if(fpool.length < 128) fpool.push(this.arr.cur); this.arr.cur = null
+		if(fpool.length < 128) fpool.push(this.arr.cur)
 		for(let i = Math.min(this.arr.length, 128-fpool.length); i >= 0; i--) fpool.push(this.arr[i])
-		this.arr.length = 0
+		this.arr.length = 0; this.arr.cur = null
+		this.arr.i = 0
+	}
+	export(){
+		const f = new Float32Array(this.arr.length*8190+this.arr.i)
+		for(let i = 0; i < this.arr.length; i++){
+			f.set(this.arr[i], i*8190)
+		}
+		if(this.arr.i) f.set(this.arr.cur.subarray(0, this.arr.i), this.arr.length*8190)
+		return f
+	}
+	import(f){
+		if(f instanceof ArrayBuffer) f = new Float32Array(f)
+		if(f.length%14)return void((warns&16)&&(warns&=-17,console.warn('.import(): Length must be a multiple of 14')))
+		let j = Math.min(f.length, 8190-this.arr.i)
+		if(j) this.arr.cur.set(f.subarray(0, j), this.arr.i)
+		if((this.arr.i += j)>=8190) this.arr.push(this.arr.cur), this.arr.cur = fpool.pop() ?? new Float32Array(8190),this.arr.i=0
+		else return
+		while(j<=f.length-8190)
+			this.arr.push(f.slice(j,j+=8190))
+		const a = f.subarray(j)
+		this.arr.cur.set(a)
+		this.arr.cur.i = 0
 	}
 }
 WebGLVertexArrayObject.prototype.delete = function(){
@@ -345,7 +367,7 @@ class Target{
 		}
 		gl.stencilMask(1<<(this.fb?this.fb.stencil:mainStencil))
 	}
-	draw(buf, textures, mask = 15, blend = 1135940){
+	draw(buf, textures, mask = 15, blend = 1135940, count=Infinity){
 		const W = this.fb?this.fb.width:gl.canvas.width, H = this.fb?this.fb.height:gl.canvas.height
 		if(!W|!H) return
 		if(vpw!=W||vph!=H) gl.viewport(0,0,W,H)
@@ -421,21 +443,21 @@ class Target{
 		if(tt) tt.mipmap|=1
 		if(buf instanceof WebGLVertexArrayObject){
 			if(bvo != buf) gl.bindVertexArray(bvo = buf)
-			gl.drawArraysInstanced(GL.TRIANGLE_STRIP, 0, 4, buf.count)
-		}else if(buf.byteLength){
-			gl.bindBuffer(GL.ARRAY_BUFFER, glbuf)
-			if(bvo != vbo) gl.bindVertexArray(bvo = vbo)
+			gl.drawArraysInstanced(GL.TRIANGLE_STRIP, 0, 4, Math.min(count, buf.count))
+			return
+		}
+		gl.bindBuffer(GL.ARRAY_BUFFER, glbuf)
+		if(bvo) gl.bindVertexArray(bvo = null)
+		if(!buf.arr){
 			gl.bufferData(GL.ARRAY_BUFFER, buf, GL.STREAM_DRAW)
-			gl.drawArraysInstanced(GL.TRIANGLE_STRIP, 0, 4, buf.length/14)
+			gl.drawArraysInstanced(GL.TRIANGLE_STRIP, 0, 4, Math.min(count, buf.byteLength/56))
 		}else{
-			gl.bindBuffer(GL.ARRAY_BUFFER, glbuf)
-			if(bvo != vbo) gl.bindVertexArray(bvo = vbo)
-			for(let i = 0; i < buf.arr.length; i++){
-				gl.bufferData(GL.ARRAY_BUFFER, buf.arr[i], GL.STREAM_DRAW)
-				gl.drawArraysInstanced(GL.TRIANGLE_STRIP, 0, 4, 585)
-			}
-			gl.bufferData(GL.ARRAY_BUFFER, buf.arr.cur, GL.STREAM_DRAW)
-			gl.drawArraysInstanced(GL.TRIANGLE_STRIP, 0, 4, buf.arr.i/14)
+			gl.bufferData(GL.ARRAY_BUFFER, buf.arr.length*32760+buf.arr.i*4, GL.STREAM_DRAW)
+			for(let i = 0; i < buf.arr.length; i++)
+				gl.bufferSubData(GL.ARRAY_BUFFER, i*32760, buf.arr[i])
+			gl.bufferSubData(GL.ARRAY_BUFFER, buf.arr.length*32760, buf.arr.cur, 0, buf.arr.i)
+			gl.drawArraysInstanced(GL.TRIANGLE_STRIP, 0, 4, Math.min(count, buf.count))
+			buf.delete()
 		}
 	}
 	delete(){
@@ -446,14 +468,12 @@ class Target{
 		if(fb.colorR) gl.deleteRenderbuffer(fb.colorR)
 	}
 }
-let bvo = null, glbuf, vbo, curProgram
+let bvo = null, glbuf, curProgram
 NS.setTargetCanvas = c => {
 	gl = c.getContext('webgl2', {preserveDrawingBuffer: false, antialias: false, depth: false, premultipliedAlpha: true, stencil: true})
 	gl.pixelStorei(37440, 1) // flip y
 	gl.pixelStorei(37441, 1) // premultiplied alpha
 	glbuf = gl.createBuffer()
-	vbo = gl.createVertexArray()
-	gl.bindVertexArray(bvo = vbo)
 	gl.bindBuffer(GL.ARRAY_BUFFER, glbuf)
 	gl.vertexAttribPointer(0, 3, F, false, 56, 0)
 	gl.vertexAttribPointer(1, 3, F, false, 56, 12)
