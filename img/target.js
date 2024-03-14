@@ -188,11 +188,7 @@ class M{
 		}
 		v.count = L/56
 		v.buf = b
-		if(fpool.length < 128) fpool.push(this.arr.cur)
-		for(let i = Math.min(this.arr.length, 128-fpool.length); i >= 0; i--) fpool.push(this.arr[i])
-		this.arr.length = 0
-		this.arr.cur = null
-		this.arr.i = 0
+		this.delete()
 		return v
 	}
 	get count(){ return this.arr.length*585+this.arr.i/14 }
