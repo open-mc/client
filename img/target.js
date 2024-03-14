@@ -219,7 +219,7 @@ class M{
 			this.arr.push(f.slice(j,j+=8190))
 		const a = f.subarray(j)
 		this.arr.cur.set(a)
-		this.arr.cur.i = 0
+		this.arr.i = a.length
 	}
 }
 WebGLVertexArrayObject.prototype.delete = function(){
