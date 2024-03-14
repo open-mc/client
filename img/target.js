@@ -91,6 +91,7 @@ Object.assign(WebGLTexture.prototype, {
 		this.mipmap|=1
 	},
 	uv(x=0,y=0,w=0,h=0){ return {x:x/this.width,y:y/this.height,w:w/this.width,h:h/this.height,sub} }
+	delete(){ gl.deleteTexture(this) }
 })
 const fpool = []
 NS.CommandBuffer = () => {
@@ -186,12 +187,23 @@ class M{
 			gl.vertexAttribDivisor(i, 1)
 		}
 		v.count = L/56
+		v.buf = b
 		if(fpool.length < 128) fpool.push(this.arr.cur); this.arr.cur = null
-		for(let i = Math.min(this.arr.length); i >= 0; i--) fpool.push(this.arr[i])
+		for(let i = Math.min(this.arr.length, 128-fpool.length); i >= 0; i--) fpool.push(this.arr[i])
 		this.arr.length = 0
 		return v
 	}
 	get count(){ return this.arr.length*585+this.arr.i/14 }
+	delete(){
+		if(!this.arr) return
+		if(fpool.length < 128) fpool.push(this.arr.cur); this.arr.cur = null
+		for(let i = Math.min(this.arr.length, 128-fpool.length); i >= 0; i--) fpool.push(this.arr[i])
+		this.arr.length = 0
+	}
+}
+WebGLVertexArrayObject.prototype.delete = function(){
+	gl.deleteVertexArray(this)
+	if(this.buf) gl.deleteBuffer(this.buf)
 }
 const mat2x3 = new Float32Array(6)
 let fb = null
@@ -217,15 +229,18 @@ class Target{
 		return arr
 	}
 	resize(width = this.width, height = this.height, format = NS.Formats.RGBA8){
-		if(this.fb){
-			this.fb.texture = null
-			gl.bindFramebuffer(GL.READ_FRAMEBUFFER, this.fb)
-			const s = gl.createRenderbuffer()
+		const fb = this.fb
+		if(fb){
+			fb.texture = null
+			gl.bindFramebuffer(GL.READ_FRAMEBUFFER, fb)
+			if(fb.colorR) gl.deleteRenderbuffer(fb.colorR)
+			const s = fb.stencilR = gl.createRenderbuffer()
 			gl.bindRenderbuffer(GL.RENDERBUFFER, s)
 			gl.renderbufferStorage(GL.RENDERBUFFER, format[0], w, h)
 			gl.framebufferRenderbuffer(GL.READ_FRAMEBUFFER, GL.COLOR_ATTACHMENT0, GL.RENDERBUFFER, s)
-			if(this.fb.stencil>=0){
-				const s = gl.createRenderbuffer()
+			if(fb.stencil>=0){
+				if(fb.stencilR) gl.deleteRenderbuffer(fb.stencilR)
+				const s = fb.stencilR = gl.createRenderbuffer()
 				gl.bindRenderbuffer(GL.RENDERBUFFER, s)
 				gl.renderbufferStorage(GL.RENDERBUFFER, GL.STENCIL_INDEX8, width, height)
 				gl.framebufferRenderbuffer(GL.READ_FRAMEBUFFER, GL.STENCIL_ATTACHMENT, GL.RENDERBUFFER, s)
@@ -245,7 +260,8 @@ class Target{
 			this.fb.width = tex.width
 			this.fb.height = tex.height
 			if(this.fb.stencil>=0){
-				const s = gl.createRenderbuffer()
+				if(this.fb.stencilR) gl.deleteRenderbuffer(this.fb.stencilR)
+				const s = this.fb.stencilR = gl.createRenderbuffer()
 				gl.bindRenderbuffer(GL.RENDERBUFFER, s)
 				gl.renderbufferStorage(GL.RENDERBUFFER, GL.STENCIL_INDEX8, tex.width, tex.height)
 				gl.framebufferRenderbuffer(GL.READ_FRAMEBUFFER, GL.STENCIL_ATTACHMENT, GL.RENDERBUFFER, s)
@@ -255,9 +271,11 @@ class Target{
 		this.fb.texture = tex
 		this.fb.width = tex.width
 		this.fb.height = tex.height
+		if(this.fb.colorR) gl.deleteRenderbuffer(this.fb.colorR)
 		gl.framebufferTexture2D(GL.READ_FRAMEBUFFER, GL.COLOR_ATTACHMENT0, GL.TEXTURE_2D, tex, 0)
 		if(this.fb.stencil>=0){
-			const s = gl.createRenderbuffer()
+			if(this.fb.stencilR) gl.deleteRenderbuffer(this.fb.stencilR)
+			const s = this.fb.stencilR = gl.createRenderbuffer()
 			gl.bindRenderbuffer(GL.RENDERBUFFER, s)
 			gl.renderbufferStorage(GL.RENDERBUFFER, GL.STENCIL_INDEX8, tex.width, tex.height)
 			gl.framebufferRenderbuffer(GL.READ_FRAMEBUFFER, GL.STENCIL_ATTACHMENT, GL.RENDERBUFFER, s)
@@ -420,6 +438,13 @@ class Target{
 			gl.drawArraysInstanced(GL.TRIANGLE_STRIP, 0, 4, buf.arr.i/14)
 		}
 	}
+	delete(){
+		const fb = this.fb
+		if(!fb) return
+		gl.deleteFramebuffer(fb)
+		if(fb.stencilR) gl.deleteRenderbuffer(fb.stencilR)
+		if(fb.colorR) gl.deleteRenderbuffer(fb.colorR)
+	}
 }
 let bvo = null, glbuf, vbo, curProgram
 NS.setTargetCanvas = c => {
@@ -530,13 +555,13 @@ NS.Target = (w = 0, h = 0, format = NS.Formats.RGBA8, no_stencil = false) => {
 		gl.framebufferTexture2D(GL.READ_FRAMEBUFFER, GL.COLOR_ATTACHMENT0, GL.TEXTURE_2D, t.texture, 0)
 	}else{
 		t.width = w; t.height = h
-		const s = gl.createRenderbuffer()
+		const s = t.colorR = gl.createRenderbuffer()
 		gl.bindRenderbuffer(GL.RENDERBUFFER, s)
 		gl.renderbufferStorage(GL.RENDERBUFFER, format[0], w, h)
 		gl.framebufferRenderbuffer(GL.READ_FRAMEBUFFER, GL.COLOR_ATTACHMENT0, GL.RENDERBUFFER, s)
 	}
 	if(!no_stencil){
-		const s = gl.createRenderbuffer()
+		const s = t.stencilR = gl.createRenderbuffer()
 		gl.bindRenderbuffer(GL.RENDERBUFFER, s)
 		gl.renderbufferStorage(GL.RENDERBUFFER, GL.STENCIL_INDEX8, w, h)
 		gl.framebufferRenderbuffer(GL.READ_FRAMEBUFFER, GL.STENCIL_ATTACHMENT, GL.RENDERBUFFER, s)
