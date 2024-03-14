@@ -191,6 +191,8 @@ class M{
 		if(fpool.length < 128) fpool.push(this.arr.cur)
 		for(let i = Math.min(this.arr.length, 128-fpool.length); i >= 0; i--) fpool.push(this.arr[i])
 		this.arr.length = 0
+		this.arr.cur = null
+		this.arr.i = 0
 		return v
 	}
 	get count(){ return this.arr.length*585+this.arr.i/14 }
@@ -198,7 +200,8 @@ class M{
 		if(!this.arr) return
 		if(fpool.length < 128) fpool.push(this.arr.cur)
 		for(let i = Math.min(this.arr.length, 128-fpool.length); i >= 0; i--) fpool.push(this.arr[i])
-		this.arr.length = 0; this.arr.cur = null
+		this.arr.length = 0
+		this.arr.cur = null
 		this.arr.i = 0
 	}
 	export(){
