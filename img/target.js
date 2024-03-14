@@ -193,7 +193,6 @@ class M{
 	}
 	get count(){ return this.arr.length*585+this.arr.i/14 }
 	delete(){
-		if(!this.arr) return
 		if(fpool.length < 128) fpool.push(this.arr.cur)
 		for(let i = Math.min(this.arr.length, 128-fpool.length); i >= 0; i--) fpool.push(this.arr[i])
 		this.arr.length = 0
