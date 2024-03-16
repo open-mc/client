@@ -125,10 +125,21 @@ class M{
 	}
 	transform(a,b,c,d,e,f){
 		const ta=this.#a,tb=this.#b,tc=this.#c,td=this.#d,te=this.#e,tf=this.#f
-		this.a = a*ta+c*tb; this.b = b*ta+d*tb
-		this.c = a*tc+c*td; this.d = b*tc+d*td
-		this.e = a*te+c*tf+e; this.f = b*te+d*tf+f
+		this.#a = a*ta+c*tb; this.#b = b*ta+d*tb
+		this.#c = a*tc+c*td; this.#d = b*tc+d*td
+		this.#e = a*te+c*tf+e; this.#f = b*te+d*tf+f
 	}
+	skew(x=0, y=0){
+		const ta=this.#a,tb=this.#b
+		this.#a+=this.#c*y; this.#b+=this.#d*y
+		this.#c+=ta*x; this.#d+=tb*x
+	}
+	multiply(x=1, y=0){
+		const ta=this.#a,tc=this.#c
+		this.#a=ta*x-this.#b*y;this.#b=ta*y+this.#b*x
+		this.#c=tc*x-this.#d*y;this.#d=tc*y+this.#d*x
+	}
+	getTransform(){ return {a: this.#a, b: this.#b, c: this.#c, d: this.#d, e: this.#e, f: this.#f} }
 	new(a=1,b=0,c=0,d=1,e=0,f=0){return new M(this.arr,a,b,c,d,e,f)}
 	reset(a=1,b=0,c=0,d=1,e=0,f=0){this.#a=a;this.#b=b;this.#c=c;this.#d=d;this.#e=e;this.#f=f}
 	box(x=0,y=0,w=1,h=w){ this.#e+=x*this.#a+y*this.#c; this.#f+=x*this.#b+y*this.#d; this.#a*=w; this.#b*=w; this.#c*=h; this.#d*=h }
@@ -316,10 +327,21 @@ class Target{
 	}
 	transform(a,b,c,d,e,f){
 		const ta=this.#a,tb=this.#b,tc=this.#c,td=this.#d,te=this.#e,tf=this.#f
-		this.a = a*ta+c*tb; this.b = b*ta+d*tb
-		this.c = a*tc+c*td; this.d = b*tc+d*td
-		this.e = a*te+c*tf+e; this.f = b*te+d*tf+f
+		this.#a = a*ta+c*tb; this.#b = b*ta+d*tb
+		this.#c = a*tc+c*td; this.#d = b*tc+d*td
+		this.#e = a*te+c*tf+e; this.#f = b*te+d*tf+f
 	}
+	skew(x=0, y=0){
+		const ta=this.#a,tb=this.#b
+		this.#a+=this.#c*y; this.#b+=this.#d*y
+		this.#c+=ta*x; this.#d+=tb*x
+	}
+	multiply(x=1, y=0){
+		const ta=this.#a,tc=this.#c
+		this.#a=ta*x-this.#b*y;this.#b=ta*y+this.#b*x
+		this.#c=tc*x-this.#d*y;this.#d=tc*y+this.#d*x
+	}
+	getTransform(){ return {a: this.#a, b: this.#b, c: this.#c, d: this.#d, e: this.#e, f: this.#f} }
 	new(a=1,b=0,c=0,d=1,e=0,f=0){return new Target(this.fb,a,b,c,d,e,f)}
 	reset(a=1,b=0,c=0,d=1,e=0,f=0,ux=0,uy=0,uz=0,uw=0,vx=0,vy=0,vz=0,vw=0){this.#a=a;this.#b=b;this.#c=c;this.#d=d;this.#e=e;this.#f=f;this.#ux=ux;this.#uy=uy;this.#uz=uz;this.#uw=uw;this.#vx=vx;this.#vy=vy;this.#vz=vz;this.#vw=vw}
 	box(x=0,y=0,w=1,h=w){ this.#e+=x*this.#a+y*this.#c; this.#f+=x*this.#b+y*this.#d; this.#a*=w; this.#b*=w; this.#c*=h; this.#d*=h }
