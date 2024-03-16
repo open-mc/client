@@ -312,8 +312,8 @@ class Target{
 			gl.framebufferRenderbuffer(GL.READ_FRAMEBUFFER, GL.STENCIL_ATTACHMENT, GL.RENDERBUFFER, s)
 		}
 	}
-	constructor(fb,a=1,b=0,c=0,d=1,e=0,f=0,ux=0,uy=0,uz=0,uw=0,vx=0,vy=0,vz=0,vw=0){
-		this.fb=fb
+	constructor(fb,p,a=1,b=0,c=0,d=1,e=0,f=0,ux=0,uy=0,uz=0,uw=0,vx=0,vy=0,vz=0,vw=0){
+		this.fb=fb; this.p=p
 		this.#a=a;this.#b=b;this.#c=c;this.#d=d;this.#e=e;this.#f=f
 		this.#ux=ux;this.#uy=uy;this.#uz=uz;this.#uw=uw
 		this.#vx=vx;this.#vy=vy;this.#vz=vz;this.#vw=vw
@@ -342,8 +342,8 @@ class Target{
 		this.#c=tc*x-this.#d*y;this.#d=tc*y+this.#d*x
 	}
 	getTransform(){ return {a: this.#a, b: this.#b, c: this.#c, d: this.#d, e: this.#e, f: this.#f} }
-	new(a=1,b=0,c=0,d=1,e=0,f=0){return new Target(this.fb,a,b,c,d,e,f)}
-	reset(a=1,b=0,c=0,d=1,e=0,f=0,ux=0,uy=0,uz=0,uw=0,vx=0,vy=0,vz=0,vw=0){this.#a=a;this.#b=b;this.#c=c;this.#d=d;this.#e=e;this.#f=f;this.#ux=ux;this.#uy=uy;this.#uz=uz;this.#uw=uw;this.#vx=vx;this.#vy=vy;this.#vz=vz;this.#vw=vw}
+	new(a=1,b=0,c=0,d=1,e=0,f=0){return new Target(this.fb,defaultProgram,a,b,c,d,e,f)}
+	reset(a=1,b=0,c=0,d=1,e=0,f=0,ux=0,uy=0,uz=0,uw=0,vx=0,vy=0,vz=0,vw=0){this.#a=a;this.#b=b;this.#c=c;this.#d=d;this.#e=e;this.#f=f;this.#ux=ux;this.#uy=uy;this.#uz=uz;this.#uw=uw;this.#vx=vx;this.#vy=vy;this.#vz=vz;this.#vw=vw;this.p=defaultProgram}
 	box(x=0,y=0,w=1,h=w){ this.#e+=x*this.#a+y*this.#c; this.#f+=x*this.#b+y*this.#d; this.#a*=w; this.#b*=w; this.#c*=h; this.#d*=h }
 	to(x, y){if(typeof x=='object')({x,y}=x);return {x:this.#a*x+this.#c*y+this.#e,y:this.#b*x+this.#d*y+this.#f}}
 	from(x, y){
@@ -354,7 +354,8 @@ class Target{
 			y: (y*a - y*b + b*this.#e - a*this.#f)/det
 		}
 	}
-	copy(){ return new Target(this.fb,this.#a,this.#b,this.#c,this.#d,this.#e,this.#f,this.#ux,this.#uy,this.#uz,this.#uw,this.#vx,this.#vy,this.#vz,this.#vw) }
+	copy(){ return new Target(this.fb,this.p,this.#a,this.#b,this.#c,this.#d,this.#e,this.#f,this.#ux,this.#uy,this.#uz,this.#uw,this.#vx,this.#vy,this.#vz,this.#vw) }
+	useShader(p=defaultProgram){ this.p = p }
 	uniform1(ux=0,uy=0,uz=0,uw=0){this.#ux=ux;this.#uy=uy;this.#uz=uz;this.#uw=uw}
 	uniform2(vx=0,vy=0,vz=0,vw=0){this.#vx=vx;this.#vy=vy;this.#vz=vz;this.#vw=vw}
 	clear(r = 0, g = 0, b = 0, a = 0){
@@ -460,6 +461,7 @@ class Target{
 				if((textures.mipmap&3)==3) gl.generateMipmap(GL.TEXTURE_2D)
 			}
 		}
+		if(curProgram!=this.p) gl.useProgram(curProgram = this.p)
 		if(tt) tt.mipmap|=1
 		if(buf instanceof WebGLVertexArrayObject){
 			if(bvo != buf) gl.bindVertexArray(bvo = buf)
@@ -488,7 +490,7 @@ class Target{
 		if(fb.colorR) gl.deleteRenderbuffer(fb.colorR)
 	}
 }
-let bvo = null, glbuf, curProgram
+let bvo = null, glbuf, curProgram, defaultProgram
 NS.setTargetCanvas = c => {
 	gl = c.getContext('webgl2', {preserveDrawingBuffer: false, antialias: false, depth: false, premultipliedAlpha: true, stencil: true})
 	gl.pixelStorei(37440, 1) // flip y
@@ -517,7 +519,7 @@ NS.setTargetCanvas = c => {
 	mainStencil = 0
 	pmask = 285217039
 	ux=0, uy=0, uz=0, uw=0, vx=0, vy=0, vz=0, vw=0
-	return new Target(null)
+	return new Target(null, defaultProgram)
 }
 Object.assign(NS, {
 	R: 1, G: 2, B: 4, A: 8,
@@ -606,7 +608,7 @@ NS.Target = (w = 0, h = 0, format = NS.Formats.RGBA8, no_stencil = false) => {
 		gl.framebufferRenderbuffer(GL.READ_FRAMEBUFFER, GL.STENCIL_ATTACHMENT, GL.RENDERBUFFER, s)
 		t.stencil = 0
 	}
-	return new Target(t)
+	return new Target(t, defaultProgram)
 }
 
 NS.Shader = src => {
@@ -645,11 +647,4 @@ void main(){color=vec4(0,0,0,1);}`)
 	p.uni2 = gl.getUniformLocation(p, 'u2')
 	p.tunis = Array.from({length:8},(_,i) => gl.getUniformLocation(p,'tex'+(i+1)))
 	return p
-}
-NS.useShader = (p=defaultProgram) => {
-	const o = curProgram
-	if(o!=p) gl.useProgram(curProgram = p)
-	return o
-}
-let defaultProgram
-}
+}}
