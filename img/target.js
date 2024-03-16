@@ -90,7 +90,7 @@ Object.assign(WebGLTexture.prototype, {
 		gl.texSubImage2D(GL.TEXTURE_2D, 0, sx, sy, sw, sh, format[1], format[2], data)
 		this.mipmap|=1
 	},
-	uv(x=0,y=0,w=0,h=0){ return {x:x/this.width,y:y/this.height,w:w/this.width,h:h/this.height,sub} },
+	uv(x=0,y=0,w=0,h=0){ return {x:x/this.width,y:1-(y+h)/this.height,w:w/this.width,h:h/this.height,sub} },
 	delete(){ gl.deleteTexture(this) }
 })
 const fpool = []
