@@ -393,6 +393,7 @@ class Target{
 		const W = (fb||gl.canvas).width, H = (fb||gl.canvas).height
 		if(!W|!H) return
 		if(vpw!=W||vph!=H) gl.viewport(0,0,vpw=W,vph=H)
+		if(curProgram!=this.p) gl.useProgram(curProgram = this.p),ux=vx=NaN
 		mat2x3[0] = this.#a*2; mat2x3[3] = this.#b*2; mat2x3[1] = this.#c*2
 		mat2x3[4] = this.#d*2; mat2x3[2] = this.#e*2-1; mat2x3[5] = this.#f*2-1
 		let b = this.fb?.texture?.unit??-1
@@ -461,7 +462,6 @@ class Target{
 				if((textures.mipmap&3)==3) gl.generateMipmap(GL.TEXTURE_2D)
 			}
 		}
-		if(curProgram!=this.p) gl.useProgram(curProgram = this.p)
 		if(tt) tt.mipmap|=1
 		if(buf instanceof WebGLVertexArrayObject){
 			if(bvo != buf) gl.bindVertexArray(bvo = buf)
