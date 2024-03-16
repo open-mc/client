@@ -234,8 +234,8 @@ let warns = -1
 let vpw = 0, vph = 0
 class Target{
 	fb;#a;#b;#c;#d;#e;#f;#ux;#uy;#uz;#uw;#vx;#vy;#vz;#vw
-	get width(){return this.fb?this.fb.width:gl.canvas.width}
-	get height(){return this.fb?this.fb.height:gl.canvas.height}
+	get width(){return (this.fb||gl.canvas).width}
+	get height(){return (this.fb||gl.canvas).height}
 	get texture(){return this.fb?.texture}
 	getData(x=0,y=0,w=this.width,h=this.height,arr=null){
 		gl.bindFramebuffer(GL.READ_FRAMEBUFFER, this.fb)
@@ -366,12 +366,12 @@ class Target{
 		gl.stencilMask(1<<(this.fb?this.fb.stencil:mainStencil))
 	}
 	draw(buf, textures, mask = 15, blend = 1135940, count=Infinity){
-		const W = this.fb?this.fb.width:gl.canvas.width, H = this.fb?this.fb.height:gl.canvas.height
+		if(fb!=this.fb) gl.bindFramebuffer(GL.FRAMEBUFFER, fb = this.fb)
+		const W = (fb||gl.canvas).width, H = (fb||gl.canvas).height
 		if(!W|!H) return
-		if(vpw!=W||vph!=H) gl.viewport(0,0,W,H)
+		if(vpw!=W||vph!=H) gl.viewport(0,0,vpw=W,vph=H)
 		mat2x3[0] = this.#a*2; mat2x3[3] = this.#b*2; mat2x3[1] = this.#c*2
 		mat2x3[4] = this.#d*2; mat2x3[2] = this.#e*2-1; mat2x3[5] = this.#f*2-1
-		if(fb!=this.fb) gl.bindFramebuffer(GL.FRAMEBUFFER, fb = this.fb)
 		let b = this.fb?.texture?.unit??-1
 		if(b>-1){
 			if(currentUnit != b) gl.activeTexture(GL.TEXTURE0+(currentUnit=b))
