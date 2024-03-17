@@ -617,17 +617,17 @@ NS.Shader = src => {
 	gl.shaderSource(vert, `#version 300 es
 uniform mat2x3 global;
 layout(location=0) in mat2x3 m; layout(location=2) in vec4 _uv; layout(location=3) in vec4 _tint;
-out vec2 uv; out vec4 tint;
+out vec2 uv, pos; out vec4 tint;
 void main(){
-	vec3 p = vec3(gl_VertexID&1, gl_VertexID>>1,1.);
-	gl_Position = vec4(vec3(p*m,1.)*global,0.,1.);
-	uv = _uv.xy + p.xy*_uv.zw; tint = _tint;
+	pos = vec2(gl_VertexID&1, gl_VertexID>>1);
+	gl_Position = vec4(vec3(vec3(pos,1.)*m,1.)*global,0.,1.);
+	uv = _uv.xy + pos*_uv.zw; tint = _tint;
 }`)
 	gl.compileShader(vert)
 	const frag = gl.createShader(GL.FRAGMENT_SHADER)
 	gl.shaderSource(frag, `#version 300 es
 	precision mediump float;
-in vec2 uv; in vec4 tint; out vec4 color; uniform sampler2D tex1, tex2, tex3, tex4, tex5, tex6, tex7, tex8; uniform vec4 u1, u2;
+in vec2 uv, pos; in vec4 tint; out vec4 color; uniform sampler2D tex1, tex2, tex3, tex4, tex5, tex6, tex7, tex8; uniform vec4 u1, u2;
 `+src)
 	gl.compileShader(frag)
 	const err = gl.getShaderInfoLog(frag)
@@ -635,7 +635,7 @@ in vec2 uv; in vec4 tint; out vec4 color; uniform sampler2D tex1, tex2, tex3, te
 		console.warn('GLSL error:\n',err)
 		gl.shaderSource(frag, `#version 300 es
 precision mediump float;
-in vec2 uv; in vec4 tint; out vec4 color; uniform sampler2D tex1, tex2, tex3, tex4, tex5, tex6, tex7, tex8; uniform vec4 u1, u2;
+out vec4 color; uniform sampler2D tex1, tex2, tex3, tex4, tex5, tex6, tex7, tex8; uniform vec4 u1, u2;
 void main(){color=vec4(0,0,0,1);}`)
 		gl.compileShader(frag)
 	}
