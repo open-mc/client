@@ -522,14 +522,14 @@ layout(location=0) in mat2x3 m;
 layout(location=2) in vec4 _uv;
 layout(location=3) in vec4 _tint;
 layout(location=4) in vec2 values;
-out vec2 uv, pos; flat out vec4 tint; flat out float layer, effect;
+out vec3 uv; out vec2 pos; flat out float effect; flat out vec4 tint;
 void main(){
 	pos = vec2(gl_VertexID&1, gl_VertexID>>1);
 	gl_Position = vec4(vec3(vec3(pos,1.)*m,1.)*global,0.,1.);
-	uv = _uv.xy + pos*_uv.zw; tint = _tint; layer = values.x; effect = values.y;
+	uv = vec3(_uv.xy + pos*_uv.zw, values.x); tint = _tint; effect = values.y;
 }`)
 	gl.compileShader(vert)
-	defaultProgram = NS.Shader(`void main(){ color = texture(tex0, uv)*(1.-tint); }`)
+	defaultProgram = NS.Shader(`void main(){ color = texture(tex0, uv.xy)*(1.-tint); }`)
 	gl.useProgram(curProgram = defaultProgram)
 	gl.clearStencil(0)
 	gl.stencilMask(1)
@@ -638,7 +638,7 @@ NS.Shader = src => {
 	gl.shaderSource(frag, `#version 300 es
 precision mediump float; precision highp int; precision highp usampler2D;
 precision mediump sampler2DArray; precision highp usampler2DArray;
-in vec2 uv, pos; flat in vec4 tint; flat in float layer, effect; out vec4 color;
+in vec3 uv; in vec2 pos; flat in float effect; flat in vec4 tint; out vec4 color;
 uniform sampler2D tex0, tex1, tex2, tex3, tex4, tex5, tex6, tex7;
 uniform usampler2D utex0, utex1, utex2, utex3, utex4, utex5, utex6, utex7;
 uniform sampler2DArray atex0, atex1, atex2, atex3, atex4, atex5, atex6, atex7;
@@ -650,7 +650,7 @@ uniform highp vec4 u; uniform highp uint s, t;
 	if(err){
 		console.warn('GLSL error:\n',err)
 		gl.shaderSource(frag, `#version 300 es
-precision mediump float; in vec2 uv; uniform sampler2D tex0; out vec4 color;void main(){color=texture(tex0,uv);}`)
+precision mediump float;out vec4 c;void main(){c=vec4(0,0,0,1);}`)
 		gl.compileShader(frag)
 	}
 	gl.attachShader(p, vert)
