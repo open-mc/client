@@ -41,7 +41,7 @@ function bindt(t){
 	gl.bindTexture(b, t)
 	return b
 }
-const BITMAP_OPTS = {imageOrientation: 'flipY', premultiplyAlpha: false}
+const BITMAP_OPTS = {imageOrientation: 'flipY', premultiplyAlpha: 'none'}
 let preprocess = true
 const TEX_PROTO = class{
 	from(thing, format = NS.Formats.RGBA, options = defaultOptions){
@@ -281,8 +281,8 @@ class Target{
 	}
 	copyTo(tex, dx=0, dy=0, dl=0, sx=0, sy=0, sw=this.width, sh=this.height){
 		if(fb!=this.fb) gl.bindFramebuffer(GL.FRAMEBUFFER, fb = this.fb)
-		bindt(tex) == GL.TEXTURE_2D ? gl.copyTexSubImage2D(GL.TEXTURE_2D, 0, dx, dy, dl, sx, sy, sw, sh)
-		: gl.copyTexSubImage3D(GL.TEXTURE_2D_ARRAY, 0, dx, dy, sx, sy, sw, sh)
+		bindt(tex) == GL.TEXTURE_2D ? gl.copyTexSubImage2D(GL.TEXTURE_2D, 0, dx, dy, sx, sy, sw, sh)
+		: gl.copyTexSubImage3D(GL.TEXTURE_2D_ARRAY, 0, dx, dy, dl, sx, sy, sw, sh)
 		tex.mipmap|=1
 	}
 	resize(width = this.width, height = this.height, format = NS.Formats.RGBA){
