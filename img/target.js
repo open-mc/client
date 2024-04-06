@@ -42,6 +42,7 @@ function bindt(t){
 	return b
 }
 const BITMAP_OPTS = {imageOrientation: 'flipY', premultiplyAlpha: false}
+let preprocess = true
 const TEX_PROTO = class{
 	from(thing, format = NS.Formats.RGBA, options = defaultOptions){
 		if(typeof thing != 'object') return
@@ -50,6 +51,7 @@ const TEX_PROTO = class{
 		if(thing.then) return thing.then(thing => this.from(thing, format, options))
 		bindt(this)
 		const {0: A, 1: B, 2: C} = format
+		if(!preprocess) gl.pixelStorei(37440,1), gl.pixelStorei(37441,1), preprocess = true
 		gl.texImage2D(GL.TEXTURE_2D, 0, A, this.width = thing.width, this.height = thing.height, 0, B, C, thing)
 		gl.texParameteri(GL.TEXTURE_2D, GL.TEXTURE_MAG_FILTER, (~options&1)+GL.NEAREST)
 		const f = (~options>>1)&3
@@ -63,6 +65,7 @@ const TEX_PROTO = class{
 		if(typeof thing != 'object') return
 		if(thing instanceof Blob) thing = createImageBitmap(thing, BITMAP_OPTS)
 		if(thing.then) return thing.then(thing => this.put(thing, x, y, l))
+		if(!preprocess) gl.pixelStorei(37440,1), gl.pixelStorei(37441,1), preprocess = true
 		if(bindt(this)==GL.TEXTURE_2D) gl.texSubImage2D(GL.TEXTURE_2D, 0, x, y, thing.width, thing.height, this.format[1], this.format[2], thing)
 		else gl.texSubImage3D(GL.TEXTURE_2D_ARRAY, 0, x, y, z, thing.width, thing.height, 1, this.format[1], this.format[2], thing)
 		this.mipmap|=1
@@ -95,16 +98,14 @@ const TEX_PROTO = class{
 	}
 	putData(sx=0, sy=0, sw, sh, data, format=this.format){
 		bindt(this)
-		gl.pixelStorei(37440,0)
+		if(preprocess) gl.pixelStorei(37440,0), gl.pixelStorei(37441,0), preprocess = false
 		gl.texSubImage2D(GL.TEXTURE_2D, 0, sx, sy, sw, sh, format[1], format[2], data)
-		gl.pixelStorei(37440,1)
 		this.mipmap|=1
 	}
 	putDataLayers(sx=0, sy=0, sz=0, sw, sh, sd, data, l=0, format=this.format){
 		bindt(this)
-		gl.pixelStorei(37440,0)
+		if(preprocess) gl.pixelStorei(37440,0), gl.pixelStorei(37441,0), preprocess = false
 		gl.texSubImage2D(GL.TEXTURE_2D_ARRAY, 0, sx, sy, sz, sw, sh, sd, format[1], format[2], data)
-		gl.pixelStorei(37440,1)
 		this.mipmap|=1
 	}
 	uv(x=0,y=0,w=this.width,h=this.height,l=0){ return {x:x/this.width,y:(1-y+h)/this.height,w:w/this.width,h:h/this.height,l,sub} }
@@ -268,7 +269,7 @@ class Target{
 	get texture(){return this.fb?.texture}
 	get gl(){return gl}
 	getData(x=0,y=0,w=this.width,h=this.height,arr=null){
-		gl.bindFramebuffer(GL.READ_FRAMEBUFFER, this.fb)
+		if(fb!=this.fb) gl.bindFramebuffer(GL.FRAMEBUFFER, fb=this.fb)
 		const f = this.fb?this.fb.format:mainFormat
 		if(!arr){
 			const a = f[0]
@@ -277,6 +278,12 @@ class Target{
 		}
 		gl.readPixels(x,y,w,h,f[1],f[2],arr)
 		return arr
+	}
+	copyTo(tex, dx=0, dy=0, dl=0, sx=0, sy=0, sw=this.width, sh=this.height){
+		if(fb!=this.fb) gl.bindFramebuffer(GL.FRAMEBUFFER, fb = this.fb)
+		bindt(tex) == GL.TEXTURE_2D ? gl.copyTexSubImage2D(GL.TEXTURE_2D, 0, dx, dy, dl, sx, sy, sw, sh)
+		: gl.copyTexSubImage3D(GL.TEXTURE_2D_ARRAY, 0, dx, dy, sx, sy, sw, sh)
+		tex.mipmap|=1
 	}
 	resize(width = this.width, height = this.height, format = NS.Formats.RGBA){
 		const fb = this.fb
@@ -322,7 +329,8 @@ class Target{
 		this.fb.format = tex.format
 		this.fb.l = l
 		if(this.fb.colorR) gl.deleteRenderbuffer(this.fb.colorR),this.fb.colorR=null
-		gl.framebufferTexture2D(GL.READ_FRAMEBUFFER, GL.COLOR_ATTACHMENT0, bindt(tex), tex, l)
+		!tex.layers ? gl.framebufferTexture2D(GL.READ_FRAMEBUFFER, GL.COLOR_ATTACHMENT0, GL.TEXTURE_2D, tex, 0)
+		: gl.framebufferTextureLayer(GL.READ_FRAMEBUFFER, GL.COLOR_ATTACHMENT0, tex, 0, l)
 	}
 	constructor(fb,p,a=1,b=0,c=0,d=1,e=0,f=0,ux=0,uy=0,uz=0,uw=0,vx=0,vy=0){
 		this.fb=fb; this.p=p
@@ -502,8 +510,7 @@ class Target{
 let bvo = null, glbuf, curProgram, defaultProgram
 NS.setTargetCanvas = c => {
 	gl = c.getContext('webgl2', {preserveDrawingBuffer: false, antialias: false, depth: false, premultipliedAlpha: true, stencil: true})
-	gl.pixelStorei(37440, 1) // flip y, all of our coords are bottom-left to top-right
-	gl.pixelStorei(37441, 0) // don't premultiply alpha
+	gl.pixelStorei(37440, 1) // flip y
 	glbuf = gl.createBuffer()
 	gl.bindBuffer(GL.ARRAY_BUFFER, glbuf)
 	gl.vertexAttribPointer(0, 3, F, false, 64, 0)
@@ -601,6 +608,7 @@ Object.assign(NS, {
 })
 NS.Blend = (src = 17, dst = 0, combine = 17) => src|dst<<8|combine<<16
 NS.Blend.REPLACE = 1114129
+NS.Blend.DEFAULT = 1135889
 NS.PI ??= Math.PI
 NS.colorSpace = space => {gl.drawingBufferColorSpace = space}
 
@@ -614,7 +622,8 @@ NS.Target = (w = 0, h = 0, format = NS.Formats.RGBA, stencil = true) => {
 		t.l = h
 		t.texture = w; stencil = !!format; format = t.texture.format
 		t.width = w = t.texture.width; t.height = h = t.texture.height
-		gl.framebufferTexture2D(GL.READ_FRAMEBUFFER, GL.COLOR_ATTACHMENT0, bindt(t.texture), t.texture, t.l)
+		!t.texture.layers ? gl.framebufferTexture2D(GL.READ_FRAMEBUFFER, GL.COLOR_ATTACHMENT0, GL.TEXTURE_2D, t.texture, 0)
+		: gl.framebufferTextureLayer(GL.READ_FRAMEBUFFER, GL.COLOR_ATTACHMENT0, t.texture, 0, t.l)
 	}else{
 		t.width = w; t.height = h
 		const s = t.colorR = gl.createRenderbuffer()
@@ -661,6 +670,6 @@ precision mediump float;out vec4 c;void main(){c=vec4(0,0,0,1);}`)
 	p.uni2 = gl.getUniformLocation(p, 's')
 	p.uni3 = gl.getUniformLocation(p, 't')
 	p.tunis = Array.from({length:8},(_,i) => gl.getUniformLocation(p,'tex'+i) || gl.getUniformLocation(p,'utex'+i) || gl.getUniformLocation(p,'atex'+i) || gl.getUniformLocation(p,'uatex'+i))
-	while(!p.tunis[p.tunis.length-1]) p.tunis.pop()
+	while(p.tunis.length&&!p.tunis[p.tunis.length-1]) p.tunis.pop()
 	return p
 }}
