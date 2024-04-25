@@ -40,11 +40,11 @@ function updateDrawn(o, n, ch, i){
 	}else if(n.texture && floor(n.texture.h / n.texture.w) > 1) ch.animatedTiles[i>>5] |= 1 << (i&31)
 	if(ch.ctx){
 		const {texture, render} = n
-		ch.ctx.clearRect(i&63, 63-(i>>6), 1, 1)
+		//ch.ctx.clearRect(i&63, 63-(i>>6), 1, 1)
 		let j = ch.rerenders.indexOf(i)
 		if((j == -1) & (render != undefined)) ch.rerenders.push(i)
 		else if((j > -1) & (render == undefined)) ch.rerenders.splice(j, 1)
-		if(texture) ch.ctx.drawImage(texture.canvas,texture.x,texture.y + (world.tick % floor(texture.h / texture.w)) * texture.w,texture.w,texture.w,i&63,63-(i>>6),1,1)
+		//if(texture) ch.ctx.drawImage(texture.canvas,texture.x,texture.y + (world.tick % floor(texture.h / texture.w)) * texture.w,texture.w,texture.w,i&63,63-(i>>6),1,1)
 	}
 }
 

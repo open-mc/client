@@ -2,9 +2,9 @@ import { Particle } from 'definitions'
 import './items.js'
 import './blocks.js'
 
-const {Audio, Texture} = loader(import.meta)
+const {Audio, OldTexture} = loader(import.meta)
 
-export const particlePng = Texture("particles.png")
+export const particlePng = OldTexture("particles.png")
 export const explode = [1,2,3,4].mmap(a => Audio(`sound/misc/explode${a}.mp3`))
 export const hurt = [1,2,3].mmap(a => Audio(`sound/misc/hurt${a}.mp3`))
 

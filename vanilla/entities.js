@@ -5,9 +5,9 @@ import { renderF3, uiLayer } from 'api'
 import { getblock, cam, worldEvents, world } from 'world'
 import { renderLeft, renderRight } from './creativeInventory.js'
 
-const {Audio, Texture} = loader(import.meta)
+const {Audio, OldTexture} = loader(import.meta)
 
-const meInterface = Texture('meint.png')
+const meInterface = OldTexture('meint.png')
 
 const damageSounds = [
 	null, Audio('sound/fire/extinguish.mp3')
@@ -370,7 +370,7 @@ Entities.tnt = class extends Entity{
 		for(let i = 0; i < 30; i++) new AshParticle(this.x, this.y)
 	}
 }
-const endercrystal = Texture('endercrystal.png')
+const endercrystal = OldTexture('endercrystal.png')
 const endCrystalWiregrid = endercrystal.crop(32,16,16,16)
 const endCrystalCore = endercrystal.crop(96,16,16,16)
 Entities.end_crystal = class extends Entity{
@@ -399,6 +399,7 @@ Entities.end_crystal = class extends Entity{
 
 export let lightningBoltCount = 0
 uiLayer(50, (c, w, h) => {
+	return
 	if(!lightningBoltCount) return
 	c.fillStyle = '#fff'
 	c.globalAlpha = (1-0.8**lightningBoltCount)*(t%.4<.2)

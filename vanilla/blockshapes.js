@@ -1,4 +1,4 @@
-import { Item } from 'definitions'
+import { Item, _blockAtlas } from 'definitions'
 import { getblock, world } from 'world'
 export const BlockShape = {}
 BlockShape.SLAB = [0, 0, 1, 0.5]
@@ -14,28 +14,18 @@ BlockShape.TWO_SHORT = [0, 0, 1, 14/16]
 
 
 function trimTex(t, s){
-	return t && t.then(a => {
-		const c = Can(a.w, a.h, true)
-		c.defaultTransform()
-		c.scale(a.w, a.w)
-		for(let y = floor(a.h / a.w) - 1; y >= 0; y--)
-			for(let i = 0; i < s.length; i+=4){
-				c.rect(s[0],y+s[1],s[2]-s[0],s[3]-s[1])
-			}
-		c.clip()
-		c.image(a, 0, 0, 1, a.h/a.w)
-		return c
-	})
+	// TODO
+	return null
 }
 
 const shapeKeys = new Map()
 	.set(BlockShape.SLAB, 'slabShape')
 	.set(BlockShape.UPPER_SLAB, 'upperSlabShape')
 
-export const blockShaped = (B, s, t = trimTex(B.texture, B.texture)) => {
+export const blockShaped = (B, s, t = trimTex(B.texture, s)) => {
 	const o = class extends B{
 		static blockShape = s
-		static texture = trimTex(B.texture, s)
+		static texture = t
 	}
 	const k = shapeKeys.get(s); if(k) B[k] = o
 	return o

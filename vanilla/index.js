@@ -4,14 +4,14 @@ import { button, W2, H2, uiLayer, renderLayer, pause, renderUI, quit, onpacket, 
 import { getblock, gridEvents, sound, entityMap, pointer, cam, world, configLoaded } from 'world'
 import { Item, BlockParticle, blockBreak, ephemeralInterfaces } from 'definitions'
 import { AshParticle, BlastParticle, explode } from './defs.js'
-import { terrainPng } from './blocks.js'
+import { terrainPng_old } from './blocks.js'
 import './interfaces.js'
 import './voice.js'
-const { Texture } = loader(import.meta)
+const { OldTexture } = loader(import.meta)
 
-const BREAKING = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].mmap(x => terrainPng.at(x, 15))
-const skyPng = Texture('sky.png')
-const stars = Texture('stars.png')
+const BREAKING = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].mmap(x => terrainPng_old.at(x, 15))
+const skyPng = OldTexture('sky.png')
+const stars = OldTexture('stars.png')
 const sun = skyPng.crop(128, 64, 32, 32), moons = [
 	skyPng.crop(128, 0, 32, 32),
 	skyPng.crop(160, 0, 32, 32),
@@ -67,6 +67,7 @@ setInterval(() => {
 })
 
 uiLayer(-100, (c, w, h) => {
+	return
 	if(gradients.h != h) makeGradients(h)
 	if(world.id == 'overworld'){
 		const rainyness = min(world.weather&&(1-world.weatherFade/40), 1, (world.weather&0x0FFFFFFF)/40)
@@ -126,6 +127,7 @@ uiLayer(-100, (c, w, h) => {
 	}
 })
 renderLayer(500, (c, w, h) => {
+	return
 	if(world.id == 'nether'){
 		c.fillStyle = '#40000033'
 		c.fillRect(-W2, -H2, W2*2, H2*2)
@@ -146,6 +148,7 @@ const cloudLayers = [
 ]
 
 renderLayer(150, c => {
+	return
 	if(world.id != 'overworld') return
 	for(const {y, h, s, o, a} of cloudLayers){
 		c.globalCompositeOperation = o
@@ -182,9 +185,9 @@ renderLayer(150, c => {
 	c.globalAlpha = 1
 })
 
-const hotbar = Texture('hotbar.png')
-const selected = Texture('slot.png')
-const inventory = Texture('inv.png')
+const hotbar = OldTexture('hotbar.png')
+const selected = OldTexture('slot.png')
+const inventory = OldTexture('inv.png')
 
 const heart = icons.crop(52,0,9,9), halfHeart = icons.crop(61,0,9,9)
 const heartEmpty = icons.crop(16,0,9,9)
@@ -196,6 +199,7 @@ let hotbarTooltipAlpha = 0, lastSelected = -1
 let proximityChatTooltip = 0
 configLoaded(CONFIG => proximityChatTooltip = CONFIG.proximitychat ? 10 : 0)
 uiLayer(1000, (c, w, h) => {
+	return
 	if(renderUI){
 		let hotBarLeft = w / 2 - hotbar.w/2
 		c.push()

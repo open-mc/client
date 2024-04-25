@@ -40,6 +40,7 @@ drawPhase(-1000, () => {
 export const DEFAULT_BLOCKSHAPE = [0, 0, 1, 1]
 let blockPlacing = null
 export function drawPointer(c){
+	return
 	if(renderUI && me.health){
 		c.beginPath()
 		c.rect(ifloat(x + me.x - cam.x) - .3, ifloat(y + me.head + me.y - cam.y) - .03125, .6, .0625)
@@ -105,7 +106,7 @@ export function drawPointer(c){
 			else if(bpy > by) py = 1
 			else if(bpy < by) py = 0
 			px -= bpx - bx; py -= bpy - by; bpfx = px; bpfy = py
-		}else{
+		}else{x
 			px = (me.x + x) % 1; py = (me.y + me.head + y) % 1
 			px -= bpx - bx; py -= bpy - by; bpfx = px; bpfy = py
 			bx = by = NaN

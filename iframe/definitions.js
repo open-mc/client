@@ -88,15 +88,14 @@ export class Block{
 		if(this.stepSounds.length)
 			sound(this.stepSounds[Math.floor(Math.random() * this.stepSounds.length)], x, y, 0.5, 0.75)
 	}
-	trace(c){
-		c.beginPath?.()
+	trace(mesh, uv){
 		let {blockShape} = this
 		if(!blockShape || blockShape.length == 0) blockShape = pointer.DEFAULT_BLOCKSHAPE
 		for(let i = 0; i < blockShape.length; i += 4){
 			const x0 = blockShape[i], x1 = blockShape[i+2], y0 = blockShape[i+1], y1 = blockShape[i+3]
-			c.rect(x0, y0, x1-x0, y1-y0)
+			mesh.addRect(x0, y0, x1-x0, y1-y0, uv?.sub(x0, y0, x1-x0, y1-y0))
 		}
-		c.closePath?.()
+		return mesh
 	}
 	getItem(id, slot){}
 	setItem(id, slot, item){}
@@ -196,7 +195,6 @@ export class Particle{
 		this.x = x; this.y = y
 		this.dx = dx; this.dy = dy
 		this.ddx = ddx; this.ddy = ddy
-		if(particles.size < options.maxParticles) particles.add(this)
 	}
 	step(){
 		this.dx += this.ddx * dt; this.dy += this.ddy * dt
@@ -274,7 +272,12 @@ export class Particle{
 			}
 		}else this.x += this.dx * dt, this.y += this.dy * dt
 	}
-	render(c){}
+	render(c){
+
+	}
+}
+export function addParticle(p){
+	if(particles.size < options.maxParticles) particles.add(p)
 }
 export const particles = new Set
 
@@ -304,9 +307,8 @@ export class BlockParticle extends Particle{
 	}
 }
 export function blockBreak(block, x, y){
-	for(let i = 0; i < 16; i++){
+	for(let i = 0; i < 16; i++)
 		new BlockParticle(block, i, x, y)
-	}
 }
 
 export function stepParticles(block, e){
@@ -327,3 +329,34 @@ export function punchParticles(block, x, y){
 export const Classes = []
 
 export const ephemeralInterfaces = {}
+
+let bai = 0, bac = 256
+export let _blockAtlas = Texture(4096, min(4096, bac/16), 1, _, PIXELATED)
+
+const ta = Target()
+export function BlockTexture(img, x, y, anim = 0, trim = null){
+	const frames = Math.abs(anim||=1)
+	const i = bai; bai += frames
+	while(i >= bac){
+		bac <<= 1
+		if(bac < 65536){
+			const ba2 = Texture(4096, bac>>4, 1, _, PIXELATED)
+			ta.setTexture(_blockAtlas)
+			ta.copyTo(ba2)
+			_blockAtlas = ba2
+		}else{
+			const ba2 = Texture(4096, 4096, bac>>16, _, PIXELATED)
+			for(let i = ba2.layers-1>>1; i >= 0; i--) ta.setTexture(_blockAtlas, i), ta.copyTo(ba2, i)
+			_blockAtlas = ba2
+		}
+	}
+	
+	if(img.then) img.then(img => _putImg(img, i, x, y, anim, trim))
+	else _putImg(img, i, x, y, anim, trim)
+	return 4294967296+(i|frames-1<<24)
+}
+function _putImg(img, i, x, y, anim, trim){
+	ta.setTexture(img)
+	if(anim>0) for(let ry=y;ry<y+anim;ry++) ta.copyTo(_blockAtlas, (i&255)<<4, (i>>8&255)<<4, i>>16, x<<4, img.height-(ry<<4)-16, 16, 16),i++
+	else for(let rx=x;rx<x-anim;rx++) ta.copyTo(_blockAtlas, (i&255)<<4, (i>>8&255)<<4, i>>16, rx<<4, img.height-(y<<4)-16, 16, 16),i++
+}

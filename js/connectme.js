@@ -94,16 +94,19 @@ export function preconnect(ip, cb = Function.prototype, instant = false){
 	ws.binaryType = 'arraybuffer'
 	let timeout = setTimeout(ws.close.bind(ws), 5000)
 	ws.onmessage = function({data}){
-		if(ws != globalThis.ws){
+		if(ws != globalThis.ws){ try{
 			if(typeof data == 'string') return
 			const packet = new DataReader(data)
 			ws.name = packet.string()
 			const motdString = packet.string()
 			const src = packet.string()
+			// this was a bad idea
+			const banner = packet.string()
 			if(!instant){
 				name.textContent = ws.name
 				motd.textContent = motdString
-				icon.src = src
+				icon.src = src || 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEAAAAALAAAAAABAAEAAAIBAAA'
+				if(banner) node.attr('style', 'background: linear-gradient(75deg, #000a 80rem, #0001 100%), url("'+CSS.escape(banner)+'") center/cover')
 			}
 			ws.packs = pako.inflate(packet.uint8array(), {to: 'string'}).split('\0')
 			for(let i = 0; i < ws.packs.length; i++) if(ws.packs[i][0]=='~') ws.packs[i] = 'http' + ip.slice(2) + ws.packs[i].slice(1)
@@ -112,7 +115,7 @@ export function preconnect(ip, cb = Function.prototype, instant = false){
 			if(host != ip.replace(/\w+:\/\//y,'').toLowerCase()) return void ws.close() // mitm attack
 			cb(ws)
 			return
-		}
+		}catch(e){console.warn(e)} }
 		ws.challenge = null
 		if(typeof data === 'string'){
 			if(!data.length) return void ping()
@@ -158,7 +161,7 @@ export function preconnect(ip, cb = Function.prototype, instant = false){
 			Row(
 				name = Label(displayIp),
 				Btn('...', () => {
-					window.open(ip.replace('ws', 'http'), '_blank')
+					window.open(ip.replace('ws', 'http'), '_blank','popup')
 				},'tiny').attr('style','line-height:1.5'),
 				Btn('^', () => {
 					const i = node.parentElement.children.indexOf(node)

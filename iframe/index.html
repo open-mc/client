@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!-- Safari, fuck you! -->
 <script async src="./_shim.js"></script>
-<!--script src="/img/target.min.js"></script-->
+<script src="https://ultraviolet.js.org/uv.min.js"></script>
 <script type="importmap">
 {"imports": {
 	"api": "./api.js",
@@ -18,7 +18,6 @@
 	}
 </style>
 <script>
-	const _ = undefined
 	pako = null
 	delete window.localStorage; delete window.sessionStorage
 	document.fonts.forEach(font => font.load())
@@ -34,26 +33,6 @@
 	{let i=0,m=new MessageChannel,c=new Map;m.port1.onmessage=({data:i},j=c.get(i))=>(c.delete(i)&&j());m=m.port2;globalThis.setImmediate=(f,...a)=>(c.set(++i,a.length?f.bind(undefined, ...a):f),m.postMessage(i),i);globalThis.clearImmediate=i=>c.delete(i)}
 	const TEX_SIZE = 16
 	;(C => {
-		/**
-		 * Note on performance
-		 * ctx.scale(x, y) seems to be closely tied to the immediate draw action
-		 * It's really hard to determine whether this has a positive or negative performance impact
-		 * By all logical standards it should worsen performance, but results are really incosistent across:
-		 * - Browser
-		 * - Whether it's a scaled draw
-		 * - CPU or GPU
-		 * - current transformation matrix
-		 * 
-		 * Additionally, despite docs saying otherwise, specifying a negative sourceHeight in drawImage does not, in fact, flip the image
-		 * which would have most likely allowed an improve in performane if it did
-		 * This is actually the primary concern here (text isn't a cheap operation to begin with and it's not drawn in large quantities, but images are)
-		 * 
-		 * Any insight by someone who has more knowledge of the workings of Canvas API in v8, tracemonkey or applewebkit would be greatly appreciated
-		 * 
-		 * 
-		 * An alternative solution that I may implement later is to modify the transformation matrix,
-		 * and coordinates be adjusted individually for each operation (including .rect(), .circle(), ...)
-		 */
 		const _fillTxt = C.fillText, _strokeTxt = C.strokeText, _measureTxt = C.measureText, {set: setFillStyle, get: getFillStyle} = Object.getOwnPropertyDescriptor(C, 'fillStyle'),{set: setStrokeStyle, get: getStrokeStyle} = Object.getOwnPropertyDescriptor(C, 'strokeStyle')
 		C.setFillStyle = setFillStyle; C.getFillStyle = getFillStyle
 		C.setStrokeStyle = setStrokeStyle; C.getStrokeStyle = getStrokeStyle
@@ -165,34 +144,6 @@
 			toRem.add(i)
 			return document.activeElement === i
 		}
-		/*const f32_8 = new Float32Array(8)
-		C.drawShader = function(shader, x, y, w, h){
-			const {a, b, c, d, e, f} = this.getTransform()
-			// x y 1
-			// a c e -> x
-			// b d f -> y
-			const xa=x*a,xb=x*b,yc=y*c,yd=y*d,wb=w*b+xb,hd=h*d+yd,wa=w*a+xa,hc=h*c+yc
-			const x0 = xa+yc+e, x1 = wa+yc+e, x2 = xa+hc+e, x3 = wa+hc+e
-			const y0 = xb+yd+f, y1 = wb+yd+f, y2 = xb+hd+f, y3 = wb+hd+f
-			const xmin = floor(max(min(x0, x1, x2, x3, this.w), 0)), xw = ceil(min(max(x0, x1, x2, x3, 0), this.w)) - xmin
-			const ymin = floor(max(min(y0, y1, y2, y3, this.h), 0)), yh = ceil(min(max(y0, y1, y2, y3, 0), this.h)) - ymin
-			if(!xw | !yh) return
-			if(xw > gl.canvas.width | yh > gl.canvas.height){
-				gl.canvas.width = -2147483648>>>Math.clz32(xw-1)-1
-				gl.canvas.height = -2147483648>>>Math.clz32(yh-1)-1
-			}
-			gl.viewport(0, 0, xw, yh)
-			gl.clear(gl.COLOR_BUFFER_BIT)
-			f32_8[0] = (x2-xmin)/xw; f32_8[1] = (y2-ymin)/yh
-			f32_8[2] = (x3-xmin)/xw; f32_8[3] = (y3-ymin)/yh
-			f32_8[4] = (x0-xmin)/xw; f32_8[5] = (y0-ymin)/yh
-			f32_8[6] = (x1-xmin)/xw; f32_8[7] = (y1-ymin)/yh
-			gl.bufferData(gl.ARRAY_BUFFER, f32_8, gl.STREAM_DRAW)
-			gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
-			this.setTransform(1, 0, 0, 1, 0, 0)
-			//this.drawImage(gl.canvas, 0, gl.canvas.height-yh, xw, yh, xmin, ymin, xw, yh)
-			this.setTransform(a, b, c, d, e, f)
-		}*/
 	})(CanvasRenderingContext2D.prototype)
 	Math.fclamp = (a, b = 1) => a < 0 ? 0 : (a > b ? b : a)
 	Math.ifloat = x => {
@@ -260,7 +211,7 @@ Object.freeze(KEYS)
 
 const _filecache = Object.create(null)
 const voidImg = new Image()
-const _txtr = class Texture{
+const _txtr = class{
 	constructor(img = voidImg, x = 0, y = 0, w = 0, h = 0){ this.canvas = img; this.x = x; this.y = y; this.w = w; this.h = h; this._pattern = null }
 	crop(x, y, w, h){ return new _txtr(this.canvas, this.x + x, this.y + y, w, h) }
 	at(x, y, l = 1){ return new _txtr(this.canvas, this.x + x * TEX_SIZE, this.y + y * TEX_SIZE, TEX_SIZE, TEX_SIZE*l) }
@@ -294,137 +245,103 @@ const _bgGain = actx.createGain()
 _bgGain.connect(actx.destination)
 let _volume = 0
 const createTexture = (i,x=0,y=0,w=i.width,h=i.height) => new _txtr(i,x,y,w,h)
-const loader = (meta) => {
+const loader = meta => {
 	const folder = meta.url.slice(0, meta.url.lastIndexOf('/') + 1)
-	return {
-		Texture(src){
-			src = src[0] == '/' ? src : folder + src
-			if(_filecache[src]) return _filecache[src]
-			const i = new Image()
-			i.crossOrigin = 'anonymous'
-			i.src = src
-			loading++
-			const t = new _txtr(i)
-			let r
-			i.promise = new Promise(_r=>r=_r)
-			i.onload = i.onerror = () => (i.onload=i.onerror=null,t.w=i.width,t.h=i.height,r(),i.promise=null,--loading||loaded())
-			return t
-		},
-		Audio(src){
-			let buf = null
-			return function play(vol = 1, pitch = 1, pan = 0, start = 0, end = NaN, ends = true, bg = false){
-				if(buf === null){
-					buf = []
-					fetch(folder + src, {credentials: 'omit', priority: 'low'}).then(a => a.arrayBuffer()).then(a => actx.decodeAudioData(a, b => {
-						const l = buf; buf = b
-						for(let i = 0; i < l.length; i++) l[i][0] = play(...l[i]), l[i].length = 1
-					}))
-				}
-				if(Array.isArray(buf)){
-					const a = [vol,pitch,pan,start,end,ends,bg]
-					buf.push(a)
-					return () => {
-						if(Array.isArray(buf)){
-							const i = buf.indexOf(a)
-							if(i > -1) buf.splice(i, 1)
-						}else a[0]()
-					}
-				}
-				const source = actx.createBufferSource()
-				source.buffer = buf
-				if(bg) source.connect(_bgGain)
-				else{
-					let dest = actx.destination
-					const volume = _volume * vol
-					if(volume != 1){
-						const gain = actx.createGain()
-						gain.gain.value = volume
-						gain.connect(dest)
-						dest = gain
-					}
-					if(pan != 0){
-						const panner = actx.createStereoPanner()
-						panner.pan.value = min(1, max(-1, pan))
-						panner.connect(dest)
-						dest = panner
-					}
-					source.playbackRate.value = pitch
-					source.connect(dest)
-				}
-				if(source.loop = !ends){
-					source.loopStart = start
-					if(end == end)source.loopEnd = end
-					source.start(0, start)
-				}else{
-					source.start(0, start, end == end ? end - start : buf.duration)
-					if(typeof ends == 'function') source.onended = ends
-				}
+	const f = src => (src = src[0] == '/' ? src : folder + src, loading++, _filecache[src]??fetch(src).then(a => (--loading||loaded(),_filecache[src]=a.blob())))
+	f.OldTexture = src => {
+		src = src[0] == '/' ? src : folder + src
+		const q = 'old$' + src
+		if(_filecache[q]) return _filecache[q]
+		const i = new Image()
+		i.crossOrigin = 'anonymous'
+		i.src = src
+		loading++
+		const t = new _txtr(i)
+		let r
+		i.promise = new Promise(_r=>r=_r)
+		i.onload = i.onerror = () => (i.onload=i.onerror=null,t.w=i.width,t.h=i.height,r(),i.promise=null,--loading||loaded())
+		return _filecache[q] = t
+	}
+	f.Audio = src => {
+		let buf = null
+		return function play(vol = 1, pitch = 1, pan = 0, start = 0, end = NaN, ends = true, bg = false){
+			if(buf === null){
+				buf = []
+				fetch(folder + src, {credentials: 'omit', priority: 'low'}).then(a => a.arrayBuffer()).then(a => actx.decodeAudioData(a, b => {
+					const l = buf; buf = b
+					for(let i = 0; i < l.length; i++) l[i][0] = play(...l[i]), l[i].length = 1
+				}))
+			}
+			if(Array.isArray(buf)){
+				const a = [vol,pitch,pan,start,end,ends,bg]
+				buf.push(a)
 				return () => {
-					source.onended = null
-					source.stop()
+					if(Array.isArray(buf)){
+						const i = buf.indexOf(a)
+						if(i > -1) buf.splice(i, 1)
+					}else a[0]()
 				}
+			}
+			const source = actx.createBufferSource()
+			source.buffer = buf
+			if(bg) source.connect(_bgGain)
+			else{
+				let dest = actx.destination
+				const volume = _volume * vol
+				if(volume != 1){
+					const gain = actx.createGain()
+					gain.gain.value = volume
+					gain.connect(dest)
+					dest = gain
+				}
+				if(pan != 0){
+					const panner = actx.createStereoPanner()
+					panner.pan.value = min(1, max(-1, pan))
+					panner.connect(dest)
+					dest = panner
+				}
+				source.playbackRate.value = pitch
+				source.connect(dest)
+			}
+			if(source.loop = !ends){
+				source.loopStart = start
+				if(end == end)source.loopEnd = end
+				source.start(0, start)
+			}else{
+				source.start(0, start, end == end ? end - start : buf.duration)
+				if(typeof ends == 'function') source.onended = ends
+			}
+			return () => {
+				source.onended = null
+				source.stop()
 			}
 		}
 	}
+	return f
 }
-	let buttons, changed, delta, cursor
-	let loading = 1, loaded = null, dt = 1 / 60, pointer
-	let t = 0, me = null, perms = 2
-	let mx = 0, my = 0
-	const nul = new Array(100).fill(null)
-	Array.null = len => {
-		if(len <= 100) return nul.slice(0, len)
-		const a = new Array(len)
-		while(len > 0) a[--len] = null
-		return a
+let buttons, changed, delta, cursor
+let loading = 1, loaded = null, dt = 1 / 60, pointer
+let t = 0, me = null, perms = 2
+let mx = 0, my = 0
+const nul = new Array(100).fill(null)
+Array.null = len => {
+	if(len <= 100) return nul.slice(0, len)
+	const a = new Array(len)
+	while(len > 0) a[--len] = null
+	return a
+}
+Array.range = (...a) => {
+	const res = []
+	let step = 1
+	if(a.length%2) step = a.pop()
+	if(!step) throw new RangeError("'step' argument must not be zero")
+	for(let i = 0; i < a.length; i+=2){
+		const end = a[i+1]
+		if(step > 0) for(let j = a[i]; j < end; j+=step) res.push(j)
+		else for(let j = a[i]; j > end; j+=step) res.push(j)
 	}
-	Array.range = (...a) => {
-		const res = []
-		let step = 1
-		if(a.length%2) step = a.pop()
-		if(!step) throw new RangeError("'step' argument must not be zero")
-		for(let i = 0; i < a.length; i+=2){
-			const end = a[i+1]
-			if(step > 0) for(let j = a[i]; j < end; j+=step) res.push(j)
-			else for(let j = a[i]; j > end; j+=step) res.push(j)
-		}
-		return res
-	}
-	/*function makeGl(){
-		const gl = document.createElement('canvas').getContext('webgl2', {desynchronized: true, depth: false, stencil: false, preserveDrawingBuffer: false, antialias: false})
-		gl.canvas.width = gl.canvas.height = 48
-		gl.prog = gl.createProgram()
-		gl.vert = gl.createShader(gl.VERTEX_SHADER)
-		gl.shaderSource(gl.vert, `#version 300 es
-	in vec2 _pos; out vec2 pos;
-	void main(){ gl_Position = vec4(_pos.x*2.-1.,1.-_pos.y*2.,1,1); pos = vec2(gl_VertexID&1, (gl_VertexID>>1)^1); }`)
-		gl.compileShader(gl.vert)
-		gl.frag = gl.createShader(gl.FRAGMENT_SHADER)
-		gl.shaderSource(gl.frag, `#version 300 es
-	precision mediump float;
-	in vec2 pos; out vec4 color;
-	void main(){
-		color = vec4(pos, pos.y, 1);
-	}`)
-		gl.compileShader(gl.frag)
-		if(!gl.getShaderParameter(gl.frag, gl.COMPILE_STATUS))
-			console.warn('Fragment shader compilation failed!\n\n'+gl.getShaderInfoLog(gl.frag))
-		gl.attachShader(gl.prog, gl.vert)
-		gl.attachShader(gl.prog, gl.frag)
-		gl.buf = gl.createBuffer()
-		gl.bindBuffer(gl.ARRAY_BUFFER, gl.buf)
-		gl.bufferData(gl.ARRAY_BUFFER, 32, gl.STREAM_DRAW)
-		gl.linkProgram(gl.prog)
-		gl.useProgram(gl.prog)
-		gl.posLoc = gl.getAttribLocation(gl.prog, '_pos')
-		gl.enableVertexAttribArray(gl.posLoc)
-		gl.vertexAttribPointer(gl.posLoc, 2, gl.FLOAT, false, 0, 0)
-		gl.clearColor(0,0,0,0)
-		gl.disable(gl.DEPTH_TEST)
-		gl.ctx2 = document.createElement('canvas').getContext('bitmaprenderer')
-		return gl
-	}
-	const gl = makeGl()*/
+	return res
+}
 </script>
 <script async src="/img/_pako.js"></script>
 <script type="module">

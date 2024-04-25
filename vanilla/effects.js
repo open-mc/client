@@ -1,13 +1,13 @@
 import { music } from 'world'
 import { renderF3 } from 'api'
-const {Audio, Texture} = loader(import.meta)
+const {Audio, OldTexture} = loader(import.meta)
 
 export const audioSet = (path, count) => Array.from({length: count}, (_, i) => Audio('sound/'+path+(i+1)+'.mp3'))
 
 export const click = Audio('../img/click.mp3')
 
-export const icons = Texture('icons.png')
-const btns = Texture('../img/button.png')
+export const icons = OldTexture('icons.png')
+const btns = OldTexture('../img/button.png')
 export const uiButtons = {
 	large: btns.crop(124,20,200,20),
 	largeSelected: btns.crop(124,40,200,20),

@@ -3,9 +3,9 @@ import { itemify, slabifyItem } from './blockshapes.js'
 import { chestTop, commandBlockTexs } from './blocks.js'
 import { getblock } from 'world'
 
-const {Texture} = loader(import.meta)
+const {OldTexture} = loader(import.meta)
 
-export const itemsPng = Texture("items.png")
+export const itemsPng = OldTexture("items.png")
 Items.oak_log = itemify(Blocks.oak_log, 'Oak log')
 Items.birch_log = itemify(Blocks.birch_log, 'Birch log')
 Items.spruce_log = itemify(Blocks.spruce_log, 'Spruce log')

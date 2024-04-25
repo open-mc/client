@@ -297,12 +297,17 @@ column{
 	flex-grow: 1;
 }
 #serverlist > row.hover{
-	border: 1rem #fff8 solid;
+	outline: 1rem #fff8 solid;
+	outline-offset: -1rem;
 	cursor: pointer;
-	padding: 0;
 }
 #serverlist img{
-	width: 48rem; height: 48rem; margin: 2rem;
+	min-width: 48rem; height: 48rem; margin: 2rem; max-width: 96rem;
+	position: relative;
+}
+img:after{
+	position: absolute; inset: 0; content: '';
+	background: url(./img/pack.png) center/contain no-repeat, #000;
 }
 
 @media (orientation: portrait) and (max-width: 450px) {
