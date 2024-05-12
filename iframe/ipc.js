@@ -1,19 +1,21 @@
 import { DataReader, jsonToType } from '/server/modules/dataproto.js'
 import { frame } from './index.js'
-import { options, listen, _cbs, _mouseMoveCb, _joypadMoveCbs, _wheelCb, _optionListeners, codes, paused, _onvoice, voice } from 'api'
+import { options, listen, _cbs, _mouseMoveCb, _joypadMoveCbs, _wheelCb, _optionListeners, codes, paused, _onvoice, voice, _updatePaused } from 'api'
 import { Blocks, Items, Entities, BlockIDs, ItemIDs, EntityIDs, Block, Item, Entity, Classes } from 'definitions'
-import 'world'
-import { _updatePaused } from './api.js'
+import { me } from 'world'
+
+Object.assign(globalThis, {Blocks, Items, Entities, BlockIDs, ItemIDs, EntityIDs, me})
 
 Classes[0] = {savedata: null, savedatahistory: []}
-
-loaded = () => {
-	for(const data of msgQueue) try{ onMsg({data}) }catch(e){console.error(e)}
+let loading = 1
+const loaded = () => {
+	for(const data of msgQueue) try{ onMsg({data}) }catch(e){Promise.reject(e)}
+	loading = -1
 	msgQueue = null
 }
-listen('music', () => _bgGain.gain.value = options.music * options.music)
-listen('sound', () => _volume = options.sound)
-
+globalThis.addToQueue = p => p?.then&&(loading++,p.then(()=>--loading||loaded()))
+listen('music', () => bgGain.gain.value = options.music * options.music)
+listen('sound', () => masterVolume = options.sound)
 const onMsg = ({data,origin}) => {
 	if(origin=='null') return
 	if(Array.isArray(data)){
@@ -24,10 +26,10 @@ const onMsg = ({data,origin}) => {
 				if(_optionListeners[a]) for(const f of _optionListeners[a]) f(b)
 			}else if(me){
 				if(paused){
-					delta.mx = -(cursor.mx - (cursor.mx = a * devicePixelRatio))
-					delta.my = -(cursor.my - (cursor.my = b * devicePixelRatio))
+					delta.x = -(cursor.x - (cursor.x = a * devicePixelRatio))
+					delta.y = -(cursor.y - (cursor.y = b * devicePixelRatio))
 				}else{
-					delta.mx = a; delta.my = b
+					delta.x = a; delta.y = b
 					for(const cb of _mouseMoveCb) cb(a, b)
 				}
 			}
@@ -100,14 +102,14 @@ const onMsg = ({data,origin}) => {
 			}
 		}
 	}else if(data instanceof ArrayBuffer){
-		if(loading) return void msgQueue.push(data)
+		if(loading>0) return void msgQueue.push(data)
 		const packet = new DataReader(data)
 		const code = packet.byte()
 		if(!codes[code]) return
 		try{
 			codes[code](packet)
 		}catch(e){
-			console.error(e)
+			Promise.reject(e)
 			console.warn(packet, packet.i)
 		}
 	}else if(data instanceof Float32Array){
@@ -122,6 +124,6 @@ const onMsg = ({data,origin}) => {
 	}else if(typeof data == 'boolean') _updatePaused(data)
 }
 const m = msgQueue; msgQueue = []
-for(const data of m) try{ onMsg({data}) }catch(e){console.error(e)}
+for(const data of m) try{ onMsg({data}) }catch(e){ Promise.reject(e) }
 addEventListener('message', onMsg)
 onmessage = null

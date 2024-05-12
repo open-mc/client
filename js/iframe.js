@@ -8,12 +8,13 @@ export let iframe = document.createElement('iframe'), win = null
 iframe.sandbox = 'allow-scripts'
 iframe.allow = 'cross-origin-isolated; autoplay'
 iframe.credentialless = true
+let src = ''
 if(location.protocol == 'tauri:'){
 	// tauri prod
 	// ABSOLUTELY FUCKING RETARDED TAURI PROTOCOL SHITSHOW
 	// HOW THE FUCK DOES THIS WORK
 	// DO NOT **UNDER ANY CIRCUMSTANCES** REMOVE THE DOT AFTER THE DOMAIN NAME
-	iframe.src = 'tauri://localhost./iframe/index.html'
+	src = 'tauri://localhost./iframe/index.html#'
 
 	// We allow it, but, being on a different domain, it still can't access parent iframe or credentials
 	// This is to actually allow it to load stuff from its own domain
@@ -21,15 +22,16 @@ if(location.protocol == 'tauri:'){
 }else if(globalThis.__TAURI__){
 	// tauri development environment
 	// Fairly simple. Load localhost but by IP instead of domain
-	iframe.src = 'http://127.0.0.1/iframe/index.html'
+	src = 'http://127.0.0.1/iframe/index.html#'
 	
-}else iframe.src = 'iframe/index.html'
+}else src = 'iframe/index.html#'
 
 const queue = []; let files = null
-export function gameIframe(f){
+export function gameIframe(f, flags=0){
 	if(storage.mods) f.push.apply(f, storage.mods.split('\n'))
 	files = f
 	destroyIframe()
+	iframe.src = src + flags
 	document.body.append(iframe)
 }
 

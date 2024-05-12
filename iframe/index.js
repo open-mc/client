@@ -1,16 +1,15 @@
 import { playerControls } from './controls.js'
 import { DataWriter, DataReader } from '/server/modules/dataproto.js'
 import { mePhysics, stepEntity } from './entity.js'
-import { gridEventMap, getblock, entityMap, map, cam, server, world, bigintOffset } from 'world'
+import { gridEventMap, getblock, entityMap, map, cam, server, world, bigintOffset, me } from 'world'
 import * as pointer from './pointer.js'
-import { button, drawPhase, renderLayer, uiLayer, W, H, W2, H2, SCALE, options, paused, _recalcDimensions, _renderPhases, renderBoxes, renderF3, send, download, pause, _updatePaused, toBlockExact, ctx } from 'api'
-import { particles, _blockAtlas } from 'definitions'
+import { onKey, drawLayer, options, paused, _renderPhases, renderBoxes, renderF3, send, download, pause, _updatePaused } from 'api'
+import { particles, blockAtlas, _recalcDimensions, W2, H2, SCALE, toBlockExact } from 'definitions'
 import { VERSION } from '../server/version.js'
+import { prep } from './definitions.js'
 
 let last = performance.now(), count = 1.1, timeToFrame = 0
-t = performance.now()/1000
 setInterval(function(){
-	t = performance.now()/1000
 	eluStart()
 	const now = performance.now()
 	const update = 1000 / world.tps
@@ -41,6 +40,7 @@ function tick(){
 		send(buf)
 	}
 	world.tick++
+	world.animTick = world.tick%1728000
 	if(world.weather&0x0FFFFFFF) world.weather--
 	else world.weather = 0
 	if(world.weatherFade) world.weatherFade--
@@ -58,13 +58,11 @@ export let zoom_correction = 0
 let camMovingX = false, camMovingY = false
 const CAMERA_DYNAMIC = 0, CAMERA_FOLLOW_SMOOTH = 1, CAMERA_FOLLOW_POINTER = 2,
 	CAMERA_FOLLOW_PLAYER = 3, CAMERA_PAGE = 4
-
 export function frame(){
 	const now = performance.now()
 	eluStart()
-	dt += (min(300, now - lastFrame) / 1000 * options.speed - dt) / round(.333333/dt)
+	//dt += (min(300, now - lastFrame) / 1000 * options.speed - dt) / round(.333333/dt)
 	lastFrame = now
-	requestAnimationFrame(frame)
 	if(!me) return
 	pause(false)
 	playerControls()
@@ -111,127 +109,142 @@ export function frame(){
 	}
 	if(cam.staticX === cam.staticX) cam.x = cam.staticX
 	if(cam.staticY === cam.staticY) cam.y = cam.staticY
-	cam.f += (cam.baseF - cam.f) * min(1, dt*4/sqrt(abs(cam.baseF - cam.f)))
+	if(cam.f!=cam.baseF) cam.f += (cam.baseF - cam.f) * min(1, dt*4/sqrt(abs(cam.baseF - cam.f)))
 	for(const phase of _renderPhases){
 		try{
 			switch(phase.coordSpace){
-				case 'none': phase(ctx, W, H); break
-				case 'world':
-					ctx.reset(SCALE, 0, 0, -SCALE, W2 * SCALE, H - H2 * SCALE)
+				case 1:
+					const s = options.guiScale * pixelRatio * 2
+					ctx.reset(s/ctx.width, 0, 0, s/ctx.height, 0, 0)
+					phase(ctx, ctx.width / s, ctx.height / s)
+					break
+				case 2:
+					ctx.reset(SCALE/ctx.width, 0, 0, SCALE/ctx.height, .5, .5)
 					ctx.rotate(-cam.f)
 					phase(ctx)
 					break
-				case 'ui':
-					const s = options.guiScale * devicePixelRatio * 2**(options.supersample*6-3) * 2
-					ctx.reset(s, 0, 0, -s, 0, H)
-					phase(ctx, W / s, H / s)
-					break
-				default: console.error('Invalid coordinate space: ' + phase.coordSpace)
+				default:
+					ctx.reset()
+					phase(ctx, ctx.width, ctx.height)
 			}
-		}catch(e){console.error(e)}
+		}catch(e){Promise.reject(e)}
 	}
 	timeToFrame = performance.now() - now
 	changed.clear()
-	delta.mx = delta.my = 0
+	delta.x = delta.y = 0
 	delta.jlx = delta.jly = 0
 	delta.jrx = delta.jry = 0
 	_updatePaused()
 }
 globalThis.cam = cam
-let chunkBuf = Mesh()
-chunkBuf.addRect(0, 0, 64, 64)
-chunkBuf = chunkBuf.upload()
 const chunkShader = Shader(`void main(){
-	uvec2 a = texture(utex0,uv.xy).xy;
+	uvec2 a = arg0().xy;
 	if(a.y>=65535u) discard;
 	if(a.y>255u){
-		a.x += uint(t)%((a.y>>8u)+1u);
+		a.x += uint(uni1)%((a.y>>8u)+1u);
 		a.y &= 255u;
 		if(a.x>65535u){ a.y += a.x>>8u&65280u; a.x &= 65535u; }
 	}
-	color = texelFetch(atex1, ivec3(int(a.x&255u)<<4|int(uv.x*1024.)&15, int(a.x>>8u)<<4|int(uv.y*1024.)&15,a.y), 0);
-}`)
-drawPhase(200, (ctx, w, h) => {
+	ivec3 p = ivec3(int(a.x&255u)<<4|int(pos.x*1024.)&15, int(a.x>>8u)<<4|int(pos.y*1024.)&15,a.y);
+	p.xy >>= uni2;
+	color = getPixel(uni0, p, uni2);
+}`, UCOLOR, [TEXTURE, FLOAT, INT], FIXED)
+const chunkLineCol = vec4(0, .4, 1, 1)
+const axisLineCol = vec4(0, 0, 1, 1)
+drawLayer('none', 200, (ctx, w, h) => {
+	const a = cam.z / 12
+	const chunkSublineCol = vec4(0, .53*a, a, a)
+
 	const hitboxes = renderBoxes + buttons.has(KEYS.SYMBOL)
-	ctx.reset(1/W,0,0,1/H,0.5,0.5)
+	ctx.reset(1/ctx.width,0,0,1/ctx.height,0.5,0.5)
 	ctx.rotate(cam.f)
-	ctx.useShader(chunkShader)
-	ctx.setST(0, Math.floor((t%86400)*world.tps))
+	ctx.translate(.001+ctx.width/2%1, .001+ctx.height/2%1)
+	ctx.shader = chunkShader
+	prep()
+	const mipmap = max(0, min(4, 4-round(log2(SCALE))))
+	chunkShader.uniforms(blockAtlas, world.animTick, mipmap)
 	const sr = sin(cam.f), cr = cos(cam.f)
 	const x0 = -w*cr+h*sr, x1 = w*cr-h*sr, x2 = w*cr+h*sr, x3 = -w*cr-h*sr
 	const y0 = -w*sr+h*cr, y1 = w*sr-h*cr, y2 = w*sr+h*cr, y3 = -w*sr-h*cr
 	const limX = max(x0,x1,x2,x3)/2, limY = max(y0,y1,y2,y3)/2
+	const S = 64*SCALE
 	for(const chunk of map.values()){
 		const cxs = chunk.x << 6, cys = chunk.y << 6
-		const x0 = round(ifloat(cxs - cam.x) * SCALE)
-		const x1 = round(ifloat(cxs + 64 - cam.x) * SCALE)
-		const y0 = round(ifloat(cys - cam.y) * SCALE)
-		const y1 = round(ifloat(cys + 64 - cam.y) * SCALE)
-		if(x1 <= -limX || y1 <= -limY || x0 >= limX || y0 >= limY){ if(chunk.ctx) chunk.hide(); continue }
+		// fix silly floating point precision issue by adding .01
+		// this means if one calculation produces 10.499999998 and another produces 10.500000004
+		// both will be rounded to 11, instead of one to 10 and one to 11
+		// which caused ugly artifacts at non integer zoom levels
+		// the artifacts come back with MSAA however :(
+		const x0 = ifloat(cxs - cam.x) * SCALE
+		const y0 = ifloat(cys - cam.y) * SCALE
+		if(x0+S <= -limX || y0+S <= -limY || x0 >= limX || y0 >= limY){ if(chunk.ctx) chunk.hide(); continue }
 		if(!chunk.ctx) chunk.draw()
 		const a = ctx.sub()
-		a.box(x0,y0,(x1-x0)/64,(y1-y0)/64)
-		a.draw(chunkBuf, [chunk.ctx, _blockAtlas])
+		a.drawRect(x0, y0, S, S, chunk.ctx)
+		a.shader = null
 		const l = a.sub()
 		for(const i of chunk.rerenders){
-			l.translate(i&63,i>>6)
+			const xn0 = (i&63)*SCALE+x0, yn0 = (i>>6)*SCALE+y0
+			const xa0 = round(xn0), ya0 = round(yn0)
+			l.box(xa0, ya0, round(xn0+SCALE)-xa0, round(yn0+SCALE)-ya0)
 			const b = chunk[i]
-			//void(b==65535?chunk.tileData.get(i):BlockIDs[b]).render(l, cxs|(i&63),cys|(i>>6))
+			void(b==65535?chunk.tileData.get(i):BlockIDs[b]).render(l, cxs|(i&63),cys|(i>>6))
 			l.resetTo(a)
 		}
 		if(hitboxes){
-			ctx.lineWidth = 0.0625
-			ctx.strokeStyle = '#06f'
-			ctx.fillStyle = '#08f'
+			a.box(x0, y0, S, S)
 			if(hitboxes >= 2){
-				ctx.globalAlpha = cam.z / 16
-				for(let i = 8; i < 64; i += 8)
-					ctx.fillRect(i - 0.015625, 0, 0.03125, 64)
-				for(let i = 8; i < 64; i += 8)
-					ctx.fillRect(0, i - 0.015625, 64, 0.03125)
-				ctx.globalAlpha = 1
+				for(let i = .125; i < 1; i += .125)
+					a.drawRect(i - 1/4096, 0, 1/2048, 64, chunkSublineCol)
+				for(let i = .125; i < 1; i += .125)
+					a.drawRect(0, i - 1/4096, 64, 1/2048, chunkSublineCol)
 			}
-			ctx.strokeRect(0,0,64,64)
+			a.drawRect(0, 0, 1/2048, 1, chunkLineCol)
+			a.drawRect(0, 0, 1, 1/2048, chunkLineCol)
+			a.drawRect(1, 0, -1/2048, 1, chunkLineCol)
+			a.drawRect(0, 1, 1, -1/2048, chunkLineCol)
 		}
 	}
-	ctx.useShader()
-	ctx.fillStyle = '#00f'
-	if(hitboxes >= 2 && abs(cam.x) <= W2 + 0.0625)
-		ctx.fillRect((-cam.x-0.0625)*SCALE,-h/2,0.125*SCALE,h)
-	if(hitboxes >= 2 && abs(cam.y) <= H2 + 0.0625)
-		ctx.fillRect(-w/2,(cam.y-0.0625)*SCALE,w,0.125*SCALE)
-	if(hitboxes >= 2 && abs(ifloat(cam.x + 2147483648)) <= W2 + 0.0625)
-		ctx.fillRect(ifloat(W2-cam.x+2147483648-0.0625)*SCALE,0,0.125*SCALE,-h)
-	if(hitboxes >= 2 && abs(ifloat(cam.y + 2147483648)) <= H2 + 0.0625)
-		ctx.fillRect(0,ifloat(cam.y+2147483648-H2-0.0625)*SCALE,w,0.125*SCALE)
+	ctx.shader = null
+	ctx.reset(SCALE/ctx.width,0,0,SCALE/ctx.height,0.5,0.5)
+	ctx.rotate(-cam.f)
 	if(hitboxes >= 2){
+		if(abs(cam.x) <= W2 + 0.0625)
+			ctx.drawRect((-cam.x-0.0625),-H2,0.125,H2*2, axisLineCol)
+		if(abs(cam.y) <= H2 + 0.0625)
+			ctx.drawRect(-W2,(-cam.y-0.0625),W2*2,0.125, axisLineCol)
+		if(abs(ifloat(cam.x + 2147483648)) <= W2 + 0.0625)
+			ctx.drawRect(ifloat(W2-cam.x+2147483648-0.0625),0,0.125,-H2*2, axisLineCol)
+		if(abs(ifloat(cam.y + 2147483648)) <= H2 + 0.0625)
+			ctx.drawRect(0,ifloat(cam.y+2147483648-H2-0.0625),W2*2,0.125, axisLineCol)
 		const mx = floor(me.ix), my = floor(me.iy)
 		const refx = me.ix - mx, refy = me.iy - my
-		ctx.reset(SCALE, 0, 0, -SCALE, W2 * SCALE, h - H2 * SCALE)
-		ctx.rotate(-cam.f)
 		ctx.translate(ifloat(mx - cam.x), ifloat(my - cam.y))
-		ctx.lineWidth = 0.0625
 		const LENGTH = 6
+		const ct2 = ctx.sub()
 		for(let x = -LENGTH; x <= LENGTH; x++)
 		for(let y = -LENGTH; y <= LENGTH; y++){
 			const bl = getblock(mx + x, my + y)
-			ctx.strokeStyle = bl.solid ? '#fffc' : bl.fluidType ? '#00fc' : bl.blockShape ? '#fff8' : bl.targettable ? '#444c' : '#0000'
-			ctx.save()
-			ctx.globalAlpha = max(0, 1 - ((x - refx) * (x - refx) + (y - refy) * (y - refy))/LENGTH/LENGTH)
-			ctx.translate(x, y)
-			bl.trace(ctx)
-			ctx.clip(); ctx.stroke()
-			ctx.restore()
+			const col = bl.solid ? vec4(.8) : bl.fluidType ? vec4(0,0,.8,.8) : bl.blockShape ? vec4(.53) : bl.targettable ? vec4(.21,.21,.21,.8) : vec4(0)
+			const tint = vec4(min(1, ((x - refx) * (x - refx) + (y - refy) * (y - refy))/LENGTH/LENGTH))
+			ct2.translate(x, y)
+			continue
+			ct2.save()
+			ct2.lineWidth = 0.0625
+			bl.trace(ct2)
+			ct2.clip(); ct2.stroke()
+			ct2.restore()
+			ct2.resetTo(ctx)
 		}
 	}
-	})
-drawPhase(300, (ctx, w, h) => {
+})
+drawLayer('none', 300, ctx => {
 	for(const ev of gridEventMap.values()){
 		toBlockExact(ctx, ev.x, ev.y)
-		if(!map.has((ev.x>>>6)+(ev.y>>>6)*0x4000000) || ev(ctx))gridEventMap.delete(ev.i)
+		if(!map.has((ev.x>>>6)+(ev.y>>>6)*0x4000000) || ev(ctx)) gridEventMap.delete(ev.i)
 	}
 })
-function renderEntity(entity, w, h){
+function renderEntity(ctx, entity, a=1){
 	if(!entity.render) return
 	const hitboxes = buttons.has(KEYS.SYMBOL) + renderBoxes
 	if(entity == me || dt > 1/30)entity.ix = entity.x, entity.iy = entity.y
@@ -239,12 +252,9 @@ function renderEntity(entity, w, h){
 		entity.ix += ifloat(entity.x - entity.ix) * dt * 20
 		entity.iy += ifloat(entity.y - entity.iy) * dt * 20
 	}
-	ctx.reset(SCALE, 0, 0, -SCALE, W2 * SCALE, h - H2 * SCALE)
-	ctx.rotate(-cam.f)
 	ctx.translate(ifloat(entity.ix - cam.x), ifloat(entity.iy - cam.y))
-	ctx.push()
-	entity.render(ctx)
-	ctx.pop()
+	//entity.render(ctx.sub())
+	return
 	if(hitboxes){
 		if(entity.head){
 			ctx.fillStyle = '#fc0'
@@ -267,16 +277,12 @@ function renderEntity(entity, w, h){
 		ctx.strokeRect(-entity.width + 0.03125, 0.03125, entity.width * 2 - 0.0625, entity.height - 0.0625)
 	}
 }
-drawPhase(100, (ctx, w, h) => {
-	return
-	for(const e of entityMap.values()) renderEntity(e, w, h)
-	if(!me.linked && !(me.health<=0)){
-		ctx.globalAlpha = 0.2
-		renderEntity(me, w, h)
-		ctx.globalAlpha = 1
-	}
+drawLayer('world', 100, (ctx, w, h) => {
+	for(const e of entityMap.values()) renderEntity(ctx.sub(), e)
+	if(!me.linked && !(me.health<=0))
+		renderEntity(ctx.sub(), me, .2)
 })
-renderLayer(400, ctx => {
+drawLayer('world', 400, ctx => {
 	if(paused) return
 	pointer.drawPointer(ctx)
 })
@@ -294,7 +300,7 @@ function toString(big, num, precision = 3){
 	return v
 }
 
-uiLayer(1000, (ctx, w, h) => {
+drawLayer('ui', 1000, (ctx, w, h) => {
 	return
 	if(!renderF3 && !buttons.has(KEYS.SYMBOL)) return
 	ctx.textAlign = 'left'
@@ -334,8 +340,8 @@ Looking at: ${lookingAt.className+(lookingAt.savedata?' {...}':'')} (${lookingAt
 		ctx.fillText(t, w - 2, y + bottom, 10, w/1-3);
 	}
 })
-const {OldTexture} = loader(import.meta)
-const icons = OldTexture('/vanilla/icons.png')
+const src = loader(import.meta)
+const icons = Img(src`/vanilla/icons.png`)
 //const heart = icons.crop(52,0,9,9), halfHeart = icons.crop(61,0,9,9)
 //const heartEmpty = icons.crop(16,0,9,9)
 const pingIcons = icons.crop(0,16,10,24)
@@ -351,7 +357,7 @@ CanvasRenderingContext2D.prototype.styledText = function(S,t,x,y,s,w){
 	this.font = FONT
 }
 
-uiLayer(999, (ctx, w, h) => {
+drawLayer('ui', 999, (ctx, w, h) => {
 	return
 	if(!buttons.has(KEYS.TAB)) return
 	const columns = Math.max(1, Math.floor((w - 60) / 82))
@@ -400,4 +406,6 @@ uiLayer(999, (ctx, w, h) => {
 })
 
 
-button(KEYS.F2, () => { ctx.canvas.toBlob(download, 'image/png') })
+onKey(KEYS.F2, () => requestAnimationFrame(() => _gl.canvas.toBlob(download, 'image/png')))
+import('./ipc.js')
+import('./incomingPacket.js')

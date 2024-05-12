@@ -1,8 +1,8 @@
-import { getblock, setblock, gridEventMap, gridEvents, map, entityMap, server, world, CONFIG, bigintOffset, configLoaded } from 'world'
+import { getblock, setblock, gridEventMap, gridEvents, map, entityMap, server, world, CONFIG, bigintOffset, configLoaded, me, foundMe, _setPerms, worldEvents } from 'world'
 import { Chunk } from './chunk.js'
 import { queue } from './sounds.js'
 import { moveEntity } from './entity.js'
-import { BlockIDs, EntityIDs, foundMe, Classes, Entity } from 'definitions'
+import { BlockIDs, EntityIDs, Classes, Entity } from 'definitions'
 import { codes } from 'api'
 
 function rubberPacket(data){
@@ -11,7 +11,7 @@ function rubberPacket(data){
 	if(e && (e != me)) foundMe(e)
 	world.r = data.byte()
 	world.tps = data.float()
-	perms = data.byte()
+	_setPerms(data.byte())
 }
 function dimensionPacket(data){
 	if(world.id != (world.id = data.string())){
@@ -116,21 +116,15 @@ function serverPacket(buf){
 	server.sub = buf.string()
 	if(!buf.left) return
 	let l = buf.flint()
-	const pr = []
+	server.players.length = 0
 	while(l--){
 		const name = buf.string()
 		const skinBuf = buf.uint8array(192)
 		const health = buf.byte(), ping = buf.short()
-		const d = new ImageData(8, 8), {data} = d
-		for(let i = 0, j = 0; i < 256; i+=4, j+=3){
-			data[i] = skinBuf[j]
-			data[i|1] = skinBuf[j+1]
-			data[i|2] = skinBuf[j+2]
-			data[i|3] = 255
-		}
-		pr.push(createImageBitmap(d).then(img => ({name, health, ping, skin: createTexture(img)})))
+		const skin = Texture(8, 8, 1, 0, Formats.RGB)
+		skin.pasteData(skinBuf)
+		server.players.push({name, health, ping, skin})
 	}
-	Promise.all(pr).then(a => server.players = a)
 }
 
 function worldPacket(buf){
@@ -139,11 +133,13 @@ function worldPacket(buf){
 		worldEvents[id]?.(buf)
 }
 
-export const worldEvents = new Array(256)
+worldEvents(new Array(256))
+export { worldEvents }
 worldEvents[10] = buf => {
 	world.weather = buf.uint32()
 	world.weatherFade = 40
 }
+
 
 function setBigintOffset(buf){
 	let n = 0n
@@ -175,9 +171,8 @@ function setBigintOffset(buf){
 
 function configPacket(buf){
 	CONFIG.proximitychat = buf.float()
-	for(const f of configLoaded.listeners) try{f(CONFIG)}catch(e){console.error(e)}
+	for(const f of configLoaded.listeners) try{f(CONFIG)}catch(e){Promise.reject(e)}
 }
-
 Object.assign(codes, {
 	1: rubberPacket,
 	2: dimensionPacket,

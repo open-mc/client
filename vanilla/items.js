@@ -3,9 +3,9 @@ import { itemify, slabifyItem } from './blockshapes.js'
 import { chestTop, commandBlockTexs } from './blocks.js'
 import { getblock } from 'world'
 
-const {OldTexture} = loader(import.meta)
+const src = loader(import.meta)
 
-export const itemsPng = OldTexture("items.png")
+export const itemsPng = Img(src`items.png`)
 Items.oak_log = itemify(Blocks.oak_log, 'Oak log')
 Items.birch_log = itemify(Blocks.birch_log, 'Birch log')
 Items.spruce_log = itemify(Blocks.spruce_log, 'Spruce log')
@@ -63,34 +63,34 @@ class Tool extends Item{
 Items.diamond_pickaxe = class extends Tool{
 	static for = 'pick'
 	static speed = 25
-	static texture = itemsPng.at(2, 8)
+	static texture = itemsPng.crop(2*16, 8*16, 16, 16)
 	static defaultName = 'Diamond pickaxe'
 }
 
 Items.diamond_shovel = class extends Tool{
 	static for = 'shovel'
 	static speed = 25
-	static texture = itemsPng.at(3, 8)
+	static texture = itemsPng.crop(3*16, 8*16, 16, 16)
 	static defaultName = 'Diamond shovel'
 }
 
 Items.diamond_axe = class extends Tool{
 	static for = 'axe'
 	static speed = 25
-	static texture = itemsPng.at(14, 7)
+	static texture = itemsPng.crop(14*16, 7*16, 16, 16)
 	static defaultName = 'Diamond axe'
 }
 
 Items.flint_and_steel = class extends Tool{
 	static model = 2
-	static texture = itemsPng.at(17, 10)
+	static texture = itemsPng.crop(17*16, 10*16, 16, 16)
 	static defaultName = 'Flint and steel'
 }
 
 Items.tnt = itemify(Blocks.tnt, 'TNT')
 
 Items.end_crystal = class extends Item{
-	static texture = itemsPng.at(0,10)
+	static texture = itemsPng.crop(0*16, 10*16, 16, 16)
 	static defaultName = 'End crystal'
 }
 const mineral = (name, tex) => class extends Item{
@@ -98,12 +98,12 @@ const mineral = (name, tex) => class extends Item{
 	static texture = tex
 }
 
-Items.lapis = mineral('Lapis', itemsPng.at(15, 8))
-Items.coal = mineral('Coal', itemsPng.at(16, 5))
-Items.iron = mineral('Iron ingot', itemsPng.at(4, 14))
-Items.gold = mineral('Gold ingot', itemsPng.at(9, 13))
-Items.emerald = mineral('Emerald', itemsPng.at(13, 9))
-Items.diamond = mineral('Diamond', itemsPng.at(5, 8))
+Items.lapis = mineral('Lapis', itemsPng.crop(15*16, 8*16, 16, 16))
+Items.coal = mineral('Coal', itemsPng.crop(16*16, 5*16, 16, 16))
+Items.iron = mineral('Iron ingot', itemsPng.crop(4*16, 14*16, 16, 16))
+Items.gold = mineral('Gold ingot', itemsPng.crop(9*16, 13*16, 16, 16))
+Items.emerald = mineral('Emerald', itemsPng.crop(13*16, 9*16, 16, 16))
+Items.diamond = mineral('Diamond', itemsPng.crop(5*16, 8*16, 16, 16))
 
 Items.cut_sandstone = class extends Items.sandstone{
 	static defaultName = 'Cut sandstone'
@@ -130,18 +130,19 @@ Items.smooth_red_sandstone = class extends Items.sandstone{
 Items.end_portal_frame = itemify(Blocks.end_portal_frame, 'End portal frame')
 
 Items.eye_of_ender = class extends Item{
-	static texture = itemsPng.at(1, 10)
+	static texture = itemsPng.crop(1*16, 10*16, 16, 16)
 	static defaultName = 'Eye of ender'
 }
 
 Items.command_block = class extends Item{
 	render(c){
+		return
 		const a = floor(t*2)&3
 		const alpha = c.globalAlpha==1
-		c.image(commandBlockTexs[0], 0, 0, 1, 1, 0, a<<4, 16, 16)
+		c.draw(commandBlockTexs[0].crop(0, a<<4, 16, 16))
 		if(alpha){
 			c.globalAlpha = (t*2)%1
-			c.image(commandBlockTexs[0], 0, 0, 1, 1, 0, (a+1&3)<<4, 16, 16)
+			c.draw(commandBlockTexs[0].crop(0, (a+1&3)<<4, 16, 16))
 			c.globalAlpha = 1
 		}
 	}
@@ -168,17 +169,17 @@ Items.pink_wool = itemify(Blocks.pink_wool, 'Pink wool')
 Items.brown_wool = itemify(Blocks.brown_wool, 'Brown wool')
 
 Items.bucket = class extends Item{
-	static texture = itemsPng.at(9, 1)
+	static texture = itemsPng.crop(9*16, 1*16, 16, 16)
 	static defaultName = 'Bucket'
 	static interactFluid = true
 }
 Items.bucket_of_water = class extends Item{
-	static texture = itemsPng.at(12, 1)
+	static texture = itemsPng.crop(12*16, 1*16, 16, 16)
 	places(){ return Blocks.water }
 	static defaultName = 'Bucket of water'
 }
 Items.bucket_of_lava = class extends Item{
-	static texture = itemsPng.at(10, 1)
+	static texture = itemsPng.crop(10*16, 1*16, 16, 16)
 	places(){ return Blocks.lava }
 	static defaultName = 'Bucket of lava'
 }
@@ -220,17 +221,17 @@ Items.jungle_sapling = class extends Item{
 }
 
 Items.bone_meal = class extends Item{
-	static texture = itemsPng.at(9, 9)
+	static texture = itemsPng.crop(9*16, 9*16, 16, 16)
 	static defaultName = 'Bone meal'
 }
 
 Items.apple = class extends Item{
-	static texture = itemsPng.at(2, 0)
+	static texture = itemsPng.crop(2*16, 0*16, 16, 16)
 	static defaultName = 'Apple'
 }
 
 Items.stick = class extends Item{
-	static texture = itemsPng.at(1, 17)
+	static texture = itemsPng.crop(1*16, 17*16, 16, 16)
 	static defaultName = 'Stick'
 }
 
@@ -255,7 +256,6 @@ Items.chest = class extends Item{
 	static texture = Blocks.chest.texture
 	static defaultName = 'Chest'
 	render(c, model){
-		//c.transform(-1, 0, 0, 1, 1, 0)
-		c.image(chestTop, 0, 0, 1, 1)
+		c.drawRect(0, 0, 1, 1, chestTop)
 	}
 }

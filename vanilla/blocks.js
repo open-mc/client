@@ -3,11 +3,11 @@ import { sound, cam, world } from 'world'
 import { Blocks, Block, Items, BlockTexture } from 'definitions'
 import { BlockShape, blockShaped, fluidify } from './blockshapes.js'
 import { closeInterface } from './index.js'
-const Load = loader(import.meta)
+import { uiButton } from 'api'
+const src = loader(import.meta)
 
-export const terrainPng_old = Load.OldTexture("terrain.png")
-export const terrainPng = Texture().from(Load("terrain.png"))
-export const animatedPng = Texture().from(Load("animated.png"))
+export const terrainPng = Img(src`terrain.png`)
+export const animatedPng = Img(src`animated.png`)
 
 Blocks.air = class extends Block{
 	static solid = false
@@ -229,9 +229,9 @@ Blocks.endstone = class extends Block{
 	static placeSounds = Blocks.stone.placeSounds
 	static stepSounds = Blocks.stone.stepSounds
 }
-export const chestTop = BlockTexture(terrainPng, 9, 3)
-const chestOpen = Load.Audio('sound/containers/open_chest.mp3'), chestClose = Load.Audio('sound/containers/close_chest.mp3')
-const containerInterface = Load.OldTexture('container.png')
+export const chestTop = terrainPng.crop(9*16, 3*16, 16, 16)
+const chestOpen = Audio(src`sound/containers/open_chest.mp3`), chestClose = Audio(src`sound/containers/close_chest.mp3`)
+const containerInterface = Img(src`container.png`)
 Blocks.chest = class extends Block{
 	static blockShape = [1/16, 0, 15/16, 7/8]
 	static texture = BlockTexture(terrainPng, 10, 3)
@@ -280,13 +280,12 @@ Blocks.chest = class extends Block{
 		}
 	}
 	render(c){
-		if(this.state&1) c.transform(-1, 0, 0, 1, 1, 0)
+		if(this.state&1) c.box(1, 0, -1, 1)
 		this.opening = max(this.opening - dt*3, 0)
-		
 		const rot = (1-0.5**((this.state & 2 ? 1 - this.opening : this.opening)*4))*16/15
 		c.translate(0.0625, 0.625)
 		c.rotate(rot*PI/2)
-		c.image(chestTop, -0.0625, -0.625, 1, 1)
+		c.drawRect(-0.0625, -0.625, 1, 1, chestTop)
 	}
 	static tool = 'axe'
 }
@@ -331,14 +330,14 @@ Blocks.gold_block = MineralBlock
 Blocks.emerald_block = MineralBlock
 Blocks.diamond_block = MineralBlock
 
-const fireAmbient = Load.Audio('sound/fire/ambient.mp3'), portalAmbient = Load.Audio('sound/portal/ambient.mp3')
-const fireExtinguish = Load.Audio('sound/fire/extinguish.mp3')
+const fireAmbient = Audio(src`sound/fire/ambient.mp3`), portalAmbient = Audio(src`sound/portal/ambient.mp3`)
+const fireExtinguish = Audio(src`sound/fire/extinguish.mp3`)
 
 Blocks.fire = class extends Block{
 	static solid = false
 	static replacable = true
 	static texture = BlockTexture(animatedPng, 1, 0, 32)
-	static placeSounds = [Load.Audio('sound/fire/ignite.mp3')]
+	static placeSounds = [Audio(src`sound/fire/ignite.mp3`)]
 	random(x, y){
 		sound(fireAmbient, x, y, random() + 1, random() * 0.7 + 0.3)
 	}
@@ -355,43 +354,33 @@ Blocks.portal = class extends Block{
 		sound(portalAmbient, x, y, 0.5, random() * 0.4 + 0.8)
 	}
 }
-const epo = Load.OldTexture('endportaloverlay.png')
-const endPortalOverlays = [
-	epo.crop(0,0,64,256),
-	epo.crop(64,0,64,256),
-	epo.crop(128,0,64,256),
-	epo.crop(192,0,64,256)
-]
-function rot_off_transform(p, rot, off, x, y){
-	const f = cam.z
-	const a = cos(rot) / f, b = sin(rot) / f
-	p.setPatternTransform(a, -b, -b, -a, b*off-x, a*off+y)
-}
+const endPortalOverlay = Img(src`endportaloverlay.png`)
+const endShader = Shader(`
+#define PI 3.1415927
+#define ROT_MAT(rot) mat2(cos(rot),-sin(rot),-sin(rot),-cos(rot))
+#define MULTIPLY(pos, mat, off) vec3(mod(pos*mat+vec2(0,uni0/100.),vec2(.25,1.))+vec2(off,0),0)
+void main(){
+	const mat2 PITHIRD = ROT_MAT(PI/3.);
+	const mat2 PIHALF = ROT_MAT(PI/2.);
+	const mat2 PINQUARTER = ROT_MAT(PI/-4.);
+	const mat2 PIONE = ROT_MAT(PI);
+	vec2 pos = xy*uni1/1000.;
+	color = getCol(arg0, MULTIPLY(pos,PITHIRD,0.));
+	color += getCol(arg0, MULTIPLY(pos,PIHALF,.25))*.9;
+	color += getCol(arg0, MULTIPLY(pos,PINQUARTER,.5))*.5;
+	color += getCol(arg0, MULTIPLY(pos,PIONE,.75))*.4;
+}`, TEXTURE, [FLOAT, VEC2])
+let endShaderT = -1
 Blocks.end_portal = class extends Block{
 	static solid = false
 	static blockShape = [0, 0, 1, 0.75]
 	static softness = 1
 	static texture = BlockTexture(terrainPng, 14, 0)
-	render(c, x, y){
-		x -= cam.x; y -= cam.y
-		c.globalCompositeOperation = 'lighter'
-		rot_off_transform(endPortalOverlays[0], PI/3, t, x, y)
-		c.fillPattern(endPortalOverlays[0])
-		c.fillRect(0,0,1,0.75)
-		c.globalAlpha = 0.9
-		rot_off_transform(endPortalOverlays[1], PI/2, t, x, y)
-		c.fillPattern(endPortalOverlays[1])
-		c.fillRect(0,0,1,0.75)
-		c.globalAlpha = 0.5
-		rot_off_transform(endPortalOverlays[2], -PI/4, t, x, y)
-		c.fillPattern(endPortalOverlays[2])
-		c.fillRect(0,0,1,0.75)
-		c.globalAlpha = 0.4
-		rot_off_transform(endPortalOverlays[3], PI, t, x, y)
-		c.fillPattern(endPortalOverlays[3])
-		c.fillRect(0,0,1,0.75)
-		c.globalAlpha = 1
-		c.globalCompositeOperation = 'source-over'
+	render(c){
+		if(endShaderT != (endShaderT=t)) endShader.uniforms(t, vec2(c.width, c.height))
+		c.shader = endShader
+		c.drawRect(0, 0, 1, 0.75, endPortalOverlay)
+		c.shader = null
 	}
 }
 
@@ -411,7 +400,7 @@ Blocks.sugar_cane = class extends Block{
 	static solid = false
 	static targettable = true
 	static placeSounds = Blocks.grass.placeSounds
-	static texture = terrainPng_old.crop(144,64,16,16)
+	static texture = terrainPng.crop(144,64,16,16)
 }
 Blocks.pumpkin_leaf = class extends Block{
 	
@@ -497,12 +486,12 @@ Blocks.crafting_table = class extends Planks{
 	static interactible = true
 }
 const litFurnaceTex = BlockTexture(terrainPng, 13, 3)
-const furnaceInterface = Load.OldTexture('furnace.png')
+const furnaceInterface = Img(src`furnace.png`)
 const furnaceUI = furnaceInterface.crop(0, 0, 176, 80), cookArrow = furnaceInterface.crop(176, 14, 24, 17), fuelIndicator = furnaceInterface.crop(176, 0, 15, 14)
 Blocks.furnace = class extends Stone{
 	static texture = BlockTexture(terrainPng, 12, 2)
 	static interactible = true
-	render(c){ if(this.fuelTime>t) c.image(litFurnaceTex, 0, 0, 1, 1) }
+	render(c){ if(this.fuelTime>t) c.draw(toTex(litFurnaceTex)) }
 	drawInterface(id, c, drawInv){
 		if(id == 0){
 			c.push()
@@ -558,7 +547,7 @@ Blocks.furnace = class extends Stone{
 		return new o.constructor(1)
 	}
 }
-const commandBlockTex = Load.OldTexture('command_blocks.png')
+const commandBlockTex = Img(src`command_blocks.png`)
 export const commandBlockTexs = [0,1,2,3,4,5].mmap(a => commandBlockTex.crop(a<<4,0,16,64))
 const commandBlockNames = ['Impulse','Impulse (inversed)','Repeating','Repeating (needs redstone)','Callable','Callable (once per tick)']
 Blocks.command_block = class extends Stone{
@@ -585,13 +574,13 @@ Blocks.command_block = class extends Stone{
 			const halfBtnH = btnH / 2
 			c.textAlign = 'center'
 			c.textBaseline = 'middle'
-			const doneHit = c.button(-halfBtnW, buttonsY, btnW, btnH)
+			const doneHit = uiButton(c, -halfBtnW, buttonsY, btnW, btnH)
 			c.image(doneHit ? uiButtons.largeSelected : uiButtons.large, -halfBtnW, buttonsY)
 			c.fillStyle = '#333'
 			c.fillText('Done', 1, buttonsY + halfBtnH - 1, 10)
 			c.fillStyle = doneHit ? '#fff' : '#999'
 			c.fillText('Done', 0, buttonsY + halfBtnH, 10)
-			const typeHit = c.button(-halfBtnW - btnH*1.5, buttonsY, btnH, btnH)
+			const typeHit = uiButton(c, -halfBtnW - btnH*1.5, buttonsY, btnH, btnH)
 			if(typeHit == 2) this.type = (this.type+1)%6, click()
 			c.image(typeHit ? uiButtons.tinySelected : uiButtons.tiny, -halfBtnW - btnH*1.5, buttonsY, btnH, btnH)
 			c.push()

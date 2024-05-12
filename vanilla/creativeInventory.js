@@ -1,3 +1,4 @@
+import { uiButton } from 'api'
 import { commandBlockTexs } from './blocks.js'
 import { click, renderItem, renderTooltip } from './effects.js'
 import './items.js'
@@ -114,7 +115,7 @@ export function renderLeft(c){
 	for(const cat of categories){
 		c.fillStyle = '#0008'
 		c.fillRect(1, -21, 150, 20)
-		const L = c.button(0, -21, 152, 21)
+		const L = uiButton(c, 0, -21, 152, 21)
 		if(L || selectedCat == cat){
 			c.strokeStyle = L == 2 || selectedCat == cat ? '#fff' : '#fff8'
 			c.lineWidth = 1
@@ -150,7 +151,7 @@ export function renderRight(c){
 		if((i++)%ROW_SIZE) c.translate(1.125, 0)
 		else c.translate(-1.125*(ROW_SIZE-1), -1.125)
 		renderItem(c, item, false)
-		const L = c.button(-0.5, 0, 1, 1)
+		const L = uiButton(c, -0.5, 0, 1, 1)
 		if(L){
 			c.fillRect(-0.5, 0, 1, 1)
 			sel = item

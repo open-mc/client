@@ -61,8 +61,7 @@ if(matchMedia("not (pointer: fine)").matches)
 	defects.mobile = true, defects.safari = false
 
 export function start(){
-	const loading = document.getElementById('loading')
-	if(loading) loading.remove()
+	document.getElementById('loading')?.remove()
 	if(ws) return
 	if(!storage.shownDefects && (defects.firefox || defects.safari || defects.m1)){
 		showUI(UI('dirtbg',

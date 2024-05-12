@@ -1,15 +1,26 @@
-import { renderLayer, options } from 'api'
-import { getblock, sound, entityMap, cam, world } from 'world'
+import { drawLayer, options } from 'api'
+import { getblock, sound, entityMap, cam, world, me, foundMe, BlockIDs } from 'world'
 import { registerTypes } from '/server/modules/dataproto.js'
 import * as pointer from './pointer.js'
 import { EPSILON } from './entity.js'
 
-export function foundMe(e){
-	if(!me) postMessage(false, '*')
-	me = e
-	cam.x = me.ix = me.x
-	cam.y = me.iy = me.y
-	pointer.reset(e.f)
+export const TEX_SIZE = 16
+
+export let W2 = 0, H2 = 0, SCALE = 1
+
+export function _recalcDimensions(camZ){
+	if(_gl.isContextLost?.()){
+		if(!_gl.canvas.parentElement) return
+		_gl.canvas.remove()
+		document.body = document.createElement('body')
+		document.body.textContent = 'WebGL2 context lost :('
+		document.body.style = 'color:white;background:#000;text-align:center;line-height:90vh;font-size:32px;font-family:monospace;'
+		return
+	}
+	SCALE = camZ * TEX_SIZE * pixelRatio
+	W2 = ctx.width / SCALE / 2
+	H2 = ctx.height / SCALE / 2
+	ctxSupersample = 2**(options.supersample*6-3) || 1
 }
 
 export class EphemeralInterface{
@@ -68,7 +79,7 @@ export class Block{
 	static placeSounds = []; static stepSounds = []
 	static solid = true
 	static replacable = false
-	static texture = null
+	static texture = -1
 	static climbable = false
 	static viscosity = 0
 	static breaktime = 3
@@ -88,14 +99,15 @@ export class Block{
 		if(this.stepSounds.length)
 			sound(this.stepSounds[Math.floor(Math.random() * this.stepSounds.length)], x, y, 0.5, 0.75)
 	}
-	trace(mesh, uv){
+	trace(c){
 		let {blockShape} = this
+		c.mask = SET
 		if(!blockShape || blockShape.length == 0) blockShape = pointer.DEFAULT_BLOCKSHAPE
 		for(let i = 0; i < blockShape.length; i += 4){
 			const x0 = blockShape[i], x1 = blockShape[i+2], y0 = blockShape[i+1], y1 = blockShape[i+3]
-			mesh.addRect(x0, y0, x1-x0, y1-y0, uv?.sub(x0, y0, x1-x0, y1-y0))
+			c.drawRect(x0, y0, x1-x0, y1-y0)
 		}
-		return mesh
+		c.mask = RGBA | IF_SET
 	}
 	getItem(id, slot){}
 	setItem(id, slot, item){}
@@ -183,11 +195,9 @@ export class Entity{
 export const Blocks = {}
 export const Items = {}
 export const Entities = {}
-export const BlockIDs = []
+export { BlockIDs }
 export const ItemIDs = []
 export const EntityIDs = []
-
-Object.assign(globalThis, {Blocks, Items, Entities, BlockIDs, ItemIDs, EntityIDs})
 
 export class Particle{
 	constructor(physical, lifetime, x, y, dx, dy, ddx = world.gx, ddy = world.gy){
@@ -272,16 +282,14 @@ export class Particle{
 			}
 		}else this.x += this.dx * dt, this.y += this.dy * dt
 	}
-	render(c){
-
-	}
+	render(_){}
 }
 export function addParticle(p){
 	if(particles.size < options.maxParticles) particles.add(p)
 }
 export const particles = new Set
 
-renderLayer(300, c => {
+drawLayer('world', 300, c => {
 	let tx = 0, ty = 0
 	for(const particle of particles){
 		c.translate(-(tx - (tx = ifloat(particle.x - cam.x))), -(ty - (ty = ifloat(particle.y - cam.y))))
@@ -296,25 +304,25 @@ export class BlockParticle extends Particle{
 			(random()+.5)/2, x + (frac & 3) / 4 + .125, y + (frac >> 2) / 4 + .125,
 			(frac & 3) + random()*2 - 2.5 , 2 + (frac >> 2) + random()*2
 		)
-		this.tex = block ? block.particleTexture ?? block.texture : null
 		this.frac = (random() * 16) | 0
+		this.tex = toTex(block ? block.particleTexture ?? block.texture : -1).crop((this.frac & 3) << 2, (this.frac & 12), (this.frac&2)+2, (this.frac<<1&2)+2)
 	}
 	render(c){
 		if(!this.tex) return
-		const w = (this.frac&2)+2, h = (this.frac<<1&2)+2
-		const {w: tw, h: th} = this.tex
-		c.image(this.tex, -0.1, -0.1, w/20, h/20, (this.frac & 3) << 2, (this.frac & 12) + (world.tick%floor(th/tw))*tw, w, h)
+		const w = (this.frac&2)/40+.05, h = (this.frac<<1&2)/40+.05
+		c.drawRect(-w, -h, w*2, h*2, this.tex)
 	}
 }
 export function blockBreak(block, x, y){
 	for(let i = 0; i < 16; i++)
-		new BlockParticle(block, i, x, y)
+		addParticle(new BlockParticle(block, i, x, y))
 }
 
 export function stepParticles(block, e){
 	for(let i = 0; i < 4; i++){
 		const particle = new BlockParticle(block, i, e.x - .5, e.y)
 		particle.dy /= 2; particle.dx -= e.dx / 2; particle.ddx = e.dx / 2; particle.lifetime /= 2
+		addParticle(particle)
 	}
 }
 
@@ -322,8 +330,10 @@ export function punchParticles(block, x, y){
 	const s = (random() * 256) | 0
 	let particle = new BlockParticle(block, s&15, x, y)
 	particle.dy /= 2; particle.lifetime /= 2; particle.physical = false; particle.ddy /= 2
+	addParticle(particle)
 	particle = new BlockParticle(block, s>>4, x, y)
 	particle.dy /= 2; particle.lifetime /= 2; particle.physical = false; particle.ddy /= 2
+	addParticle(particle)
 }
 
 export const Classes = []
@@ -331,32 +341,48 @@ export const Classes = []
 export const ephemeralInterfaces = {}
 
 let bai = 0, bac = 256
-export let _blockAtlas = Texture(4096, min(4096, bac/16), 1, _, PIXELATED)
-
-const ta = Target()
-export function BlockTexture(img, x, y, anim = 0, trim = null){
+export let blockAtlas = Texture(4096, min(4096, bac/16), 1, _, _, 5)
+export function BlockTexture(img, x, y, anim = 0){
 	const frames = Math.abs(anim||=1)
 	const i = bai; bai += frames
 	while(i >= bac){
 		bac <<= 1
-		if(bac < 65536){
-			const ba2 = Texture(4096, bac>>4, 1, _, PIXELATED)
-			ta.setTexture(_blockAtlas)
-			ta.copyTo(ba2)
-			_blockAtlas = ba2
-		}else{
-			const ba2 = Texture(4096, 4096, bac>>16, _, PIXELATED)
-			for(let i = ba2.layers-1>>1; i >= 0; i--) ta.setTexture(_blockAtlas, i), ta.copyTo(ba2, i)
-			_blockAtlas = ba2
-		}
+		const ba2 = bac < 65536 ? Texture(4096, bac>>4, 1, _, _, 5) : Texture(4096, 4096, bac>>16, _, _, 5)
+		ba2.paste(blockAtlas)
+		blockAtlas = ba2
 	}
-	
-	if(img.then) img.then(img => _putImg(img, i, x, y, anim, trim))
-	else _putImg(img, i, x, y, anim, trim)
+	if(img.then) img.then(img => _putImg(img, i, x, y, anim))
+	else _putImg(img, i, x, y, anim)
 	return 4294967296+(i|frames-1<<24)
 }
-function _putImg(img, i, x, y, anim, trim){
-	ta.setTexture(img)
-	if(anim>0) for(let ry=y;ry<y+anim;ry++) ta.copyTo(_blockAtlas, (i&255)<<4, (i>>8&255)<<4, i>>16, x<<4, img.height-(ry<<4)-16, 16, 16),i++
-	else for(let rx=x;rx<x-anim;rx++) ta.copyTo(_blockAtlas, (i&255)<<4, (i>>8&255)<<4, i>>16, rx<<4, img.height-(y<<4)-16, 16, 16),i++
+let blocksMipmapped = true
+function _putImg(img, i, x, y, anim){
+	if(anim>0) for(let ry=y;ry<y+anim;ry++) blockAtlas.paste(img, (i&255)<<4, (i>>8&255)<<4, i>>16, x<<4, img.height-(ry<<4)-16, 0, 16, 16, 1),i++
+	else for(let rx=x;rx<x-anim;rx++) blockAtlas.paste(img, (i&255)<<4, (i>>8&255)<<4, i>>16, rx<<4, img.height-(y<<4)-16, 0, 16, 16, 1),i++
+	blocksMipmapped = false
+}
+export const toTex = i => {
+	const baH = blockAtlas.height>>4
+	i += world.animTick%((i>>>24)+1)
+	blockAtlas.x = (i&255)/256
+	blockAtlas.y = (i>>8&255)/baH
+	blockAtlas.z = .00390625 // 1/256
+	blockAtlas.w = 1/baH
+	blockAtlas.l = i>>16&255
+	return blockAtlas
+}
+
+export function toBlockExact(c, bx, by){
+	c.reset(1/c.width,0,0,1/c.height,0.5,0.5)
+	c.rotate(-cam.f)
+	const x0 = ifloat(bx - cam.x) * SCALE
+	const y0 = ifloat(by - cam.y) * SCALE
+	const xa0 = round(x0), ya0 = round(y0)
+	c.box(xa0, ya0, round(x0+SCALE)-xa0, round(y0+SCALE)-ya0)
+}
+export function prep(){
+	if(!blocksMipmapped){
+		blockAtlas.genMipmaps()
+		blocksMipmapped = true
+	}
 }

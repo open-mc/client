@@ -1,5 +1,17 @@
-import { BlockIDs, Classes } from 'definitions'
 import { musicdict } from './sounds.js'
+
+export const BlockIDs = []
+
+export let me = null
+export let perms = 2
+export const _setPerms = p => perms=p
+export function foundMe(e){
+	if(!me) postMessage(false, '*')
+	me = globalThis.me = e
+	cam.x = me.ix = me.x
+	cam.y = me.iy = me.y
+	for(const cb of playerLoadCb) try{cb(e)}catch(e){Promise.reject(e)}
+}
 export const map = globalThis.map = new Map
 export const entityMap = globalThis.entityMap = new Map()
 export const server = {
@@ -29,23 +41,9 @@ function variant(ch, i, x, y, b){
 			ch[i] = 65535
 			ch.tileData.set(i, b=b===b.constructor?new b:b)
 		}else{ ch[i] = b.id; if(old.savedata) ch.tileData.delete(i) }
-		updateDrawn(old, b, ch, i)
+		ch.updateDrawn(b, i)
 	}
 	return b
-}
-function updateDrawn(o, n, ch, i){
-	if(o.texture && floor(o.texture.h / o.texture.w) > 1){
-		if(!n.texture || floor(n.texture.h / n.texture.w) <= 1) ch.animatedTiles[i>>5] &= ~(1 << (i&31))
-		else return
-	}else if(n.texture && floor(n.texture.h / n.texture.w) > 1) ch.animatedTiles[i>>5] |= 1 << (i&31)
-	if(ch.ctx){
-		const {texture, render} = n
-		//ch.ctx.clearRect(i&63, 63-(i>>6), 1, 1)
-		let j = ch.rerenders.indexOf(i)
-		if((j == -1) & (render != undefined)) ch.rerenders.push(i)
-		else if((j > -1) & (render == undefined)) ch.rerenders.splice(j, 1)
-		//if(texture) ch.ctx.drawImage(texture.canvas,texture.x,texture.y + (world.tick % floor(texture.h / texture.w)) * texture.w,texture.w,texture.w,i&63,63-(i>>6),1,1)
-	}
 }
 
 export function setblock(x, y, b){
@@ -59,7 +57,7 @@ export function setblock(x, y, b){
 		ch[i] = 65535
 		ch.tileData.set(i, b)
 	}else{ ch[i] = b.id; if(old.savedata) ch.tileData.delete(i) }
-	updateDrawn(old, b, ch, i)
+	ch.updateDrawn(b, i)
 	variant(ch, i, x, y, b)
 	if((i&63) == 63) variant(map.get((x+1>>>6)+(y>>>6)*0x4000000), i&0b111111000000, x+1, y)
 	else variant(ch, i+1, x+1, y)
@@ -103,9 +101,6 @@ export const music = (theme, ...audios) => {
 	arr.push(...audios)
 }
 
-export * as pointer from './pointer.js'
-
-export { worldEvents } from './incomingPacket.js'
 
 export const world = {
 	id: '',
@@ -116,3 +111,6 @@ export const world = {
 }
 
 export let bigintOffset = {x: 0n, y: 0n}
+
+export let pointer = e => pointer = e
+export let worldEvents = e => worldEvents = e

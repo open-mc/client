@@ -1,5 +1,5 @@
-import { Item, _blockAtlas } from 'definitions'
-import { getblock, world } from 'world'
+import { Item, toTex } from 'definitions'
+import { getblock } from 'world'
 export const BlockShape = {}
 BlockShape.SLAB = [0, 0, 1, 0.5]
 BlockShape.UPPER_SLAB = [0, 0.5, 1, 1]
@@ -43,8 +43,29 @@ export const itemify = (B, n, cat) => class extends Item{
 	static categories = cat
 	places(){return B}
 }
-
-
+let fluidGeometry
+{
+	const arr = new Float32Array(488)
+	for(let i = 0; i < 82; i++){
+		const j = i*6
+		arr[j+1] = i%9/8
+		arr[j+2] = 1
+		arr[j+3] = floor(i/9)/8
+		arr[j+6] = 1
+		i++
+		arr[j+9] = i%9/8
+		arr[j+10] = 1
+		arr[j+11] = floor(i/9)/8
+	}
+	fluidGeometry = Geometry(TRIANGLE_STRIP, arr)
+}
+globalThis.test = (y1, y2) => {
+	y1 += y2*9
+	const a = new Float32Array(8)
+	_gl.bindBuffer(_gl.COPY_READ_BUFFER, fluidGeometry.b)
+	_gl.getBufferSubData(_gl.COPY_READ_BUFFER, ((y1>>1)*6+(y1<<1&2))<<3, a)
+	return a
+}
 
 export const fluidify = (B, type, tex, flowingTex) => {
 	B.texture = tex
@@ -57,14 +78,9 @@ export const fluidify = (B, type, tex, flowingTex) => {
 	const top = class extends filled{
 		variant(x, y){ return getblock(x, y+1).fluidLevel ? filled : undefined }
 		static blockShape = BlockShape.TWO_SHORT
-		static texture = null
+		static texture = -1
 		render(c, x, y){
-			const b = getblock(x, y-1)
-			const t = b == flowing ? flowingTex : tex
-			c.scale(1/16,1/16)
-			c.fillPattern(t)
-			t.setPatternTransform(1, 0, 0, 1, 0, -t.w-(world.tick%floor(t.h/t.w))*t.w)
-			c.fillRect(0, 0, 16, 14)
+			c.drawRect(0, 0, 1, .875, toTex(getblock(x, y-1) == flowing ? flowingTex : tex))
 		}
 	}
 	const flowing = class extends B{
@@ -73,28 +89,22 @@ export const fluidify = (B, type, tex, flowingTex) => {
 		static flows = true
 	}
 	const level = class extends B{
-		static texture = null
+		static texture = -1
 		static flows = true
 		render(c, x, y){
-			c.scale(1/16,1/16)
-			c.fillPattern(flowingTex)
-			flowingTex.setPatternTransform(1, 0, 0, 1, 0, -flowingTex.w-(world.tick%floor(flowingTex.h/flowingTex.w))*flowingTex.w)
 			let y1 = 0, y2 = 0
 			{
-				const {solid, fluidLevel} = getblock(x+1,y)
-				y2 = fluidLevel ? min(this.fluidLevel, fluidLevel)*2 : this.fluidLevel * (solid/2+.5)
+				const {solid, fluidLevel=0} = getblock(x+1,y)
+				y2 = fluidLevel ? min(this.fluidLevel, fluidLevel) : this.fluidLevel >> !solid
 			}
 			{
-				const {solid, fluidLevel} = getblock(x-1,y)
-				y1 = fluidLevel ? min(this.fluidLevel, fluidLevel)*2 : this.fluidLevel * (solid/2+.5)
+				const {solid, fluidLevel=0} = getblock(x-1,y)
+				y1 = fluidLevel ? min(this.fluidLevel, fluidLevel) : this.fluidLevel >> !solid
 			}
-			c.beginPath()
-			c.moveTo(0, 0)
-			c.lineTo(16, 0)
-			c.lineTo(16, y2)
-			c.lineTo(0, y1)
-			c.closePath()
-			c.fill()
+			y1 += y2*9
+			c.geometry = fluidGeometry.sub((y1>>1)*6+(y1<<1&2), 4)
+			c.draw(toTex(flowingTex))
+			c.geometry = null
 		}
 	}
 	const levels = [

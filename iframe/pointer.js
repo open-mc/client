@@ -1,17 +1,16 @@
-import { setblock, onPlayerLoad, getblock, map, cam } from 'world'
+import { setblock, getblock, map, cam, me, onPlayerLoad, perms, pointer } from 'world'
 import './controls.js'
-import { button, onmousemove, onjoypad, W2, H2, options, paused, renderUI, drawPhase, SCALE } from 'api'
-import { Entity } from 'definitions'
-import { toBlockExact } from './api.js'
+import { onKey, onmousemove, options, paused, renderUI, drawLayer } from 'api'
+import { Entity, TEX_SIZE, W2, H2, toBlockExact } from 'definitions'
 
 export let x = 2, y = 0
 export let bx = 0, by = 0, bpx = 0, bpy = 0, bpfx = 0, bpfy = 0
 export const REACH = 10
-
+onPlayerLoad(me => reset(me.f))
 export const effectiveReach = () => max(1, min(REACH, min(W2, H2) * 1.5 - 1.5))
 let lastPlace = 0
 let jrx = 0, jry = 0
-drawPhase(-1000, () => {
+drawLayer('none', -1000, () => {
 	a: if(options.joy == 0){
 		if(cursor.jrx || cursor.jry){
 			const sens = 9 ** (options.controllerSensitivity-options.sensitivity)
@@ -39,17 +38,16 @@ drawPhase(-1000, () => {
 })
 export const DEFAULT_BLOCKSHAPE = [0, 0, 1, 1]
 let blockPlacing = null
+const invertBlend = Blend(ONE_MINUS_DST, ADD, ONE_MINUS_SRC)
 export function drawPointer(c){
-	return
 	if(renderUI && me.health){
-		c.beginPath()
-		c.rect(ifloat(x + me.x - cam.x) - .3, ifloat(y + me.head + me.y - cam.y) - .03125, .6, .0625)
-		c.rect(ifloat(x + me.x - cam.x) - .03125, ifloat(y + me.head + me.y - cam.y) - .3, .0625, .6)
-		c.globalCompositeOperation = 'difference'
-		c.fillStyle = '#ccc'
-		if(!me.linked) c.globalAlpha = 0.2, c.fill(), c.globalAlpha = 1
-		else c.fill()
-		c.globalCompositeOperation = 'source-over'
+		c.blend = invertBlend
+		const v = me.linked ? 1 : 0.2
+		const pX = ifloat(x + me.x - cam.x), pY = ifloat(y + me.head + me.y - cam.y)
+		c.drawRect(pX - .3, pY - .03125, .6, .0625, vec4(v,v,v,0))
+		c.drawRect(pX - .03125, pY - .3, .0625, .26875, vec4(v,v,v,0))
+		c.drawRect(pX - .03125, pY + .03125, .0625, .26875, vec4(v,v,v,0))
+		c.blend = null
 	}
 	bx = floor(me.x)
 	by = floor(me.y + me.head)
@@ -130,6 +128,7 @@ export function drawPointer(c){
 					break a
 				}
 		if(renderUI){
+			return
 			c.lineWidth = 0.125
 			c.strokeStyle = '#000'
 			c.fillStyle = '#000'
@@ -202,7 +201,7 @@ export function checkBlockPlacing(buf){
 	}
 }
 export let blockbreakx = NaN, blockbreaky = NaN
-button(LBUTTON, RBUTTON, GAMEPAD.LT, GAMEPAD.RT, () => {lastPlace = 0})
+onKey(LBUTTON, RBUTTON, GAMEPAD.LT, GAMEPAD.RT, () => {lastPlace = 0})
 let oldx = 0, oldy = 0
 export function pointerMoved(dx, dy){
 	const _dx = dx, sr = sin(cam.f), cr = cos(cam.f)
@@ -231,3 +230,5 @@ export const reset = (f) => {
 export const set = (_x, _y) => {
 	x = _x; y = _y
 }
+import * as p from './pointer.js'
+pointer(p)

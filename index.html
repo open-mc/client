@@ -28,13 +28,12 @@
 	</body>
 	<script type="module">
 		import { start } from './uis/defects.js'
+		//const {sha} = await fetch('https://api.github.com/repos/open-mc/client/commits/main').then(a=>a.json())
 		onload = start
 		screen.orientation?.lock?.('landscape')?.catch(e=>{})
 		onerror = (_, s, l, c, e) => {
-			if(s)
-				errors.append((s.startsWith(location.origin)?s.slice(location.origin.length):s)+':'+l+':'+c+': '+e+'\n')
-			else errors.append(e+'\n')
-			if(errors.childNodes.length>20) errors.childNodes[0].remove()
+			errors.append((s?(s.startsWith(location.origin)?s.slice(location.origin.length):s)+':'+l+':'+c+': ':'')+e+'\n')
+			setTimeout(() => errors.childNodes[0].remove(), 10000)
 		}
 		onunhandledrejection=({reason})=>onerror(undefined,'',0,0,reason)
 	</script>

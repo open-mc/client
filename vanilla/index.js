@@ -1,17 +1,17 @@
 import { uiButtons, icons, renderItem, renderItemCount, click, renderSlot, renderTooltip, resetSlot, slotI, audioSet } from './effects.js'
 import './entities.js'
-import { button, W2, H2, uiLayer, renderLayer, pause, renderUI, quit, onpacket, send, voice } from 'api'
-import { getblock, gridEvents, sound, entityMap, pointer, cam, world, configLoaded } from 'world'
-import { Item, BlockParticle, blockBreak, ephemeralInterfaces } from 'definitions'
+import { onKey, drawLayer, pause, renderUI, quit, onpacket, send, voice } from 'api'
+import { getblock, gridEvents, sound, entityMap, pointer, cam, world, configLoaded, me } from 'world'
+import { Item, BlockParticle, addParticle, blockBreak, ephemeralInterfaces, W2, H2 } from 'definitions'
 import { AshParticle, BlastParticle, explode } from './defs.js'
-import { terrainPng_old } from './blocks.js'
+import { terrainPng } from './blocks.js'
 import './interfaces.js'
 import './voice.js'
-const { OldTexture } = loader(import.meta)
+const src = loader(import.meta)
 
-const BREAKING = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].mmap(x => terrainPng_old.at(x, 15))
-const skyPng = OldTexture('sky.png')
-const stars = OldTexture('stars.png')
+const BREAKING = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].mmap(x => terrainPng.sub(x/16, 0, 1/16, 1/16))
+const skyPng = await Img(src`sky.png`)
+const stars = Img(src`stars.png`, REPEAT)
 const sun = skyPng.crop(128, 64, 32, 32), moons = [
 	skyPng.crop(128, 0, 32, 32),
 	skyPng.crop(160, 0, 32, 32),
@@ -21,173 +21,111 @@ const sun = skyPng.crop(128, 64, 32, 32), moons = [
 	skyPng.crop(160, 32, 32, 32),
 	skyPng.crop(192, 32, 32, 32),
 	skyPng.crop(224, 32, 32, 32)
-], cloudMap = skyPng.crop(128, 127, 128, 1)
-const endSky = skyPng.crop(128,128,128,128)
-const rain = skyPng.crop(0, 0, 64, 256)
+]
+const cloudMap = Texture(128, 1, 1, REPEAT_X).paste(skyPng, 0, 0, 0, 128, 128, 0, 128, 1, 1)
+const endSky = Texture(128, 128, 1, REPEAT).paste(skyPng, 0, 0, 0, 128, 0, 0, 128, 128, 1)
+const rain = Texture(64, 256, 1, REPEAT_Y).paste(skyPng, 0, 0, 0, 0, 0, 0, 64, 256, 1)
+const gradients = Texture(5, 2, 1, SMOOTH)
+gradients.pasteData(Uint8Array.fromHex(`
+0a0c14ff c3d2ffff c5563bff 586493ff 2b3046ff
+040609ff 78a7ffff 00000000 63718bff 2c2e35ff
+`))
+const nightGradient = gradients.sub(.1, .25, 0, .5)
+const dayGradient = gradients.sub(.3, .25, 0, .5)
+const sunsetGradient = gradients.sub(.5, .25, 0, .5)
+const rainGradient = gradients.sub(.7, .25, 0, .5)
+const rainNightGradient = gradients.sub(.9, .25, 0, .5)
 
-const gradients = Can(0, 0)
-function makeGradients(h){
-	gradients.resize(5, h)
-	gradients.defaultTransform()
-
-	let gradient = gradients.createLinearGradient(0, 0, 0, h)
-	gradient.addColorStop(0.3, '#0a0c14')
-	gradient.addColorStop(0.7, '#040609')
-	gradients.fillStyle = gradient
-	gradients.fillRect(0, 0, 1, h)
-
-	gradient = gradients.createLinearGradient(0, 0, 0, h)
-	gradient.addColorStop(0.3, '#c3d2ff')
-	gradient.addColorStop(0.7, '#78a7ff')
-	gradients.fillStyle = gradient
-	gradients.fillRect(1, 0, 1, h)
-
-	gradient = gradients.createLinearGradient(0, 0, 0, h)
-	gradient.addColorStop(0.3, '#c5563b')
-	gradient.addColorStop(0.7, 'transparent')
-	gradients.fillStyle = gradient
-	gradients.fillRect(2, 0, 1, h)
-
-	gradient = gradients.createLinearGradient(0, 0, 0, h)
-	gradient.addColorStop(0.3, '#586493')
-	gradient.addColorStop(0.7, '#63718b')
-	gradients.fillStyle = gradient
-	gradients.fillRect(3, 0, 1, h)
-
-	gradient = gradients.createLinearGradient(0, 0, 0, h)
-	gradient.addColorStop(0.3, '#2b3046')
-	gradient.addColorStop(0.7, '#2c2e35')
-	gradients.fillStyle = gradient
-	gradients.fillRect(4, 0, 1, h)
-}
 const rainSound = audioSet('misc/rain', 4)
 let lastRainPlay = 0
-setInterval(() => {
+drawLayer('none', -100, c => {
+	const w = c.width/pixelRatio, h = c.height/pixelRatio
 	if(world.weather && t - lastRainPlay > 0.8333333) lastRainPlay = t, me.sound(rainSound, 0.5)
-})
-
-uiLayer(-100, (c, w, h) => {
-	return
-	if(gradients.h != h) makeGradients(h)
 	if(world.id == 'overworld'){
 		const rainyness = min(world.weather&&(1-world.weatherFade/40), 1, (world.weather&0x0FFFFFFF)/40)
 		const reach = pointer.effectiveReach()
 		const time = world.tick % 24000
 		const light = time < 1800 ? time / 1800 : time < 13800 ? 1 : time < 15600 ? (15600 - time) / 1800 : 0
-		let orangeness = 0
-		if(time < 1800) orangeness = 1 - abs(time - 900)/900
-		else if(time >= 13800 && time < 15600) orangeness = 1 - abs(time - 14700)/900
-		const wspan = w + 64 + reach/2
+		const orangeness = 1 - abs(time < 1800 ? time - 900 : time >= 13800 && time < 15600 ? time - 14700 : 900)/900
+		const wspan = w + 128 + reach/2
+		const effx = ifloat(cam.x-me.x)*cam.z/4*pixelRatio, effy = ifloat(cam.y-me.y)*cam.z/4*pixelRatio
 		if(light < 1 && rainyness < 1){
-			c.image(gradients, 0, 0, w, h, 0, 0, 1, h)
-			c.rect(0, 0, w, h)
-			const xo = wspan * ((time + 12600) % 24000 / 8400 - .5) - 20 - reach/4 - ifloat(cam.x-me.x)*cam.z/16
-			const yo = h/2 + 6 + h/3 * sin(((time + 12600) % 24000 / 8400 - .5) * PI) - ifloat(cam.y-me.y)*cam.z/16
-			c.translate(xo, yo)
-			c.globalAlpha = 1-rainyness
-			c.fillPattern(stars)
-			c.fill()
-			c.translate(-xo, -yo)
+			c.draw(nightGradient)
+			const fac = ((time + 12600) % 24000 / 8400 - .5)
+			const xo = wspan * fac - 50 - reach/4 - effx
+			const yo = h/2 - 30 - h/3 * sin(fac * PI) - effy
+			c.draw(stars.crop(-xo/2, -yo/2, w/2, h/2), vec4(rainyness))
 		}
-		c.globalAlpha = light
-		if(light && rainyness < 1) c.image(gradients, 0, 0, w, h, 1, 0, 1, h)
+		if(light && rainyness < 1) c.draw(dayGradient, vec4(1-light))
+		const a = min(light, rainyness)
 		if(world.weather > 0x10000000){
-			c.globalAlpha = light
-			if(c.globalAlpha) c.image(gradients, 0, 0, w, h, 3, 0, 1, h)
-			c.globalAlpha = min(light, rainyness)
-			if(c.globalAlpha) c.image(gradients, 0, 0, w, h, 4, 0, 1, h)
-		}else{
-			c.globalAlpha = min(light, rainyness)
-			if(c.globalAlpha) c.image(gradients, 0, 0, w, h, 3, 0, 1, h)
-		}
+			if(light) c.draw(rainGradient, vec4(1-light))
+			if(a) c.draw(rainNightGradient, vec4(1-a))
+		}else if(a) c.draw(rainGradient, vec4(1-a))
 
-		c.globalAlpha = orangeness
-		if(orangeness) c.image(gradients, 0, 0, w, h, 2, 0, 1, h)
+		if(orangeness) c.draw(sunsetGradient, vec4(1-orangeness))
 
-		c.globalAlpha = 1
-		c.globalCompositeOperation = 'lighter'
-		c.globalAlpha = 1 - rainyness
+		c.blend = Blend.ADD
+		
+		c.scale(1/w, 1/h)
 		if(time < 15600){
 			const progress = time / 15600
-			c.image(sun, wspan * progress - 64 - reach/4 - ifloat(cam.x-me.x)*cam.z/16, h/2 - 32 + h/3 * sin(progress * PI) - ifloat(cam.y-me.y)*cam.z/16, 64, 64)
+			c.drawRect(wspan * progress - 128 - reach/4 - effx, h/2 - 32 + h/3 * sin(progress * PI) - effy, 128, 128, sun, vec4(rainyness))
 		}else{
 			const progress = (time - 15600) / 8400
-			c.image(moons[world.tick / 24000 & 7], wspan * progress - 64 - reach/4 - ifloat(cam.x-me.x)*cam.z/16, h/2 - 32 + h/3 * sin(progress * PI) - ifloat(cam.y-me.y)*cam.z/16, 64, 64)
+			c.drawRect(wspan * progress - 128 - reach/4 - effx, h/2 - 32 + h/3 * sin(progress * PI) - effy, 128, 128, moons[world.tick / 24000 & 7], vec4(rainyness))
 		}
-		c.globalCompositeOperation = 'source-over'
-		c.globalAlpha = 1
+		c.blend = 0
 	}else if(world.id == 'nether'){
-		c.fillStyle = '#190404'
-		c.fillRect(0, 0, w, h)
+		c.draw(vec4(0.1, .015, .015, 1))
 	}else if(world.id == 'end'){
-		c.globalAlpha = 0.15
-		c.fillPattern(endSky)
-		c.fillRect(0, 0, w, h)
-		c.globalAlpha = 1
+		c.draw(endSky.sub(0, 0, w/64, h/64), vec4(.75))
 	}
 })
-renderLayer(500, (c, w, h) => {
-	return
+drawLayer('none', 500, (c, w, h) => {
 	if(world.id == 'nether'){
-		c.fillStyle = '#40000033'
-		c.fillRect(-W2, -H2, W2*2, H2*2)
+		c.draw(vec4(.05, 0, 0, .2))
 		return
 	}
 })
 
 const cloudLayers = [
-	{y: 64, h: 4, s: 1, o: 'soft-light', a: 1},
-	{y: 128, h: 6, s: -0.5, o: 'soft-light', a: 1},
-	{y: 256, h: 2, s: 4, o: 'hard-light', a: 0.5},
-	{y: 512, h: 7, s: -2, o: 'hard-light', a: 0.4},
-	{y: 1024, h: 3, s: 0.5, o: 'soft-light', a: 0.5},
-	{y: 2048, h: 1, s: -4, o: 'soft-light', a: 0.6},
-	{y: 4096, h: 5, s: 2, o: 'hard-light', a: 0.5},
-	{y: 8192, h: 8, s: -1, o: 'hard-light', a: 0.7},
-	{y: 69420, h: 21, s: 8, o: 'soft-light', a: 1},
+	{y: 64, h: 4, s: 1, a: 1},
+	{y: 128, h: 6, s: -0.5, a: 1},
+	{y: 256, h: 2, s: 4, a: 0.5},
+	{y: 512, h: 7, s: -2, a: 0.4},
+	{y: 1024, h: 3, s: 0.5, a: 0.5},
+	{y: 2048, h: 1, s: -4, a: 0.6},
+	{y: 4096, h: 5, s: 2, a: 0.5},
+	{y: 8192, h: 8, s: -1, a: 0.7},
+	{y: 69420, h: 21, s: 8, a: 1},
 ]
-
-renderLayer(150, c => {
-	return
+const cloudBlend = Blend(ONE, ADD, ONE_MINUS_SRC_ALPHA)
+drawLayer('world', 150, c => {
 	if(world.id != 'overworld') return
-	for(const {y, h, s, o, a} of cloudLayers){
-		c.globalCompositeOperation = o
-		c.globalAlpha = a
-		c.beginPath()
-		c.rect(-W2, (y - cam.y) * 0.7, W2 * 2, h)
-		const x = (t * s - cam.x) % (384 * h)
-		c.translate(x, 0)
-		c.scale(h * 3, h * 3)
-		c.fillPattern(cloudMap)
-		c.fill()
-		c.scale(1 / (h * 3), 1 / (h * 3))
-		c.translate(-x, 0)
+	c.blend = cloudBlend
+	for(const {y, h, s, a} of cloudLayers){
+		const x = (t * s - cam.x) % (h*128)
+		c.drawRect(-W2, (y - cam.y) * 0.7, W2 * 2, h, cloudMap.super(.5+x/(W2*2), 0, 192/W2*h, 0), vec4(1-a*.75))
 	}
-	c.globalCompositeOperation = 'source-over'
+	c.blend = 0
 	const rainyness = min(1-world.weatherFade/40, 1, (world.weather&0x0FFFFFFF)/40)
 	if(rainyness && cam.z > .125){
-		c.globalAlpha = rainyness/2
-		c.fillPattern(rain)
-		rain.setPatternTransform(.0625, 0, 0, .0625, 0, t*30%16)
+		const col = vec4(1-rainyness/2)
 		const end = iceil(cam.x+W2)
+		const rainOff = t*30%16
 		for(let x = ifloor(cam.x-W2); x != end; x=x+1|0){
-			const off = ifloat(x-cam.x)%4 + ((x ^ x>>2 ^ x>>4 ^ x>>6) & 3)
+			const off = ((x ^ x>>2 ^ x>>4 ^ x>>6) & 3)
 			let off2 = imul(x, 0x13F255A7) >> 16
 			off2 = ((off2 ^ off2 >> 2 ^ off2 >> 4 ^ off2 >> 6) & 3) << 2
-			c.beginPath()
-			c.rect(ifloat(x-cam.x), -H2, 1, H2*2)
-			c.closePath()
-			c.translate(off, off2)
-			c.fill()
-			c.translate(-off, -off2)
+			c.drawRect(ifloat(x-cam.x), -H2, 1, H2*2, rain.sub(off/4,(rainOff+off2)/16,.25,H2/8), col)
 		}
 	}
-	c.globalAlpha = 1
 })
 
-const hotbar = OldTexture('hotbar.png')
-const selected = OldTexture('slot.png')
-const inventory = OldTexture('inv.png')
+const hotbar = Img(src`hotbar.png`)
+const selected = Img(src`slot.png`)
+const inventory = Img(src`inv.png`)
 
 const heart = icons.crop(52,0,9,9), halfHeart = icons.crop(61,0,9,9)
 const heartEmpty = icons.crop(16,0,9,9)
@@ -198,7 +136,7 @@ let respawnClicked = false
 let hotbarTooltipAlpha = 0, lastSelected = -1
 let proximityChatTooltip = 0
 configLoaded(CONFIG => proximityChatTooltip = CONFIG.proximitychat ? 10 : 0)
-uiLayer(1000, (c, w, h) => {
+drawLayer('ui', 1000, (c, w, h) => {
 	return
 	if(renderUI){
 		let hotBarLeft = w / 2 - hotbar.w/2
@@ -261,7 +199,7 @@ uiLayer(1000, (c, w, h) => {
 		c.fillText('You died!', w / 2 + 4, h3*2 - 4, 40)
 		c.fillStyle = '#fff'
 		c.fillText('You died!', w / 2, h3*2, 40)
-		const {x: mx, y: my} = c.mouse()
+		const {x: mx, y: my} = c.from(cursor)
 		const selectedBtn = mx >= (w - btnW) / 2 && mx < (w + btnW) / 2 ?
 			my >= h3 && my < h3 + 20 ? 1
 			: my >= h3 - 30 && my < h3 - 10 ? -1
@@ -348,7 +286,7 @@ uiLayer(1000, (c, w, h) => {
 	}
 	c.peek()
 	c.scale(16,16)
-	const {x, y} = c.mouse()
+	const {x, y} = c.from(cursor)
 	c.translate(x, y - .5)
 	renderItem(c, me.inv[36])
 	renderItemCount(c, me.inv[36])
@@ -360,9 +298,9 @@ uiLayer(1000, (c, w, h) => {
 
 let invInterface = null, interfaceId = 0
 let invAction = 0
-button(LBUTTON, () => {invAction = 1})
-button(RBUTTON, () => {invAction = 2})
-button(MBUTTON, () => {invAction = 3})
+onKey(LBUTTON, () => {invAction = 1})
+onKey(RBUTTON, () => {invAction = 2})
+onKey(MBUTTON, () => {invAction = 3})
 
 function openInventory(){
 	const buf = new DataWriter()
@@ -409,17 +347,17 @@ onpacket(32, buf => {
 	}
 })
 
-button(KEYS.E, GAMEPAD.X, () => {
+onKey(KEYS.E, GAMEPAD.X, () => {
 	if(invInterface) return closeInterface()
 	openInventory()
 })
 
-button(KEYS.Q, GAMEPAD.Y, GAMEPAD.DOWN, () => {
+onKey(KEYS.Q, GAMEPAD.Y, GAMEPAD.DOWN, () => {
 	const buf = new DataWriter()
 	buf.byte(34)
 	send(buf)
 })
-
+const addMultBlend = Blend(DST, ADD, ONE_MINUS_SRC_ALPHA)
 gridEvents[4] = (buf, x, y) => {
 	let time = 0
 	const toBreak = buf.float() / world.tps
@@ -427,15 +365,16 @@ gridEvents[4] = (buf, x, y) => {
 	return c => {
 		if(!toBreak) return
 		const block = getblock(x, y)
-		if(t - lastParticle > .1) new BlockParticle(block, floor(random() * 16), x, y), lastParticle = t
-		
+		if(t - lastParticle > .1){
+			addParticle(new BlockParticle(block, floor(random() * 16), x, y))
+			lastParticle = t
+		}
 		if(Number.isFinite(toBreak)){
-			c.save()
-				c.globalCompositeOperation = 'multiply'
-				block.trace(c)
-				c.clip()
-				c.image(BREAKING[min(9, floor(time / toBreak * 10)) || 0], 0, 0, 1, 1)
-			c.restore()
+			block.trace(c)
+			c.blend = addMultBlend
+			c.draw(BREAKING[min(9, floor(time / toBreak * 10)) || 0])
+			c.clearStencil()
+			c.blend = 0
 		}
 		if(floor(time * 5) != floor((time += dt) * 5))
 			if(block.punch) block.punch(x, y)
@@ -458,8 +397,8 @@ gridEvents[2] = (buf, x, y) => {
 gridEvents[3] = (_, x, y) => {
 	x += .5; y += .5
 	sound(explode, x, y)
-	for(let i = 0; i < 15; i++) new BlastParticle(x, y)
-	for(let i = 0; i < 30; i++) new AshParticle(x, y)
+	for(let i = 0; i < 15; i++) addParticle(new BlastParticle(x, y))
+	for(let i = 0; i < 30; i++) addParticle(new AshParticle(x, y))
 }
 
 gridEvents[10] = (_, x, y) => {

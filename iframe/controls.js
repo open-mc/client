@@ -1,12 +1,12 @@
-import { button, onwheel, paused } from 'api'
+import { onKey, onwheel, paused } from 'api'
 import { EPSILON, mePhysics } from './entity.js'
-import { getblock } from 'world'
+import { getblock, me } from 'world'
 import { send } from './api.js'
 let R=false,L=false,U=false,D=false
 let lastPressUp = 0, lastPressRight = 0, lastPressLeft = 0
 
 let gamepadToggleCrouch = false
-button(GAMEPAD.B, () => gamepadToggleCrouch=!gamepadToggleCrouch)
+onKey(GAMEPAD.B, () => gamepadToggleCrouch=!gamepadToggleCrouch)
 export const playerControls = () => {
 	if(paused) return
 	if((me.state&1)&&me.mode<1) me.state &= ~1
@@ -62,17 +62,17 @@ export const playerControls = () => {
 	}
 }
 
-button(KEYS.NUM_1, () => {me.selected = 0})
-button(KEYS.NUM_2, () => {me.selected = 1})
-button(KEYS.NUM_3, () => {me.selected = 2})
-button(KEYS.NUM_4, () => {me.selected = 3})
-button(KEYS.NUM_5, () => {me.selected = 4})
-button(KEYS.NUM_6, () => {me.selected = 5})
-button(KEYS.NUM_7, () => {me.selected = 6})
-button(KEYS.NUM_8, () => {me.selected = 7})
-button(KEYS.NUM_9, () => {me.selected = 8})
+onKey(KEYS.NUM_1, () => {me.selected = 0})
+onKey(KEYS.NUM_2, () => {me.selected = 1})
+onKey(KEYS.NUM_3, () => {me.selected = 2})
+onKey(KEYS.NUM_4, () => {me.selected = 3})
+onKey(KEYS.NUM_5, () => {me.selected = 4})
+onKey(KEYS.NUM_6, () => {me.selected = 5})
+onKey(KEYS.NUM_7, () => {me.selected = 6})
+onKey(KEYS.NUM_8, () => {me.selected = 7})
+onKey(KEYS.NUM_9, () => {me.selected = 8})
 
-button(KEYS.BACK, () => {
+onKey(KEYS.BACK, () => {
 	const d = new DataWriter()
 	d.byte(me.linked ? 6 : 7)
 	send(d.build())
@@ -86,5 +86,5 @@ onwheel(dy => {
 	else if(cummulative < -60)
 		me.selected = (me.selected + 8) % 9, cummulative = 0
 })
-button(GAMEPAD.LB, () => me.selected = (me.selected + 8) % 9)
-button(GAMEPAD.RB, () => me.selected = (me.selected + 1) % 9)
+onKey(GAMEPAD.LB, () => me.selected = (me.selected + 8) % 9)
+onKey(GAMEPAD.RB, () => me.selected = (me.selected + 1) % 9)

@@ -1,29 +1,29 @@
 import { particlePng, explode, AshParticle, BlastParticle, hurt } from './defs.js'
 import { audioSet, renderItem, renderItemCount, renderSlot } from './effects.js'
 import { Entities, Entity, Item, Blocks, BlockIDs } from 'definitions'
-import { renderF3, uiLayer } from 'api'
-import { getblock, cam, worldEvents, world } from 'world'
+import { renderF3, drawLayer } from 'api'
+import { getblock, cam, worldEvents, world, me, perms } from 'world'
 import { renderLeft, renderRight } from './creativeInventory.js'
 
-const {Audio, OldTexture} = loader(import.meta)
+const src = loader(import.meta)
 
-const meInterface = OldTexture('meint.png')
+const meInterface = Img(src`meint.png`)
 
 const damageSounds = [
-	null, Audio('sound/fire/extinguish.mp3')
+	null, Audio(src`sound/fire/extinguish.mp3`)
 ]
 
 const enterWaterSounds = [
-	Audio('sound/water/enter1.mp3'),
-	Audio('sound/water/enter2.mp3'),
-	Audio('sound/water/enter3.mp3')
+	Audio(src`sound/water/enter1.mp3`),
+	Audio(src`sound/water/enter2.mp3`),
+	Audio(src`sound/water/enter3.mp3`)
 ], exitWaterSounds = [
-	Audio('sound/water/exit1.mp3'),
-	Audio('sound/water/exit2.mp3'),
-	Audio('sound/water/exit3.mp3')
+	Audio(src`sound/water/exit1.mp3`),
+	Audio(src`sound/water/exit2.mp3`),
+	Audio(src`sound/water/exit3.mp3`)
 ], splashSounds = [
-	Audio('sound/water/splash1.mp3'),
-	Audio('sound/water/splash2.mp3')
+	Audio(src`sound/water/splash1.mp3`),
+	Audio(src`sound/water/splash2.mp3`)
 ]
 
 export class LivingEntity extends Entity{
@@ -95,10 +95,9 @@ export class LivingEntity extends Entity{
 	}
 }
 
-const portalEnter = Audio('sound/portal/enter.mp3'), portalExit = Audio('sound/portal/exit.mp3'), endPortalMake = Audio('sound/portal/end.mp3')
+const portalEnter = Audio(src`sound/portal/enter.mp3`), portalExit = Audio(src`sound/portal/exit.mp3`), endPortalMake = Audio(src`sound/portal/end.mp3`)
 const thunder = audioSet('misc/thunder', 3)
 
-const skinCan = Can(28, 12, true)
 Entities.player = class extends LivingEntity{
 	static alive = true
 	inv = Array.null(37)
@@ -192,28 +191,15 @@ Entities.player = class extends LivingEntity{
 	}
 	place(){
 		super.place()
-		const can = Can(33, 12, true)
-		const skinUnpacked = new ImageData(28, 12)
-		for(let i = 0; i < 336; i++){
-			skinUnpacked.data[i << 2] = this.skin[i * 3]
-			skinUnpacked.data[(i << 2) + 1] = this.skin[i * 3 + 1]
-			skinUnpacked.data[(i << 2) + 2] = this.skin[i * 3 + 2]
-			skinUnpacked.data[(i << 2) + 3] = 255
-		}
-		skinCan.putImageData(skinUnpacked, 0, 0)
-		can.drawImage(skinCan.canvas, 0, 0, 4, 12, 0, 0, 4, 12)
-		can.drawImage(skinCan.canvas, 4, 0, 4, 12, 5, 0, 4, 12)
-		can.drawImage(skinCan.canvas, 8, 0, 4, 12, 10, 0, 4, 12)
-		can.drawImage(skinCan.canvas, 12, 0, 4, 12, 15, 0, 4, 12)
-		can.drawImage(skinCan.canvas, 16, 0, 4, 12, 20, 0, 4, 12)
-		can.drawImage(skinCan.canvas, 20, 4, 8, 8, 25, 0, 8, 8)
+		const can = Texture(28, 12, 1, 0, Formats.RGB)
+		can.pasteData(this.skin)
 		this.textures = {
-			head: can.crop(25, 0, 8, 8),
+			head: can.crop(28, 4, 8, 8),
 			body: can.crop(0, 0, 4, 12),
-			arm1: can.crop(5, 0, 4, 12),
-			arm2: can.crop(10, 0, 4, 12),
-			leg1: can.crop(15, 0, 4, 12),
-			leg2: can.crop(20, 0, 4, 12)
+			arm1: can.crop(4, 0, 4, 12),
+			arm2: can.crop(8, 0, 4, 12),
+			leg1: can.crop(12, 0, 4, 12),
+			leg2: can.crop(16, 0, 4, 12)
 		}
 	}
 	static width = 0.3
@@ -230,7 +216,7 @@ Entities.player = class extends LivingEntity{
 			c.translate(-38,5)
 			c.scale(32,32)
 			const f = this.f
-			const {x, y} = c.mouse()
+			const {x, y} = c.from(cursor)
 			this.f = atan2(x, y - me.head)
 			this.render(c)
 			this.f = f
@@ -286,7 +272,7 @@ worldEvents[53] = buf => {
 	me.sound(thunder, buf.float(), random()*.2+.8)
 }
 
-const pop = Audio('sound/misc/pop.mp3')
+const pop = Audio(src`sound/misc/pop.mp3`)
 
 Entities.item = class extends Entity{
 	item = null
@@ -344,7 +330,7 @@ Entities.falling_block = class extends Entity{
 	}
 }
 
-const fuse = Audio('sound/misc/fuse.mp3')
+const fuse = Audio(src`sound/misc/fuse.mp3`)
 Entities.tnt = class extends Entity{
 	static width = 0.49
 	static height = 0.98
@@ -370,7 +356,7 @@ Entities.tnt = class extends Entity{
 		for(let i = 0; i < 30; i++) new AshParticle(this.x, this.y)
 	}
 }
-const endercrystal = OldTexture('endercrystal.png')
+const endercrystal = Img(src`endercrystal.png`)
 const endCrystalWiregrid = endercrystal.crop(32,16,16,16)
 const endCrystalCore = endercrystal.crop(96,16,16,16)
 Entities.end_crystal = class extends Entity{
@@ -398,7 +384,7 @@ Entities.end_crystal = class extends Entity{
 }
 
 export let lightningBoltCount = 0
-uiLayer(50, (c, w, h) => {
+drawLayer('ui', 50, (c, w, h) => {
 	return
 	if(!lightningBoltCount) return
 	c.fillStyle = '#fff'

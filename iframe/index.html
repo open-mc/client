@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <!-- Safari, fuck you! -->
 <script async src="./_shim.js"></script>
-<script src="https://ultraviolet.js.org/uv.min.js"></script>
 <script type="importmap">
 {"imports": {
 	"api": "./api.js",
@@ -9,190 +8,152 @@
 	"definitions": "./definitions.js"
 }}
 </script>
-<style>
-	@font-face {
-		font-family: mc;
-		src: url('../img/font.ttf') format('truetype');
-		font-weight: normal;
-		font-style: normal;
-	}
-</style>
 <script>
+	const flags = location.hash.slice(1)|0
+	globalThis.antialias = flags&1
 	pako = null
 	delete window.localStorage; delete window.sessionStorage
-	document.fonts.forEach(font => font.load())
 	onmessage = ({data,origin}) => origin!='null'&&msgQueue.push(data)
 	const postMessage = parent.postMessage.bind(parent)
 	let msgQueue = []
 	parent.postMessage(null, '*')
 	onerror=(_,a,b,c,d)=>postMessage([''+d,a,b,c], '*')
 	onunhandledrejection=({reason})=>postMessage([''+reason,'',0,0], '*')
-	/**
-	 * setImmediate / clearImmediate polyfill using MessageChannel
-	 */
-	{let i=0,m=new MessageChannel,c=new Map;m.port1.onmessage=({data:i},j=c.get(i))=>(c.delete(i)&&j());m=m.port2;globalThis.setImmediate=(f,...a)=>(c.set(++i,a.length?f.bind(undefined, ...a):f),m.postMessage(i),i);globalThis.clearImmediate=i=>c.delete(i)}
-	const TEX_SIZE = 16
-	;(C => {
-		const _fillTxt = C.fillText, _strokeTxt = C.strokeText, _measureTxt = C.measureText, {set: setFillStyle, get: getFillStyle} = Object.getOwnPropertyDescriptor(C, 'fillStyle'),{set: setStrokeStyle, get: getStrokeStyle} = Object.getOwnPropertyDescriptor(C, 'strokeStyle')
-		C.setFillStyle = setFillStyle; C.getFillStyle = getFillStyle
-		C.setStrokeStyle = setStrokeStyle; C.getStrokeStyle = getStrokeStyle
-		C.defaultTransform = function(){this.setTransform(1,0,0,-1,0,this.h)}
-		C.fillText = function(t, x, y, s, maxW = 1e99){
-			const S = 1/(s *= .001)
-			this.scale(s, -s)
-			_fillTxt.call(this, t, x*S, -y*S, maxW*S)
-			this.scale(S,-S)
-		}
-		C.strokeText = function(t, x, y, s, maxW = 1e99){
-			const S = 1/(s *= .001)
-			this.scale(s, -s)
-			_strokeTxt.call(this, t, x*S, -y*S, maxW*S)
-			this.scale(S,-S)
-		}
-		//Canvas API sucks
-		C.image = function(img, x, y, w = img.w, h = img.h, ix = 0, iy = 0, ow = img.w, oh = img.h){
-			this.scale(1,-1)
-			this.drawImage(img.canvas, img.x + ix, img.y + iy, ow, oh, x, -y, w, -h)
-			this.scale(1,-1)
-		}
-		C.imageTrace = function(img, x, y, w = img.w, h = img.h, ix = 0, iy = 0, ow = img.w, oh = img.h){
-			this.scale(1,-1)
-			this.drawImage(img.canvas, img.x + ix, img.y + iy, ow, oh, x, -y, w, -h)
-			this.scale(1,-1)
-			this.rect(x, y, w, h)
-		}
-		C.measureText = function(txt, s = 1){
-			const {actualBoundingBoxLeft: left, actualBoundingBoxRight: right, actualBoundingBoxAscent: top, actualBoundingBoxDescent: bottom, width} = _measureTxt.call(this, txt)
-			return {left: left * s / 1000, right: right * s / 1000, top: top * s / 1000, bottom: bottom * s / 1000, width: width * s / 1000}
-		}
-		C.push = function(){
-			//V8 says we can avoid allocation because the object does not escape this line. We extract props and add them directly to the array, avoiding the super expensive DOMMatrix heap allocation. If you try and touch the following line, you better be sleeping with one eye open...
-			const {a, b, c, d, e, f} = this.getTransform()
-			this.transforms.push(f, e, d, c, b, a)
-		}
-		C.pop = function(){
-			this.setTransform(this.transforms.pop(), this.transforms.pop(), this.transforms.pop(), this.transforms.pop(), this.transforms.pop(), this.transforms.pop())
-		}
-		C.peek = function(){
-			const l = this.transforms.length
-			this.setTransform(this.transforms[l-1], this.transforms[l-2], this.transforms[l-3], this.transforms[l-4], this.transforms[l-5], this.transforms[l-6])
-		}
-		C.mouse = function(){
-			const {a, b, c, d, e, f} = this.getTransform()
-			// Divide by matrix
-			const det = a * d - b * c
-			return {
-				x: cursor.mx * d / det - cursor.mx * c / det + (c * f - d * e) / det,
-				y: cursor.my * a / det - cursor.my * b / det + (b * e - a * f) / det
-			}
-		}
-		C.from = function(x = 0, y = 0){
-			const {a, b, c, d, e, f} = this.getTransform()
-			// Divide by matrix
-			const det = a * d - b * c
-			return {
-				x: x * d / det - x * c / det + (c * f - d * e) / det,
-				y: y * a / det - y * b / det + (b * e - a * f) / det
-			}
-		}
-		C.to = function(x = 0, y = 0){
-			const {a, b, c, d, e, f} = this.getTransform()
-			// Multiply by matrix
-			return {
-				x: x * a + y * c + e,
-				y: x * b + y * d + f
-			}
-		}
-		C.fillPattern = function(a){
-			this.fillStyle = a._pattern ?? a.pattern()
-		}
-		C.strokePattern = function(a){
-			this.strokeStyle = a._pattern ?? a.pattern()
-		}
-		C.resize = function(w, h){
-			this.canvas.width = this.w = w
-			this.canvas.height = this.h = h
-			this.transforms.length = 0
-		}
-		C.crop = function(x, y, w, h){ return new _txtr(this.canvas, x, y, w, h) }
-		C.texture = function(){ return new _txtr(this.canvas, 0, 0, this.canvas.width, this.canvas.height) }
-		C.clipRect = function(x0, y0, w, h){
-			this.beginPath()
-			this.rect(x0, y0, w, h)
-			this.closePath()
-			this.clip()
-		}
-		C.button = function(x0, y0, w, h){
-			const {x, y} = this.mouse()
-			if(x<x0|x>x0+w|y<y0|y>y0+h) return 0
-			if(changed.has(LBUTTON) && buttons.pop(LBUTTON)) return 2
-			if(changed.has(RBUTTON) && buttons.pop(RBUTTON)) return 3
-			return 1
-		}
-		C.input = function(i, x0, y0, w, h, size = 32){
-			if(h<0)y0+=h,h=-h
-			if(w<0)x0+=w,w=-w
-			i.style.textAlign = this.textAlign
-			i.style.left = x0+'px'
-			i.style.marginBottom = y0+'px'
-			i.style.width = w+'px'
-			i.style.height = h+'px'
-			i.style.transform = `scale(${1/devicePixelRatio}) ${this.getTransform()} scaleY(-1)`
-			i.style.font = this.font
-			i.style.fontSize = size+'px'
-			if(!i.parentElement) document.documentElement.append(i)
-			toRem.add(i)
-			return document.activeElement === i
-		}
-	})(CanvasRenderingContext2D.prototype)
-	Math.fclamp = (a, b = 1) => a < 0 ? 0 : (a > b ? b : a)
-	Math.ifloat = x => {
-		let f = Math.floor(x)
-		return (f >> 0) + (x - f)
+/*function(i, x0, y0, w, h, size = 32){
+	if(h<0)y0+=h,h=-h
+	if(w<0)x0+=w,w=-w
+	i.style.textAlign = this.textAlign
+	i.style.left = x0+'px'
+	i.style.marginBottom = y0+'px'
+	i.style.width = w+'px'
+	i.style.height = h+'px'
+	i.style.transform = `scale(${1/devicePixelRatio}) ${this.getTransform()} scaleY(-1)`
+	i.style.font = this.font
+	i.style.fontSize = size+'px'
+	if(!i.parentElement) document.documentElement.append(i)
+	toRem.add(i)
+	return document.activeElement === i
+}*/
+globalThis.BitField = class BitField extends Array{
+	static parse(a){
+		if(!Array.isArray(a)) return new BitField 
+		return Object.setPrototypeOf(a, BitField.prototype)
 	}
-	Math.randint = () => Math.random() * 4294967296 | 0
-	Math.ifloor = x => Math.floor(x) | 0
-	Math.iceil = x => Math.ceil(x) | 0
-	for(const n of [HTMLCollection, NodeList])Object.setPrototypeOf(n.prototype, Array.prototype)
-	Object.defineProperties(Array.prototype, {
-		winner: {enumerable: false, value(pred, best = -Infinity){
-			let winner = undefined
-			const length = this.length
-			for(let i = 0; i < length; i++){
-				const a = this[i], score = pred(a, i, this)
-				if(score >= best){
-					best = score
-					winner = a
-				}
-			}
-			return winner
-		}},
-		remove: {enumerable: false, value(a){
-			let i = 0, j = 0
-			for(; j < this.length; j++){
-				if(j > i)this[i] = this[j]
-				if(this[i] != a)i++
-			}
-			return this.length = i
-		}},
-		mmap: {enumerable: false, value(fn){
-			const len = this.length
-			for(let i = 0; i < len; i++)
-				this[i] = fn(this[i])
-			return this
-		}}
-	})
-	globalThis.Can = (w = 100, h = 100, opt) => {
-		const c = document.createElement('canvas').getContext('2d', typeof opt == 'boolean' ? {willReadFrequently: opt} : opt)
-		c.canvas.width = c.w = w; c.canvas.height = c.h = h
-		c.transforms = []
-		c.x = c.y = 0
-		return c
+	static copyFrom(a){
+		const b = new BitField
+		if(Array.isArray(a))
+			b.push(...a)
+		return b
 	}
-	Object.defineProperties(globalThis, Object.getOwnPropertyDescriptors(Math))
-	globalThis.PI2 = PI*2
-
-	const _mac = navigator.platform.startsWith('Mac')
+	of(...n){
+		const b = new BitField
+		for(const i of n) b.set(i)
+		return b
+	}
+	set(pos){
+		while((pos >> 5) >= this.length) super.push(0)
+		this[pos >> 5] |= 1 << (pos & 31)
+	}
+	unset(pos){
+		let i = this.length
+		if((pos >> 5) >= i)return
+		this[pos >> 5] &= ~(1 << (pos & 31))
+		while(i && !this[--i]) super.pop()
+	}
+	toggle(pos){
+		let i = this.length
+		while((pos >> 5) >= i) super.push(0)
+		this[pos >> 5] ^= 1 << (pos & 31)
+		while(i && !this[--i]) super.pop()
+	}
+	has(pos){
+		if((pos >> 5) >= this.length)return false
+		return !!(this[pos >> 5] & (1 << (pos & 31)))
+	}
+	pop(pos){
+		if((pos >> 5) >= this.length)return false
+		let i = pos >> 5
+		const a = !!(this[i] ^ (this[i] &= ~(1 << (pos & 31))))
+		if(i == this.length - 1) while(i >= 0 && !this[i--]) super.pop()
+		return a
+	}
+	put(pos){
+		let i = pos >> 5
+		while(i >= this.length) super.push(0)
+		return !!(this[i] ^ (this[i] |= 1 << (pos & 31)))
+	}
+	xor(other){
+		let l = this.length
+		if(l == other.length){
+			while(l && this[--l] == other[l]) super.pop()
+		}else{
+			let l2 = l; l--
+			while(l2 < other.length) super.push(other[l2++])
+		}
+		for(let i = l; i >= 0; i--) this[i] ^= other[i]
+	}
+	and(other){
+		let l = this.length
+		if(this.length > other.length) l = this.length = other.length
+		while(l && !(this[--l] & other[l])) super.pop()
+		while(l > 0) this[--l] &= other[l]
+	}
+	or(other){
+		let l = this.length - 1, l2 = l
+		while(++l2 < other.length) super.push(other[l2])
+		for(let i = l; i >= 0; i--) this[i] |= other[i]
+	}
+	firstUnset(){
+		let i = -1
+		while(++i < this.length){
+			const a = ~this[i]
+			if(a) return i<<5|31-Math.clz32(a&-a)
+		}
+		return i<<5
+	}
+	firstSet(){
+		let i = -1
+		while(++i < this.length)
+			if(this[i]) return i<<5|31-Math.clz32(this[i]&-this[i])
+		return -1
+	}
+	lastSet(){
+		let i = this.length
+		while(--i >= 0)
+			if(this[i]) return i<<5|31-Math.clz32(this[i])
+		return -1
+	}
+	popFirst(){
+		let i = -1
+		while(++i < this.length)
+			if(this[i]){
+				let s = 31-Math.clz32(this[i]&-this[i])
+				this[i] &= ~(1 << s)
+				s = i<<5|s
+				i = this.length
+				while(i && !this[--i]) super.pop()
+				return s
+			}
+		return -1
+	}
+	popLast(){
+		let i = this.length
+		while(--i >= 0)
+			if(this[i]){
+				let s = 31-Math.clz32(this[i])
+				this[i] &= ~(1 << s)
+				s = i<<5|s
+				i = this.length
+				while(i && !this[--i]) super.pop()
+				return s
+			}
+		return -1
+	}
+	clear(){ this.length = 0 }
+}
+let buttons = new BitField(), changed = new BitField()
+let delta = {x: 0, y: 0, jlx: 0, jly: 0, jrx: 0, jry: 0}, cursor = {...delta}
+const _mac = navigator.platform.startsWith('Mac')
 const LBUTTON = 0, RBUTTON = 2, MBUTTON = 1, KEYS = {
 	A: 65, B: 66, C: 67, D: 68, E: 69, F: 70, G: 71, H: 72, I: 73, J: 74, K: 75, L: 76,
 	M: 77, N: 78, O: 79, P: 80, Q: 81, R: 82, S: 83, T: 84, U: 85, V: 86, W: 87, X: 88,
@@ -208,121 +169,727 @@ const LBUTTON = 0, RBUTTON = 2, MBUTTON = 1, KEYS = {
 	MENU: 300
 }
 Object.freeze(KEYS)
+Uint8Array.fromHex = function(hex){
+	const res = new Uint8Array(hex.length>>>1)
+	let r = 1, i = 0
+	for(let j = 0; j < hex.length; j++){
+		const c = hex.charCodeAt(j)
+		if(c>47&&c<58) r = r<<4|c-48
+		else if(c>64&&c<71) r = r<<4|c-55
+		else if(c>96&&c<103) r = r<<4|c-87
+		if(r&256) res[i++] = r, r = 1
+	}
+	return res.slice(0, i)
+}
+</script>
+<script async src="/img/_pako.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<canvas style="position:fixed;inset:0;width:100%;height:100%;background:#000" width="0" height="0"></canvas><script type="module">
+let T=document.body
+T.parentElement.style.overflow='hidden'
+T.replaceWith(T=T.firstChild)
+/** @type WebGL2RenderingContext */
+const gl = T.getContext('webgl2', {preserveDrawingBuffer: false, antialias: globalThis.antialias||false, depth: false, premultipliedAlpha: true, stencil: true})
+gl.pixelStorei(37440,1) // unpack flip-y
+gl.stencilMask(1)
+gl.clearStencil(0)
+gl.disable(2929) // depth test
+gl.enable(3042) // blend
+gl.disable(3024) // dither
+gl.pixelStorei(3317, 1)
+gl.pixelStorei(3333, 1)
+let pma = 1
+class img{
+	get format(){return this.t.f}
+	get width(){return this.t.w}
+	get height(){return this.t.h}
+	get layers(){return this.t.d}
+	constructor(t,x=0,y=0,z=1,w=1,l=0){
+		this.t = t; this.x = x; this.y = y
+		this.z = z; this.w = w; this.l = l
+	}
+	get src(){return this.t.src}
+	set src(a){if(this.t.src===null)return;this.t.src=a?typeof a=='string'?[a]:a:[];if(this.t.tex)this.unload()}
+	get loaded(){return this.t.d!=0}
+	get then(){return this.t.d==0?this.#then:null}
+	sub(x=0, y=0, w=1, h=1, l=this.l){
+		return new img(this.t, this.x+x*this.z, this.y+y*this.w, this.z*w, this.w*h, l)
+	}
+	super(x=0,y=0,w=1,h=1){
+		const tz = this.z/w, tw = this.w/h
+		return new img(this.t, this.x-x*tz, this.y-y*tw, tz, tw)
+	}
+	crop(x=0, y=0, w=1, h=1, l=this.l){
+		const {t,x:X,y:Y,w:W}=this
+		if(t.d!=0) return new img(t, X+x/t.w, Y+W-(y+h)/t.h, w/t.w, h/t.h, l)
+		const i = new img(t, 0, 0, 0, 0, l)
+		i.#then(i => {
+			i.x = X+x/t.w
+			i.y = Y+W-(y+h)/t.h
+			i.z = w/t.w; i.w = h/t.h
+		})
+		return i
+	}
+	layer(l=this.l){return new img(this.t, this.x, this.y, this.z, this.w, l)}
+	#then(cb, rj){
+		const {t}=this
+		if(t.d) return void cb(this)
+		;(t.cbs??=[]).push(cb,rj,this)
+		if(!t.tex) img.load(t)
+	}
+	static load(t){
+		const tex = t.tex = gl.createTexture()
+		if(!t.src.length){
+			img.fakeBind(t)
+			gl.texStorage3D(35866, 1, t.f[0], t.w=1, t.h=1, t.d=1)
+			if(t.i<0) gl.bindTexture(35866, null)
+			return
+		}
+		let toLoad = t.src.length
+		let w=0, h=0
+		const rj = e => {
+			toLoad = -1
+			gl.deleteTexture(t.tex)
+			if(t.cbs) for(let i = 1; i < t.cbs.length; i+=3) t.cbs[i]?.(t.cbs[i+1])
+			t.tex = t.cbs = null
+		}
+		const imgs = t.src.map(a=>{
+			const i = new Image()
+			i.onerror = () => rj('Failed to load image from src '+i.src)
+			i.onload = () => {
+				if(toLoad==imgs.length) w=i.naturalWidth, h=i.naturalHeight
+				else if(w!=i.naturalWidth||h!=i.naturalHeight) return rj('Failed to load image: all layers must be the same size')
+				if(--toLoad) return
+				const {o} = t
+				img.fakeBind(t)
+				if(t.f[3]>>31)
+					gl.texParameterf(35866, 10240, 9728),
+					gl.texParameterf(35866, 10241, 9728)
+				else
+					gl.texParameterf(35866, 10240, 9728+(o&1)),
+					gl.texParameterf(35866, 10241, t.m?9984+(o>>1&3):9728+(o>>1&1))
+				gl.texParameterf(35866, 10242, o&8?10497:o&16?33648:33071)
+				gl.texParameterf(35866, 10243, o&32?10497:o&64?33648:33071)
+				gl.texStorage3D(35866, t.m||1, t.f[0], t.w=w, t.h=h, t.d=imgs.length)
+				if(!pma)gl.pixelStorei(37440,1),gl.pixelStorei(37441,pma=1)
+				for(let l = 0; l < imgs.length; l++)
+					gl.texSubImage3D(35866, 0, 0, 0, l, w, h, 1, t.f[1], t.f[2], imgs[l])
+				if(t.m) gl.generateMipmap(35866)
+				if(t.i<0) gl.bindTexture(35866, null)
+				if(t.cbs)for(let i = 0; i < t.cbs.length; i+=3) t.cbs[i](t.cbs[i+2])
+				t.cbs = null
+			}
+			i.crossOrigin = 'anonymous'
+			i.src = a
+			return i
+		})
+	}
+	paste(tex, x=0, y=0, l=0, srcX=0, srcY=0, srcL=0, srcW=0, srcH=0, srcD=0){
+		const {t}=this; if(t.src) return this
+		if(typeof tex=='string') return new Promise((cb, rj) => {
+			const i = new Image()
+			i.onerror = () => rj('Failed to load image from src '+i.src)
+			i.onload = () => {
+				img.fakeBind(t)
+				if(!pma)gl.pixelStorei(37440,1),gl.pixelStorei(37441,pma=1)
+				gl.texSubImage3D(35866, 0, x, y, l, i.naturalWidth, i.naturalHeight, 1, t.f[1], t.f[2], i)
+				if(t.i<0) gl.bindTexture(35866, null)
+				cb?.(this)
+			}
+			i.crossOrigin = 'anonymous'
+			i.src = tex
+			return this
+		})
+		const {t:t2}=tex
+		if(!t2.d) return tex.#then(cb=>this.paste(tex,x,y,l,srcX,srcY,srcL,srcW,srcH,srcD)), this
+		if(t.tex==t2.tex) return console.warn('cannot copy from texture to itself'), this
+		img.fakeBind(t)
+		i&&draw()
+		if(!ca.img) gl.bindFramebuffer(36160,fb)
+		srcW = srcW||t2.w; srcH = srcH||t2.h; srcD = srcD||t2.d
+		while(srcD--){
+			gl.framebufferTextureLayer(36160,36064,t2.tex,0,srcL++)
+			gl.copyTexSubImage3D(35866, 0, x, y, l++, srcX, srcY, srcW, srcH)
+		}
+		if(t.i<0) gl.bindTexture(35866, null)
+		if(!ca.img) gl.bindFramebuffer(36160,null)
+		else if(!i) gl.bindFramebuffer(36160,null), ca=ctx.t, fbLayer=srcL-1,fbTex=t2.tex
+		else gl.framebufferTextureLayer(36160,36064,fbTex,0,fbLayer)
+		return this
+	}
+	pasteData(data, x=0, y=0, l=0, w=0, h=0, d=0){
+		const {t}=this; w = w||t.w; h = h||t.h; d = d||t.d
+		img.fakeBind(t)
+		if(pma)gl.pixelStorei(37440,0),gl.pixelStorei(37441,pma=0)
+		gl.texSubImage3D(35866, 0, x, y, l, w, h, d, t.f[1], t.f[2], data)
+		if(t.i<0) gl.bindTexture(35866, null)
+	}
+	readData(x=0, y=0, l=0, w=0, h=0, d=0, arr=null){
+		const {t}=this; w = w||t.w; h = h||t.h; d = d||t.d
+		if(!t.d) return null
+		i&&draw()
+		if(!ca.img) gl.bindFramebuffer(36160,fb)
+		const a = t.f[0]
+		const S = (a==32856||a==36214||a==36208||a==34842||a==34836||a==36220?4:a==32849||a==36215||a==36209||a==34843||a==34837||a==32849||a==36221?3:a==33323||a==33338||a==33340||a==33327||a==33328||a==33336?2:1)*w*h
+		if(!arr || arr.length != S) arr = (t.f[2]==5121?new Uint8Array(S*d):t.f[2]==5126?new Float32Array(S*d):t.f[2]==5125||t.f[2]==35899||t.f[2]==33640||t.f[2]==35902?new Uint32Array(S*d):new Uint16Array(S*d))
+		while(d--){
+			gl.framebufferTextureLayer(36160,36064,t.tex,0,l)
+			gl.readPixels(x, y, w, h, t.f[1], t.f[2], arr.subarray(S*l, S*(++l)))
+		}
+		if(t.i<0) gl.bindTexture(35866, null)
+		if(!ca.img) gl.bindFramebuffer(36160,null)
+		else if(!i) gl.bindFramebuffer(36160,null), ca=ctx.t, fbLayer=l-1,fbTex=t2.tex
+		return arr
+	}
+	delete(){
+		if(!this.t.tex) return
+		gl.deleteTexture(this.t.tex)
+		this.t.tex = null; if(this.t.i>=0) bound[this.t.i] = null, this.t.i = -1
+		this.t.d = this.t.w = this.t.h = 0
+	}
+	static auto(t,i=0){
+		if((t.f[3]>>31)!=i) return -2
+		if(t.i>=0) return (boundUsed|=-2147483648>>>(i?(t.i-maxTex+shfCount):t.i),t.i)
+		if(!t.tex) return img.load(t), -2
+		const {fMask} = sh, j = Math.clz32(~(boundUsed|i^fMask))
+		if(j>=maxTex) return -1
+		boundUsed |= -2147483648>>>j
+		i = i?maxTex+j-shfCount:j
+		const o = bound[i]; if(o)o.i=-1
+		gl.activeTexture(33984 + i)
+		gl.bindTexture(35866, (bound[i]=t).tex)
+		return t.i = i
+	}
+	static fakeBind(t){
+		if(t.i>=0) gl.activeTexture(33984+t.i)
+		else{
+			const j = maxTex-1+(shfCount==maxTex&&maxTex)
+			bound[j]&&(bound[j].t.i=-1)
+			gl.activeTexture(33984+j)
+			gl.bindTexture(35866, t.tex)
+		}
+	}
+	resize(w=0, h=0, d=0, mips=0){
+		const {t}=this
+		if(t.src) return
+		if(!oU)img.fakeBind(t)
+		if(w&&h) gl.texStorage3D(35866, (t.m = mips)||1, t.f[0], t.w=w, t.h=h, t.d=+d||1)
+		else gl.texStorage3D(35866, (t.m = mips)||1, t.f[0], t.w=1, t.h=1, t.d=1)
+		gl.texParameterf(35866, 10241, mips?9984+(t.o>>1&3):9728+(t.o>>1&1))
+		if(t.i<0) gl.bindTexture(35866, null)
+	}
+	setOptions(o){
+		const {t}=this
+		img.fakeBind(t)
+		t.o=o
+		if(t.f[3]>>31)
+			gl.texParameterf(35866, 10240, 9728),
+			gl.texParameterf(35866, 10241, 9728)
+		else
+			gl.texParameterf(35866, 10240, 9728+(o&1)),
+			gl.texParameterf(35866, 10241, t.m?9984+(o>>1&3):9728+(o>>1&1))
+		gl.texParameterf(35866, 10242, o&8?10497:o&16?33648:33071)
+		gl.texParameterf(35866, 10243, o&32?10497:o&64?33648:33071)
+		if(t.i<oU) gl.bindTexture(35866, null)
+	}
+	drawable(l=this.l,stencil=false){
+		const {t}=this
+		if(t.src) return null
+		let stencilBuf = null
+		if(stencil){
+			gl.bindRenderbuffer(36161, stencilBuf = gl.createRenderbuffer())
+			gl.renderbufferStorage(36161, 36168, t.w, t.h)
+		}
+		return new can({tex:t.tex,img:this,layer:l,stencil:0,stencilBuf,w:t.w,h:t.h})
+	}
+	genMipmaps(){
+		const {t}=this
+		if(!t.m) return
+		img.fakeBind(t)
+		gl.generateMipmap(35866)
+		if(t.i<0) gl.bindTexture(35866, null)
+	}
+}
+let oU=0
+let arr = new Float32Array(16), iarr = new Int32Array(arr.buffer), i = 0
+globalThis.Texture = (w=0, h=0, d=0, o=0, f=Formats.RGBA, mips=0) => {
+	const t = new img({tex: gl.createTexture(), i: -1, o: 0, src: null, f, w, h, d: +d||1,cbs:null,m:0})
+	oU=-2
+	t.setOptions(o)
+	t.resize(w, h, d, mips)
+	oU=0
+	return t
+}
+globalThis.Img = (src, o=0, fmt=Formats.RGBA, mips=0) => new img({tex:null,i:-1,f:fmt,o,src:src?typeof src=='string'?[src]:src:[],w:0,h:0,d:0,cbs:null,m:mips})
+Object.assign(globalThis, {
+	UPSCALE_SMOOTH: 1, DOWNSCALE_SMOOTH: 2, MIPMAP_SMOOTH: 4, SMOOTH: 7, REPEAT_X: 8, REPEAT_MIRRORED_X: 16, REPEAT_Y: 32, REPEAT_MIRRORED_Y: 64, REPEAT: 40, REPEAT_MIRRORED: 80,
+	R: 1, G: 2, B: 4, A: 8,
+	RGB: 7, RGBA: 15,
+	IF_SET: 16, IF_UNSET: 32,
+	UNSET: 64, SET: 128, FLIP: 192,
+	ONE: 17, ZERO: 0, RGB_ONE: 1, A_ONE: 16,
+	SRC: 34, RGB_SRC: 2,
+	ONE_MINUS_SRC: 51,
+	RGB_ONE_MINUS_SRC: 3,
+	SRC_ALPHA: 68,
+	RGB_SRC_ALPHA: 4,
+	A_SRC: 64,
+	ONE_MINUS_SRC_ALPHA: 85,
+	RGB_ONE_MINUS_SRC_ALPHA: 5,
+	A_ONE_MINUS_SRC: 80,
+	DST: 136, RGB_DST: 8,
+	ONE_MINUS_DST: 153,
+	RGB_ONE_MINUS_DST: 9,
+	DST_ALPHA: 102,
+	RGB_DST_ALPHA: 6,
+	A_DST: 96,
+	ONE_MINUS_DST_ALPHA: 119,
+	RGB_ONE_MINUS_DST_ALPHA: 7,
+	A_ONE_MINUS_DST: 112,
+	SRC_ALPHA_SATURATE: 170,
+	RGB_SRC_ALPHA_SATURATE: 10,
+	ADD: 17, RGB_ADD: 1, A_ADD: 16,
+	SUBTRACT: 85,
+	RGB_SUBTRACT: 5,
+	A_SUBTRACT: 80,
+	REVERSE_SUBTRACT: 102,
+	RGB_REVERSE_SUBTRACT: 6,
+	A_REVERSE_SUBTRACT: 96,
+	MIN: 34, RGB_MIN: 2, A_MIN: 32,
+	MAX: 51, RGB_MAX: 3, A_MAX: 48,
+	FLOAT: 0, VEC2: 1, VEC3: 2, VEC4: 3,
+	INT: 16, IVEC2: 17, IVEC3: 18, IVEC4: 19,
+	UINT: 32, UVEC2: 33, UVEC3: 34, UVEC4: 35,
+	TEXTURE: 20, UTEXTURE: 24, FTEXTURE: 28, COLOR: 4, UCOLOR: 8, FCOLOR: 12,
+	FIXED: 4, _: undefined,
+	TRIANGLE_STRIP: 5, TRIANGLES: 4, TRIANGLE_FAN: 6, LINE_LOOP: 2, LINE_STRIP: 3, LINES: 1, POINTS: 0
+})
+globalThis.vec2 = (x=0,y=x)=>({x,y})
+globalThis.vec3 = (x=0,y=x,z=x)=>({x,y,z})
+globalThis.vec4 = (x=0,y=x,z=x,w=x)=>({x,y,z,w})
+const v2z = {x:0,y:0}
+const v3z = {x:0,y:0,z:0}
+const v4z = {x:0,y:0,z:0,w:0}
+let D
+globalThis.Formats={R:[33321,6403,5121],RG:[33323,33319,5121],RGB:[32849,6407,5121],RGBA:D=[32856,T=6408,5121],RGB565:[36194,6407,33635],R11F_G11F_B10F:[35898,6407,35899],RGB5_A1:[32855,T,32820],RGB10_A2:[32857,T,33640],RGBA4:[32854,T,32819],RGB9_E5:[35901,6407,35902],R8:[33330,T=36244,5121,1<<31],RG8:[33336,33320,5121,1<<31],RGB8:[36221,36248,5121,1<<31],RGBA8:[36220,36249,5121,1<<31],R16:[33332,T,5123,1<<31],RG16:[33338,33320,5123,1<<31],RGB16:[36215,36248,5123,1<<31],RGBA16:[36214,36249,5123,1<<31],R32:[33334,T,5125,1<<31],RG32:[33340,33320,5125,1<<31],RGB32:[36209,36248,5125,1<<31],RGBA32:[36208,36249,5125,1<<31],R16F:[33325,6403,5131],RG16F:[33327,33319,5131],RGB16F:[34843,6407,5131],RGBA16F:[34842,6408,5131],R16F_32F:[33325,6403,5126],RG16F_32F:[33327,33319,5126],RGB16F_32F:[34843,6407,5126],RGBA16F_32F:[34842,6408,5126],R32F:[33326,6403,5126],RG32F:[33328,33319,5126],RGB32F:[34837,6407,5126],RGBA32F:[34836,6408,5126]}
+globalThis.loader=({url})=>{
+	url = url.slice(0,url.lastIndexOf('/')+1)
+	return (...src) => {
+		if(src[0].raw){
+			const a = [src[0][0]]
+			for(let i = 1; i <= src.length; i++) a.push(src[i], src[0][i])
+			const s = a.join('')
+			return s[0]=='/'?s:url+s
+		}
+		return src.length==1?src[0][0]=='/'?src[0]:url+src[0]:src.map(src=>src[0]=='/'?src:url+src)
+	}
+}
+class can{
+	t;#a;#b;#c;#d;#e;#f;#m;#shader;s
+	get width(){return this.t.w}
+	get height(){return this.t.h}
+	get texture(){return this.t.img}
+	constructor(t,a=1,b=0,c=0,d=1,e=0,f=0,m=290787599,s=Shader.DEFAULT,sp=defaultShape){this.t=t;this.#a=a;this.#b=b;this.#c=c;this.#d=d;this.#e=e;this.#f=f;this.#m=m;this.#shader=s;this.s=sp}
+	translate(x=0,y=0){ this.#e+=x*this.#a+y*this.#c;this.#f+=x*this.#b+y*this.#d }
+	scale(x=1,y=x){ this.#a*=x; this.#b*=x; this.#c*=y; this.#d*=y }
+	rotate(r=0){
+		const cs = Math.cos(r), sn = Math.sin(r), a=this.#a,b=this.#b,c=this.#c,d=this.#d
+		this.#a=a*cs-c*sn; this.#b=b*cs-d*sn
+		this.#c=a*sn+c*cs; this.#d=b*sn+d*cs
+	}
+	transform(a,b,c,d,e,f){
+		const A=this.#a,B=this.#b,C=this.#c,D=this.#d,E=this.#e,F=this.#f
+		this.#a = A*a+C*b; this.#b = B*a+D*b
+		this.#c = A*c+C*d; this.#d = B*c+D*d
+		this.#e = A*e+C*f+E; this.#f = B*e+D*f+F
+	}
+	skew(x=0, y=0){
+		const ta=this.#a,tb=this.#b
+		this.#a+=this.#c*y; this.#b+=this.#d*y
+		this.#c+=ta*x; this.#d+=tb*x
+	}
+	multiply(x=1, y=0){
+		const ta=this.#a,tc=this.#c
+		this.#a=ta*x-this.#b*y;this.#b=ta*y+this.#b*x
+		this.#c=tc*x-this.#d*y;this.#d=tc*y+this.#d*x
+	}
+	getTransform(){ return {a: this.#a, b: this.#b, c: this.#c, d: this.#d, e: this.#e, f: this.#f} }
+	new(a=1,b=0,c=0,d=1,e=0,f=0){return new can(this.t,a,b,c,d,e,f,this.#m,this.#shader,this.s)}
+	reset(a=1,b=0,c=0,d=1,e=0,f=0){this.#a=a;this.#b=b;this.#c=c;this.#d=d;this.#e=e;this.#f=f;this.#m=290787599;this.#shader=Shader.DEFAULT;this.s=defaultShape}
+	box(x=0,y=0,w=1,h=w){ this.#e+=x*this.#a+y*this.#c; this.#f+=x*this.#b+y*this.#d; this.#a*=w; this.#b*=w; this.#c*=h; this.#d*=h }
+	to(x=0, y=0){if(typeof x=='object')({x,y}=x);return {x:this.#a*x+this.#c*y+this.#e,y:this.#b*x+this.#d*y+this.#f}}
+	from(x=0, y=0){
+		if(typeof x=='object')({x,y}=x)
+		const a=this.#a,b=this.#b,c=this.#c,d=this.#d, det = a*d - b*c
+		return {
+			x: (x*d - x*c + c*this.#f - d*this.#e)/det,
+			y: (y*a - y*b + b*this.#e - a*this.#f)/det
+		}
+	}
+	sub(){ return new can(this.t,this.#a,this.#b,this.#c,this.#d,this.#e,this.#f,this.#m,this.#shader,this.s) }
+	resetTo(m){ this.#a=m.#a;this.#b=m.#b;this.#c=m.#c;this.#d=m.#d;this.#e=m.#e;this.#f=m.#f;this.#m=m.#m;this.#shader=m.#shader;this.s=m.s }
+	set shader(sh){ this.#shader=typeof sh=='function'?sh:Shader.DEFAULT }
+	get shader(){return this.#shader}
+	set mask(m){this.#m=this.#m&-256|m&255}
+	get mask(){return this.#m&255}
+	set blend(b){this.#m=this.#m&255|(b||1135889)<<8}
+	get blend(){return this.#m>>8}
+	get geometry(){return this.s}
+	set geometry(a){this.s=a||defaultShape}
+	draw(...values){
+		setv(this.t,this.#m); const i = this.#shader(values)
+		arr[i  ] = this.#a; arr[i+1] = this.#c; arr[i+2] = this.#e
+		arr[i+3] = this.#b; arr[i+4] = this.#d; arr[i+5] = this.#f
+	}
+	drawRect(x=0, y=0, w=1, h=1, ...values){
+		setv(this.t,this.#m); const j = this.#shader(values)
+		arr[j  ] = this.#a*w; arr[j+1] = this.#c*h; arr[j+2] = this.#e+x*this.#a+y*this.#c
+		arr[j+3] = this.#b*w; arr[j+4] = this.#d*h; arr[j+5] = this.#f+x*this.#b+y*this.#d
+	}
+	drawMat(a=1, b=0, c=0, d=1, e=0, f=0, ...values){
+		setv(this.t,this.#m); const i = this.#shader(values)
+		const ta=this.#a,tb=this.#b,tc=this.#c,td=this.#d,te=this.#e,tf=this.#f
+		arr[i  ] = a*ta+c*tb; arr[i+1] = a*tc+c*td; arr[i+2] = a*te+c*tf+e
+		arr[i+3] = b*ta+d*tb; arr[i+4] = b*tc+d*td; arr[i+5] = b*te+d*tf+f
+	}
+	clear(r = 0, g = 0, b = 0, a = 0){
+		if(i)draw()
+		setv(this.t, this.#m)
+		gl.clearColor(r, g, b, a)
+		const q = this.t.stencil=this.t.stencil+1&7
+		gl.clear(q?16384:(gl.stencilMask(255), 17408))
+		gl.stencilMask(1<<q)
+	}
+	clearStencil(){
+		if(i)draw()
+		setv(this.t, this.#m)
+		const q = this.t.stencil=this.t.stencil+1&7
+		if(!q)gl.stencilMask(255), gl.clear(1024)
+		gl.stencilMask(1<<q)
+	}
+}
+let pmask=285217039
 
-const _filecache = Object.create(null)
-const voidImg = new Image()
-const _txtr = class{
-	constructor(img = voidImg, x = 0, y = 0, w = 0, h = 0){ this.canvas = img; this.x = x; this.y = y; this.w = w; this.h = h; this._pattern = null }
-	crop(x, y, w, h){ return new _txtr(this.canvas, this.x + x, this.y + y, w, h) }
-	at(x, y, l = 1){ return new _txtr(this.canvas, this.x + x * TEX_SIZE, this.y + y * TEX_SIZE, TEX_SIZE, TEX_SIZE*l) }
-	pattern(){
-		if(this._pattern) return this._pattern
-		const c = document.createElement('canvas')
-		const ctx = c.getContext('2d')
-		if(this.canvas.complete === false){
-			throw 'Texture not loaded yet!'
+globalThis.Blend = T = (src = 17, combine = 17, dst = 0, dither=false) => src|dst<<8|combine<<16|dither<<23
+Object.assign(T, {
+	REPLACE: 1114129,
+	DEFAULT: 1135889,
+	ADD: 1118481,
+	MULTIPLY: 1122816,
+	SUBTRACT: 5574929,
+	REVERSE_SUBTRACT: 6689041,
+	MIN: 2232593, MAX: 3346705
+})
+globalThis.PI ??= Math.PI; globalThis.PI2 ??= globalThis.PI*2
+function setv(t,m){
+	if(ca!=t){
+		i&&draw()
+		if(!t.img) gl.bindFramebuffer(36160,null),gl.viewport(0,0,gl.canvas.width,gl.canvas.height)
+		else{
+			if(!ca.img) gl.bindFramebuffer(36160,fb)
+			if(t.tex!=fbTex||t.layer!=fbLayer) gl.framebufferTextureLayer(36160,36064,fbTex=t.tex,0,fbLayer=t.layer)
+			if(t.stencilBuf!=fbSte) gl.bindRenderbuffer(36161,t.stencilBuf),gl.framebufferRenderbuffer(36160,36128,36161,t.stencilBuf)
+			const t2 = t.img.t; gl.viewport(0,0,t2.w,t2.h)
+			if(t2.i>=0){
+				gl.activeTexture(33984 + t2.i); gl.bindTexture(35866, bound[t2.i] = null); t2.i = -1
+			}
+		}
+		ca=t
+	}
+	if(pmask!=m){
+		i&&draw()
+		pmask ^= m
+		if(pmask&15) gl.colorMask(m&1,m&2,m&4,m&8)
+		if(pmask&240){
+			if(m&240){
+				const s = t.stencil
+				if(!((pmask^m)&240)) gl.enable(2960) // STENCIL_TEST
+				if(pmask&240){
+					gl.stencilFunc(m&32?m&16?gl.NEVER:gl.NOTEQUAL:m&16?gl.EQUAL:gl.ALWAYS,255,1<<s)
+					const op = m&128?m&64?gl.INVERT:gl.REPLACE:m&64?gl.ZERO:gl.KEEP
+					gl.stencilOp(op, op, op)
+				}
+			}else if((pmask^m)&240) gl.disable(2960) // STENCIL_TEST
+		}
+		if(pmask&1996488704) gl.blendEquationSeparate((m>>24&7)+32773,(m>>28&7)+32773)
+		if(pmask&16776960) gl.blendFuncSeparate((m>>8&15)+766*!!(m&3584), (m>>16&15)+766*!!(m&917504), (m>>12&15)+766*!!(m&57344), (m>>20&15)+766*!!(m&14680064))
+		if(pmask&-2147483648) m&-2147483648 ? gl.enable(3024) : gl.disable(3024) // DITHER
+		pmask = m
+	}
+}
+function draw(b=shuniBind){
+	//if((ca?ca.img.t.f[3]:0)!=sh.outInt) return console.warn('Texture drawn to and shader output type must be of the same kind (integer/float)')
+	gl.bufferData(34962, iarr.subarray(0, i), 35040)
+	const {type,s,l}=shp
+	gl.drawArraysInstanced(type, s, l, i/sh.count)
+	i = 0; boundUsed = b
+}
+let sh=null,ca=null,fbTex=null,fbSte=null,fbLayer=0,shfCount=0
+const fb = gl.createFramebuffer()
+const buf = gl.createBuffer()
+gl.bindBuffer(34962, buf)
+const maxTex = Math.min(32, gl.getParameter(34930))
+const bound = []; for(let i=maxTex<<1;i>=0;i--) bound.push(null)
+globalThis.Geometry = (type, points) => {
+	if(points.length%1) throw 'points.length is not even'
+	if(!(points instanceof Float32Array)){
+		T = new Float32Array(points.length)
+		T.set(points, 0); points = T
+	}
+	const b = gl.createBuffer()
+	gl.bindBuffer(34962, b)
+	gl.bufferData(34962, points, 35044)
+	b.type = type
+	gl.bindBuffer(34962, buf)
+	return {type, b, s: 0, l: points.length>>1, sub: shapeSub}
+}
+const shapeSub = function sub(s=0,l=this.l-s, type=this.type){
+	return {type, b: this.b, s: this.s+s, l, sub}
+}
+let gtArr = null, maxLen=0, boundUsed = 0, shp = Geometry(TRIANGLE_STRIP, [0, 0, 0, 1, 1, 0, 1, 1]), shuniBind = 0
+const defaultShape = shp
+let k1, k2
+const treeIf = (s=0, e=maxTex,o=0) => {
+	if(e<=s+1) return k1+s+k2
+	const m = s+(1<<31-Math.clz32(e-s-1))
+	return `if(u<${m+o}){${treeIf(s,m,o)}}else{${treeIf(m,e,o)}}`
+}
+const names = ['float','vec2','vec3','vec4','int','ivec2','ivec3','ivec4','uint','uvec2','uvec3','uvec4']
+globalThis.Shader = (src, inputs, uniforms, output=4, frat=0.5) => {
+	const fnParams = ['(function({'], fnBody = ['',''], shaderHead = ['#version 300 es\nprecision mediump float;precision highp int;in vec2 _pos;out vec2 pos,xy;in mat2x3 GL_;',''], shaderBody = ['void main(){gl_PointSize=1.0;gl_Position=vec4((xy=vec3(pos=_pos,1.)*GL_)*2.-1.,0.,1.);'], shaderHead2 = ['#version 300 es\nprecision mediump float;precision highp int;in vec2 pos,xy;uniform vec2 viewport;out '+(output==0?'highp vec4 color;':output==16||output==32?'uvec4 color;':'lowp vec4 color;'),'']
+	let j = 6, o = 0, fCount = 0, iCount = 0
+	const types = [3,3]
+	const texCheck = []
+	
+	let id = 0
+	inputs = typeof inputs=='number' ? [inputs] : inputs || []
+	uniforms = typeof uniforms=='number' ? [uniforms] : uniforms || []
+	for(const t of inputs){
+		let c = (t&3)+1, n = names[t&3|t>>4<<2]
+		fnParams.push(id+':'+(c==1?'a'+j:'{x:a'+j+',y:a'+(j+1)+(c==3?',z:a'+(j+2):c==4?',z:a'+(j+2)+',w:a'+(j+3):'')+'}')+(c==1?'=0,':c==2?'=v2z,':c==3?'=v3z,':'=v4z,'))
+		const A = t>15?(o|=1,'iarr[j+'):'arr[j+'
+		if(t==20||t==24||t==28){
+			n='int',o|=(1<<(t>>2)-3),fCount++
+			texCheck.push(`a${j}=(img.auto(a${j+(t==24?'.t,-1':'.t,0')})+1||(i&&draw(b^boundUsed),img.auto(a${j+(t==24?'.t,-1':'.t,0')})+1))-1<<8|a${j}.l`)
+		}
+		if(t==12||t==28) o|=2
+		if(t==8||t==24) iCount++,fCount--
+		if(t==4||t==8||t==12){
+			texCheck.push(`let a${j+1}=${t==4?`-1;if(a${j}.t&&(a${j+1}=img.auto(a${j}.t,0))==-1)`:`img.auto(a${j+(t==8?'.t,-1':'.t,0')});if(a${j+1}==-1)`}{i&&draw(b^boundUsed);a${j+1}=img.auto(a${j+(t==8?'.t,-1':'.t,0')})}`)
+			fCount++
+			const n = 'GL_'+(j+maxTex)
+			shaderHead.push(`in int GL_${j};in vec4 GL_${j+1};out vec4 ${n};`)
+			shaderBody.push(t!=4?`${n}=vec4(GL_${j+1}.xy+pos*GL_${j+1}.zw,GL_${j}&255,GL_${j}>>8);`:`if(GL_${j}<0){${n}=GL_${j+1};${n}.w=max(-15856.,${n}.w);}else{${n}=vec4(GL_${j+1}.xy+pos*GL_${j+1}.zw,GL_${j}&255,GL_${j}<256?-15872:(GL_${j}>>8<<4)-16384);}`)
+			shaderHead2.push(`in vec4 ${n};${t==4?'lowp ':t==8?'u':'highp '}vec4 arg${id}(){`+(t==4?`if(${n}.w>-15872.)return ${n};return getCol(int(${n}.w)>>4&31,${n}.xyz);}`:t==8?`return uGetCol(int(${n}.w),${n}.xyz);}`:`return fGetCol(int(${n}.w),${n}.xyz);}`))
+			o|=(1<<(t>>2)+1)
+			types.push(17,4)
+			fnBody.push('iarr[j+'+j+']=a'+(j+1)+'<<8|a'+j+'.l&255')
+			for(c=0;++c<5;) fnBody.push(A+(j+c)+']=a'+j+'.'+' xyzw'[c])
+			j += c
 		}else{
-			c.width = this.w; c.height = this.h
-			ctx.drawImage(this.canvas, this.x, this.y, this.w, this.h, 0, 0, this.w, this.h)
-			return this._pattern = ctx.createPattern(c, 'repeat')
+			shaderHead.push('in '+n+' GL_'+j+';flat out '+n+' arg'+id+';')
+			shaderBody.push('arg'+id+'=GL_'+j+';')
+			shaderHead2.push('flat in '+n+' arg'+id+';')
+			types.push(c|t&48)
+			while(c--) fnBody.push(A+j+']=a'+j), j++
 		}
+		id++
 	}
-	setPatternTransform(a,b,c,d,e,f){ this.pattern().setTransform({a, b: -b, c, d: -d, e, f: -f}) }
-	then(fn){
-		if(this.canvas.promise){
-			const t = new _txtr(this.canvas)
-			t.canvas.promise = this.canvas.promise.then(() => {
-				const e = fn(this)
-				if(e.canvas.promise) e.then(e => { t.canvas = e.canvas; t.x = e.x; t.y = e.y; t.w = e.w; t.h = e.h })
-				else t.canvas = e.canvas; t.x = e.x; t.y = e.y; t.w = e.w; t.h = e.h
-			})
-			return t
-		}else return fn(this)
+	id = 0; let j2 = 0, j3 = 0
+	const fn2Params = [], fn2Body = ['if(sh!=s){i&&draw(0);shfCount=fCount;gl.useProgram((sh=s).program);gl.bindVertexArray(s.vao)}'], fn3Body = []
+	const uniTex = [], uniLocs = []
+	for(const t of uniforms){
+		let c = (t&3)+1, n = names[t&3|t>>4<<2]
+		fn2Params.push((c==1?'a'+j2:'{x:a'+j2+',y:a'+(j2+1)+(c==3?',z:a'+(j2+2):c==4?',z:a'+(j2+2)+',w:a'+(j2+3):'')+'}'))
+		if(t==12||t==28) o|=2
+		if(t==8||t==24) iCount++,fCount--
+		if(t==20||t==24||t==28){
+			o|=(1<<(t>>2)-3),fCount++
+			fn3Body.push(`gl.uniform1i(uniLocs[${j3}],uniTex[${uniTex.length}]?img.auto(uniTex[${uniTex.length}]${t==24?',-1':',0'}):${t==24?maxTex:0})`)
+			shaderHead2.push('uniform int uni'+id+';')
+			fn2Body.push(`uniTex[${uniTex.length}]=a${j2++}.t`)
+			uniTex.push(null)
+		}else if(t==4||t==8||t==12){
+			fn3Body.push(`gl.uniform1i(uniLocs[${j3++}],uniTex[${uniTex.length}]?img.auto(uniTex[${uniTex.length}]${t==8?',-1':',0'}):${t==8?maxTex:0})`)
+			uniTex.push(null)
+			fCount++
+			const n = 'GL_'+(j+j2+maxTex)
+			shaderHead.push(`uniform int u${j2};uniform vec4 u${j2+1};out vec4 ${n};`)
+			shaderBody.push(t!=4?`${n}=vec4(u${j2+1}.xy+pos*u${j2+1}.zw,u${j2}&255,u${j2}>>8);`:`if(u${j2}<0){${n}=u${j2+1};${n}.w=max(-15856.,${n}.w);}else{${n}=vec4(u${j2+1}.xy+pos*u${j2+1}.zw,u${j2}&255,u${j2}<256?-15872:(u${j2}>>8<<4)-16384);}`)
+			shaderHead2.push(`in vec4 ${n};${t==4?'lowp ':t==8?'u':'highp '}vec4 uni${id}(){`+(t==4?`if(${n}.w>-15872.)return ${n};return getCol(int(${n}.w)>>4&31,${n}.xyz);}`:t==8?`return uGetCol(int(${n}.w),${n}.xyz);}`:`return fGetCol(int(${n}.w),${n}.xyz);}`))
+			o|=(1<<(t>>2)+1)
+			fn2Body.push(`uniTex[${uniTex.length-1}]=a${j2}.t;gl.uniform4f(uniLocs[${j3}],a${j2}.x,a${j2}.y,a${j2}.z,a${j2}.w)`)
+			j2 += c
+		}else{
+			shaderHead2.push('uniform '+n+' uni'+id+';')
+			let args = `gl.uniform${c+(t<16?'f':t<32?'i':'ui')}(uniLocs[${j3}]`
+			while(c--) args += ',a'+j2++
+			fn2Body.push(args+')')
+		}
+		id++; j3++
 	}
+	if(fCount+iCount>16) throw 'Shaders cannot use more than 16 textures/colors'
+	fCount = fCount?iCount?fCount+Math.round(frat * (maxTex-fCount-iCount)):maxTex:0
+	iCount = iCount && maxTex - fCount
+	k1='return texture(GL_';k2=',p);'; T=null
+	shaderHead2[1] =
+		(o&20?'uniform '+(o&2?'highp':'lowp')+' sampler2DArray '+Array.from({length:fCount},(_,i)=>'GL_'+i)+';':'')
+		+(o&8?'uniform highp usampler2DArray '+Array.from({length:iCount},(_,i)=>'GL_'+(fCount+i))+';':'')
+		+(o&4?`lowp vec4 getCol(int u,vec3 p){${T=treeIf(0,fCount)}}`:'')
+		+(o&16?`highp vec4 fGetCol(int u,vec3 p){${T||treeIf(0,fCount)}}`:'')
+		+(o&8?`uvec4 uGetCol(int u,vec3 p){${treeIf(fCount,maxTex,maxTex-fCount)}}`:'')
+	k1='return texelFetch(GL_',k2=',p,l);'; T=null
+	shaderHead2[1] +=
+		(o&4?`lowp vec4 getPixel(int u,ivec3 p,int l){${T=treeIf(0,fCount)}}`:'')
+		+(o&16?`highp vec4 fGetPixel(int u,ivec3 p,int l){${T||treeIf(0,fCount)}}`:'')
+		+(o&8?`uvec4 uGetPixel(int u,ivec3 p,int l){${treeIf(fCount,maxTex,maxTex-fCount)}}`:'')
+		+(o&28?`ivec3 getSize(int u,int l){${k1='return textureSize(GL_',k2=',l);',T=treeIf(0,maxTex)}}`:'')
+	fnBody[0] = '}){if(sh!=s){i&&draw(0);shfCount=fCount;gl.useProgram((sh=s).program);gl.bindVertexArray(s.vao);bindUniTex()}if(shp!=this.s){i&&draw();shp=this.s}if(s.geometry!=this.s.b){gl.bindBuffer(34962,s.geometry=this.s.b);gl.vertexAttribPointer(0,2,5126,0,0,0);gl.bindBuffer(34962,buf)}const b=boundUsed^shuniBind;'+texCheck.join(';')+';const j=i;if((i=j+'+j+')>arr.length)'+(ArrayBuffer.prototype.transfer?'(arr=gtArr||new Float32Array(arr.buffer.transfer(i*8))),iarr=new Int32Array(arr.buffer)':'{const oa=arr;(arr=gtArr||new Float32Array(i*2)).set(oa,0);iarr=new Int32Array(arr.buffer)}')
+	fnBody.push('return j})')
+	const s = eval(fnParams.join('')+fnBody.join(';')), p = s.program = gl.createProgram()
+	s.uniforms = eval(`(function(${fn2Params}){${fn2Body.join(';')};bindUniTex()})`)
+	const bindUniTex = eval(`(function(){${fn3Body.join(';')};shuniBind=boundUsed})`)
+	s.fMask = 32-fCount&&(-1>>>fCount)
+	s.outInt = (output==16||output==32)<<31
+	s.uniBind = 0
+	const v=gl.createShader(35633), f=gl.createShader(35632)
+	shaderBody.push('}')
+	gl.shaderSource(v, shaderHead.join('')+shaderBody.join(''))
+	gl.compileShader(v)
+	gl.shaderSource(f, src = shaderHead2.join('')+'\n'+src)
+	gl.compileShader(f)
+	gl.attachShader(p, v)
+	gl.attachShader(p, f)
+	if(T=gl.getShaderInfoLog(f)) console.warn('GLSL Error:\n'+T+'\n'+src+'\n\n'+shaderHead.join('')+shaderBody.join(''))
+	gl.linkProgram(p)
+	gl.useProgram(p)
+	while(j3--) uniLocs.push(gl.getUniformLocation(p, 'uni'+uniLocs.length))
+	for(let i = 0; i < maxTex; i++)
+		gl.uniform1i(gl.getUniformLocation(p, 'GL_'+i), i>=fCount?maxTex+i-fCount:i)
+	s.count = j
+	gl.bindVertexArray(s.vao = gl.createVertexArray())
+	let i1 = 1, i2 = 0
+	gl.bindBuffer(34962, s.geometry = defaultShape.b)
+	gl.enableVertexAttribArray(0)
+	gl.vertexAttribPointer(0, 2, 5126, 0, 0, 0)
+	gl.bindBuffer(34962, buf)
+	for(const t of types){
+		gl.enableVertexAttribArray(i1)
+		if(t>>4) gl.vertexAttribIPointer(i1, t&15, (t>31)+5124, j<<2, i2)
+		else gl.vertexAttribPointer(i1, t&15, 5126, 0, j<<2, i2)
+		gl.vertexAttribDivisor(i1++, 1)
+		i2 += (t&15)<<2
+	}
+	if(sh) gl.useProgram(sh.program||sh), gl.bindVertexArray(sh.vao)
+	return s
 }
-const actx = new AudioContext()
-const _bgGain = actx.createGain()
-_bgGain.connect(actx.destination)
-let _volume = 0
-const createTexture = (i,x=0,y=0,w=i.width,h=i.height) => new _txtr(i,x,y,w,h)
-const loader = meta => {
-	const folder = meta.url.slice(0, meta.url.lastIndexOf('/') + 1)
-	const f = src => (src = src[0] == '/' ? src : folder + src, loading++, _filecache[src]??fetch(src).then(a => (--loading||loaded(),_filecache[src]=a.blob())))
-	f.OldTexture = src => {
-		src = src[0] == '/' ? src : folder + src
-		const q = 'old$' + src
-		if(_filecache[q]) return _filecache[q]
-		const i = new Image()
-		i.crossOrigin = 'anonymous'
-		i.src = src
-		loading++
-		const t = new _txtr(i)
-		let r
-		i.promise = new Promise(_r=>r=_r)
-		i.onload = i.onerror = () => (i.onload=i.onerror=null,t.w=i.width,t.h=i.height,r(),i.promise=null,--loading||loaded())
-		return _filecache[q] = t
-	}
-	f.Audio = src => {
-		let buf = null
-		return function play(vol = 1, pitch = 1, pan = 0, start = 0, end = NaN, ends = true, bg = false){
-			if(buf === null){
-				buf = []
-				fetch(folder + src, {credentials: 'omit', priority: 'low'}).then(a => a.arrayBuffer()).then(a => actx.decodeAudioData(a, b => {
-					const l = buf; buf = b
-					for(let i = 0; i < l.length; i++) l[i][0] = play(...l[i]), l[i].length = 1
-				}))
-			}
-			if(Array.isArray(buf)){
-				const a = [vol,pitch,pan,start,end,ends,bg]
-				buf.push(a)
-				return () => {
-					if(Array.isArray(buf)){
-						const i = buf.indexOf(a)
-						if(i > -1) buf.splice(i, 1)
-					}else a[0]()
-				}
-			}
-			const source = actx.createBufferSource()
-			source.buffer = buf
-			if(bg) source.connect(_bgGain)
-			else{
-				let dest = actx.destination
-				const volume = _volume * vol
-				if(volume != 1){
-					const gain = actx.createGain()
-					gain.gain.value = volume
-					gain.connect(dest)
-					dest = gain
-				}
-				if(pan != 0){
-					const panner = actx.createStereoPanner()
-					panner.pan.value = min(1, max(-1, pan))
-					panner.connect(dest)
-					dest = panner
-				}
-				source.playbackRate.value = pitch
-				source.connect(dest)
-			}
-			if(source.loop = !ends){
-				source.loopStart = start
-				if(end == end)source.loopEnd = end
-				source.start(0, start)
-			}else{
-				source.start(0, start, end == end ? end - start : buf.duration)
-				if(typeof ends == 'function') source.onended = ends
-			}
+globalThis.iarr=()=>iarr;globalThis.i=()=>i
+globalThis.boundUsed=()=>boundUsed
+Shader.DEFAULT = sh = Shader(`void main(){color=arg0()*(1.-arg1);}`, [COLOR, VEC4])
+Shader.INT = sh = Shader(`void main(){color=arg0();}`, UCOLOR, _, UINT)
+gl.useProgram(sh.program)
+gl.bindVertexArray(sh.vao)
+globalThis.t = 0
+globalThis._gl = gl
+globalThis.ctx = new can(ca={tex:gl.canvas,img:null,layer:0,stencil:0,stencilBuf:null,w:0,h:0})
+globalThis.t = performance.now(); globalThis.dt = 0
+
+const actx = new AudioContext({latencyHint: 'interactive'})
+globalThis.bgGain = actx.createGain()
+bgGain.connect(actx.destination)
+globalThis.masterVolume = 1
+globalThis.Audio = src => {
+	let buf = null
+	return function play(vol = 1, pitch = 1, pan = 0, start = 0, end = NaN, ends = true, bg = false){
+		if(buf === null){
+			buf = []
+			fetch(src, {credentials: 'omit', priority: 'high'}).then(a => a.arrayBuffer()).then(a => actx.decodeAudioData(a, b => {
+				const l = buf; buf = b
+				for(let i = 0; i < l.length; i++) l[i][0] = play(...l[i]), l[i].length = 1
+			}))
+		}
+		if(Array.isArray(buf)){
+			const a = [vol,pitch,pan,start,end,ends,bg]
+			buf.push(a)
 			return () => {
-				source.onended = null
-				source.stop()
+				if(Array.isArray(buf)){
+					const i = buf.indexOf(a)
+					if(i > -1) buf.splice(i, 1)
+				}else a[0]()
 			}
 		}
+		const source = actx.createBufferSource()
+		source.buffer = buf
+		if(bg) source.connect(bgGain)
+		else{
+			let dest = actx.destination
+			const volume = masterVolume * vol
+			if(volume != 1){
+				const gain = actx.createGain()
+				gain.gain.value = volume
+				gain.connect(dest)
+				dest = gain
+			}
+			if(pan != 0){
+				const panner = actx.createStereoPanner()
+				panner.pan.value = min(1, max(-1, pan))
+				panner.connect(dest)
+				dest = panner
+			}
+			source.playbackRate.value = pitch
+			source.connect(dest)
+		}
+		if(source.loop = !ends){
+			source.loopStart = start
+			if(end == end)source.loopEnd = end
+			source.start(0, start)
+		}else{
+			source.start(0, start, end == end ? end - start : buf.duration)
+			if(typeof ends == 'function') source.onended = ends
+		}
+		return () => { source.onended = null; source.stop() }
 	}
-	return f
 }
-let buttons, changed, delta, cursor
-let loading = 1, loaded = null, dt = 1 / 60, pointer
-let t = 0, me = null, perms = 2
-let mx = 0, my = 0
+
+{let i=0,m=new MessageChannel,c=new Map;m.port1.onmessage=({data:i},j=c.get(i))=>(c.delete(i)&&j());m=m.port2;globalThis.setImmediate=(f,...a)=>(c.set(++i,a.length?f.bind(undefined, ...a):f),m.postMessage(i),i);globalThis.clearImmediate=i=>c.delete(i)}
+Math.fclamp = (a, b = 1) => a < 0 ? 0 : (a > b ? b : a)
+Math.ifloat = x => {
+	let f = Math.floor(x)
+	return (f >> 0) + (x - f)
+}
+Math.randint = () => Math.random() * 4294967296 | 0
+Math.ifloor = x => Math.floor(x) | 0
+Math.iceil = x => Math.ceil(x) | 0
+Math.PI2 = Math.PI*2
+Object.defineProperties(globalThis, Object.getOwnPropertyDescriptors(Math))
+Object.defineProperties(Array.prototype, {
+	winner: {enumerable: false, value(pred, best = -Infinity){
+		let winner = undefined
+		const length = this.length
+		for(let i = 0; i < length; i++){
+			const a = this[i], score = pred(a, i, this)
+			if(score >= best){
+				best = score
+				winner = a
+			}
+		}
+		return winner
+	}},
+	remove: {enumerable: false, value(a){
+		let i = 0, j = 0
+		for(; j < this.length; j++){
+			if(j > i)this[i] = this[j]
+			if(this[i] != a)i++
+		}
+		return this.length = i
+	}},
+	mmap: {enumerable: false, value(fn){
+		const len = this.length
+		for(let i = 0; i < len; i++)
+			this[i] = fn(this[i])
+		return this
+	}}
+})
 const nul = new Array(100).fill(null)
 Array.null = len => {
 	if(len <= 100) return nul.slice(0, len)
@@ -330,29 +897,17 @@ Array.null = len => {
 	while(len > 0) a[--len] = null
 	return a
 }
-Array.range = (...a) => {
-	const res = []
-	let step = 1
-	if(a.length%2) step = a.pop()
-	if(!step) throw new RangeError("'step' argument must not be zero")
-	for(let i = 0; i < a.length; i+=2){
-		const end = a[i+1]
-		if(step > 0) for(let j = a[i]; j < end; j+=step) res.push(j)
-		else for(let j = a[i]; j > end; j+=step) res.push(j)
-	}
-	return res
-}
-</script>
-<script async src="/img/_pako.js"></script>
-<script type="module">
-	import './bitfield.js'
-	import './chunk.js'
-	import './controls.js'
-	import './entity.js'
-	import './ipc.js'
-	import './pointer.js'
-	import './sounds.js'
-	import './world.js'
-	import './incomingPacket.js'
-	import './index.js'
+globalThis.ctxSupersample = 1
+globalThis.pixelRatio = 1
+const {frame}=await import('./index.js')
+requestAnimationFrame(function f(){
+	dt = Math.min(-(globalThis.t-(globalThis.t=performance.now()/1000)), .5)
+	requestAnimationFrame(f); i&&draw()
+	pixelRatio = devicePixelRatio * ctxSupersample
+	gl.viewport(0, 0, ctx.t.w = gl.canvas.width = round(innerWidth*pixelRatio), ctx.t.h = gl.canvas.height = round(innerHeight*pixelRatio))
+	gl.bindFramebuffer(36160,null); ca=ctx.t
+	ctx.reset()
+	frame?.(dt)
+	i&&draw()
+})
 </script>

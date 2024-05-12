@@ -1,5 +1,5 @@
-import { send, onpacket, voice, stopVoice, drawPhase, button } from 'api'
-import { entityMap, CONFIG } from 'world'
+import { send, onpacket, voice, stopVoice, drawLayer, onKey } from 'api'
+import { entityMap, CONFIG, me } from 'world'
 
 onpacket(96, buf => {
 	if(!pako) return
@@ -41,7 +41,7 @@ function setVol(e, obj){
 	obj.pan.pan.value = tanh(dx/sqrt(CONFIG.proximitychat)/4)
 }
 
-drawPhase(-10000, () => {
+drawLayer('none', -10000, () => {
 	for(const [e, obj] of bufferEnds){
 		if(obj.ends < actx.currentTime - 10000){ bufferEnds.delete(e); continue }
 		if(typeof e === 'object') setVol(e, obj)
@@ -50,7 +50,7 @@ drawPhase(-10000, () => {
 	else if(!voice.active && (buttons.has(KEYS.ENTER)^voiceToggle) && CONFIG.proximitychat) voice(sendVoice), me.state |= 0x100
 })
 let voiceToggle = false
-button(KEYS.P, () => voiceToggle = !voiceToggle)
+onKey(KEYS.P, () => voiceToggle = !voiceToggle)
 function sendVoice(f32){
 	if(!pako) return
 	const arr = new Uint8ClampedArray(f32.length)

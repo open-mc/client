@@ -134,7 +134,7 @@ export function preconnect(ip, cb = Function.prototype, instant = false){
 			const box = chat.children[9] || document.createElement('div')
 			box.textContent = data.slice(2)
 			chat.insertAdjacentElement('afterbegin', box)
-			box.classList = `c${style&15} s${style>>4}`
+			box.className = `c${style&15} s${style>>4}`
 			const {color, fontStyle, fontWeight, textDecoration} = getComputedStyle(box)
 			console.log('%c'+data.slice(2), 'color:'+color+';font-size:12px;font-family:mc,monospace,Arial;font-weight:'+fontWeight+';font-style:'+fontStyle+';text-decoration:'+textDecoration)
 			if(options.notifs === 2 || (options.notifs === 1 && pingRegex.test(box.textContent))) notif(), box.style.backgroundColor = '#8608'
@@ -148,6 +148,7 @@ export function preconnect(ip, cb = Function.prototype, instant = false){
 			return
 		}
 		icon.src = './img/pack.png'
+		node.attr('style', '')
 		motd.textContent = ws instanceof WebSocket ? 'Failed to connect' : 'Invalid IP'
 		motd.style.color = '#d22'
 		name.textContent = displayIp
@@ -161,7 +162,7 @@ export function preconnect(ip, cb = Function.prototype, instant = false){
 			Row(
 				name = Label(displayIp),
 				Btn('...', () => {
-					window.open(ip.replace('ws', 'http'), '_blank','popup')
+					window.open(ip.replace('ws', 'http'), '_blank','width=1024,height=768,left='+screenX+',top='+screenY)
 				},'tiny').attr('style','line-height:1.5'),
 				Btn('^', () => {
 					const i = node.parentElement.children.indexOf(node)
@@ -202,7 +203,7 @@ export async function play(ws){
 	globalThis.ws = ws
 	onfocus()
 	pendingConnection('Authenticating...')
-	gameIframe(ws.packs)
+	gameIframe(ws.packs, 0)
 	console.clear()
 }
 const urlServer = location.search.slice(1)

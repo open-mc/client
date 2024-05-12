@@ -1,6 +1,4 @@
-import { BlockIDs, EntityIDs } from 'definitions'
-import { world } from 'world'
-import { Classes } from './definitions.js'
+import { BlockIDs, EntityIDs, Classes } from 'definitions'
 
 const texturePool = []
 const chunkUVData = new Uint16Array(8192)
@@ -13,9 +11,8 @@ export class Chunk extends Uint16Array{
 		this.y = buf.int()
 		this.ref = 0
 		this.entities = new Set()
-		this.ctx2 = this.ctx = null
+		this.ctx2 = this.ctx = this.writeCtx = null
 		this.lastFrame = 0
-		this.animatedTiles = new Uint32Array(128)
 		const Schema = Chunk.savedatahistory[buf.flint()] || Chunk.savedata
 		const l = buf.short()
 		buf.i += l * 2
@@ -90,7 +87,6 @@ export class Chunk extends Uint16Array{
 		texturePool.push(this.ctx, this.ctx2)
 		this.ctx = this.ctx2 = null
 		this.rerenders.length = 0
-		for(let i = 0; i < 128; i++) this.animatedTiles[i] = 0
 	}
 	draw(){
 		if(this.ctx) return
@@ -98,8 +94,8 @@ export class Chunk extends Uint16Array{
 		this.ctx2 = texturePool.pop()
 		this.ctx = texturePool.pop()
 		if(!this.ctx){
-			this.ctx = Texture(64, 64, 0, Formats.RG16, PIXELATED)
-			this.ctx2 = Texture(64, 64, 0, Formats.R16, PIXELATED)
+			this.ctx = Texture(64, 64, 1, 0, Formats.RG16)
+			this.ctx2 = Texture(64, 64, 1, 0, Formats.R16)
 		}
 		for(let x = 0; x < 64; x++){
 			for(let y = 0; y < 64; y++){
@@ -113,9 +109,26 @@ export class Chunk extends Uint16Array{
 				}else chunkUVData[i<<1|1] = 65535
 			}
 		}
-		this.ctx.putData(0, 0, 64, 64, chunkUVData)
+		this.ctx.pasteData(chunkUVData)
+	}
+	updateDrawn({texture, render}, i){
+		if(!this.ctx) return
+		if(!this.writeCtx){
+			const ctx = this.writeCtx = this.ctx.drawable()
+			ctx.box(.0078125, .0078125, .015625, .015625)
+			ctx.geometry = pointGeometry
+			ctx.shader = ctxWriteShader
+		}
+		let j = this.rerenders.indexOf(i)
+		if((j == -1) & (render != undefined)) this.rerenders.push(i)
+		else if((j > -1) & (render == undefined)) this.rerenders.splice(j, 1)
+		this.writeCtx.drawRect(i&63,i>>6,1,1,texture)
 	}
 }
+const pointGeometry = Geometry(POINTS, [0, 0])
+const ctxWriteShader = Shader(`void main(){
+	color.xy = uvec2(arg0&0xffffu, arg0>>16);
+}`, [UINT], _, UINT)
 
 Classes[1] = Chunk
 

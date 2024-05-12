@@ -1,8 +1,8 @@
 import { ephemeralInterfaces, EphemeralInterface } from "definitions"
 import { renderSlot } from "./effects.js"
-const {OldTexture} = loader(import.meta)
+const src = loader(import.meta)
 
-const craftingInterface = OldTexture('crafting.png')
+const craftingInterface = Img(src`crafting.png`)
 ephemeralInterfaces[1] = class extends EphemeralInterface{
 	slots = [null, null, null, null, null, null, null, null, null]
 	output = null

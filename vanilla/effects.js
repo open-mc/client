@@ -1,13 +1,13 @@
-import { music } from 'world'
+import { music, me } from 'world'
 import { renderF3 } from 'api'
-const {Audio, OldTexture} = loader(import.meta)
+const src = loader(import.meta)
 
-export const audioSet = (path, count) => Array.from({length: count}, (_, i) => Audio('sound/'+path+(i+1)+'.mp3'))
+export const audioSet = (path, count) => Array.from({length: count}, (_, i) => Audio(src`sound/${path+(i+1)}.mp3`))
 
-export const click = Audio('../img/click.mp3')
+export const click = Audio(src`../img/click.mp3`)
 
-export const icons = OldTexture('icons.png')
-const btns = OldTexture('../img/button.png')
+export const icons = Img(src`icons.png`)
+const btns = Img(src`../img/button.png`)
 export const uiButtons = {
 	large: btns.crop(124,20,200,20),
 	largeSelected: btns.crop(124,40,200,20),
@@ -18,37 +18,37 @@ export const uiButtons = {
 }
 
 music('overworld',
-	Audio("sound/calm1.mp3"),
-	Audio("sound/calm2.mp3"),
-	Audio("sound/calm3.mp3"),
-	Audio("sound/hal1.mp3"),
-	Audio("sound/hal2.mp3"),
-	Audio("sound/hal3.mp3"),
-	Audio("sound/hal4.mp3"),
-	Audio("sound/nuance1.mp3"),
-	Audio("sound/nuance2.mp3"),
-	Audio("sound/piano1.mp3"),
-	Audio("sound/piano2.mp3"),
-	Audio("sound/piano3.mp3")
+	Audio(src`sound/calm1.mp3`),
+	Audio(src`sound/calm2.mp3`),
+	Audio(src`sound/calm3.mp3`),
+	Audio(src`sound/hal1.mp3`),
+	Audio(src`sound/hal2.mp3`),
+	Audio(src`sound/hal3.mp3`),
+	Audio(src`sound/hal4.mp3`),
+	Audio(src`sound/nuance1.mp3`),
+	Audio(src`sound/nuance2.mp3`),
+	Audio(src`sound/piano1.mp3`),
+	Audio(src`sound/piano2.mp3`),
+	Audio(src`sound/piano3.mp3`)
 )
 music('nether',
-	Audio('sound/nether1.mp3'),
-	Audio('sound/nether2.mp3'),
-	Audio('sound/nether3.mp3'),
-	Audio('sound/nether4.mp3')
+	Audio(src`sound/nether1.mp3`),
+	Audio(src`sound/nether2.mp3`),
+	Audio(src`sound/nether3.mp3`),
+	Audio(src`sound/nether4.mp3`)
 )
 
-music('end', Audio('sound/end.mp3'))
+music('end', Audio(src`sound/end.mp3`))
 
-music('void', Audio('sound/deep1.mp3'))
+music('void', Audio(src`sound/deep1.mp3`))
 
 export const lava = {
-	ambient: Audio('sound/lava/ambient.mp3'),
-	pop: Audio('sound/lava/pop.mp3')
+	ambient: Audio(src`sound/lava/ambient.mp3`),
+	pop: Audio(src`sound/lava/pop.mp3`)
 }
 
 export const water = {
-	ambient: [Audio('sound/water/ambient1.mp3'), Audio('sound/water/ambient2.mp3')],
+	ambient: [Audio(src`sound/water/ambient1.mp3`), Audio(src`sound/water/ambient2.mp3`)],
 }
 
 export function renderItem(c, item, respectModel = false){
@@ -122,7 +122,7 @@ export function renderSlot(c, e, i, id=0){
 	const item = e.getItem(id, i)
 	renderItem(c, item)
 	renderItemCount(c, item)
-	const {x, y} = c.mouse()
+	const {x, y} = c.from(cursor)
 	if(y >= 0 && y < 1 && x >= -0.5 && x < .5){
 		c.fillStyle = '#fff'
 		c.globalAlpha = 0.2
@@ -139,7 +139,7 @@ export function renderTooltip(c, item){
 	renderGenericTooltip(c, lines, styles)
 }
 export function renderGenericTooltip(c, lines, styles){
-	const {x, y} = c.mouse()
+	const {x, y} = c.from(cursor)
 	let width = 0
 	for(const l of lines) width = max(c.measureText(l, 10).width, width)
 	if(x+width+20 >= c.width || y+(lines.length+1)*12 >= c.height) c.translate(x - width - 12, y)
