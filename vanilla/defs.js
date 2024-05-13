@@ -15,16 +15,12 @@ export class BlastParticle extends Particle{
 	constructor(x, y){
 		super(false, random() / 4 + 0.5, x + random() * 4 - 2, y + random() * 4 - 2, 0, 0, 0, 0)
 		this.size = random() + 1
-		const a = floor(random() * 128 + 128)
-		this.fillStyle = `rgb(${a}, ${a}, ${a})`
+		const a = random()
+		this.tint = vec4(a, a, a, 0)
 	}
 	render(c){
 		if(this.lifetime >= .5) return
-		secondCanvas.globalCompositeOperation = 'destination-atop'
-		secondCanvas.fillStyle = this.fillStyle
-		secondCanvas.fillRect(0,0,8,8)
-		secondCanvas.image(explodeParticles[floor(15 - this.lifetime * 30)], 0, 0, 8, 8)
-		c.image(secondCanvas.texture, -this.size/2, -this.size/2, this.size, this.size)
+		c.drawRect(-this.size/2, -this.size/2, this.size, this.size, explodeParticles[floor(15 - this.lifetime * 30)], this.tint)
 	}
 }
 const secondCanvas = Texture(8, 8).drawable()
@@ -33,15 +29,11 @@ export class AshParticle extends Particle{
 		const rx = random() * 4 - 2, ry = random() * 4 - 2
 		super(false, 79.9999, x + rx, y + ry, rx*3, ry*3, 0, 0)
 		this.size = random() / 2 + .5
-		const a = floor(random() * 128 + 128)
-		this.fillStyle = `rgb(${a}, ${a}, ${a})`
+		const a = random()
+		this.tint = vec4(a, a, a, 0)
 	}
 	render(c){
-		secondCanvas.globalCompositeOperation = 'destination-atop'
-		secondCanvas.fillStyle = this.fillStyle
-		secondCanvas.fillRect(0,0,8,8)
-		secondCanvas.image(ashParticles[floor(this.lifetime / 10)], 0, 0, 8, 8)
-		c.image(secondCanvas.texture, -this.size/2, -this.size/2, this.size, this.size)
+		c.drawRect(secondCanvas.texture, -this.size/2, -this.size/2, this.size, this.size, ashParticles[floor(this.lifetime / 10)], this.tint)
 		if(random() < dt*10) this.lifetime -= 10
 	}
 }

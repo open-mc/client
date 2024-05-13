@@ -1,6 +1,6 @@
-import { particlePng, explode, AshParticle, BlastParticle, hurt } from './defs.js'
+import { explode, AshParticle, BlastParticle, hurt } from './defs.js'
 import { audioSet, renderItem, renderItemCount, renderSlot } from './effects.js'
-import { Entities, Entity, Item, Blocks, BlockIDs } from 'definitions'
+import { Entities, Entity, Item, Blocks, BlockIDs, toTex, addParticle } from 'definitions'
 import { renderF3, drawLayer } from 'api'
 import { getblock, cam, worldEvents, world, me, perms } from 'world'
 import { renderLeft, renderRight } from './creativeInventory.js'
@@ -48,6 +48,7 @@ export class LivingEntity extends Entity{
 		if(d) this.sound(d,0.5,2)
 	}
 	render(c){
+		return true
 		this.hitTimer -= dt
 		if(this.hitTimer < 0) this.hitTimer = 0
 		if(false && !this.hitTimer) return true
@@ -64,7 +65,7 @@ export class LivingEntity extends Entity{
 		}
 		if(ys < 0) c.translate(0, this.height)
 		c.scale(xs, ys)
-		//if(this.state&0x8000) c.rotate(PI * (this.hitTimer*this.hitTimer - 1) * ((this.flags&1) - .5) * xs)
+		//if(this.state&0x8000) c.rotate(PI * (this.hitTimer*this.hitTimer - 1) * ((this.flags&1) - .5) * -xs)
 	}
 	blocksWalked = 0
 	update(){
@@ -285,27 +286,25 @@ Entities.item = class extends Entity{
 		c.translate(0, sin(t*2)/12+.15)
 		c.scale(0.36, 0.36)
 		renderItem(c, this.item)
-		c.push()
+		const c2 = c.sub()
 		if(this.item.count > 1){
-			c.translate(0.4, 0.4)
-			renderItem(c, this.item)
+			c2.translate(0.4, 0.4)
+			renderItem(c2, this.item)
 		}
 		if(this.item.count > 16){
-			c.translate(-0.8, -0.2)
-			renderItem(c, this.item)
+			c2.translate(-0.8, -0.2)
+			renderItem(c2, this.item)
 		}
 		if(this.item.count > 32){
-			c.translate(0.6, -0.4)
-			renderItem(c, this.item)
+			c2.translate(0.6, -0.4)
+			renderItem(c2, this.item)
 		}
 		if(this.item.count > 48){
-			c.translate(-0.4, 0.1)
-			renderItem(c, this.item)
+			c2.translate(-0.4, 0.1)
+			renderItem(c2, this.item)
 		}
-		c.pop()
-		if(renderF3){
+		if(renderF3)
 			renderItemCount(c, this.item)
-		}
 	}
 	1(buf){
 		const c = buf.byte()
@@ -326,7 +325,7 @@ Entities.falling_block = class extends Entity{
 	block = 0
 	render(c){
 		const {texture} = BlockIDs[this.block] ?? Blocks.air
-		if(texture) c.image(texture, -0.5, 0, 1, 1)
+		if(texture) c.drawRect(-0.5, 0, 1, 1, toTex(texture))
 	}
 }
 
@@ -340,20 +339,16 @@ Entities.tnt = class extends Entity{
 			c.scale(1.1 - 1/(this.fusing+10), 1.1 - 1/(this.fusing+10))
 			this.fusing++
 		}
-		c.image(Blocks.tnt.texture, -0.5, 0, 1, 1)
-		c.globalAlpha = 0.7
-		c.fillStyle = t*3&1 ? '#fff' : '#000'
-		c.fillRect(-0.5,0,1,1)
-		c.globalAlpha = 1
+		c.drawRect(-0.5, 0, 1, 1, toTex(Blocks.tnt.texture))
+		const a = (t*3&1)&&.7
+		c.drawRect(-0.5, 0, 1, 1, vec4(a,a,a,.7))
 	}
-	1(){
-		this.sound(fuse)
-	}
+	1(){ this.sound(fuse) }
 	2(){ this.fusing = 1 }
 	3(){
 		this.sound(explode)
-		for(let i = 0; i < 15; i++) new BlastParticle(this.x, this.y)
-		for(let i = 0; i < 30; i++) new AshParticle(this.x, this.y)
+		for(let i = 0; i < 15; i++) addParticle(new BlastParticle(this.x, this.y))
+		for(let i = 0; i < 30; i++) addParticle(new AshParticle(this.x, this.y))
 	}
 }
 const endercrystal = Img(src`endercrystal.png`)
@@ -364,70 +359,58 @@ Entities.end_crystal = class extends Entity{
 	static height = 1.99
 	render(c){
 		const t = this.age / world.tps
-		c.push()
 		c.translate(0, 1.2 + sin(t * 4) / 3)
-		c.rotate(t*-0.5)
-		c.image(endCrystalCore, -0.4, -0.4, 0.8, 0.8)
-		c.rotate(t)
-		c.image(endCrystalWiregrid, -0.53, -0.53, 1.06, 1.06)
-		c.rotate(t*-1.5)
-		c.image(endCrystalWiregrid, -0.6, -0.6, 1.2, 1.2)
-		c.pop()
+		c.rotate(t*0.5)
+		c.drawRect(-0.4, -0.4, 0.8, 0.8, endCrystalCore)
+		c.rotate(-t)
+		c.drawRect(-0.53, -0.53, 1.06, 1.06, endCrystalWiregrid)
+		c.rotate(t*1.5)
+		c.drawRect(-0.6, -0.6, 1.2, 1.2, endCrystalWiregrid)
 	}
 	3(){
 		this.sound(explode)
-		for(let i = 0; i < 15; i++) new BlastParticle(this.x, this.y)
-		for(let i = 0; i < 30; i++) new AshParticle(this.x, this.y)
+		for(let i = 0; i < 15; i++) addParticle(new BlastParticle(this.x, this.y))
+		for(let i = 0; i < 30; i++) addParticle(new AshParticle(this.x, this.y))
 	}
 	static gx = 0
 	static gy = 0
 }
 
 export let lightningBoltCount = 0
-drawLayer('ui', 50, (c, w, h) => {
-	return
-	if(!lightningBoltCount) return
-	c.fillStyle = '#fff'
-	c.globalAlpha = (1-0.8**lightningBoltCount)*(t%.4<.2)
-	c.fillRect(0, 0, w, h)
-	c.globalAlpha = 1
+drawLayer('none', 50, c => {
+	if(lightningBoltCount)
+		c.draw(vec4((1-0.8**lightningBoltCount)*(t%.4<.2)))
 })
+const quarterAlpha = vec4(.25), halfAlpha = vec4(.5), fullAlpha = vec4(1)
 Entities.lightning_bolt = class extends Entity{
 	static gx = 0
 	static gy = 0
 	seed = randint()
 	place(){ if(super.place()) lightningBoltCount++ }
 	_fillRect(c, h = 32){
-		c.globalAlpha = 0.25
-		c.fillRect(-1, 0, 2, h)
-		c.globalAlpha = 0.5
-		c.fillRect(-2/3, 0, 4/3, h)
-		c.globalAlpha = 1
-		c.fillRect(-1/3, 0, 2/3, h)
+		c.drawRect(-1, 0, 2, h, quarterAlpha)
+		c.drawRect(-2/3, 0, 4/3, h, halfAlpha)
+		c.drawRect(-1/3, 0, 2/3, h, fullAlpha)
 	}
 	render(c){
-		c.fillStyle = '#fff'
-		c.push()
 		const seed = this.seed >> (this.age > 10 ? 16 : 1)
 		let x = ((seed&15)-7.5)/30
-		c.transform(1, 0, x, 1, 0, 0)
-		this._fillRect(c)
-		c.peek()
+		const c2 = c.sub()
+		c2.skew(x, 0)
+		this._fillRect(c2)
+		c2.resetTo(c)
 		let ox = x*32
-		c.translate(ox, 32)
+		c2.translate(ox, 32)
 		x = ((seed>>4&15)-7.5)/30
-		c.transform(1, 0, x, 1, 0, 0)
-		this._fillRect(c)
-		c.peek()
+		c2.skew(x, 0)
+		this._fillRect(c2)
+		c2.resetTo(c)
 		ox += x * 32
-		c.translate(ox, 32*2)
+		c2.translate(ox, 64)
 		x = ((seed>>8&15)-7.5)/30
-		c.transform(1, 0, x, 1, 0, 0)
-		this._fillRect(c, 192)
-		c.pop()
+		c2.skew(x, 0)
+		this._fillRect(c2, 192)
 	}
-	1(){
-		this.sound(explode, 2)
-	}
+	1(){ this.sound(explode, 2) }
 	remove(){ if(super.remove()) lightningBoltCount-- }
 }

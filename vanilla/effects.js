@@ -1,5 +1,6 @@
 import { music, me } from 'world'
 import { renderF3 } from 'api'
+import { toTex } from 'definitions'
 const src = loader(import.meta)
 
 export const audioSet = (path, count) => Array.from({length: count}, (_, i) => Audio(src`sound/${path+(i+1)}.mp3`))
@@ -52,33 +53,26 @@ export const water = {
 }
 
 export function renderItem(c, item, respectModel = false){
+	c = c.sub()
 	if(item && item.texture){
-		const h = floor(t*20)%(item.texture.h>>4)<<4
 		if(!respectModel || item.model == 0){
-			c.push()
 			c.translate(-0.5, 0)
-			c.image(item.texture, 0, 0, 1, 1, 0, h, 16, 16)
+			c.draw(toTex(item.texture))
 			item.render?.(c, 0)
-			c.pop()
 		}else if(item.model == 1){
-			c.push()
 			c.translate(-0.7,1.2)
 			c.rotate(PI * -0.75)
 			c.scale(-1.6, 1.6)
 			c.translate(-0.5, 0)
-			c.image(item.texture, 0, 0, 1, 1, 0, h, 16, 16)
+			c.draw(toTex(item.texture))
 			item.render?.(c, 1)
-			c.pop()
 		}else if(item.model == 2){
-			c.push()
 			c.translate(-0.75, -0.25)
 			c.scale(1.5, 1.5)
-			c.image(item.texture, 0, 0, 1, 1, 0, h, 16, 16)
+			c.draw(toTex(item.texture))
 			item.render?.(c, 2)
-			c.pop()
 		}
 	}else if(item && item.render){
-		c.push()
 		if(!respectModel || item.model == 0){
 			c.translate(-0.5, 0)
 			item.render(c, 0)
@@ -94,7 +88,6 @@ export function renderItem(c, item, respectModel = false){
 			c.scale(1.5, 1.5)
 			item.render(c, 2)
 		}
-		c.pop()
 	}
 }
 

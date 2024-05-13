@@ -244,6 +244,7 @@ drawLayer('none', 300, ctx => {
 		if(!map.has((ev.x>>>6)+(ev.y>>>6)*0x4000000) || ev(ctx)) gridEventMap.delete(ev.i)
 	}
 })
+const entityHitboxCol = vec4(.8), entityHitboxHeadCol = vec4(.8,0,0,1), entityHitboxFacingCol = vec4(.8, .64, 0, 1)
 function renderEntity(ctx, entity, a=1){
 	if(!entity.render) return
 	const hitboxes = buttons.has(KEYS.SYMBOL) + renderBoxes
@@ -253,28 +254,25 @@ function renderEntity(ctx, entity, a=1){
 		entity.iy += ifloat(entity.y - entity.iy) * dt * 20
 	}
 	ctx.translate(ifloat(entity.ix - cam.x), ifloat(entity.iy - cam.y))
-	//entity.render(ctx.sub())
-	return
+	entity.render(ctx.sub())
 	if(hitboxes){
 		if(entity.head){
-			ctx.fillStyle = '#fc0'
 			const L = entity == me ? sqrt(pointer.x * pointer.x + pointer.y * pointer.y) : 0.8
 			if(hitboxes >= 2){
-				ctx.push()
-					ctx.translate(0, entity.head)
-					ctx.rotate(-entity.f)
-					ctx.fillRect(-0.015625,-0.015625,0.03125,L)
-					ctx.translate(0,L); ctx.rotate(PI * 1.25)
-					ctx.fillRect(-0.015625,-0.015625,0.03125,0.2)
-					ctx.fillRect(-0.015625,-0.015625,0.2,0.03125)
-				ctx.pop()
+				const ct2 = ctx.sub()
+				ct2.translate(0, entity.head)
+				ct2.rotate(entity.f)
+				ct2.drawRect(-0.015625,-0.015625,0.03125,L,entityHitboxFacingCol)
+				ct2.translate(0,L); ct2.rotate(PI * -1.25)
+				ct2.drawRect(-0.015625,-0.015625,0.03125,0.2,entityHitboxFacingCol)
+				ct2.drawRect(-0.015625,-0.015625,0.2,0.03125,entityHitboxFacingCol)
 			}
-			ctx.fillStyle = '#f00c'
-			ctx.fillRect(-entity.width + 0.046875, entity.head - 0.0234375, entity.width*2 - 0.09375, 0.046875)
+			ctx.drawRect(-entity.width + 0.046875, entity.head - 0.0234375, entity.width*2 - 0.09375, 0.046875, entityHitboxHeadCol)
 		}
-		ctx.strokeStyle = '#fffc'
-		ctx.lineWidth = 0.046875
-		ctx.strokeRect(-entity.width + 0.03125, 0.03125, entity.width * 2 - 0.0625, entity.height - 0.0625)
+		ctx.drawRect(-entity.width, .046875, .046875, entity.height-.09375, entityHitboxCol)
+		ctx.drawRect(-entity.width, 0, entity.width*2, .046875, entityHitboxCol)
+		ctx.drawRect(entity.width, .046875, -.046875, entity.height-.09375, entityHitboxCol)
+		ctx.drawRect(-entity.width, entity.height, entity.width*2, -.046875, entityHitboxCol)
 	}
 }
 drawLayer('world', 100, (ctx, w, h) => {

@@ -556,10 +556,8 @@ Blocks.command_block = class extends Stone{
 	render(c){
 		const a = floor(t*2)&3
 		const tex = commandBlockTexs[this.type]
-		c.image(tex, 0, 0, 1, 1, 0, a<<4, 16, 16)
-		c.globalAlpha = (t*2)%1
-		c.image(tex, 0, 0, 1, 1, 0, (a+1&3)<<4, 16, 16)
-		c.globalAlpha = 1
+		c.draw(tex.sub(0, a/4, 1, .25))
+		c.draw(tex.sub(0, (a+1&3)/4, 1, .25), vec4(1-(t*2)%1))
 	}
 	get particleTexture(){ return commandBlockTexs[this.type] }
 	static breaktime = Infinity
