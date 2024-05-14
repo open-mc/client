@@ -4,6 +4,7 @@ import { Entities, Entity, Item, Blocks, BlockIDs, toTex, addParticle } from 'de
 import { renderF3, drawLayer } from 'api'
 import { getblock, cam, worldEvents, world, me, perms } from 'world'
 import { renderLeft, renderRight } from './creativeInventory.js'
+import { drawText, measureWidth } from '../iframe/font.js'
 
 const src = loader(import.meta)
 
@@ -25,7 +26,7 @@ const enterWaterSounds = [
 	Audio(src`sound/water/splash1.mp3`),
 	Audio(src`sound/water/splash2.mp3`)
 ]
-
+const nameBgCol = vec4(0, 0, 0, .2), speakingCol = vec4(1,.25,.25,1)
 export class LivingEntity extends Entity{
 	health = 20
 	hitTimer = 0
@@ -48,24 +49,22 @@ export class LivingEntity extends Entity{
 		if(d) this.sound(d,0.5,2)
 	}
 	render(c){
-		return true
 		this.hitTimer -= dt
 		if(this.hitTimer < 0) this.hitTimer = 0
 		if(false && !this.hitTimer) return true
 		const xs = this.f >= 0 ? 1 : -1, ys = this.name == 'Dinnerbone' || this.name == 'Grumm' ? -1 : 1
 		if(this.name && (renderF3 || this != me)){
-			c.textAlign = 'center'
-			const {width, top, bottom} = c.measureText(this.name, 0.3)
-			c.fillStyle = '#000'
-			c.globalAlpha *= 0.2
-			c.fillRect(width * -0.5 - 0.05, this.height + 0.15 - 0.05, width + 0.1, bottom + top + 0.1)
-			c.globalAlpha /= .2
-			c.fillStyle = this.state&0x100?'#f44':'#fff'
-			c.fillText(this.name, 0, this.height + 0.15 + bottom * 0.3, 0.3)
+			const c2 = c.sub()
+			c2.translate(0, this.height+0.15)
+			c2.scale(0.3)
+			const width = measureWidth(this.name)
+			c2.drawRect(width * -0.5 - .125, -.125, width + 0.25, 1.25, nameBgCol)
+			drawText(c2, this.name, width * -0.5, 0, this.state&0x100?speakingCol:undefined)
 		}
 		if(ys < 0) c.translate(0, this.height)
 		c.scale(xs, ys)
 		//if(this.state&0x8000) c.rotate(PI * (this.hitTimer*this.hitTimer - 1) * ((this.flags&1) - .5) * -xs)
+		return true
 	}
 	blocksWalked = 0
 	update(){

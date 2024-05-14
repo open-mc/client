@@ -79,7 +79,7 @@ drawLayer('none', -100, c => {
 	}else if(world.id == 'nether'){
 		c.draw(vec4(0.1, .015, .015, 1))
 	}else if(world.id == 'end'){
-		c.draw(endSky.sub(0, 0, w/64, h/64), vec4(.75))
+		c.draw(endSky.sub(0, 0, w/64, h/64), vec4(.75, .75, .75, 0))
 	}
 })
 drawLayer('none', 500, (c, w, h) => {
@@ -403,5 +403,5 @@ gridEvents[3] = (_, x, y) => {
 
 gridEvents[10] = (_, x, y) => {
 	x += .5; y += .5
-	//for(let i = 0; i < 10; i++) new AshParticle(x, y)
+	//for(let i = 0; i < 10; i++) addParticle(new AshParticle(x, y))
 }

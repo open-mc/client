@@ -366,8 +366,8 @@ export const toTex = i => {
 	i += world.animTick%((i>>>24)+1)
 	blockAtlas.x = (i&255)/256
 	blockAtlas.y = (i>>8&255)/baH
-	blockAtlas.z = .00390625 // 1/256
-	blockAtlas.w = 1/baH
+	blockAtlas.w = .00390625 // 1/256
+	blockAtlas.h = 1/baH
 	blockAtlas.l = i>>16&255
 	return blockAtlas
 }

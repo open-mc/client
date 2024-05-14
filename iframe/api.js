@@ -86,3 +86,5 @@ export function uiButton(c, x0, y0, w, h){
 	if(changed.has(RBUTTON) && buttons.pop(RBUTTON)) return 3
 	return 1
 }
+
+export { drawText, measureWidth, textShadeCol} from './font.js'

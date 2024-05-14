@@ -3,7 +3,7 @@ import { DataWriter, DataReader } from '/server/modules/dataproto.js'
 import { mePhysics, stepEntity } from './entity.js'
 import { gridEventMap, getblock, entityMap, map, cam, server, world, bigintOffset, me } from 'world'
 import * as pointer from './pointer.js'
-import { onKey, drawLayer, options, paused, _renderPhases, renderBoxes, renderF3, send, download, pause, _updatePaused } from 'api'
+import { onKey, drawLayer, options, paused, _renderPhases, renderBoxes, renderF3, send, download, pause, _updatePaused, drawText, measureWidth, textShadeCol } from 'api'
 import { particles, blockAtlas, _recalcDimensions, W2, H2, SCALE, toBlockExact } from 'definitions'
 import { VERSION } from '../server/version.js'
 import { prep } from './definitions.js'
@@ -168,13 +168,9 @@ drawLayer('none', 200, (ctx, w, h) => {
 	const y0 = -w*sr+h*cr, y1 = w*sr-h*cr, y2 = w*sr+h*cr, y3 = -w*sr-h*cr
 	const limX = max(x0,x1,x2,x3)/2, limY = max(y0,y1,y2,y3)/2
 	const S = 64*SCALE
+	const lineWidth = .5/min(1024,S)
 	for(const chunk of map.values()){
 		const cxs = chunk.x << 6, cys = chunk.y << 6
-		// fix silly floating point precision issue by adding .01
-		// this means if one calculation produces 10.499999998 and another produces 10.500000004
-		// both will be rounded to 11, instead of one to 10 and one to 11
-		// which caused ugly artifacts at non integer zoom levels
-		// the artifacts come back with MSAA however :(
 		const x0 = ifloat(cxs - cam.x) * SCALE
 		const y0 = ifloat(cys - cam.y) * SCALE
 		if(x0+S <= -limX || y0+S <= -limY || x0 >= limX || y0 >= limY){ if(chunk.ctx) chunk.hide(); continue }
@@ -195,28 +191,29 @@ drawLayer('none', 200, (ctx, w, h) => {
 			a.box(x0, y0, S, S)
 			if(hitboxes >= 2){
 				for(let i = .125; i < 1; i += .125)
-					a.drawRect(i - 1/4096, 0, 1/2048, 64, chunkSublineCol)
+					a.drawRect(i - lineWidth*.5, 0, lineWidth, 64, chunkSublineCol)
 				for(let i = .125; i < 1; i += .125)
-					a.drawRect(0, i - 1/4096, 64, 1/2048, chunkSublineCol)
+					a.drawRect(0, i - lineWidth*.5, 64, lineWidth, chunkSublineCol)
 			}
-			a.drawRect(0, 0, 1/2048, 1, chunkLineCol)
-			a.drawRect(0, 0, 1, 1/2048, chunkLineCol)
-			a.drawRect(1, 0, -1/2048, 1, chunkLineCol)
-			a.drawRect(0, 1, 1, -1/2048, chunkLineCol)
+			a.drawRect(0, 0, lineWidth*2, 1, chunkLineCol)
+			a.drawRect(0, 0, 1, lineWidth*2, chunkLineCol)
+			a.drawRect(1, 0, -lineWidth*2, 1, chunkLineCol)
+			a.drawRect(0, 1, 1, -lineWidth*2, chunkLineCol)
 		}
 	}
 	ctx.shader = null
 	ctx.reset(SCALE/ctx.width,0,0,SCALE/ctx.height,0.5,0.5)
 	ctx.rotate(-cam.f)
+	const lineWidth2 = 1/min(8,SCALE)
 	if(hitboxes >= 2){
 		if(abs(cam.x) <= W2 + 0.0625)
-			ctx.drawRect((-cam.x-0.0625),-H2,0.125,H2*2, axisLineCol)
-		if(abs(cam.y) <= H2 + 0.0625)
-			ctx.drawRect(-W2,(-cam.y-0.0625),W2*2,0.125, axisLineCol)
-		if(abs(ifloat(cam.x + 2147483648)) <= W2 + 0.0625)
-			ctx.drawRect(ifloat(W2-cam.x+2147483648-0.0625),0,0.125,-H2*2, axisLineCol)
-		if(abs(ifloat(cam.y + 2147483648)) <= H2 + 0.0625)
-			ctx.drawRect(0,ifloat(cam.y+2147483648-H2-0.0625),W2*2,0.125, axisLineCol)
+			ctx.drawRect((-cam.x-lineWidth2*.5),-H2,lineWidth2,H2*2, axisLineCol)
+		if(abs(cam.y) <= H2 + lineWidth2*.5)
+			ctx.drawRect(-W2,(-cam.y-lineWidth2*.5),W2*2,lineWidth2, axisLineCol)
+		if(abs(ifloat(cam.x + 2147483648)) <= W2 + lineWidth2*.5)
+			ctx.drawRect(ifloat(W2-cam.x+2147483648-lineWidth2*.5),0,lineWidth2,-H2*2, axisLineCol)
+		if(abs(ifloat(cam.y + 2147483648)) <= H2 + lineWidth2*.5)
+			ctx.drawRect(0,ifloat(cam.y+2147483648-H2-lineWidth2*.5),W2*2,lineWidth2, axisLineCol)
 		const mx = floor(me.ix), my = floor(me.iy)
 		const refx = me.ix - mx, refy = me.iy - my
 		ctx.translate(ifloat(mx - cam.x), ifloat(my - cam.y))
@@ -299,12 +296,11 @@ function toString(big, num, precision = 3){
 }
 
 drawLayer('ui', 1000, (ctx, w, h) => {
-	return
 	if(!renderF3 && !buttons.has(KEYS.SYMBOL)) return
-	ctx.textAlign = 'left'
-	let y = h - 1
+	const ct2 = ctx.sub()
+	ct2.translate(0, h)
+	ct2.scale(8, 8)
 	const trueX = toString(bigintOffset.x, me.x, 3), trueY = toString(bigintOffset.y, me.y, 3)
-
 	for(const t of `Paper MC ${VERSION}
 FPS: ${round(1/dt)} (${timeToFrame.toFixed(2).padStart(5,'\u2007')}ms)
 ELU: ${min(100,elusmooth*100).toFixed(1).padStart(4,'\u2007')}%${performance.memory ? ', MEM: '+(performance.memory.usedJSHeapSize/1048576).toFixed(1)+'MB' : ''}
@@ -314,28 +310,25 @@ ChXY: ${(floor(me.x) & 63).toString().padStart(2,'\u2007')} ${(floor(me.y) & 63)
 Looking at: ${toString(bigintOffset.x, floor(pointer.x + me.x)|0, 0)} ${toString(bigintOffset.y, floor(pointer.y + me.y + me.head)|0, 0)}
 Facing: ${(me.f >= 0 ? 'R' : 'L') + (90 - abs(me.f / PI2 * 360)).toFixed(1).padStart(5, '\u2007')} (${(me.f / PI2 * 360).toFixed(1)})
 `.slice(0, -1).split('\n')){
-		let {top, bottom, width} = ctx.measureText(t, 10)
-		top++; bottom++; width += 2; y -= top + bottom
-		ctx.fillStyle = '#6b6b6b6e'
-		ctx.fillRect(1, y, width, top + bottom)
-		ctx.fillStyle = '#fff'
-		ctx.fillText(t, 2, y + bottom, 10, w/1-3)
+		const width = measureWidth(t)
+		ct2.drawRect(.125, -.125, width+.25, -1.25, textShadeCol)
+		drawText(ct2, t, .25, -1.25)
+		ct2.translate(0, -1.25)
 	}
 	const mex = floor(me.x) >> 3 & 6, mexi = (floor(me.x) & 15) / 16
-	y = h - 1
-	ctx.textAlign = 'right'
 	const lookingAt = getblock(floor(pointer.x + me.x), floor(pointer.y + me.y + me.head))
+	ct2.resetTo(ctx)
+	ct2.translate(w, h)
+	ct2.scale(8, 8)
 	for(const t of `Tick ${world.tick}, Day ${floor((world.tick+6000)/24000)}, Time ${floor((world.tick/1000+6)%24).toString().padStart(2,'0')}:${(floor((world.tick/250)%4)*15).toString().padStart(2,'0')}
 Dimension: ${world.id}
 Biome: ${me.chunk ? round(me.chunk.biomes[mex] * (1 - mexi) + me.chunk.biomes[mex+2] * mexi) : 0}/${me.chunk ? round(me.chunk.biomes[mex+1] * (1 - mexi) + me.chunk.biomes[mex+3] * mexi) : 0}
 Looking at: ${lookingAt.className+(lookingAt.savedata?' {...}':'')} (${lookingAt.id})
 `.slice(0, -1).split('\n')){
-		let {top, bottom, width} = ctx.measureText(t, 10)
-		top++; bottom++; width += 2; y -= top + bottom
-		ctx.fillStyle = '#7777'
-		ctx.fillRect(w - width - 1, y, width, top + bottom)
-		ctx.fillStyle = '#fff'
-		ctx.fillText(t, w - 2, y + bottom, 10, w/1-3);
+		const width = measureWidth(t)
+		ct2.drawRect(-.125, -.125, -width-.25, -1.25, textShadeCol)
+		drawText(ct2, t, -width-.25, -1.25)
+		ct2.translate(0, -1.25)
 	}
 })
 const src = loader(import.meta)

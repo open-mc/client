@@ -81,7 +81,12 @@ onKey(KEYS.BACK, () => {
 let cummulative = 0
 onwheel(dy => {
 	cummulative += dy
-	if(cummulative > 60)
+	if(buttons.has(KEYS.CTRL)){
+		if(cummulative > 60)
+			options.zoom = max(0, options.zoom - .05), cummulative = 0
+		else if(cummulative < -60)
+			options.zoom = min(1, options.zoom + .05), cummulative = 0
+	}else if(cummulative > 60)
 		me.selected = (me.selected + 1) % 9, cummulative = 0
 	else if(cummulative < -60)
 		me.selected = (me.selected + 8) % 9, cummulative = 0

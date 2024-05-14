@@ -1,5 +1,5 @@
 import { music, me } from 'world'
-import { renderF3 } from 'api'
+import { renderF3, drawText, measureWidth } from 'api'
 import { toTex } from 'definitions'
 const src = loader(import.meta)
 
@@ -93,15 +93,12 @@ export function renderItem(c, item, respectModel = false){
 
 export function renderItemCount(c, item){
 	if(!item) return
-	const count = item.count
-	if(count != 1){
-		c.textBaseline = 'alphabetic'
-		c.textAlign = 'right'
-		c.fillStyle = '#000'
-		c.fillText(count + '', 0.56, -0.06, 0.6)
-		c.fillStyle = count === (count & 255) ? '#fff' : '#e44'
-		c.fillText(count + '', 0.5, 0, 0.6)
-	}
+	if(item.count == 1) return
+	const count = item.count+''
+	c.fillStyle = count === (count & 255) ? '#fff' : '#e44'
+	const width = measureWidth(count)
+	c.scale(0.5); c.translate(5/3-width, 0)
+	drawText(c, count)
 }
 let slotx = NaN, sloty = NaN
 export let slotI = -1
