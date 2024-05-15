@@ -49,9 +49,7 @@ function tick(){
 	if(randomBlock.random) randomBlock.random(x, y)
 	for(const e of entityMap.values()) if(e.tick) e.tick()
 }
-let lastFrame = performance.now(), elusmooth = 0
-let elu = 0
-let eluLast = 0
+let elusmooth = 0, elu = 0, eluLast = 0
 const eluEnd = () => (elu += performance.now() - eluLast, eluLast = 0)
 const eluStart = () => eluLast ? 0 : (eluLast = performance.now(), Promise.resolve().then(eluEnd))
 export let zoom_correction = 0
@@ -61,8 +59,6 @@ const CAMERA_DYNAMIC = 0, CAMERA_FOLLOW_SMOOTH = 1, CAMERA_FOLLOW_POINTER = 2,
 export function frame(){
 	const now = performance.now()
 	eluStart()
-	//dt += (min(300, now - lastFrame) / 1000 * options.speed - dt) / round(.333333/dt)
-	lastFrame = now
 	if(!me) return
 	pause(false)
 	playerControls()
@@ -101,11 +97,11 @@ export function frame(){
 	}else if(options.camera == CAMERA_PAGE){
 		const dx = ifloat(me.x - cam.x + cam.baseX), dy = ifloat(me.y + me.head/2 - cam.y + cam.baseY)
 		if(abs(dx) > W2 * 2 - 2) cam.x += dx
-		else if(dx > W2 - 1)cam.x += W2*2 - 2
-		else if(dx < 1 - W2)cam.x -= W2*2 - 2
+		else if(dx > W2 - 1)cam.x += W2*2 - 4
+		else if(dx < 1 - W2)cam.x -= W2*2 - 4
 		if(abs(dy) > H2 * 2 - 2) cam.y += dy
-		else if(dy > H2 - 1)cam.y += H2*2 - 2
-		else if(dy < 1 - H2)cam.y -= H2*2 - 2
+		else if(dy > H2 - 1)cam.y += H2*2 - 4
+		else if(dy < 1 - H2)cam.y -= H2*2 - 4
 	}
 	if(cam.staticX === cam.staticX) cam.x = cam.staticX
 	if(cam.staticY === cam.staticY) cam.y = cam.staticY
@@ -119,8 +115,7 @@ export function frame(){
 					phase(ctx, ctx.width / s, ctx.height / s)
 					break
 				case 2:
-					ctx.reset(SCALE/ctx.width, 0, 0, SCALE/ctx.height, .5, .5)
-					ctx.rotate(-cam.f)
+					cam.transform(ctx, SCALE)
 					phase(ctx)
 					break
 				default:
@@ -154,19 +149,14 @@ const axisLineCol = vec4(0, 0, 1, 1)
 drawLayer('none', 200, (ctx, w, h) => {
 	const a = cam.z / 12
 	const chunkSublineCol = vec4(0, .53*a, a, a)
-
 	const hitboxes = renderBoxes + buttons.has(KEYS.SYMBOL)
-	ctx.reset(1/ctx.width,0,0,1/ctx.height,0.5,0.5)
-	ctx.rotate(cam.f)
-	ctx.translate(.001+ctx.width/2%1, .001+ctx.height/2%1)
+	cam.transform(ctx)
 	ctx.shader = chunkShader
 	prep()
 	const mipmap = max(0, min(4, 4-round(log2(SCALE))))
 	chunkShader.uniforms(blockAtlas, world.animTick, mipmap)
 	const sr = sin(cam.f), cr = cos(cam.f)
-	const x0 = -w*cr+h*sr, x1 = w*cr-h*sr, x2 = w*cr+h*sr, x3 = -w*cr-h*sr
-	const y0 = -w*sr+h*cr, y1 = w*sr-h*cr, y2 = w*sr+h*cr, y3 = -w*sr-h*cr
-	const limX = max(x0,x1,x2,x3)/2, limY = max(y0,y1,y2,y3)/2
+	const limX = (abs(ctx.width*cr)+abs(ctx.height*sr))/2, limY = (abs(ctx.width*sr)+abs(ctx.height*cr))/2
 	const S = 64*SCALE
 	const lineWidth = .5/min(1024,S)
 	for(const chunk of map.values()){
@@ -202,8 +192,7 @@ drawLayer('none', 200, (ctx, w, h) => {
 		}
 	}
 	ctx.shader = null
-	ctx.reset(SCALE/ctx.width,0,0,SCALE/ctx.height,0.5,0.5)
-	ctx.rotate(-cam.f)
+	ctx.scale(SCALE)
 	const lineWidth2 = 1/min(8,SCALE)
 	if(hitboxes >= 2){
 		if(abs(cam.x) <= W2 + 0.0625)
@@ -312,12 +301,12 @@ Facing: ${(me.f >= 0 ? 'R' : 'L') + (90 - abs(me.f / PI2 * 360)).toFixed(1).padS
 `.slice(0, -1).split('\n')){
 		const width = measureWidth(t)
 		ct2.drawRect(.125, -.125, width+.25, -1.25, textShadeCol)
-		drawText(ct2, t, .25, -1.25)
+		drawText(ct2, t, _, .25, -1.25)
 		ct2.translate(0, -1.25)
 	}
 	const mex = floor(me.x) >> 3 & 6, mexi = (floor(me.x) & 15) / 16
 	const lookingAt = getblock(floor(pointer.x + me.x), floor(pointer.y + me.y + me.head))
-	ct2.resetTo(ctx)
+	ct2.resetTo(ct2)
 	ct2.translate(w, h)
 	ct2.scale(8, 8)
 	for(const t of `Tick ${world.tick}, Day ${floor((world.tick+6000)/24000)}, Time ${floor((world.tick/1000+6)%24).toString().padStart(2,'0')}:${(floor((world.tick/250)%4)*15).toString().padStart(2,'0')}
@@ -327,72 +316,8 @@ Looking at: ${lookingAt.className+(lookingAt.savedata?' {...}':'')} (${lookingAt
 `.slice(0, -1).split('\n')){
 		const width = measureWidth(t)
 		ct2.drawRect(-.125, -.125, -width-.25, -1.25, textShadeCol)
-		drawText(ct2, t, -width-.25, -1.25)
+		drawText(ct2, t, _, -width-.25, -1.25)
 		ct2.translate(0, -1.25)
-	}
-})
-const src = loader(import.meta)
-const icons = Img(src`/vanilla/icons.png`)
-//const heart = icons.crop(52,0,9,9), halfHeart = icons.crop(61,0,9,9)
-//const heartEmpty = icons.crop(16,0,9,9)
-const pingIcons = icons.crop(0,16,10,24)
-
-const colors = ['#000', '#a00', '#0a0', '#fa0', '#00a', '#a0a', '#0aa', '#aaa', '#555', '#f55', '#5f5', '#ff5', '#55f', '#f5f', '#5ff', '#fff']
-const shadowColors = ['#0000004', '#2a0000', '#002a00', '#2a2a00', '#00002a', '#2a002a', '#002a2a', '#2a2a2a', '#15151544', '#3f1515', '#153f15', '#3f3f15', '#15153f', '#3f153f', '#153f3f', '#3f3f3f']
-CanvasRenderingContext2D.prototype.styledText = function(S,t,x,y,s,w){
-	this.font = (S&32?'bold ':'')+(S&64?'italic ':'')+FONT
-	this.fillStyle = shadowColors[S&15]
-	this.fillText(t,x+1,y-1,s, w)
-	this.fillStyle = colors[S&15]
-	this.fillText(t,x,y,s,w)
-	this.font = FONT
-}
-
-drawLayer('ui', 999, (ctx, w, h) => {
-	return
-	if(!buttons.has(KEYS.TAB)) return
-	const columns = Math.max(1, Math.floor((w - 60) / 82))
-	let y = h - 25
-	for(const line of server.title.split('\n')){
-		ctx.textAlign = 'center'
-		ctx.fillStyle = '#0004'
-		ctx.fillRect(25, y-14, w-50, 14)
-		ctx.styledText(parseInt(line.slice(0, 2), 16) & 255, line.slice(2), w/2, y-13, 12)
-		y -= 14
-	}
-	let i = 0
-	ctx.textAlign = 'left'
-	ctx.fillStyle = '#0004'
-	ctx.fillRect(25, y-10, w-50, 10)
-	y -= 9
-	const lastRow = server.players.length-server.players.length%columns, short = columns-server.players.length%columns
-	for(const {name, skin, health, ping} of server.players){
-		const x = w / 2 - columns * 41 - 1 + (i % columns) * 82 + (i>=lastRow)*short*41
-		if(!(i%columns)){
-			y -= 10
-			ctx.fillStyle = '#0004'
-			ctx.fillRect(25, y-1, w-50, 10)
-		}
-		i++
-		ctx.fillStyle = '#8884'
-		ctx.fillRect(x, y, 80, 8)
-		ctx.image(skin, x, y)
-		ctx.fillStyle = shadowColors[15]
-		ctx.fillText(name, x + 10, y, 8)
-		ctx.fillStyle = colors[15]
-		ctx.styledText(15, name, x + 9, y + 1, 8, 60)
-		const cl = ping < 25 ? 0 : ping < 60 ? 1 : ping < 300 ? 2 : ping < 1000 ? 3 : 4
-		ctx.image(pingIcons, x+70, y, 10, 7, 0, cl*8, 10, 7)
-	}
-	ctx.fillStyle = '#0004'
-	ctx.fillRect(25, y-13, w-50, 12)
-	y -= 11
-	for(const line of server.sub.split('\n')){
-		ctx.textAlign = 'center'
-		ctx.fillStyle = '#0004'
-		ctx.fillRect(25, y-12, w-50, 10)
-		ctx.styledText(parseInt(line.slice(0, 2), 16) & 255, line.slice(2), w/2, y-9, 8)
-		y -= 10
 	}
 })
 

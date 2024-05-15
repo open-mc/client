@@ -26,7 +26,15 @@ export const CONFIG = {
 export const configLoaded = fn => configLoaded.listeners.push(fn)
 configLoaded.listeners = []
 
-export const cam = {x: 0, y: 0, z: .5, f: 0, baseF: 0, baseZ: 0, baseX: 0, baseY: 0, staticX: NaN, staticY: NaN}
+export const cam = {
+	x: 0, y: 0, z: .5, f: 0,
+	baseF: 0, baseZ: 0, baseX: 0, baseY: 0,
+	staticX: NaN, staticY: NaN,
+	transform(c, scale = 1){
+		c.reset(scale/c.width,0,0,scale/c.height,0.5,0.5)
+		c.rotate(-this.f)
+	}
+}
 
 function variant(ch, i, x, y, b){
 	if(!ch) return
@@ -86,11 +94,13 @@ export function sound(fn, x, y, vol = 1, pitch = 1){
 	x = ifloat(x - me.x + .5); y = ifloat(y - me.y + me.head + .5)
 	const dist = sqrt(x * x + y * y)
 	// Let's see if I can get the physics right from the top of my head
-	// The speed of sound is 340m/s. This means a sound approaching at a speed of 340m/s => 2x pitch, -170m/s => 0.5x pitch, -340m/s => 0x pitch (sound can never reach)
+	// The speed of sound is 340m/s. This means a sound approaching at a speed of
+	// 340m/s => 2x pitch, -170m/s => 0.5x pitch, -340m/s => 0x pitch (sound can never reach us)
 	// The dot product (x0,y0) . (x1,y1) is x0*x1 + y0*y1
-	// "Fix" the inputs x and y by normalizing them with `/ dist`
+	// "Fix" the inputs x and y by normalizing them with / dist
 	const speed = (me.dx * x + me.dy * y) / dist
 	// For 2d, the inverse square law becomes the inverse linear law
+	// Add some reasonable limits to prevent pitch from going to 0 or Infinity
 	fn(vol * 2 / (dist + 1), pitch * max(SPEEDOFSOUND / 20, speed + SPEEDOFSOUND) / SPEEDOFSOUND, min(1, max(-1, x / 16)))
 }
 
@@ -104,7 +114,7 @@ export const music = (theme, ...audios) => {
 
 export const world = {
 	id: '',
-	tick: 0,
+	tick: 0, animTick: 0,
 	gx: 0, gy: 0,
 	weather: 0,
 	weatherFade: 0

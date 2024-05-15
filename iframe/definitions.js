@@ -342,8 +342,12 @@ export const ephemeralInterfaces = {}
 
 let bai = 0, bac = 256
 export let blockAtlas = Texture(4096, min(4096, bac/16), 1, _, _, 5)
-export function BlockTexture(img, x, y, anim = 0){
-	const frames = Math.abs(anim||=1)
+
+const loading = new Map
+
+export function BlockTexture(img=0, x=0, y=0, frames = 0){
+	if(typeof img == 'number') frames = img, img = null
+	frames = abs(frames||1)
 	const i = bai; bai += frames
 	while(i >= bac){
 		bac <<= 1
@@ -351,30 +355,53 @@ export function BlockTexture(img, x, y, anim = 0){
 		ba2.paste(blockAtlas)
 		blockAtlas = ba2
 	}
-	if(img.then) img.then(img => _putImg(img, i, x, y, anim))
-	else _putImg(img, i, x, y, anim)
-	return 4294967296+(i|frames-1<<24)
+	const j = 4294967296+(i|frames-1<<24)
+	if(!img) loading.set(j, [])
+	else if(img.then) img.then(img => _putImg(img, j, x, y)), loading.set(j, [])
+	else if(img) _putImg(img, j, x, y)
+	return j
 }
 let blocksMipmapped = true
-function _putImg(img, i, x, y, anim){
-	if(anim>0) for(let ry=y;ry<y+anim;ry++) blockAtlas.paste(img, (i&255)<<4, (i>>8&255)<<4, i>>16, x<<4, img.height-(ry<<4)-16, 0, 16, 16, 1),i++
-	else for(let rx=x;rx<x-anim;rx++) blockAtlas.paste(img, (i&255)<<4, (i>>8&255)<<4, i>>16, rx<<4, img.height-(y<<4)-16, 0, 16, 16, 1),i++
+function _putImg(img, j, x, y){
+	let frames = (j>>>24)+1, i = j&16777215
+	if(frames>0) for(let ry=y;ry<y+frames;ry++) blockAtlas.paste(img, (i&255)<<4, (i>>8&255)<<4, i>>16, x<<4, img.height-(ry<<4)-16, 0, 16, 16, 1),i++
+	else for(let rx=x;rx<x-frames;rx++) blockAtlas.paste(img, (i&255)<<4, (i>>8&255)<<4, i>>16, rx<<4, img.height-(y<<4)-16, 0, 16, 16, 1),i++
 	blocksMipmapped = false
+	const arr = loading.get(j)
+	if(arr){
+		loading.delete(j)
+		for(const f of arr) f(j)
+	}
 }
+
+export function editBlockTexture(j, img, x=0, y=0){
+	_putImg(img, j, x, y)
+	const arr = loading.get(j)
+	if(arr){
+		loading.delete(j)
+		for(const f of arr) f(j)
+	}
+}
+
+export function awaitLoad(j){
+	const arr = loading.get(j)
+	if(!arr) return Promise.resolve(j)
+	return new Promise(r => arr.push(r))
+}
+
 export const toTex = i => {
 	const baH = blockAtlas.height>>4
 	i += world.animTick%((i>>>24)+1)
 	blockAtlas.x = (i&255)/256
 	blockAtlas.y = (i>>8&255)/baH
-	blockAtlas.w = .00390625 // 1/256
-	blockAtlas.h = 1/baH
+	blockAtlas.w = 0.00390586 // 1/256
+	blockAtlas.h = .9999/baH
 	blockAtlas.l = i>>16&255
 	return blockAtlas
 }
 
 export function toBlockExact(c, bx, by){
-	c.reset(1/c.width,0,0,1/c.height,0.5,0.5)
-	c.rotate(-cam.f)
+	cam.transform(c)
 	const x0 = ifloat(bx - cam.x) * SCALE
 	const y0 = ifloat(by - cam.y) * SCALE
 	const xa0 = round(x0), ya0 = round(y0)

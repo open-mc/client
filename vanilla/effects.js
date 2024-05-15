@@ -1,5 +1,5 @@
-import { music, me } from 'world'
-import { renderF3, drawText, measureWidth } from 'api'
+import { music, me, server } from 'world'
+import { renderF3, drawText, measureWidth, drawLayer } from 'api'
 import { toTex } from 'definitions'
 const src = loader(import.meta)
 
@@ -61,7 +61,7 @@ export function renderItem(c, item, respectModel = false){
 			item.render?.(c, 0)
 		}else if(item.model == 1){
 			c.translate(-0.7,1.2)
-			c.rotate(PI * -0.75)
+			c.rotate(PI * 0.75)
 			c.scale(-1.6, 1.6)
 			c.translate(-0.5, 0)
 			c.draw(toTex(item.texture))
@@ -79,7 +79,7 @@ export function renderItem(c, item, respectModel = false){
 		}else if(item.model == 1){
 			c.translate(0.5,0)
 			c.translate(-1.2,1.2)
-			c.rotate(PI * -0.75)
+			c.rotate(PI * 0.75)
 			c.scale(-1.6, 1.6)
 			c.translate(-0.5, 0)
 			item.render(c, 1)
@@ -90,15 +90,12 @@ export function renderItem(c, item, respectModel = false){
 		}
 	}
 }
-
 export function renderItemCount(c, item){
 	if(!item) return
 	if(item.count == 1) return
 	const count = item.count+''
-	c.fillStyle = count === (count & 255) ? '#fff' : '#e44'
-	const width = measureWidth(count)
-	c.scale(0.5); c.translate(5/3-width, 0)
-	drawText(c, count)
+	const width = measureWidth(count)*.5
+	drawText(c, count, item.count === (item.count & 255) ? 15 : 15, 5/6-width, 0, 0.5)
 }
 let slotx = NaN, sloty = NaN
 export let slotI = -1
@@ -144,3 +141,44 @@ export function renderGenericTooltip(c, lines, styles){
 	let i = -1
 	for(const l of lines) c.styledText(styles[++i], l, 3, -7-i*12, 10)
 }
+
+const pingIcons = [0,1,2,3,4].map(i => icons.crop(0,16+i*8,10,7))
+const tabMenuBg = vec4(0, 0, 0, .25), tabMenuEntryBg = vec4(.1, .1, .1, 0)
+drawLayer('ui', 999, (ctx, w, h) => {
+	if(!buttons.has(KEYS.TAB)) return
+	const columns = Math.max(1, Math.floor((w - 60) / 82))
+	w = w/2-25; ctx.translate(w+25, h-39)
+	for(let line of server.title.split('\n')){
+		ctx.textAlign = 'center'
+		ctx.drawRect(-w, -18, w*2, 32, tabMenuBg)
+		const style = parseInt(line.slice(0, 2), 16) & 255
+		line = line.slice(2)
+		drawText(ctx, line, _, -measureWidth(line)*6, -3, 12)
+	}
+	ctx.translate(0, -17)
+	const playerCount = server.players.length
+	const lastRow = playerCount-playerCount%columns
+	let i = 0
+	for(const {name, skin, health, ping} of server.players){
+		const x = ((i % columns) * 2 - columns + (i>=lastRow?lastRow-playerCount+columns:0)) * 41 - 1
+		if(!(i%columns)){
+			ctx.translate(0, -10)
+			ctx.drawRect(-w, -1, w*2, 10, tabMenuBg)
+		}
+		i++
+		ctx.drawRect(x+8, 0, 72, 8, tabMenuEntryBg)
+		ctx.drawRect(x, 0, 8, 8, skin)
+		const style = 15
+		drawText(ctx, name, style, x+9, 1, 6)
+		ctx.drawRect(x+70, 0, 10, 7, pingIcons[ping < 25 ? 0 : ping < 60 ? 1 : ping < 300 ? 2 : ping < 1000 ? 3 : 4])
+	}
+	ctx.drawRect(-w, -13, w*2, 12, tabMenuBg)
+	ctx.translate(0, -20)
+	for(let line of server.sub.split('\n')){
+		ctx.drawRect(-w, -3, w*2, 10, tabMenuBg)
+		const style = parseInt(line.slice(0, 2), 16) & 255
+		line = line.slice(2)
+		drawText(ctx, line, style, -measureWidth(line)*4, 0, 8)
+		ctx.translate(0, -10)
+	}
+})

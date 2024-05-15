@@ -53,7 +53,7 @@ drawLayer('none', -100, c => {
 			c.draw(nightGradient)
 			const fac = ((time + 12600) % 24000 / 8400 - .5)
 			const xo = wspan * fac - 50 - reach/4 - effx
-			const yo = h/2 - 30 - h/3 * sin(fac * PI) - effy
+			const yo = h/2 - 30 - h/3 * sin(fac * PI) + effy
 			c.draw(stars.crop(-xo/2, -yo/2, w/2, h/2), vec4(rainyness))
 		}
 		if(light && rainyness < 1) c.draw(dayGradient, vec4(1-light))

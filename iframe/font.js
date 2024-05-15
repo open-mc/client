@@ -9,9 +9,21 @@ for(const g of `c0009,c1019,c2029,c8039,ca049,cb059,cd065,d3079,d4089,d5099,da0a
 }
 
 const LETTER_SPACING = .125
-export function drawText(c, t, x=0, y=0, tint){
+const colors = [vec4(1,1,1,0), vec4(.333,1,1,0), vec4(1,.333,1,0), vec4(0,.333,1,0), vec4(1,1,.333,0), vec4(.333,1,.333,0), vec4(1,.333,.333,0), vec4(.333,.333,.333,0), vec4(.666,.666,.666,0), vec4(0,.666,.666,0), vec4(.666,0,.666,0), vec4(0,0,.666,0), vec4(.666,.666,0,0), vec4(0,.666,0,0), vec4(.666,0,0,0), vec4(0)]
+const shadowColors = ['#0000004', '#2a0000', '#002a00', '#2a2a00', '#00002a', '#2a002a', '#002a2a', '#2a2a2a', '#15151544', '#3f1515', '#153f15', '#3f3f15', '#15153f', '#3f153f', '#153f3f', '#3f3f3f']
+CanvasRenderingContext2D.prototype.styledText = function(S,t,x,y,s,w){
+	/*this.font = (S&32?'bold ':'')+(S&64?'italic ':'')+FONT
+	this.fillStyle = shadowColors[S&15]
+	this.fillText(t,x+1,y-1,s, w)
+	this.fillStyle = colors[S&15]
+	this.fillText(t,x,y,s,w)
+	this.font = FONT*/
+}
+export function drawText(c, t, style=15, x=0, y=0, size=1){
 	c = c.sub()
 	c.translate(x, y)
+	c.scale(size)
+	const tint = colors[style&15]
 	for(let i = 0; i < t.length; i++){
 		const char = glyphs.get(t.charCodeAt(i))
 		if(!char) continue

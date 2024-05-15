@@ -26,7 +26,7 @@ const enterWaterSounds = [
 	Audio(src`sound/water/splash1.mp3`),
 	Audio(src`sound/water/splash2.mp3`)
 ]
-const nameBgCol = vec4(0, 0, 0, .2), speakingCol = vec4(1,.25,.25,1)
+const nameBgCol = vec4(0, 0, 0, .2)
 export class LivingEntity extends Entity{
 	health = 20
 	hitTimer = 0
@@ -56,15 +56,14 @@ export class LivingEntity extends Entity{
 		if(this.name && (renderF3 || this != me)){
 			const c2 = c.sub()
 			c2.translate(0, this.height+0.15)
-			c2.scale(0.3)
+			c2.scale(0.25)
 			const width = measureWidth(this.name)
-			c2.drawRect(width * -0.5 - .125, -.125, width + 0.25, 1.25, nameBgCol)
-			drawText(c2, this.name, width * -0.5, 0, this.state&0x100?speakingCol:undefined)
+			c2.drawRect(width * -0.5 - .2, -.2, width + 0.4, 1.4, nameBgCol)
+			drawText(c2, this.name, this.state&0x100 ? 15 : 15, width * -0.5, 0)
 		}
 		if(ys < 0) c.translate(0, this.height)
 		c.scale(xs, ys)
-		//if(this.state&0x8000) c.rotate(PI * (this.hitTimer*this.hitTimer - 1) * ((this.flags&1) - .5) * -xs)
-		return true
+		if(this.state&0x8000) c.rotate(PI * (this.hitTimer*this.hitTimer - 1) * ((this.flags&1) - .5) * -xs)
 	}
 	blocksWalked = 0
 	update(){
@@ -98,6 +97,7 @@ export class LivingEntity extends Entity{
 const portalEnter = Audio(src`sound/portal/enter.mp3`), portalExit = Audio(src`sound/portal/exit.mp3`), endPortalMake = Audio(src`sound/portal/end.mp3`)
 const thunder = audioSet('misc/thunder', 3)
 
+const entityBackTint = vec4(.2, .2, .2, 0), entityHurtTint = vec4(.1, .4, .4, 0), entityBackHurtTint = vec4(.28, .52, .52, 0)
 Entities.player = class extends LivingEntity{
 	static alive = true
 	inv = Array.null(37)
@@ -131,75 +131,69 @@ Entities.player = class extends LivingEntity{
 		const angle = (this.state & 3) == 2 ? sin(t * 4) * this.dx / 5 : sin(t * 12) * this.dx / 10
 		const extraAngle = this.state & 8 ? ((-5*t%1+1)%1)*((-5*t%1+1)%1)/3 : 0
 		c.scale(0.9, 0.9)
-		if(this.hitTimer) c.beginPath()
-		c.fillStyle = '#0003'
+		let tint = undefined, backTint = entityBackTint
+		if(this.hitTimer) tint = entityHurtTint, backTint = entityBackHurtTint
 		if(this.state & 2){
 			c.translate(0.2, 1.2)
+			c.rotate(.5 - angle)
+			c.drawRect(-0.125, -0.625, 0.25, 0.75, this.textures.arm2, backTint)
 			c.rotate(angle - .5)
-			c.imageTrace(this.textures.arm2, -0.125, -0.625, 0.25, 0.75)
-			c.fillRect(-0.125, -0.625, 0.25, 0.75)
-			c.rotate(-angle + .5)
 			c.translate(-0.3,-0.45)
-			c.rotate(-angle)
-			c.imageTrace(this.textures.leg2, -0.125, -0.75, 0.25, 0.75)
-			c.fillRect(-0.125, -0.75, 0.25, 0.75)
-			c.rotate(angle - .5)
-			c.imageTrace(this.textures.body, -0.125, -0.125, 0.25, 0.75)
-			c.rotate(0.5)
 			c.rotate(angle)
-			c.imageTrace(this.textures.leg1, -0.125, -0.75, 0.25, 0.75)
+			c.drawRect(-0.125, -0.75, 0.25, 0.75, this.textures.leg2, backTint)
+			c.rotate(-angle + .5)
+			c.drawRect(-0.125, -0.125, 0.25, 0.75, this.textures.body, tint)
+			c.rotate(-0.5)
 			c.rotate(-angle)
+			c.drawRect(-0.125, -0.75, 0.25, 0.75, this.textures.leg1, tint)
+			c.rotate(angle)
 			c.translate(0.3, 0.45)
-			c.rotate(-angle - .5 + extraAngle)
+			c.rotate(angle + .5 - extraAngle)
 			c.translate(0.2,-0.8)
 			c.scale(0.4,0.4)
 			renderItem(c, this.inv[this.selected], true)
 			c.scale(2.5,2.5)
 			c.translate(-0.2,0.8)
-			c.imageTrace(this.textures.arm1, -0.125, -0.625, 0.25, 0.75)
-			c.rotate(angle + .5 - extraAngle)
+			c.drawRect(-0.125, -0.625, 0.25, 0.75, this.textures.arm1, tint)
+			c.rotate(-angle - .5 + extraAngle)
 		}else{
 			c.translate(0, 1.375)
-			c.rotate(angle)
-			c.imageTrace(this.textures.arm2, -0.125, -0.625, 0.25, 0.75)
-			c.fillRect(-0.125, -0.625, 0.25, 0.75)
 			c.rotate(-angle)
+			c.drawRect(-0.125, -0.625, 0.25, 0.75, this.textures.arm2, backTint)
+			c.rotate(angle)
 			c.translate(0,-0.625)
-			c.rotate(-angle)
-			c.imageTrace(this.textures.leg2, -0.125, -0.75, 0.25, 0.75)
-			c.fillRect(-0.125, -0.75, 0.25, 0.75)
 			c.rotate(angle)
-			c.imageTrace(this.textures.body, -0.125, 0, 0.25, 0.75)
-			c.rotate(angle)
-			c.imageTrace(this.textures.leg1, -0.125, -0.75, 0.25, 0.75)
+			c.drawRect(-0.125, -0.75, 0.25, 0.75, this.textures.leg2, backTint)
 			c.rotate(-angle)
+			c.drawRect(-0.125, 0, 0.25, 0.75, this.textures.body, tint)
+			c.rotate(-angle)
+			c.drawRect(-0.125, -0.75, 0.25, 0.75, this.textures.leg1, tint)
+			c.rotate(angle)
 			c.translate(0, 0.625)
-			c.rotate(-angle + extraAngle)
+			c.rotate(angle - extraAngle)
 			c.translate(0.2,-0.8)
 			c.scale(0.4,0.4)
 			renderItem(c, this.inv[this.selected], true)
 			c.scale(2.5,2.5)
 			c.translate(-0.2,0.8)
-			c.imageTrace(this.textures.arm1, -0.125, -0.625, 0.25, 0.75)
-			c.rotate(angle - extraAngle)
+			c.drawRect(-0.125, -0.625, 0.25, 0.75, this.textures.arm1, tint)
+			c.rotate(extraAngle - angle)
 			c.translate(0,0.115)
 		}
-		c.rotate(PI/2-abs(this.f))
-		c.imageTrace(this.textures.head, -0.25, 0, 0.5, 0.5)
-
-		if(this.hitTimer) c.fillStyle = '#f004', c.fill()
+		c.rotate(abs(this.f)-PI/2)
+		c.drawRect(-0.25, 0, 0.5, 0.5, this.textures.head, tint)
 	}
 	place(){
 		super.place()
 		const can = Texture(28, 12, 1, 0, Formats.RGB)
 		can.pasteData(this.skin)
 		this.textures = {
-			head: can.crop(28, 4, 8, 8),
-			body: can.crop(0, 0, 4, 12),
-			arm1: can.crop(4, 0, 4, 12),
-			arm2: can.crop(8, 0, 4, 12),
-			leg1: can.crop(12, 0, 4, 12),
-			leg2: can.crop(16, 0, 4, 12)
+			head: can.crop(20, 8, 8, -8),
+			body: can.crop(0, 12, 4, -12),
+			arm1: can.crop(4, 12, 4, -12),
+			arm2: can.crop(8, 12, 4, -12),
+			leg1: can.crop(12, 12, 4, -12),
+			leg2: can.crop(16, 12, 4, -12)
 		}
 	}
 	static width = 0.3

@@ -400,7 +400,7 @@ Blocks.sugar_cane = class extends Block{
 	static solid = false
 	static targettable = true
 	static placeSounds = Blocks.grass.placeSounds
-	static texture = terrainPng.crop(144,64,16,16)
+	static texture = BlockTexture(terrainPng, 9, 4)
 }
 Blocks.pumpkin_leaf = class extends Block{
 	

@@ -1,5 +1,7 @@
-import { Item, toTex } from 'definitions'
-import { getblock } from 'world'
+import { Item, toTex, BlockTexture, editBlockTexture, awaitLoad } from 'definitions'
+import { getblock, world } from 'world'
+import { blockAtlas } from '../iframe/definitions.js'
+
 export const BlockShape = {}
 BlockShape.SLAB = [0, 0, 1, 0.5]
 BlockShape.UPPER_SLAB = [0, 0.5, 1, 1]
@@ -12,17 +14,27 @@ BlockShape.HORIZONTAL_THIN = [0, 0.25, 1, 0.75]
 BlockShape.ONE_SHORT = [0, 0, 1, 15/16]
 BlockShape.TWO_SHORT = [0, 0, 1, 14/16]
 
-
-function trimTex(t, s){
-	// TODO
-	return null
+const trimTexture = Texture(16, 16, 1).drawable(0, true)
+trimTexture.blend = Blend.REPLACE
+const trimTex = (t, s) => {
+	const b = BlockTexture()
+	awaitLoad(t).then(t => {
+		trimTexture.clear()
+		trimTexture.mask = SET
+		for(let i = 0; i < s.length; i+=4)
+			trimTexture.drawRect(s[i], s[i+1], s[i+2]-s[i], s[i+3]-s[i+1])
+		trimTexture.mask = RGBA | IF_SET
+		trimTexture.draw(toTex(t))
+		editBlockTexture(b, trimTexture.texture)
+	})
+	return b
 }
 
 const shapeKeys = new Map()
 	.set(BlockShape.SLAB, 'slabShape')
 	.set(BlockShape.UPPER_SLAB, 'upperSlabShape')
 
-export const blockShaped = (B, s, t = trimTex(B.texture, s)) => {
+export const blockShaped = (B, s, t = trimTex(B.texture, s, B)) => {
 	const o = class extends B{
 		static blockShape = s
 		static texture = t

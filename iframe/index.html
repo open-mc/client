@@ -308,18 +308,19 @@ class img{
 		const {t:t2}=tex
 		if(!t2.d) return tex.#then(cb=>this.paste(tex,x,y,l,srcX,srcY,srcL,srcW,srcH,srcD)), this
 		if(t.tex==t2.tex) return console.warn('cannot copy from texture to itself'), this
-		img.fakeBind(t)
 		i&&draw()
+		img.fakeBind(t)
 		if(!ca.img) gl.bindFramebuffer(36160,fb)
+		if(fbSte) gl.framebufferRenderbuffer(36160,36128,36161,null)
 		srcW = srcW||t2.w; srcH = srcH||t2.h; srcD = srcD||t2.d
 		while(srcD--){
-			gl.framebufferTextureLayer(36160,36064,t2.tex,0,srcL++)
+			gl.framebufferTextureLayer(36160,36064, t2.tex,0, srcL++)
 			gl.copyTexSubImage3D(35866, 0, x, y, l++, srcX, srcY, srcW, srcH)
 		}
 		if(t.i<0) gl.bindTexture(35866, null)
 		if(!ca.img) gl.bindFramebuffer(36160,null)
-		else if(!i) gl.bindFramebuffer(36160,null), ca=ctx.t, fbLayer=srcL-1,fbTex=t2.tex
-		else gl.framebufferTextureLayer(36160,36064,fbTex,0,fbLayer)
+		else if(!i) gl.bindFramebuffer(36160,null), ca=ctx.t, fbLayer=srcL-1,fbTex=t2.tex, fbSte = null
+		else gl.framebufferTextureLayer(36160,36064,fbTex,0,fbLayer), fbSte&&gl.framebufferRenderbuffer(36160,36128,36161,fbSte)
 		return this
 	}
 	pasteData(data, x=0, y=0, l=0, w=0, h=0, d=0){
@@ -334,6 +335,7 @@ class img{
 		if(!t.d) return null
 		i&&draw()
 		if(!ca.img) gl.bindFramebuffer(36160,fb)
+		if(fbSte) gl.framebufferRenderbuffer(36160,36128,36161,null)
 		const a = t.f[0]
 		const S = (a==32856||a==36214||a==36208||a==34842||a==34836||a==36220?4:a==32849||a==36215||a==36209||a==34843||a==34837||a==32849||a==36221?3:a==33323||a==33338||a==33340||a==33327||a==33328||a==33336?2:1)*w*h
 		if(!arr || arr.length != S) arr = (t.f[2]==5121?new Uint8Array(S*d):t.f[2]==5126?new Float32Array(S*d):t.f[2]==5125||t.f[2]==35899||t.f[2]==33640||t.f[2]==35902?new Uint32Array(S*d):new Uint16Array(S*d))
@@ -343,7 +345,8 @@ class img{
 		}
 		if(t.i<0) gl.bindTexture(35866, null)
 		if(!ca.img) gl.bindFramebuffer(36160,null)
-		else if(!i) gl.bindFramebuffer(36160,null), ca=ctx.t, fbLayer=l-1,fbTex=t2.tex
+		else if(!i) gl.bindFramebuffer(36160,null), ca=ctx.t, fbLayer=l-1,fbTex=t.tex, fbSte = null
+		else gl.framebufferTextureLayer(36160,36064,fbTex,0,fbLayer), fbSte&&gl.framebufferRenderbuffer(36160,36128,36161,fbSte)
 		return arr
 	}
 	delete(){
@@ -514,9 +517,9 @@ class can{
 		this.#c+=ta*x; this.#d+=tb*x
 	}
 	multiply(x=1, y=0){
-		const ta=this.#a,tc=this.#c
-		this.#a=ta*x-this.#b*y;this.#b=ta*y+this.#b*x
-		this.#c=tc*x-this.#d*y;this.#d=tc*y+this.#d*x
+		const ta=this.#a,tb=this.#b
+		this.#a=ta*x-this.#c*y;this.#b=tb*x-this.#d*y
+		this.#c=ta*y+this.#c*x;this.#d=tb*y+this.#d*x
 	}
 	getTransform(){ return {a: this.#a, b: this.#b, c: this.#c, d: this.#d, e: this.#e, f: this.#f} }
 	new(a=1,b=0,c=0,d=1,e=0,f=0){return new can(this.t,a,b,c,d,e,f,this.#m,this.#shader,this.s)}
@@ -593,7 +596,7 @@ function setv(t,m){
 		else{
 			if(!ca.img) gl.bindFramebuffer(36160,fb)
 			if(t.tex!=fbTex||t.layer!=fbLayer) gl.framebufferTextureLayer(36160,36064,fbTex=t.tex,0,fbLayer=t.layer)
-			if(t.stencilBuf!=fbSte) gl.bindRenderbuffer(36161,t.stencilBuf),gl.framebufferRenderbuffer(36160,36128,36161,t.stencilBuf)
+			if(t.stencilBuf!=fbSte) gl.bindRenderbuffer(36161,fbSte=t.stencilBuf),gl.framebufferRenderbuffer(36160,36128,36161,fbSte)
 			const t2 = t.img.t; gl.viewport(0,0,t2.w,t2.h)
 			if(t2.i>=0){
 				gl.activeTexture(33984 + t2.i); gl.bindTexture(35866, bound[t2.i] = null); t2.i = -1
@@ -671,7 +674,8 @@ globalThis.Shader = (src, inputs, uniforms, output=4, frat=0.5) => {
 	uniforms = typeof uniforms=='number' ? [uniforms] : uniforms || []
 	for(const t of inputs){
 		let c = (t&3)+1, n = names[t&3|t>>4<<2]
-		fnParams.push(id+':a'+j+(c==1?'=0,':c==2?'=v2z,':c==3?'=v3z,':'=v4z,'))
+		const isCol = t==4||t==8||t==12
+		fnParams.push(id+':a'+j+(c==1&&!isCol?'=0,':c==2?'=v2z,':c==3?'=v3z,':'=v4z,'))
 		const A = t>15?(o|=1,'iarr[j+'):'arr[j+'
 		if(t==20||t==24||t==28){
 			n='int',o|=(1<<(t>>2)-3),fCount++
@@ -679,10 +683,10 @@ globalThis.Shader = (src, inputs, uniforms, output=4, frat=0.5) => {
 		}
 		if(t==12||t==28) o|=2
 		if(t==8||t==24) iCount++,fCount--
-		if(t==4||t==8||t==12){
+		if(isCol){
 			texCheck.push(`let a${j+1}=${t==4?`-1;if(a${j}.t&&(a${j+1}=img.auto(a${j}.t,0))==-1)`:`img.auto(a${j+(t==8?'.t,-1':'.t,0')});if(a${j+1}==-1)`}{i&&draw(b^boundUsed);a${j+1}=img.auto(a${j+(t==8?'.t,-1':'.t,0')})}`)
 			fCount++
-			const n = 'GL_'+(j+maxTex)
+			const n = `arg${id}raw`
 			shaderHead.push(`in int GL_${j};in vec4 GL_${j+1};centroid out vec4 ${n};`)
 			shaderBody.push(t!=4?`${n}=vec4(GL_${j+1}.xy+pos*GL_${j+1}.zw,GL_${j}&255,GL_${j}>>8);`:`if(GL_${j}<0){${n}=GL_${j+1};${n}.w=max(-15856.,${n}.w);}else{${n}=vec4(GL_${j+1}.xy+pos*GL_${j+1}.zw,GL_${j}&255,GL_${j}<256?-15872:(GL_${j}>>8<<4)-16384);}`)
 			shaderHead2.push(`centroid in vec4 ${n};${t==4?'lowp ':t==8?'u':'highp '}vec4 arg${id}(){`+(t==4?`if(${n}.w>-15872.)return ${n};return getCol(int(${n}.w)>>4&31,${n}.xyz);}`:t==8?`return uGetCol(int(${n}.w),${n}.xyz);}`:`return fGetCol(int(${n}.w),${n}.xyz);}`))
@@ -721,7 +725,7 @@ globalThis.Shader = (src, inputs, uniforms, output=4, frat=0.5) => {
 			fn3Body.push(`gl.uniform1i(uniLocs[${j3++}],uniTex[${uniTex.length}]?img.auto(uniTex[${uniTex.length}]${t==8?',-1':',0'}):${t==8?maxTex:0})`)
 			uniTex.push(null)
 			fCount++
-			const n = 'GL_'+(j+j2+maxTex)
+			const n = `uni${id}raw`
 			shaderHead.push(`uniform int u${j2};uniform vec4 u${j2+1};centroid out vec4 ${n};`)
 			shaderBody.push(t!=4?`${n}=vec4(u${j2+1}.xy+pos*u${j2+1}.zw,u${j2}&255,u${j2}>>8);`:`if(u${j2}<0){${n}=u${j2+1};${n}.w=max(-15856.,${n}.w);}else{${n}=vec4(u${j2+1}.xy+pos*u${j2+1}.zw,u${j2}&255,u${j2}<256?-15872:(u${j2}>>8<<4)-16384);}`)
 			shaderHead2.push(`centroid in vec4 ${n};${t==4?'lowp ':t==8?'u':'highp '}vec4 uni${id}(){`+(t==4?`if(${n}.w>-15872.)return ${n};return getCol(int(${n}.w)>>4&31,${n}.xyz);}`:t==8?`return uGetCol(int(${n}.w),${n}.xyz);}`:`return fGetCol(int(${n}.w),${n}.xyz);}`))
@@ -913,6 +917,7 @@ requestAnimationFrame(function f(){
 	dt = Math.min(-(globalThis.t-(globalThis.t=performance.now()/1000)), .5)
 	requestAnimationFrame(f); i&&draw()
 	pixelRatio = devicePixelRatio * ctxSupersample
+	gl.canvas.style.imageRendering = ctxSupersample > 1 ? 'auto' : 'pixelated'
 	gl.viewport(0, 0, ctx.t.w = gl.canvas.width = round(innerWidth*pixelRatio), ctx.t.h = gl.canvas.height = round(innerHeight*pixelRatio))
 	gl.bindFramebuffer(36160,null); ca=ctx.t
 	ctx.reset()
