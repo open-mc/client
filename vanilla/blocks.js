@@ -4,6 +4,7 @@ import { Blocks, Block, Items, BlockTexture } from 'definitions'
 import { BlockShape, blockShaped, fluidify } from './blockshapes.js'
 import { closeInterface } from './index.js'
 import { uiButton } from 'api'
+import { drawLayer } from '../iframe/api.js'
 const src = loader(import.meta)
 
 export const terrainPng = Img(src`terrain.png`)
@@ -345,7 +346,8 @@ Blocks.fire = class extends Block{
 		sound(fireExtinguish, x, y, 0.5, random() * 1.6 + 1.8)
 	}
 }
-
+const portalEnter = Audio(src`sound/portal/enter.mp3`)
+let portalEffect = 0, inPortal = false
 Blocks.portal = class extends Block{
 	static solid = false
 	static blockShape = [0.375, 0, 0.625, 1]
@@ -353,7 +355,22 @@ Blocks.portal = class extends Block{
 	random(x, y){
 		sound(portalAmbient, x, y, 0.5, random() * 0.4 + 0.8)
 	}
+	touched(e){
+		if(e == me && !inPortal){
+			if(!portalEffect) me.sound(portalEnter)
+			portalEffect += dt
+			inPortal = true
+		}
+	}
 }
+const portalOverlay = Img(src`portal.png`)
+drawLayer('none', 400, c => {
+	if(!inPortal){ portalEffect = 0; if(!cam.nausea) return }
+	inPortal = false
+	cam.nausea += (min(1, portalEffect/2)-cam.nausea)*dt
+	if(!portalEffect && cam.nausea < 0.1) cam.nausea = max(0, cam.nausea-dt*.2)
+	if(cam.nausea) c.draw(portalOverlay.sub(0, (world.animTick%32)/32, 1, 1/32), vec4(1-cam.nausea))
+})
 const endPortalOverlay = Img(src`endportaloverlay.png`)
 const endShader = Shader(`
 #define PI 3.1415927

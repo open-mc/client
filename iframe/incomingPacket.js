@@ -85,7 +85,7 @@ function entityPacket(buf){
 		let mv = buf.byte()
 		const id = buf.uint32() + buf.uint16() * 4294967296
 		let e = entityMap.get(id)
-		if(!mv){if(e)e.remove(),recentlyDeleted.set(id, e); continue}
+		if(!mv){if(e)e.remove(),recentlyDeleted.set(id, e);continue}
 		if(!e){
 			if(mv & 64){
 				mv |= 256

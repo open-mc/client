@@ -85,7 +85,7 @@ export class Chunk extends Uint16Array{
 	hide(){
 		if(!this.ctx) return
 		texturePool.push(this.ctx, this.ctx2)
-		this.ctx = this.ctx2 = null
+		this.ctx = this.ctx2 = this.writeCtx = null
 		this.rerenders.length = 0
 	}
 	draw(){
@@ -103,7 +103,7 @@ export class Chunk extends Uint16Array{
 				const b = this[i]
 				const {texture, render} = b==65535 ? this.tileData.get(x|(y<<6)) : BlockIDs[b]
 				if(render) this.rerenders.push(x|(y<<6))
-				if(texture){
+				if(texture>=0){
 					chunkUVData[i<<1] = texture
 					chunkUVData[i<<1|1] = texture>>16
 				}else chunkUVData[i<<1|1] = 65535

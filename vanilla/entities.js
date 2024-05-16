@@ -59,7 +59,7 @@ export class LivingEntity extends Entity{
 			c2.scale(0.25)
 			const width = measureWidth(this.name)
 			c2.drawRect(width * -0.5 - .2, -.2, width + 0.4, 1.4, nameBgCol)
-			drawText(c2, this.name, this.state&0x100 ? 15 : 15, width * -0.5, 0)
+			drawText(c2, (this.state&0x100?'\\+9':'')+this.name, width * -0.5, 0, 1, 0)
 		}
 		if(ys < 0) c.translate(0, this.height)
 		c.scale(xs, ys)
@@ -94,7 +94,7 @@ export class LivingEntity extends Entity{
 	}
 }
 
-const portalEnter = Audio(src`sound/portal/enter.mp3`), portalExit = Audio(src`sound/portal/exit.mp3`), endPortalMake = Audio(src`sound/portal/end.mp3`)
+const portalExit = Audio(src`sound/portal/exit.mp3`), endPortalMake = Audio(src`sound/portal/end.mp3`)
 const thunder = audioSet('misc/thunder', 3)
 
 const entityBackTint = vec4(.2, .2, .2, 0), entityHurtTint = vec4(.1, .4, .4, 0), entityBackHurtTint = vec4(.28, .52, .52, 0)

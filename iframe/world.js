@@ -27,12 +27,13 @@ export const configLoaded = fn => configLoaded.listeners.push(fn)
 configLoaded.listeners = []
 
 export const cam = {
-	x: 0, y: 0, z: .5, f: 0,
+	x: 0, y: 0, z: .5, f: 0, nausea: 0,
 	baseF: 0, baseZ: 0, baseX: 0, baseY: 0,
 	staticX: NaN, staticY: NaN,
 	transform(c, scale = 1){
 		c.reset(scale/c.width,0,0,scale/c.height,0.5,0.5)
 		c.rotate(-this.f)
+		if(this.nausea > 0) c.skew(sin(t*3)/3*this.nausea, cos(t*3)/3*this.nausea)
 	}
 }
 

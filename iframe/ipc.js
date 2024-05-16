@@ -1,6 +1,5 @@
 import { DataReader, jsonToType } from '/server/modules/dataproto.js'
-import { frame } from './index.js'
-import { options, listen, _cbs, _mouseMoveCb, _joypadMoveCbs, _wheelCb, _optionListeners, codes, paused, _onvoice, voice, _updatePaused } from 'api'
+import { options, listen, _cbs, _mouseMoveCb, _joypadMoveCbs, _wheelCb, _optionListeners, codes, paused, _onvoice, voice, _updatePaused, _onPacket } from 'api'
 import { Blocks, Items, Entities, BlockIDs, ItemIDs, EntityIDs, Block, Item, Entity, Classes } from 'definitions'
 import { me } from 'world'
 
@@ -63,7 +62,6 @@ const onMsg = ({data,origin}) => {
 			i = 0; for(const b of data[1].split('\n'))funcify(b, i++, Items)
 			i = 0; for(const b of data[2].split('\n'))funcify(b, i++, Entities)
 			if(!--loading)loaded()
-			frame()
 		})
 		function funcify(a, i, Dict){
 			const Constructor = Dict == Items ? Item : Dict == Entities ? Entity : Block
@@ -103,18 +101,9 @@ const onMsg = ({data,origin}) => {
 		}
 	}else if(data instanceof ArrayBuffer){
 		if(loading>0) return void msgQueue.push(data)
-		const packet = new DataReader(data)
-		const code = packet.byte()
-		if(!codes[code]) return
-		try{
-			codes[code](packet)
-		}catch(e){
-			Promise.reject(e)
-			console.warn(packet, packet.i)
-		}
-	}else if(data instanceof Float32Array){
-		_onvoice(data)
-	}else if(typeof data == 'number'){
+		_onPacket(data)
+	}else if(data instanceof Float32Array) _onvoice(data)
+	else if(typeof data == 'number'){
 		if(data >= 5e9) voice.sampleRate = data - 5e9
 		else if(data >= 0){
 			buttons.set(data)

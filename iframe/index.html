@@ -9,9 +9,10 @@
 }}
 </script>
 <script>
+	"use strict";
 	const flags = location.hash.slice(1)|0
 	globalThis.antialias = flags&1
-	pako = null
+	if(globalThis.pako) pako = null
 	delete window.localStorage; delete window.sessionStorage
 	onmessage = ({data,origin}) => origin!='null'&&msgQueue.push(data)
 	const postMessage = parent.postMessage.bind(parent)
@@ -181,6 +182,9 @@ Uint8Array.fromHex = function(hex){
 	}
 	return res.slice(0, i)
 }
+const h = '0123456789abcdef'
+Number.prototype.toHex = function(){return h[this>>>28]+h[this>>24&15]+h[this>>20&15]+h[this>>16&15]+h[this>>12&15]+h[this>>8&15]+h[this>>4&15]+h[this&15]}
+Number.formatData = bytes => bytes < 512 ? bytes.toFixed(0)+'B' : bytes < 524288 ? (bytes/1024).toFixed(1)+'KiB' : bytes < 536870912 ? (bytes/1048576).toFixed(1)+'MiB' : bytes < 549755813888 ? (bytes/1073741824).toFixed(1)+'GiB' : (bytes/1099511627776).toFixed(1)+'TiB'
 </script>
 <script async src="/img/_pako.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
@@ -328,6 +332,7 @@ class img{
 		img.fakeBind(t)
 		if(pma)gl.pixelStorei(37440,0),gl.pixelStorei(37441,pma=0)
 		gl.texSubImage3D(35866, 0, x, y, l, w, h, d, t.f[1], t.f[2], data)
+		fd += data.byteLength*.25
 		if(t.i<0) gl.bindTexture(35866, null)
 	}
 	readData(x=0, y=0, l=0, w=0, h=0, d=0, arr=null){
@@ -629,7 +634,8 @@ function draw(b=shuniBind){
 	//if((ca?ca.img.t.f[3]:0)!=sh.outInt) return console.warn('Texture drawn to and shader output type must be of the same kind (integer/float)')
 	gl.bufferData(34962, iarr.subarray(0, i), 35040)
 	const {type,s,l}=shp
-	gl.drawArraysInstanced(type, s, l, i/sh.count)
+	fd += i; i /= sh.count; fdc++; fs += i
+	gl.drawArraysInstanced(type, s, l, i)
 	i = 0; boundUsed = b
 }
 let sh=null,ca=null,fbTex=null,fbSte=null,fbLayer=0,shfCount=0
@@ -708,7 +714,7 @@ globalThis.Shader = (src, inputs, uniforms, output=4, frat=0.5) => {
 		id++
 	}
 	id = 0; let j2 = 0, j3 = 0
-	const fn2Params = [], fn2Body = ['if(sh!=s){i&&draw(0);shfCount=fCount;gl.useProgram((sh=s).program);gl.bindVertexArray(s.vao)}'], fn3Body = []
+	const fn2Params = [], fn2Body = ['fd+=j2;if(sh!=s){i&&draw(0);shfCount=fCount;gl.useProgram((sh=s).program);gl.bindVertexArray(s.vao)}'], fn3Body = []
 	const uniTex = [], uniLocs = []
 	for(const t of uniforms){
 		let c = (t&3)+1, n = names[t&3|t>>4<<2]
@@ -796,16 +802,16 @@ globalThis.Shader = (src, inputs, uniforms, output=4, frat=0.5) => {
 	if(sh) gl.useProgram(sh.program||sh), gl.bindVertexArray(sh.vao)
 	return s
 }
-globalThis.iarr=()=>iarr;globalThis.i=()=>i
-globalThis.boundUsed=()=>boundUsed
+globalThis.frameDrawCalls = 0
+globalThis.frameSprites = 0
+globalThis.frameData = 0
+let fdc = 0, fs = 0, fd = 0
 Shader.DEFAULT = sh = Shader(`void main(){color=arg0()*(1.-arg1);}`, [COLOR, VEC4])
 Shader.INT = sh = Shader(`void main(){color=arg0();}`, UCOLOR, _, UINT)
 gl.useProgram(sh.program)
 gl.bindVertexArray(sh.vao)
-globalThis.t = 0
 globalThis._gl = gl
 globalThis.ctx = new can(ca={tex:gl.canvas,img:null,layer:0,stencil:0,stencilBuf:null,w:0,h:0})
-globalThis.t = performance.now(); globalThis.dt = 0
 
 const actx = new AudioContext({latencyHint: 'interactive'})
 globalThis.bgGain = actx.createGain()
@@ -913,7 +919,9 @@ Array.null = len => {
 globalThis.ctxSupersample = 1
 globalThis.pixelRatio = 1
 const {frame}=await import('./index.js')
+globalThis.t = performance.now()/1000; globalThis.dt = 0
 requestAnimationFrame(function f(){
+	frameDrawCalls = fdc; frameSprites = fs; frameData = fd*4+fdc*24; fdc = fs = fd = 0
 	dt = Math.min(-(globalThis.t-(globalThis.t=performance.now()/1000)), .5)
 	requestAnimationFrame(f); i&&draw()
 	pixelRatio = devicePixelRatio * ctxSupersample

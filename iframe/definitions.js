@@ -355,7 +355,7 @@ export function BlockTexture(img=0, x=0, y=0, frames = 0){
 		ba2.paste(blockAtlas)
 		blockAtlas = ba2
 	}
-	const j = 4294967296+(i|frames-1<<24)
+	const j = i|frames-1<<24
 	if(!img) loading.set(j, [])
 	else if(img.then) img.then(img => _putImg(img, j, x, y)), loading.set(j, [])
 	else if(img) _putImg(img, j, x, y)

@@ -63,7 +63,10 @@ onmessage = ({data, source}) => {
 		a.download = `screenshot-${d.getYear()+1900}-${('0'+d.getMonth()).slice(-2)}-${('0'+d.getDay()).slice(-2)}-at-${('0'+d.getHours()).slice(-2)}-${('0'+d.getMinutes()).slice(-2)}-${('0'+d.getSeconds()).slice(-2)}`
 		a.click()
 		URL.revokeObjectURL(a.href)
-	}else if(Array.isArray(data)) onerror(undefined,''+data[1],+data[2],+data[3],data[0])
+	}else if(Array.isArray(data)){
+		if(data.length == 1 && data[0] instanceof Blob) navigator.clipboard.write([new ClipboardItem({[data[0].type]: data[0]})])
+		else onerror(undefined,''+data[1],+data[2],+data[3],data[0])
+	}
 }
 
 export function destroyIframe(){
@@ -120,7 +123,7 @@ async function microphone(){
 		}
 		m.source=ctx.createMediaStreamSource(m);m.source.connect(a)
 		a.connect(ctx.destination)
-	}catch(e){console.log(e)}
+	}catch(e){console.warn(e)}
 }
 function voiceOn(){
 	voice = true

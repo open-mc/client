@@ -1,22 +1,18 @@
 import { playerControls } from './controls.js'
-import { DataWriter, DataReader } from '/server/modules/dataproto.js'
+import { DataWriter } from '/server/modules/dataproto.js'
 import { mePhysics, stepEntity } from './entity.js'
-import { gridEventMap, getblock, entityMap, map, cam, server, world, bigintOffset, me } from 'world'
+import { gridEventMap, getblock, entityMap, map, cam, onPlayerLoad, world, bigintOffset, me } from 'world'
 import * as pointer from './pointer.js'
-import { onKey, drawLayer, options, paused, _renderPhases, renderBoxes, renderF3, send, download, pause, _updatePaused, drawText, measureWidth, textShadeCol } from 'api'
-import { particles, blockAtlas, _recalcDimensions, W2, H2, SCALE, toBlockExact } from 'definitions'
+import { onKey, drawLayer, options, paused, _renderPhases, renderBoxes, renderF3, send, download, copy, pause, _updatePaused, drawText, measureWidth, textShadeCol, _networkUsage, networkUsage } from 'api'
+import { particles, blockAtlas, _recalcDimensions, W2, H2, SCALE, toBlockExact, prep } from 'definitions'
 import { VERSION } from '../server/version.js'
-import { prep } from './definitions.js'
 
-let last = performance.now(), count = 1.1, timeToFrame = 0
+let last = performance.now(), timeToFrame = 0
 setInterval(function(){
-	eluStart()
 	const now = performance.now()
 	const update = 1000 / world.tps
 	let dt = now - last
-	elusmooth += (elu / (dt || 1) - elusmooth) / count
 	last = now
-	elu = 0
 	if(!me) return
 	let tickcount = floor(dt/update)
 	dt -= tickcount*update
@@ -49,17 +45,17 @@ function tick(){
 	if(randomBlock.random) randomBlock.random(x, y)
 	for(const e of entityMap.values()) if(e.tick) e.tick()
 }
-let elusmooth = 0, elu = 0, eluLast = 0
-const eluEnd = () => (elu += performance.now() - eluLast, eluLast = 0)
-const eluStart = () => eluLast ? 0 : (eluLast = performance.now(), Promise.resolve().then(eluEnd))
+let dtSmooth = 0
 export let zoom_correction = 0
 let camMovingX = false, camMovingY = false
 const CAMERA_DYNAMIC = 0, CAMERA_FOLLOW_SMOOTH = 1, CAMERA_FOLLOW_POINTER = 2,
 	CAMERA_FOLLOW_PLAYER = 3, CAMERA_PAGE = 4
+let frameNumber = 0, flashbang = 0
 export function frame(){
-	const now = performance.now()
-	eluStart()
-	if(!me) return
+	const correctT = t
+	dtSmooth += (dt-dtSmooth)*max(1-++frameNumber/15,dt*2)
+	t *= options.speed; dt *= options.speed
+	_networkUsage()
 	pause(false)
 	playerControls()
 	for(const entity of entityMap.values()) stepEntity(entity)
@@ -124,7 +120,8 @@ export function frame(){
 			}
 		}catch(e){Promise.reject(e)}
 	}
-	timeToFrame = performance.now() - now
+	if(flashbang) ctx.reset(), ctx.drawRect(1, 0, -flashbang, flashbang, vec4(flashbang*.667)), flashbang = max(0, flashbang-dt*3)
+	timeToFrame = performance.now()/1000 - (t=correctT)
 	changed.clear()
 	delta.x = delta.y = 0
 	delta.jlx = delta.jly = 0
@@ -156,7 +153,7 @@ drawLayer('none', 200, (ctx, w, h) => {
 	const mipmap = max(0, min(4, 4-round(log2(SCALE))))
 	chunkShader.uniforms(blockAtlas, world.animTick, mipmap)
 	const sr = sin(cam.f), cr = cos(cam.f)
-	const limX = (abs(ctx.width*cr)+abs(ctx.height*sr))/2, limY = (abs(ctx.width*sr)+abs(ctx.height*cr))/2
+	const limX = (abs(ctx.width*cr)+abs(ctx.height*sr)+(cam.nausea*.333*ctx.height))/2, limY = (abs(ctx.width*sr)+abs(ctx.height*cr)+(cam.nausea*.333*ctx.width))/2
 	const S = 64*SCALE
 	const lineWidth = .5/min(1024,S)
 	for(const chunk of map.values()){
@@ -284,44 +281,71 @@ function toString(big, num, precision = 3){
 	return v
 }
 
+const f3LeftInfo = `\\+e[Game version]\\+f (:3 thx for playing)
+FPS: \\+a[Frames per second]\\+f (\\+a[time spent drawing frame]\\+f)
+Net: \\+a[Network usage]\\+f${performance.memory?', Mem: \\+a[Memory usage]\\+f':''}
+Draw: \\+a[GPU mem bandwidth]\\+f/\\+a[Sprite count]\\+f/\\+a[GL draw calls]\\+f
+CH: \\+a[Cached chunks]\\+f, E: \\+a[Cached entities]\\+f, P: \\+a[particles]\\+f
+XY: \\+3[Player feet position]\\+f
+ChXY: \\+3[Position w/in chunk]\\+f in \\+3[Chunk coords]\\+f
+Facing: \\+c[\\8+L\\0+eft|\\8+R\\0+ight]\\+f \\+d[Player looking direction in deg]\\+f (\\+d[direction in rad]\\+f)
+`.split('\n')
+const f3RightInfo = `Tick \\+d[dimension age]\\+f, Day \\+d[in MC days]\\+f, Time \\+d[time within MC day]\\+f
+Dimension: \\+e[current dimension's name]\\+f
+Biome: \\+d[Humidity]\\+f/\\+d[Temperature]\\+f
+Looking at: \\+3[Coordinate of block under pointer]\\+f
+Block: \\+e[block under pointer]\\+f (\\+a[ID for that block]\\+f)
+Block.texture: \\+a[Atlas tex ID of that block]\\+f[\\+d[Animation frames]\\+f]
+Item.texture: \\+a[Atlas tex ID of hekd item]\\+f[\\+d[Animation frames]\\+f]
+`.split('\n')
+
 drawLayer('ui', 1000, (ctx, w, h) => {
 	if(!renderF3 && !buttons.has(KEYS.SYMBOL)) return
 	const ct2 = ctx.sub()
 	ct2.translate(0, h)
 	ct2.scale(8, 8)
 	const trueX = toString(bigintOffset.x, me.x, 3), trueY = toString(bigintOffset.y, me.y, 3)
-	for(const t of `Paper MC ${VERSION}
-FPS: ${round(1/dt)} (${timeToFrame.toFixed(2).padStart(5,'\u2007')}ms)
-ELU: ${min(100,elusmooth*100).toFixed(1).padStart(4,'\u2007')}%${performance.memory ? ', MEM: '+(performance.memory.usedJSHeapSize/1048576).toFixed(1)+'MB' : ''}
+	for(const t of buttons.has(KEYS.ALT)?f3LeftInfo:`Paper MC ${VERSION} (Alt for f3 help)
+FPS: ${round(1/dtSmooth)} (${(timeToFrame*1000).toFixed(2).padStart(5,'\u2007')}ms)
+Net: ${Number.formatData(networkUsage)}/s${performance.memory ? ', Mem: '+Number.formatData(performance.memory.usedJSHeapSize) : ''}
+Draw: ${Number.formatData(frameData)}/${frameSprites}/${frameDrawCalls}
 Ch: ${map.size}, E: ${entityMap.size}, P: ${particles.size}
-XY: ${trueX} / ${trueY}
+XY: \\4+${trueX} / ${trueY}\\0+
 ChXY: ${(floor(me.x) & 63).toString().padStart(2,'\u2007')} ${(floor(me.y) & 63).toString().padStart(2,'\u2007')} in ${toString(bigintOffset.x>>6n,floor(me.x) >> 6, 0)} ${toString(bigintOffset.y>>6n,floor(me.y) >> 6, 0)}
-Looking at: ${toString(bigintOffset.x, floor(pointer.x + me.x)|0, 0)} ${toString(bigintOffset.y, floor(pointer.y + me.y + me.head)|0, 0)}
-Facing: ${(me.f >= 0 ? 'R' : 'L') + (90 - abs(me.f / PI2 * 360)).toFixed(1).padStart(5, '\u2007')} (${(me.f / PI2 * 360).toFixed(1)})
+Facing: ${(me.f >= 0 ? 'R' : 'L') + (90 - abs(me.f / PI2 * 360)).toFixed(1).padStart(5, '\u2007')} (${me.f.toFixed(1)})
 `.slice(0, -1).split('\n')){
 		const width = measureWidth(t)
 		ct2.drawRect(.125, -.125, width+.25, -1.25, textShadeCol)
-		drawText(ct2, t, _, .25, -1.25)
+		drawText(ct2, t, .25, -1.25, 1, 0)
 		ct2.translate(0, -1.25)
 	}
 	const mex = floor(me.x) >> 3 & 6, mexi = (floor(me.x) & 15) / 16
 	const lookingAt = getblock(floor(pointer.x + me.x), floor(pointer.y + me.y + me.head))
-	ct2.resetTo(ct2)
+	ct2.resetTo(ctx)
 	ct2.translate(w, h)
 	ct2.scale(8, 8)
-	for(const t of `Tick ${world.tick}, Day ${floor((world.tick+6000)/24000)}, Time ${floor((world.tick/1000+6)%24).toString().padStart(2,'0')}:${(floor((world.tick/250)%4)*15).toString().padStart(2,'0')}
+	const holding = me.inv[me.selected]
+	for(const t of buttons.has(KEYS.ALT)?f3RightInfo:`Tick ${world.tick}, Day ${floor((world.tick+6000)/24000)}, Time ${floor((world.tick/1000+6)%24).toString().padStart(2,'0')}:${(floor((world.tick/250)%4)*15).toString().padStart(2,'0')}
 Dimension: ${world.id}
 Biome: ${me.chunk ? round(me.chunk.biomes[mex] * (1 - mexi) + me.chunk.biomes[mex+2] * mexi) : 0}/${me.chunk ? round(me.chunk.biomes[mex+1] * (1 - mexi) + me.chunk.biomes[mex+3] * mexi) : 0}
-Looking at: ${lookingAt.className+(lookingAt.savedata?' {...}':'')} (${lookingAt.id})
+Looking at: \\4+${toString(bigintOffset.x, floor(pointer.x + me.x)|0, 0)} ${toString(bigintOffset.y, floor(pointer.y + me.y + me.head)|0, 0)}\\
+Block: ${lookingAt.className+(lookingAt.savedata?' {...}':'')} (${lookingAt.id})
+Block.texture: ${lookingAt.texture>=0?`${lookingAt.texture.toHex().slice(2)}[${(lookingAt.texture>>>24)+1}]`+(lookingAt.render?'*':''):lookingAt.render?'na*':'na'}
+Item.texture: ${holding?.texture>=0?`${holding.texture.toHex().slice(2)}[${(holding.texture>>>24)+1}]`+(holding.render?'*':''):holding?.render?'na*':'na'}
 `.slice(0, -1).split('\n')){
 		const width = measureWidth(t)
 		ct2.drawRect(-.125, -.125, -width-.25, -1.25, textShadeCol)
-		drawText(ct2, t, _, -width-.25, -1.25)
+		drawText(ct2, t, -width-.25, -1.25, 1, 0)
 		ct2.translate(0, -1.25)
 	}
 })
 
 
-onKey(KEYS.F2, () => requestAnimationFrame(() => _gl.canvas.toBlob(download, 'image/png')))
+onKey(KEYS.F2, () => requestAnimationFrame(() => {
+	const method = buttons.has(KEYS.ALT) ? copy : download
+	if(method == copy) flashbang = 1
+	_gl.canvas.toBlob(method, 'image/png')
+}))
 import('./ipc.js')
 import('./incomingPacket.js')
+await new Promise(onPlayerLoad)

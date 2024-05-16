@@ -15,7 +15,7 @@ export class BlastParticle extends Particle{
 	constructor(x, y){
 		super(false, random() / 4 + 0.5, x + random() * 4 - 2, y + random() * 4 - 2, 0, 0, 0, 0)
 		this.size = random() + 1
-		const a = random()
+		const a = random()/2
 		this.tint = vec4(a, a, a, 0)
 	}
 	render(c){
@@ -29,7 +29,7 @@ export class AshParticle extends Particle{
 		const rx = random() * 4 - 2, ry = random() * 4 - 2
 		super(false, 79.9999, x + rx, y + ry, rx*3, ry*3, 0, 0)
 		this.size = random() / 2 + .5
-		const a = random()
+		const a = random()/2
 		this.tint = vec4(a, a, a, 0)
 	}
 	render(c){

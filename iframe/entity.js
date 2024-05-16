@@ -5,11 +5,11 @@ const airDrag = 0.06
 const yDrag = 0.667
 
 export function stepEntity(e){
-	if(e != me && !e.shouldSimulate()) return
+	if(!e.shouldSimulate()) return
 	e.preupdate?.()
 	e.state = (e.state & 0xfffeffff) | (e.impactDy<0)<<16
 	fastCollision(e)
-	if(e != me && !e.shouldSimulate()) return
+	if(!e.shouldSimulate()) return
 	if(e.state & 1)e.dy = 0
 	else{
 		e.dy += dt * world.gy * e.gy

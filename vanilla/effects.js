@@ -54,7 +54,7 @@ export const water = {
 
 export function renderItem(c, item, respectModel = false){
 	c = c.sub()
-	if(item && item.texture){
+	if(item && item.texture >= 0){
 		if(!respectModel || item.model == 0){
 			c.translate(-0.5, 0)
 			c.draw(toTex(item.texture))
@@ -93,9 +93,9 @@ export function renderItem(c, item, respectModel = false){
 export function renderItemCount(c, item){
 	if(!item) return
 	if(item.count == 1) return
-	const count = item.count+''
+	const count = (item.count !== (item.count & 255) ? '\\+9' : '') + item.count
 	const width = measureWidth(count)*.5
-	drawText(c, count, item.count === (item.count & 255) ? 15 : 15, 5/6-width, 0, 0.5)
+	drawText(c, count, 5/6-width, 0, 0.5)
 }
 let slotx = NaN, sloty = NaN
 export let slotI = -1
@@ -148,12 +148,10 @@ drawLayer('ui', 999, (ctx, w, h) => {
 	if(!buttons.has(KEYS.TAB)) return
 	const columns = Math.max(1, Math.floor((w - 60) / 82))
 	w = w/2-25; ctx.translate(w+25, h-39)
-	for(let line of server.title.split('\n')){
+	for(const line of server.title.split('\n')){
 		ctx.textAlign = 'center'
 		ctx.drawRect(-w, -18, w*2, 32, tabMenuBg)
-		const style = parseInt(line.slice(0, 2), 16) & 255
-		line = line.slice(2)
-		drawText(ctx, line, _, -measureWidth(line)*6, -3, 12)
+		drawText(ctx, line, -measureWidth(line)*6, -3, 12)
 	}
 	ctx.translate(0, -17)
 	const playerCount = server.players.length
@@ -168,17 +166,14 @@ drawLayer('ui', 999, (ctx, w, h) => {
 		i++
 		ctx.drawRect(x+8, 0, 72, 8, tabMenuEntryBg)
 		ctx.drawRect(x, 0, 8, 8, skin)
-		const style = 15
-		drawText(ctx, name, style, x+9, 1, 6)
+		drawText(ctx, name, x+9, 1, 6)
 		ctx.drawRect(x+70, 0, 10, 7, pingIcons[ping < 25 ? 0 : ping < 60 ? 1 : ping < 300 ? 2 : ping < 1000 ? 3 : 4])
 	}
 	ctx.drawRect(-w, -13, w*2, 12, tabMenuBg)
 	ctx.translate(0, -20)
-	for(let line of server.sub.split('\n')){
+	for(const line of server.sub.split('\n')){
 		ctx.drawRect(-w, -3, w*2, 10, tabMenuBg)
-		const style = parseInt(line.slice(0, 2), 16) & 255
-		line = line.slice(2)
-		drawText(ctx, line, style, -measureWidth(line)*4, 0, 8)
+		drawText(ctx, line, -measureWidth(line)*4, 0, 8)
 		ctx.translate(0, -10)
 	}
 })

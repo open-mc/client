@@ -59,9 +59,28 @@ onKey(KEYS.F3, GAMEPAD.UP, () => {
 export const codes = new Array(256)
 
 export const onpacket = (c, cb) => codes[c] = cb
-export const send = buf => postMessage(buf.build ? buf.build().buffer : buf.buffer || buf, '*')
+let bytes = 0
+export let networkUsage = 0
+export const _networkUsage = () => {
+	const p = 0.5**(dt*2)
+	networkUsage = (bytes *= p) * (1-p)/dt
+}
+export const _onPacket = data => {
+	bytes += data.byteLength
+	const packet = new DataReader(data)
+	const code = packet.byte()
+	if(!codes[code]) return
+	try{
+		codes[code](packet)
+	}catch(e){
+		Promise.reject(e)
+		console.warn(packet, packet.i)
+	}
+}
+export const send = buf => void(postMessage(buf = (buf.build ? buf.build().buffer : buf.buffer || buf), '*'), bytes += buf.byteLength)
 
 export const download = blob => postMessage(blob, '*')
+export const copy = blob => postMessage([blob], '*')
 
 export let _onvoice = null
 
