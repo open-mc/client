@@ -1,7 +1,5 @@
 export const _cbs = []
-export const _mouseMoveCb = []
 export const _joypadMoveCbs = {}
-export const _wheelCb = []
 export const _renderPhases = []
 export const _optionListeners = {}
 const coords = {__proto__: null, none: 0, ui: 1, world: 2}
@@ -19,8 +17,8 @@ export function drawLayer(coord, prio, fn){
 
 
 
-export const onwheel = cb => _wheelCb.push(cb)
-export const onmousemove = cb => _mouseMoveCb.push(cb)
+export const onwheel = []
+export const onmousemove = []
 export const onjoypad = (i, cb) => (_joypadMoveCbs[i]??=[]).push(cb)
 
 export const onKey = (...keys) => {
@@ -44,16 +42,18 @@ export function _updatePaused(a){ if(a!==undefined) _paused=a; if(paused^_paused
 export const pause = (_paused=true) => paused=_paused
 export const quit = () => postMessage(NaN, '*')
 
+export const onfocus = []
+export const onblur = []
 
-export let renderF3 = false, renderBoxes = 0, renderUI = true
-listen('autof3', () => {renderF3 = !!options.autof3; renderBoxes = (options.autof3 > 1)*2})
+
+export let renderF3 = 0, renderBoxes = 0, renderUI = true
+listen('autof3', () => {renderF3 = min(options.autof3,2); renderBoxes = (options.autof3 > 2)*2})
 onKey(KEYS.F1, () => {renderUI = !renderUI})
 onKey(KEYS.F3, GAMEPAD.UP, () => {
 	if(buttons.has(GAMEPAD.UP)){
-		if(renderF3) ++renderBoxes>=3&&(renderBoxes=0,renderF3=false)
-		else renderF3=true
+		++renderF3>=3&&(renderF3=0,renderBoxes=(renderBoxes+1)%3)
 	}else if(buttons.has(KEYS.ALT) | buttons.has(KEYS.SHIFT) | buttons.has(KEYS.MOD)) renderBoxes = (renderBoxes+1)%3
-	else renderF3 = !renderF3
+	else renderF3 = (renderF3+1)%3
 })
 
 export const codes = new Array(256)

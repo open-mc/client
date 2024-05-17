@@ -221,7 +221,7 @@ export function pointerMoved(dx, dy){
 		y *= vec
 	}
 }
-onmousemove(pointerMoved)
+onmousemove.bind(pointerMoved)
 export const reset = (f) => {
 	let r = min(4, REACH)
 	x = oldx = sin(f) * r

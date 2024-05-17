@@ -11,52 +11,58 @@ for(const g of `c0009,c1019,c2029,c8039,ca049,cb059,cd065,d3079,d4089,d5099,da0a
 const LETTER_SPACING = .125
 const colors = [vec4(1,1,1,0), vec4(.333,1,1,0), vec4(1,.333,1,0), vec4(0,.333,1,0), vec4(1,1,.333,0), vec4(.333,1,.333,0), vec4(1,.333,.333,0), vec4(.333,.333,.333,0), vec4(.666,.666,.666,0), vec4(0,.666,.666,0), vec4(.666,0,.666,0), vec4(0,0,.666,0), vec4(.666,.666,0,0), vec4(0,.666,0,0), vec4(.666,0,0,0), vec4(0)]
 const shadowColors = [vec4(1,1,1,.98), vec4(.84,1,1,0), vec4(1,.84,1,0), vec4(.84,.84,1,0), vec4(1,1,.84,0), vec4(.84,1,.84,0), vec4(1,.84,.84,0), vec4(.84,.84,.84,0), vec4(.98,.98,.98,.73), vec4(.75,.92,.92,0), vec4(.92,.75,.92,0), vec4(.75,.75,.92,0), vec4(.92,.92,.75,0), vec4(.75,.92,.75,0), vec4(.92,.75,.75,0), vec4(.75,.75,.75,0)]
-CanvasRenderingContext2D.prototype.styledText = function(S,t,x,y,s,w){
-	/*this.font = (S&16?'bold ':'')+(S&32?'italic ':'')+FONT
-	this.fillStyle = shadowColors[S&15]
-	this.fillText(t,x+1,y-1,s, w)
-	this.fillStyle = colors[S&15]
-	this.fillText(t,x,y,s,w)
-	this.font = FONT*/
-}
+
 const hexToInt = a => a>47&&a<58?a-48:a>64&&a<71?a-55:a>96&&a<103?a-87:a==43?131072:65536
-export function drawText(ctx, t, x=0, y=0, size=1, shadow = 1, style = 15){
-	ctx = ctx.sub()
-	ctx.translate(x, y)
-	ctx.scale(size)
-	if(style&32) ctx.skew(.2, 0)
-	let i = 0
-	let tint = colors[style&15], tint2 = shadowColors[style&15]
-	while(i<t.length){
-		let c = t.charCodeAt(i)
+
+let i = 0, text = '', style = 15, tint, tint2
+
+function init(t, s){
+	text = t; style = s; i = 0
+	tint = colors[s&15]; tint2 = shadowColors[s&15]
+}
+function nextChar(){
+	while(i < text.length){
+		let c = text.charCodeAt(i)
 		if(c==92){ // Backslash
-			const c2 = t.charCodeAt(i+1)
+			const c2 = text.charCodeAt(i+1)
 			if(c2==88||c2==120){ // \x**
-				c = hexToInt(t.charCodeAt(i+2))<<4|hexToInt(t.charCodeAt(i+3))
+				c = hexToInt(text.charCodeAt(i+2))<<4|hexToInt(text.charCodeAt(i+3))
 				i += 4
 				if(c > 65535) c = 65533
 			}else if(c2==85||c2==117){ // \u****
-				c = hexToInt(t.charCodeAt(i+2))<<4|hexToInt(t.charCodeAt(i+3))|hexToInt(t.charCodeAt(i+4))<<4|hexToInt(t.charCodeAt(i+5))
+				c = hexToInt(text.charCodeAt(i+2))<<4|hexToInt(text.charCodeAt(i+3))|hexToInt(text.charCodeAt(i+4))<<4|hexToInt(text.charCodeAt(i+5))
 				i += 6
 				if(c > 65535) c = 65533
 			}else if(c2 != 92){
-				let s = hexToInt(t.charCodeAt(i+1))<<4|hexToInt(t.charCodeAt(i+2))
+				let s = hexToInt(text.charCodeAt(i+1))<<4|hexToInt(text.charCodeAt(i+2))
 				if(s&131072) s = s&-131088|style&15
 				if(s&2097152) s = s&-2097393|style&240
 				i += 3
 				if(s>255) continue
 				tint = colors[s&15]; tint2 = shadowColors[s&15]
-				if((style^s)&32) ctx.skew(s&2?.2:-.2,0)
 				style = style&-256|s; continue
 			}else i++
 		}else if(c>=0xd800&&c<0xdc00){ /* High/Low surrogate pair */
-			const c2 = t.charCodeAt(++i)
+			const c2 = text.charCodeAt(++i)
 			if(c2 >= 0xdc00 && c2 < 0xe000) i++, c = (c-0xd800<<10|c2-0xdc00)+0x10000
 		}else i++
-		const char = glyphs.get(c)
-		if(!char) continue
+		const glyph = glyphs.get(c)
+		if(glyph) return glyph
+	}
+	return null
+}
+
+export function drawText(ctx, t, x=0, y=0, size=1, s = 271){
+	init(t, s&255)
+	ctx = ctx.sub()
+	ctx.translate(x, y)
+	ctx.scale(size)
+	if(s&32) ctx.skew(.2, 0),ctx.translate(-.0625,0)
+	let char
+	while(char = nextChar()){
+		if((style^(style>>8))&32) ctx.skew(style&32?.2:-.2,0),ctx.translate(style&32?-.0625:.0625,0)
 		const w = char.w*16
-		if(shadow){
+		if(s&256){
 			ctx.drawRect(.125, -.125, w, 1, char, tint2)
 			if(style&16) ctx.drawRect(.25, -.125, w, 1, char, tint2)
 		}
@@ -70,37 +76,15 @@ export function drawText(ctx, t, x=0, y=0, size=1, shadow = 1, style = 15){
 	return style
 }
 
-export function measureWidth(t){
-	let w = 0, i = 0
-	let style = 0
-	while(i < t.length){
-		let c = t.charCodeAt(i)
-		if(c==92){ // Backslash
-			const c2 = t.charCodeAt(i+1)
-			if(c2==88||c2==120){ // \x**
-				c = hexToInt(t.charCodeAt(i+2))<<4|hexToInt(t.charCodeAt(i+3))
-				i += 4
-				if(c > 65535) c = 65533
-			}else if(c2==85||c2==117){ // \u****
-				c = hexToInt(t.charCodeAt(i+2))<<4|hexToInt(t.charCodeAt(i+3))|hexToInt(t.charCodeAt(i+4))<<4|hexToInt(t.charCodeAt(i+5))
-				i += 6
-				if(c > 65535) c = 65533
-			}else if(c2 != 92){
-				let s = hexToInt(t.charCodeAt(i+1))<<4|hexToInt(t.charCodeAt(i+2))
-				if(s&131072) s = s&-131088|style&15
-				if(s&2097152) s = s&-2097393|style&240
-				if(s<65536) style = s
-				i += 3; continue
-			}else i++
-		}else if(c>=0xd800&&c<0xdc00){ /* High/Low surrogate pair */
-			const c2 = t.charCodeAt(++i)
-			if(c2 >= 0xdc00 && c2 < 0xe000) i++, c = (c-0xd800<<10|c2-0xdc00)+0x10000
-		}else i++
-		const char = glyphs.get(c)
-		if(!char) continue
+export function measureWidth(t, maxW = NaN, startStyle = 15){
+	init(t, startStyle)
+	let results = []
+	let char, w = 0
+	while(char = nextChar()){
 		w += char.w*16 + LETTER_SPACING + (style&16 ? LETTER_SPACING : 0)
 	}
-	return w&&w-LETTER_SPACING
+	results.push(w&&w-LETTER_SPACING)
+	return maxW == maxW ? results : results[0]
 }
 
 export const textShadeCol = vec4(.1777, .1777, .1777, .43)

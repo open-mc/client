@@ -20,6 +20,10 @@
 	parent.postMessage(null, '*')
 	onerror=(_,a,b,c,d)=>postMessage([''+d,a,b,c], '*')
 	onunhandledrejection=({reason})=>postMessage([''+reason,'',0,0], '*')
+	Array.prototype.bind = Array.prototype.push
+	Array.prototype.fire = function(...v){
+		for(const r of this) try{r(...v)}catch(e){Promise.reject(e)}
+	}
 /*function(i, x0, y0, w, h, size = 32){
 	if(h<0)y0+=h,h=-h
 	if(w<0)x0+=w,w=-w

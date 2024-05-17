@@ -320,7 +320,7 @@ img:after{
 
 @media (max-height: 600px){
 	#serverlist img{
-		width: 40rem; height: 40rem;
+		min-width: 40rem; height: 40rem;
 	}
 	#serverlist > row{ height: 46rem }
 	#serverlist{ padding: 5rem }
@@ -328,11 +328,12 @@ img:after{
 }
 @media (max-height: 380px){
 	#serverlist img{
-		width: 32rem; height: 32rem;
+		min-width: 32rem; height: 32rem;
 	}
 	#serverlist > row{ height: 38rem }
 	#serverlist{ padding: 3rem }
 	.serverlist > row{ padding: 2rem }
+	#serverlist > row > div > span{ transform: translateY(-6rem) }
 }
 @media (max-height: 336px) {
 	body{

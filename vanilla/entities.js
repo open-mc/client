@@ -59,7 +59,7 @@ export class LivingEntity extends Entity{
 			c2.scale(0.25)
 			const width = measureWidth(this.name)
 			c2.drawRect(width * -0.5 - .2, -.2, width + 0.4, 1.4, nameBgCol)
-			drawText(c2, (this.state&0x100?'\\+9':'')+this.name, width * -0.5, 0, 1, 0)
+			drawText(c2, (this.state&0x100?'\\+9':'')+this.name, width * -0.5, 0, 1, 15)
 		}
 		if(ys < 0) c.translate(0, this.height)
 		c.scale(xs, ys)

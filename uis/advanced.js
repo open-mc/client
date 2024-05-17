@@ -25,9 +25,9 @@ const ui = UI('menu',
 	Scale(speedChange),
 	Scale(supersampleChange),
 	Scale(maxParticlesChange),
-	af3Node = Btn('Open debug automatically: '+(options.autof3 ? options.autof3 > 1 ? 'FULL' : 'YES' : 'NO'), () => {
-		options.autof3 = (options.autof3+1)%3
-		af3Node.text = 'Open debug automatically: '+(options.autof3 ? options.autof3 > 1 ? 'FULL' : 'YES' : 'NO')
+	af3Node = Btn('Default debug: '+(options.autof3 > 1 ? options.autof3 > 2 ? 'EVERYTHING' : 'DETAILED' : options.autof3 ? 'MINIMAL' : 'NO'), () => {
+		options.autof3 = (options.autof3+1)%4
+		af3Node.text = 'Default debug: '+(options.autof3 > 1 ? options.autof3 > 2 ? 'EVERYTHING' : 'DETAILED' : options.autof3 ? 'MINIMAL' : 'NO')
 	}),
 	Spacer(20),
 	Btn('Back', optionsScreen)

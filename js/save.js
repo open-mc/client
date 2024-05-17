@@ -36,7 +36,7 @@ const defaults = {
 	speed: 1,
 	click: true,
 	ffx: 1,
-	autof3: 0,
+	autof3: 1,
 	notifs: 1,
 	maxParticles: 1000,
 	joy: 0

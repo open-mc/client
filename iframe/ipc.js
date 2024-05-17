@@ -1,7 +1,8 @@
 import { DataReader, jsonToType } from '/server/modules/dataproto.js'
-import { options, listen, _cbs, _mouseMoveCb, _joypadMoveCbs, _wheelCb, _optionListeners, codes, paused, _onvoice, voice, _updatePaused, _onPacket } from 'api'
+import { options, listen, _cbs, onmousemove, _joypadMoveCbs, onwheel, _optionListeners, codes, paused, _onvoice, voice, _updatePaused, _onPacket, onfocus, onblur } from 'api'
 import { Blocks, Items, Entities, BlockIDs, ItemIDs, EntityIDs, Block, Item, Entity, Classes } from 'definitions'
 import { me } from 'world'
+import { onChat } from './chat.js'
 
 Object.assign(globalThis, {Blocks, Items, Entities, BlockIDs, ItemIDs, EntityIDs, me})
 
@@ -29,7 +30,7 @@ const onMsg = ({data,origin}) => {
 					delta.y = -(cursor.y - (cursor.y = b * devicePixelRatio))
 				}else{
 					delta.x = a; delta.y = b
-					for(const cb of _mouseMoveCb) cb(a, b)
+					onmousemove.fire(a, b)
 				}
 			}
 			return
@@ -44,10 +45,7 @@ const onMsg = ({data,origin}) => {
 			}
 			if(Object.hasOwn(_joypadMoveCbs, id)) for(const cb of _joypadMoveCbs[id]) cb(dx, dy, id)
 			return
-		}else if(data.length == 1){
-			for(const cb of _wheelCb) cb(data[0])
-			return
-		}
+		}else if(data.length == 1) return onwheel.fire(data[0])
 		// import scripts
 		const list = data[3].split('\n')
 		for(let i = 0; i < Classes.length; i++){
@@ -102,9 +100,14 @@ const onMsg = ({data,origin}) => {
 	}else if(data instanceof ArrayBuffer){
 		if(loading>0) return void msgQueue.push(data)
 		_onPacket(data)
+	}else if(typeof data == 'string'){
+		onChat(data)
 	}else if(data instanceof Float32Array) _onvoice(data)
 	else if(typeof data == 'number'){
-		if(data >= 5e9) voice.sampleRate = data - 5e9
+		if(!Number.isFinite(data)){
+			if(data > 0) onfocus.fire()
+			else if(data < 0) onblur.fire()
+		}else if(data >= 5e9) voice.sampleRate = data - 5e9
 		else if(data >= 0){
 			buttons.set(data)
 			changed.set(data)

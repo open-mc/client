@@ -4,7 +4,8 @@ import { feedback } from './feedbackui.js'
 import { optionsScreen } from './options.js'
 import { serverlist } from './serverlist.js'
 
-
+const keybindsBtn = Btn('Keybinds')
+keybindsBtn.disabled = true
 const pauseui = UI('menu',
 	Label('Game menu'),
 	Btn('Back to Game', hideUI),
@@ -12,7 +13,7 @@ const pauseui = UI('menu',
 		const { protocol, host } = new URL(ws.url)
 		open(protocol.replace('ws','http')+'//'+host,'_blank')
 	})),
-	Row(Btn('Controls', controlsScreen), Btn('Feedback', feedback)),
+	Row(Btn('Controls', controlsScreen), keybindsBtn),
 	Btn('Disconnect', serverlist),
 	Div('',
 		Label('Credits').attr('style', 'height:unset;cursor:pointer;line-height:unset').attr('onclick', "window.open('https://github.com/open-mc/client/blob/main/CREDITS.md','_blank')"),

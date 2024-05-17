@@ -79,7 +79,7 @@ onKey(KEYS.BACK, () => {
 })
 
 let cummulative = 0
-onwheel(dy => {
+onwheel.bind(dy => {
 	cummulative += dy
 	if(buttons.has(KEYS.CTRL)){
 		if(cummulative > 60)

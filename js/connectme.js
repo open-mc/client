@@ -1,9 +1,9 @@
 import { DataReader, decoder } from '/server/modules/dataproto.js'
 import "../uis/chat.js"
-import { msg, pendingConnection, reconn } from '../uis/dirtscreen.js'
+import { pendingConnection, reconn } from '../uis/dirtscreen.js'
 import { Btn, click, Div, Img, Label, ping, Row } from './ui.js'
 import { servers, saveServers, storage, options } from './save.js'
-import { destroyIframe, fwPacket, gameIframe } from './iframe.js'
+import { destroyIframe, fwPacket, gameIframe, keyMsg, win } from './iframe.js'
 import { PROTOCOL_VERSION } from '../server/version.js'
 let lastIp = null
 globalThis.ws = null
@@ -38,8 +38,9 @@ onfocus = () => {
 	blurred = false
 	notifs = 0
 	document.title = ws ? ws.name + ' | pMC' : 'Paper MC'
+	win && keyMsg(Infinity)
 }
-onblur = () => blurred = true
+onblur = () => { blurred = true; win && keyMsg(Infinity) }
 
 const unencrypted = /^(localhost|127.0.0.1|0.0.0.0|\[::1\])$/i
 
@@ -138,7 +139,8 @@ export function preconnect(ip, cb = Function.prototype, instant = false){
 			const {color, fontStyle, fontWeight, textDecoration} = getComputedStyle(box)
 			console.log('%c'+data.slice(2), 'color:'+color+';font-size:12px;font-family:mc,monospace,Arial;font-weight:'+fontWeight+';font-style:'+fontStyle+';text-decoration:'+textDecoration)
 			if(options.notifs === 2 || (options.notifs === 1 && pingRegex.test(box.textContent))) notif(), box.style.backgroundColor = '#8608'
-		}else fwPacket(data)
+		}
+		fwPacket(data)
 	}
 	ws.onclose = () => {
 		if(ws === globalThis.ws || instant){
