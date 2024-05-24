@@ -1,6 +1,6 @@
 
 # Some environments may not support processing microphone input via javascript due to a poorly designed web standard
-warning.unsupported_microphone_api=Cambia a chrome o safari, su navegador no es compatible con el modo de este micrófono
+warning.unsupported_microphone_api=Cambia a chrome o safari, su navegador no es compatible con el modo del micrófono
 
 # App name when installed as a PWA
 misc.app_name=MC Papel
@@ -21,10 +21,9 @@ connection.disconnect=Desconectar
 connection.reconnect=Reconectar
 
 # Warning about certain environment caveats
-defects.safari=You seem to be using safari, which has proven multiple times to be an incompetent browser for developers, not supporting technologies that are standard almost anywhere else and offering mediocre quality and performance for graphical applications\nWe urge you, please, to switch to a different browser.
-defects.firefox=You seem to be using firefox, meaning you may occasionally experience low performance while playing this game. If this becomes an issue, consider switching to chromium (for privacy enthusiasts) or any other chromium-based browsers (e.g brave, opera gx, ...).
+defects.safari=Parece que estás utilizando Safari, que ha demostrado varias veces ser un navegador incompetente para los desarrolladores, que no admite tecnologías estándar y que ofrece calidad y eficiencia mediocres para aplicaciones gráficas.\nPor favor, si es posible, cambie a otro navegador.
 # Soon
-defects.mobile=We currently provide no touch control support\nCome back on a desktop device.
+defects.mobile=Actualmente no ofrecemos soporte de control táctil\nVuelve a un dispositivo de escritorio.
 
 serverlist.skin.not_an_image=¡No es una imagen!
 serverlist.skin.wrong_size=¡Tamaño equivocado!
@@ -38,65 +37,68 @@ serverlist.refresh=Actualizar
 serverlist.add_server=Añadir servidor
 serverlist.add_server.placeholder=ip del servidor
 
-pause.name=Game menu
-pause.resume=Back to Game
-pause.server_page=Server Page
+pause.name=Menú del juego
+pause.resume=Volver al juego
+pause.server_page=Página servidor
 # Shown on bottom right, faint
-pause.credits=Credits
-pause.changelog=Changelog
+pause.credits=Créditos
+pause.changelog=Registro de cambios
 
 # Translations shared in common between more than one options screen
-options.common.sensitivity.fast=HYPERSPEED!!!
-options.common.sensitivity.slow=*yawn*
-options.common.volume.loud=LOUD
-options.common.volume.quiet=quiet
+options.common.sensitivity.fast=HIPERRÁPIDO!!!
+options.common.sensitivity.slow=*leeento*
+options.common.volume.loud=FUERTE
+options.common.volume.quiet=silencioso
 options.common.percentage=\1%
 
 # options.abc = button label
 # options.abc.name = title of screen
-options.general=Options
-options.general.name=Options
-options.general.gui_scale=GUI scale: \1
+options.general=Opciones
+options.general.name=Opciones
+options.general.gui_scale=Tamaño GUI: \1
 options.general.zoom=Zoom: \1
-options.general.zoom.super=SUPER
-options.general.sound=Sound: \1
-options.general.music=Music: \1
-options.general.chat_notifications.0=Chat notifications: None
-options.general.chat_notifications.1=Chat notifications: Mentions
-options.general.chat_notifications.2=Chat notifications: All
+options.general.zoom.super=SÚPER
+options.general.sound=Sonidos: \1
+options.general.music=Música: \1
+options.general.chat_notifications.0=Notificaciones de chat: Ninguna
+options.general.chat_notifications.1=Notificaciones de chat: Menciones
+options.general.chat_notifications.2=Notificaciones de chat: Todas
+options.general.max_fps=Máx. FPS: \1
+options.general.max_fps.auto=Máx. FPS: Auto
+options.general.max_fps.unlimited=Máx. FPS: ilimitados
 
-options.controller=Controller
-options.controller.name=Controller options
-options.controller.joystick_mode=Joystick mode: \1
-options.controller.sensitivity=Controller sensitivity: \1
+options.controller=Controlador
+options.controller.name=Opciones controlador
+options.controller.joystick_mode=Modo palanca de mando: \1
+options.controller.sensitivity=Sensibilidad controlador: \1
 
-options.controls=Controls
-options.controls.name=Controls
-options.controls.left_click.place=Left click: place
-options.controls.left_click.break=Left click: break
-options.controls.zoom_fx.0=Zoom FX: None
-options.controls.zoom_fx.1=Zoom FX: Normal
-options.controls.zoom_fx.2=Zoom FX: 3x
-options.controls.zoom_fx.3=Zoom FX: CRAZY!!!
-options.controls.sensitivity=Sensitivity: \1
-options.controls.camera.0=Camera: Dynamic
-options.controls.camera.1=Camera: Follow smooth
-options.controls.camera.2=Camera: Follow pointer
-options.controls.camera.3=Camera: Follow player
-options.controls.camera.4=Camera: Page
-options.controls.fullscreen.0=Fullscreen: NO
-options.controls.fullscreen.1=Fullscreen: YES
+options.controls=Controles
+options.controls.name=Controles
+options.controls.left_click.place=Clic izdo.: colocar
+options.controls.left_click.break=Clic izdo.: destruir
+options.controls.zoom_fx.0=Efectos: Ninguno
+options.controls.zoom_fx.1=Efectos: Normal
+options.controls.zoom_fx.2=Efectos: 3x
+options.controls.zoom_fx.3=Efectos: ¡LOCOS!
+options.controls.sensitivity=Sensibilidad: \1
+options.controls.camera.0=Cámara: adaptativa
+options.controls.camera.1=Cámara: Seguir (fluido)
+options.controls.camera.2=Cámara: Seguir puntero
+options.controls.camera.3=Cámara: Seguir jugador
+options.controls.camera.4=Cámara: Paginado
+options.controls.fullscreen.0=Pantalla completa: No
+options.controls.fullscreen.1=Pantalla completa: Sí
 
-options.advanced=Advanced
-options.advanced.name=Advanced Options
-options.advanced.speed=Speed: \1x
-options.advanced.speed.paused=Speed: Paused
-options.advanced.max_particles=Max particles: \1
-options.advanced.supersampling=Supersampling: \1
-options.advanced.default_debug.0=Default debug: NO
-options.advanced.default_debug.1=Default debug: MINIMAL
-options.advanced.default_debug.2=Default debug: DETAILED
-options.advanced.default_debug.3=Default debug: EVERYTHING
+options.advanced=Avanzado
+options.advanced.name=Opciones Avanzado
+options.advanced.speed=Rapidez: \1x
+options.advanced.speed.paused=Rapidez: Paused
+options.advanced.max_particles=Máx. recuento partículas: \1
+options.advanced.supersampling=Supermuestreo: \1
+options.advanced.default_debug.0=Depuraciónes: Ninguna
+options.advanced.default_debug.1=Depuraciónes: Mínima
+options.advanced.default_debug.2=Depuraciónes: Detallada
+options.advanced.default_debug.3=Depuraciónes: Todas
 
-keybinds=Keybinds
-keybinds.name=Keybinds
+keybinds=Teclas
+keybinds.name=Teclas

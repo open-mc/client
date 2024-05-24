@@ -20,11 +20,6 @@ const defects = {
 	 */
 	safari: false,
 	/**
-	 * Damn, I had hoped you would excell in this, firefox.
-	 * Horrendous canvas2d performance on some systems
-	 */
-	firefox: false,
-	/**
 	 * No mobile support (yet!)
 	 */
 	mobile: false
@@ -32,9 +27,6 @@ const defects = {
 
 // Fuck you, safari!
 if(!('filter' in CanvasRenderingContext2D.prototype)) defects.safari = true
-
-if(navigator.userAgent.toLowerCase().includes('firefox'))
-	defects.firefox = false, defects.safari = false
 
 if(matchMedia("not (pointer: fine)").matches)
 	defects.mobile = true, defects.safari = false
@@ -46,7 +38,7 @@ export function start(){
 		showUI(UI('dirtbg',
 			Label('Notice about your current environment').attr('style', 'font-size: 12rem; max-width: calc(100% - 20px); white-space: pre-wrap; height: auto'),
 			Spacer(25),
-			Label(((defects.safari ? '\n'+texts.defects.safari() : '') + (defects.firefox ? '\n'+texts.defects.firefox() : '') + (defects.mobile ? '\n'+texts.defects.mobile() : '')).slice(1)).attr('style', 'max-width: calc(100% - 20px); opacity: 0.7; height: auto; white-space: pre-wrap'),
+			Label(((defects.safari ? '\n'+texts.defects.safari() : '') + (defects.mobile ? '\n'+texts.defects.mobile() : '')).slice(1)).attr('style', 'max-width: calc(100% - 20px); opacity: 0.7; height: auto; white-space: pre-wrap'),
 			Spacer(25),
 			Row(Btn('Don\'t warn again', () => (storage.shownDefects = true, serverlist())), Btn('Ok, proceed', serverlist))
 		))

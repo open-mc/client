@@ -29,7 +29,12 @@ function soundChange(a = options.sound){
 }
 function musicChange(a = options.music){
 	options.music = a
-	return [texts.sound(a >= 0.005 ? a < 0.995 ? textsCommon.percentage(Math.round(a*100)) : textsCommon.volume.loud() : textsCommon.volume.quiet()), a]
+	return [texts.music(a >= 0.005 ? a < 0.995 ? textsCommon.percentage(Math.round(a*100)) : textsCommon.volume.loud() : textsCommon.volume.quiet()), a]
+}
+
+function fpsChange(a = options.fps){
+	a = Math.round(a*25)*10
+	return [a ? a < 250 ? texts.max_fps(a) : texts.max_fps.unlimited() : texts.max_fps.auto(), options.fps = a/250]
 }
 
 function notifChange(){
@@ -46,10 +51,10 @@ const optionsui = UI('menu',
 	Label(texts.name()),
 	Row(ScaleSmall(zoomChange), guiNode = Btn('', guiChange)),
 	Row(ScaleSmall(soundChange), ScaleSmall(musicChange)),
+	Scale(fpsChange),
 	chatNode = Btn('', notifChange),
-	Btn(allTexts.options.advanced(), advancedOptionsScreen),
 	Spacer(20),
-	Row(Btn(allTexts.misc.menu_back(), pause), Btn(allTexts.options.controls(), controlsScreen))
+	Row(Btn(allTexts.misc.menu_back(), pause), Btn(allTexts.options.advanced(), advancedOptionsScreen))
 )
 optionsui.esc = pause
 

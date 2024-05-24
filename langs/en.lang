@@ -22,7 +22,6 @@ connection.reconnect=Reconnect
 
 # Warning about certain environment caveats
 defects.safari=You seem to be using safari, which has proven multiple times to be an incompetent browser for developers, not supporting technologies that are standard almost anywhere else and offering mediocre quality and performance for graphical applications\nWe urge you, please, to switch to a different browser.
-defects.firefox=You seem to be using firefox, meaning you may occasionally experience low performance while playing this game. If this becomes an issue, consider switching to chromium (for privacy enthusiasts) or any other chromium-based browsers (e.g brave, opera gx, ...).
 # Soon
 defects.mobile=We currently provide no touch control support\nCome back on a desktop device.
 
@@ -64,6 +63,9 @@ options.general.music=Music: \1
 options.general.chat_notifications.0=Chat notifications: None
 options.general.chat_notifications.1=Chat notifications: Mentions
 options.general.chat_notifications.2=Chat notifications: All
+options.general.max_fps=Max FPS: \1
+options.general.max_fps.auto=Max FPS: Auto
+options.general.max_fps.unlimited=Max FPS: Unlimited
 
 options.controller=Controller
 options.controller.name=Controller options
@@ -83,12 +85,12 @@ options.controls.camera.0=Camera: Dynamic
 options.controls.camera.1=Camera: Follow smooth
 options.controls.camera.2=Camera: Follow pointer
 options.controls.camera.3=Camera: Follow player
-options.controls.camera.4=Camera: Page
+options.controls.camera.4=Camera: Paginated
 options.controls.fullscreen.0=Fullscreen: NO
 options.controls.fullscreen.1=Fullscreen: YES
 
 options.advanced=Advanced
-options.advanced.name=Advanced Options
+options.advanced.name=Advanced options
 options.advanced.speed=Speed: \1x
 options.advanced.speed.paused=Speed: Paused
 options.advanced.max_particles=Max particles: \1

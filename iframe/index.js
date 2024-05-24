@@ -8,7 +8,7 @@ import { particles, blockAtlas, _recalcDimensions, W2, H2, SCALE, toBlockExact, 
 import { VERSION } from '../server/version.js'
 
 let last = performance.now(), timeToFrame = 0
-setInterval(function(){
+export function step(){
 	const now = performance.now()
 	const update = 1000 / world.tps
 	let dt = now - last
@@ -18,7 +18,7 @@ setInterval(function(){
 	dt -= tickcount*update
 	while(tickcount--) tick()
 	last -= dt
-})
+}
 
 const sendDelay = 1 //send packet every tick
 function tick(){
@@ -45,18 +45,21 @@ function tick(){
 	if(randomBlock.random) randomBlock.random(x, y)
 	for(const e of entityMap.values()) if(e.tick) e.tick()
 }
-let dtSmooth = 0
 export let zoom_correction = 0
 let camMovingX = false, camMovingY = false
 const CAMERA_DYNAMIC = 0, CAMERA_FOLLOW_SMOOTH = 1, CAMERA_FOLLOW_POINTER = 2,
 	CAMERA_FOLLOW_PLAYER = 3, CAMERA_PAGE = 4
-let frameNumber = 0, flashbang = 0
-onfocus.bind(() => frameNumber = 0)
+let flashbang = 0
+let frames = 0
+globalThis.fps = 0
+globalThis.frameCount = 0
+onfocus.bind(() => frameCount = 0)
 export function frame(){
 	const correctT = t
-	dtSmooth += (dt-dtSmooth)*max(1-++frameNumber/15,dt*2)
 	t *= options.speed; dt *= options.speed
 	_networkUsage()
+	const p = 0.5**(dt*max(60-++frameCount,2))
+	fps = round((frames = frames*p+1) * (1-p)/dt)
 	pause(false)
 	playerControls()
 	for(const entity of entityMap.values()) stepEntity(entity)
@@ -292,16 +295,16 @@ drawLayer('ui', 1000, (ctx, w, h) => {
 	ct2.translate(0, h)
 	ct2.scale(8, 8)
 	const trueX = toString(bigintOffset.x, me.x, f3<2?0:3), trueY = toString(bigintOffset.y, me.y, f3<2?0:3)
-	const fps = round(1/dtSmooth)
+	//const fps = round(1/dtSmooth)
 	const day = floor((world.tick+6000)/24000), time = floor((world.tick/1000+6)%24).toString().padStart(2,'0')+':'+(floor((world.tick/250)%4)*15).toString().padStart(2,'0')
 	let helpOfft = w < 600 ? t%6<3 ? 1 : 0 : NaN
 	const mex = floor(me.x) >> 3 & 6, mexi = (floor(me.x) & 15) / 16
 	const lookingAt = getblock(floor(pointer.x + me.x), floor(pointer.y + me.y + me.head))
 	for(const t of f3<2 ? buttons.has(KEYS.ALT)?minif3Info:[
-`\\27${VERSION}\\0f; \\+${(fps<20?'9':fps<50?'3':fps<240?'a':'d')+fps}\\+f fps; \\4+x: ${trueX}, y: ${trueY}\\0+; \\+6Day ${day} ${time}\\+f; ${(lookingAt.id?'':'\\+8')+lookingAt.className}\\+f`
+`\\27${VERSION}\\0f; \\+${(fps<20?'9':fps<50?'3':fps<235?'a':'d')+fps}\\+f fps; \\4+x: ${trueX}, y: ${trueY}\\0+; \\+6Day ${day} ${time}\\+f; ${(lookingAt.id?'':'\\+8')+lookingAt.className}\\+f`
 ] : buttons.has(KEYS.ALT)?helpOfft==0?[]:f3LeftInfo :
 `Paper MC ${VERSION} (Alt for f3 help)
-FPS: \\+${(fps<20?'9':fps<50?'3':fps<240?'a':'d')+fps}\\+f (${(timeToFrame*1000).toFixed(2).padStart(5,'\u2007')}ms)
+FPS: \\+${(fps<20?'9':fps<50?'3':fps<235?'a':'d')+fps}\\+f (${(timeToFrame*1000).toFixed(2).padStart(5,'\u2007')}ms)
 Net: ${Number.formatData(networkUsage)}/s${performance.memory ? ', Mem: '+Number.formatData(performance.memory.usedJSHeapSize) : ''}
 Draw: ${Number.formatData(frameData)}/${frameSprites}/${frameDrawCalls}
 Ch: ${visibleChunks}/${map.size}, E: ${entityMap.size}, P: ${particles.size}

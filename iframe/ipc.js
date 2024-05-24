@@ -16,6 +16,7 @@ const loaded = () => {
 globalThis.addToQueue = p => p?.then&&(loading++,p.then(()=>--loading||loaded()))
 listen('music', () => bgGain.gain.value = options.music * options.music)
 listen('sound', () => masterVolume = options.sound)
+listen('fps', () => ctxFramerate = options.fps ? options.fps < 1 ? options.fps*250 : Infinity : -1)
 const onMsg = ({data,origin}) => {
 	if(origin=='null') return
 	if(Array.isArray(data)){

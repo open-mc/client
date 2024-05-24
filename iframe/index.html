@@ -574,13 +574,15 @@ class can{
 		setv(this.t, this.#m)
 		gl.clearColor(r, g, b, a)
 		const q = this.t.stencil=this.t.stencil+1&7
-		gl.clear(q?16384:(gl.stencilMask(os=255), 17408))
+		gl.clear(q?16384:(gl.stencilMask(255), 17408))
+		gl.disable(2960); pmask &= -241
 	}
 	clearStencil(){
 		if(i)draw()
 		setv(this.t, this.#m)
 		const q = this.t.stencil=this.t.stencil+1&7
-		if(!q)gl.stencilMask(os=255), gl.clear(1024)
+		if(!q)gl.stencilMask(255), gl.clear(1024)
+		gl.disable(2960); pmask &= -241
 	}
 }
 let pmask=285217039
@@ -597,7 +599,6 @@ Object.assign(T, {
 	BEHIND: 1118583
 })
 globalThis.PI ??= Math.PI; globalThis.PI2 ??= globalThis.PI*2
-let os = 255
 function setv(t,m){
 	if(ca!=t){
 		i&&draw()
@@ -614,7 +615,7 @@ function setv(t,m){
 		ca=t
 	}
 	const s = t.stencil
-	const d = pmask^m^(s!=os)<<4
+	const d = pmask^m
 	if(d){
 		i&&draw()
 		if(d&15) gl.colorMask(m&1,m&2,m&4,m&8)
@@ -622,7 +623,7 @@ function setv(t,m){
 			if(m&240){
 				if(!(pmask&240)) gl.enable(2960) // STENCIL_TEST
 				if(d&240){
-					gl.stencilMask(1<<(os=s))
+					gl.stencilMask(1<<s)
 					gl.stencilFunc(m&32?m&16?gl.NEVER:gl.NOTEQUAL:m&16?gl.EQUAL:gl.ALWAYS,255,1<<s)
 					const op = m&128?m&64?gl.INVERT:gl.REPLACE:m&64?gl.ZERO:gl.KEEP
 					gl.stencilOp(op, op, op)
@@ -876,7 +877,7 @@ globalThis.Audio = src => {
 	}
 }
 
-{let i=0,m=new MessageChannel,c=new Map;m.port1.onmessage=({data:i},j=c.get(i))=>(c.delete(i)&&j());m=m.port2;globalThis.setImmediate=(f,...a)=>(c.set(++i,a.length?f.bind(undefined, ...a):f),m.postMessage(i),i);globalThis.clearImmediate=i=>c.delete(i)}
+{let i=0,m=new MessageChannel,c=new Map;m.port1.onmessage=({data:i},j=c.get(i))=>(c.delete(i)&&j());m=m.port2;globalThis.setImmediate=(f,...a)=>(c.set(++i,a.length?f.bind(undefined,...a):f),m.postMessage(i),i);globalThis.clearImmediate=i=>c.delete(i)}
 Math.fclamp = (a, b = 1) => a < 0 ? 0 : (a > b ? b : a)
 Math.ifloat = x => {
 	let f = Math.floor(x)
@@ -923,19 +924,33 @@ Array.null = len => {
 	return a
 }
 globalThis.ctxSupersample = 1
+globalThis.ctxFramerate = -1
 globalThis.pixelRatio = 1
-const {frame}=await import('./index.js')
+const m=await import('./index.js')
 globalThis.t = performance.now()/1000; globalThis.dt = 0
+let nextF = 0
+setInterval(function g(j){
+	if(j) m.step?.()
+	if(ctxFramerate<0) return
+	let now = performance.now()/1000
+	if(now < nextF) return
+	dt = -(globalThis.t-(globalThis.t=now))
+	ctx.clear(); ctx.reset()
+	i&&draw()
+	try{m.frame?.(dt)}catch(e){Promise.reject(e)}; i&&draw()
+	if((now=performance.now()/1000) >= (nextF+=1/ctxFramerate)) setImmediate(g, 0)
+}, 0, 1)
 requestAnimationFrame(function f(){
+	requestAnimationFrame(f)
 	frameDrawCalls = fdc; frameSprites = fs; frameData = fd*4+fdc*24; fdc = fs = fd = 0
-	dt = Math.min(-(globalThis.t-(globalThis.t=performance.now()/1000)), .5)
-	requestAnimationFrame(f); i&&draw()
+	i&&draw()
 	pixelRatio = devicePixelRatio * ctxSupersample
 	gl.canvas.style.imageRendering = ctxSupersample > 1 ? 'auto' : 'pixelated'
 	gl.viewport(0, 0, ctx.t.w = gl.canvas.width = round(innerWidth*pixelRatio), ctx.t.h = gl.canvas.height = round(innerHeight*pixelRatio))
 	gl.bindFramebuffer(36160,null); ca=ctx.t
-	ctx.reset()
-	frame?.(dt)
-	i&&draw()
+	if(ctxFramerate>=0) return
+	const now = performance.now()/1000
+	dt = Math.min(-(globalThis.t-(globalThis.t=performance.now()/1000)), .5)
+	ctx.reset(); try{m.frame?.(dt)}catch(e){Promise.reject(e)}; i&&draw()
 })
 </script>

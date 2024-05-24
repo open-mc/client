@@ -40,7 +40,8 @@ const defaults = {
 	notifs: 1,
 	maxParticles: 1000,
 	joy: 0,
-	lang: ''
+	lang: '',
+	fps: 0,
 }
 const optionListeners = {}
 for(const k in defaults){
