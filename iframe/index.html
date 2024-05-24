@@ -442,7 +442,7 @@ Object.assign(globalThis, {
 	UPSCALE_SMOOTH: 1, DOWNSCALE_SMOOTH: 2, MIPMAP_SMOOTH: 4, SMOOTH: 7, REPEAT_X: 8, REPEAT_MIRRORED_X: 16, REPEAT_Y: 32, REPEAT_MIRRORED_Y: 64, REPEAT: 40, REPEAT_MIRRORED: 80,
 	R: 1, G: 2, B: 4, A: 8,
 	RGB: 7, RGBA: 15,
-	IF_SET: 16, IF_UNSET: 32,
+	IF_SET: 16, IF_UNSET: 32, NO_DRAW: 48,
 	UNSET: 64, SET: 128, FLIP: 192,
 	ONE: 17, ZERO: 0, RGB_ONE: 1, A_ONE: 16,
 	SRC: 34, RGB_SRC: 2,
@@ -574,15 +574,13 @@ class can{
 		setv(this.t, this.#m)
 		gl.clearColor(r, g, b, a)
 		const q = this.t.stencil=this.t.stencil+1&7
-		gl.clear(q?16384:(gl.stencilMask(255), 17408))
-		gl.stencilMask(1<<q)
+		gl.clear(q?16384:(gl.stencilMask(os=255), 17408))
 	}
 	clearStencil(){
 		if(i)draw()
 		setv(this.t, this.#m)
 		const q = this.t.stencil=this.t.stencil+1&7
-		if(!q)gl.stencilMask(255), gl.clear(1024)
-		gl.stencilMask(1<<q)
+		if(!q)gl.stencilMask(os=255), gl.clear(1024)
 	}
 }
 let pmask=285217039
@@ -595,9 +593,11 @@ Object.assign(T, {
 	MULTIPLY: 1122816,
 	SUBTRACT: 5574929,
 	REVERSE_SUBTRACT: 6689041,
-	MIN: 2232593, MAX: 3346705
+	MIN: 2232593, MAX: 3346705,
+	BEHIND: 1118583
 })
 globalThis.PI ??= Math.PI; globalThis.PI2 ??= globalThis.PI*2
+let os = 255
 function setv(t,m){
 	if(ca!=t){
 		i&&draw()
@@ -613,24 +613,25 @@ function setv(t,m){
 		}
 		ca=t
 	}
-	if(pmask!=m){
+	const s = t.stencil
+	const d = pmask^m^(s!=os)<<4
+	if(d){
 		i&&draw()
-		pmask ^= m
-		if(pmask&15) gl.colorMask(m&1,m&2,m&4,m&8)
-		if(pmask&240){
+		if(d&15) gl.colorMask(m&1,m&2,m&4,m&8)
+		if(d&240){
 			if(m&240){
-				const s = t.stencil
-				if(!((pmask^m)&240)) gl.enable(2960) // STENCIL_TEST
-				if(pmask&240){
+				if(!(pmask&240)) gl.enable(2960) // STENCIL_TEST
+				if(d&240){
+					gl.stencilMask(1<<(os=s))
 					gl.stencilFunc(m&32?m&16?gl.NEVER:gl.NOTEQUAL:m&16?gl.EQUAL:gl.ALWAYS,255,1<<s)
 					const op = m&128?m&64?gl.INVERT:gl.REPLACE:m&64?gl.ZERO:gl.KEEP
 					gl.stencilOp(op, op, op)
 				}
-			}else if((pmask^m)&240) gl.disable(2960) // STENCIL_TEST
+			}else if(pmask&240) gl.disable(2960) // STENCIL_TEST
 		}
-		if(pmask&1996488704) gl.blendEquationSeparate((m>>24&7)+32773,(m>>28&7)+32773)
-		if(pmask&16776960) gl.blendFuncSeparate((m>>8&15)+766*!!(m&3584), (m>>16&15)+766*!!(m&917504), (m>>12&15)+766*!!(m&57344), (m>>20&15)+766*!!(m&14680064))
-		if(pmask&-2147483648) m&-2147483648 ? gl.enable(3024) : gl.disable(3024) // DITHER
+		if(d&1996488704) gl.blendEquationSeparate((m>>24&7)+32773,(m>>28&7)+32773)
+		if(d&16776960) gl.blendFuncSeparate((m>>8&15)+766*!!(m&3584), (m>>16&15)+766*!!(m&917504), (m>>12&15)+766*!!(m&57344), (m>>20&15)+766*!!(m&14680064))
+		if(d&-2147483648) m&-2147483648 ? gl.enable(3024) : gl.disable(3024) // DITHER
 		pmask = m
 	}
 }
@@ -811,7 +812,8 @@ globalThis.frameSprites = 0
 globalThis.frameData = 0
 let fdc = 0, fs = 0, fd = 0
 Shader.DEFAULT = sh = Shader(`void main(){color=arg0()*(1.-arg1);}`, [COLOR, VEC4])
-Shader.INT = sh = Shader(`void main(){color=arg0();}`, UCOLOR, _, UINT)
+Shader.INT = Shader(`void main(){color=arg0();}`, UCOLOR, _, UINT)
+Shader.NONE = Shader(`void main(){color=vec4(0,0,0,1);}`)
 gl.useProgram(sh.program)
 gl.bindVertexArray(sh.vao)
 globalThis._gl = gl

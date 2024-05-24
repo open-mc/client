@@ -2,12 +2,14 @@ import { pause } from './pauseui.js'
 import { options } from '../js/save.js'
 import { Btn, Label, Row, Scale, showUI, Spacer, UI } from '../js/ui.js'
 import { controllerScreen } from './controllerScreen.js'
+import allTexts from '../js/lang.js'
+const texts = allTexts.options.controls
 
 function renderClick(){
-	clickNode.text = options.click ? 'Left click: place' : 'Left click: break'
+	clickNode.text = options.click ? texts.left_click.place() : texts.left_click.break()
 }
 function renderFfx(){
-	ffxNode.text = options.ffx < 2 ? options.ffx == 0 ? 'Zoom FX: None' : 'Zoom FX: Normal' : options.ffx == 2 ? 'Zoom FX: 3x' : 'Zoom FX: CRAZY!!!'
+	ffxNode.text = texts.zoom_fx[options.ffx]()
 }
 
 function clickChange(){
@@ -21,12 +23,11 @@ function ffxChange(){
 
 function sensitivityChange(a = options.sensitivity){
 	options.sensitivity = a
-	return [a > 0.005 ? a < 0.995 ? 'Sensitivity: '+Math.floor(9 ** a * 10 / 3) / 10 +'x' : 'Sensitivity: HYPERSPEED!!!' : 'Sensitivity: *yawn*', a]
+	return [texts.sensitivity(a > 0.005 ? a < 0.995 ? Math.floor(9 ** a * 10 / 3) / 10 : allTexts.options.common.sensitivity.fast() : allTexts.options.common.sensitivity.slow()), a]
 }
 
-const cameraOptions = ['Dynamic', 'Follow smooth', 'Follow Pointer', 'Follow player', 'Page']
 function renderCamMode(){
-	camNode.textContent = 'Camera: ' + cameraOptions[options.camera]
+	camNode.textContent = texts.camera[options.camera]()
 }
 function camChange(){
 	options.camera = (options.camera + 1) % 5
@@ -34,7 +35,7 @@ function camChange(){
 }
 
 function renderFsc(){
-	fscNode.textContent = 'Fullscreen: ' + (options.fsc ? 'YES' : 'NO')
+	fscNode.textContent = texts.fullscreen[+options.fsc]()
 }
 function fscChange(){
 	options.fsc = 1 - options.fsc
@@ -43,13 +44,13 @@ function fscChange(){
 
 let clickNode, ffxNode, camNode, fscNode
 const controlssui = UI('menu',
-	Label('Controls'),
+	Label(texts.name()),
 	camNode = Btn('', camChange),
 	Row(clickNode = Btn('', clickChange), ffxNode = Btn('', ffxChange)),
 	Scale(sensitivityChange),
 	fscNode = Btn('', fscChange),
 	Spacer(20),
-	Row(Btn('Back', pause), Btn('Controller', controllerScreen))
+	Row(Btn(allTexts.misc.menu_back(), pause), Btn(allTexts.options.controller(), controllerScreen))
 )
 controlssui.esc = pause
 

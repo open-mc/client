@@ -39,7 +39,8 @@ const defaults = {
 	autof3: 1,
 	notifs: 1,
 	maxParticles: 1000,
-	joy: 0
+	joy: 0,
+	lang: ''
 }
 const optionListeners = {}
 for(const k in defaults){

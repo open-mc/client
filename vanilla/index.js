@@ -357,7 +357,7 @@ onKey(KEYS.Q, GAMEPAD.Y, GAMEPAD.DOWN, () => {
 	buf.byte(34)
 	send(buf)
 })
-const addMultBlend = Blend(DST, ADD, ONE_MINUS_SRC_ALPHA)
+const addMultBlend = Blend(DST, ADD, SRC)
 gridEvents[4] = (buf, x, y) => {
 	let time = 0
 	const toBreak = buf.float() / world.tps
@@ -373,7 +373,7 @@ gridEvents[4] = (buf, x, y) => {
 			block.trace(c)
 			c.blend = addMultBlend
 			c.draw(BREAKING[min(9, floor(time / toBreak * 10)) || 0])
-			c.clearStencil()
+			c.mask = RGBA
 			c.blend = 0
 		}
 		if(floor(time * 5) != floor((time += dt) * 5))

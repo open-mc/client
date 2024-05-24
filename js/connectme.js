@@ -5,6 +5,7 @@ import { Btn, click, Div, Img, Label, ping, Row } from './ui.js'
 import { servers, saveServers, storage, options } from './save.js'
 import { destroyIframe, fwPacket, gameIframe, keyMsg, win } from './iframe.js'
 import { PROTOCOL_VERSION } from '../server/version.js'
+import texts from './lang.js'
 let lastIp = null
 globalThis.ws = null
 
@@ -30,14 +31,14 @@ let blurred = false, notifs = 0
 
 function notif(force = false){
 	if(!blurred || !ws) return
-	document.title = '(🔴' + (++notifs) + ') ' + ws.name + ' | pMC'
+	document.title = texts.misc.title.notification(ws.name, ++notifs)
 	ping()
 }
 
 onfocus = () => {
 	blurred = false
 	notifs = 0
-	document.title = ws ? ws.name + ' | pMC' : 'Paper MC'
+	document.title = ws ? texts.misc.title.playing(ws.name) : texts.misc.title.menu()
 	win && keyMsg(Infinity)
 }
 onblur = () => { blurred = true; win && keyMsg(Infinity) }
@@ -144,14 +145,14 @@ export function preconnect(ip, cb = Function.prototype, instant = false){
 	}
 	ws.onclose = () => {
 		if(ws === globalThis.ws || instant){
-			const msg = timeout >= 0 ? 'Connection refused' : 'Connection lost'
+			const msg = ws instanceof WebSocket ? timeout >= 0 ? texts.connection.refused() : texts.connection.lost() : texts.connection.invalid_ip()
 			finished()
 			reconn(msg)
 			return
 		}
 		icon.src = './img/pack.png'
 		node.attr('style', '')
-		motd.textContent = ws instanceof WebSocket ? 'Failed to connect' : 'Invalid IP'
+		motd.textContent = ws instanceof WebSocket ? texts.connection.refused() : texts.connection.invalid_ip()
 		motd.style.color = '#d22'
 		name.textContent = displayIp
 	}
@@ -181,7 +182,7 @@ export function preconnect(ip, cb = Function.prototype, instant = false){
 					saveServers()
 				},'tiny')
 			),
-			motd = Label('Connecting...').attr('style', 'opacity: 0.5')
+			motd = Label(texts.connection.connecting()).attr('style', 'opacity: 0.5')
 		)
 	)
 	node.classList.add('selectable')
@@ -204,7 +205,7 @@ export async function play(ws){
 	ws.send(packet)
 	globalThis.ws = ws
 	onfocus()
-	pendingConnection('Authenticating...')
+	pendingConnection(texts.connection.authenticating())
 	gameIframe(ws.packs, 0)
 	console.clear()
 }

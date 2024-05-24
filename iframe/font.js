@@ -33,7 +33,9 @@ function nextChar(){
 				c = hexToInt(text.charCodeAt(i+2))<<4|hexToInt(text.charCodeAt(i+3))|hexToInt(text.charCodeAt(i+4))<<4|hexToInt(text.charCodeAt(i+5))
 				i += 6
 				if(c > 65535) c = 65533
-			}else if(c2 != 92){
+			}else if(c2==78||c2==110){ c = 10; i++ }
+			else if(c2==84||c2==116){ c = 9; i++ }
+			else if(c2 != 92){
 				let s = hexToInt(text.charCodeAt(i+1))<<4|hexToInt(text.charCodeAt(i+2))
 				if(s&131072) s = s&-131088|style&15
 				if(s&2097152) s = s&-2097393|style&240

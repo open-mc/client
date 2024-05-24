@@ -1,7 +1,8 @@
 import { listen, options, storage } from './save.js'
-import { hideUI, showUI, ui } from './ui.js'
+import { hideUI, showUI } from './ui.js'
 import { pause } from '../uis/pauseui.js'
 import { serverlist } from '../uis/serverlist.js'
+import texts from './lang.js'
 
 export let iframe = document.createElement('iframe'), win = null
 // Security druggie
@@ -107,7 +108,7 @@ async function microphone(){
 			node = ctx.createMediaStreamSource(m)
 			break
 		}catch(e){}
-		if(!node) throw alert("Please switch to chrome or safari, your browser does not support processing microphone input"), 'browser does not support processing microphone input'
+		if(!node) throw alert(texts.warning.unsupported_microphone_api), 'browser does not support processing microphone input'
 		let bufferSize = 2048, r = null
 		if(sampleRate !== TARGET_SAMPLE_RATE){
 			bufferSize = 2**Math.round(Math.log2(sampleRate/10))

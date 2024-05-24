@@ -1,0 +1,102 @@
+
+# Some environments may not support processing microphone input via javascript due to a poorly designed web standard
+warning.unsupported_microphone_api=Cambia a chrome o safari, su navegador no es compatible con el modo de este micrófono
+
+# App name when installed as a PWA
+misc.app_name=MC Papel
+misc.app_name_short=MC Papel
+misc.title.menu=MC Papel
+misc.title.playing=\1 | pMC
+misc.title.notification=(🔴 \2) \1 | pMC
+misc.ok=OK
+misc.menu_back=Volver
+misc.landscape_notice=Cambia al modo horizontal
+
+connection.refused=Conexión denegada
+connection.lost=Connexión perdida
+connection.invalid_ip=IP inválida
+connection.authenticating=Autenticando con el servidor...
+connection.connecting=Conectando con el servidor...
+connection.disconnect=Desconectar
+connection.reconnect=Reconectar
+
+# Warning about certain environment caveats
+defects.safari=You seem to be using safari, which has proven multiple times to be an incompetent browser for developers, not supporting technologies that are standard almost anywhere else and offering mediocre quality and performance for graphical applications\nWe urge you, please, to switch to a different browser.
+defects.firefox=You seem to be using firefox, meaning you may occasionally experience low performance while playing this game. If this becomes an issue, consider switching to chromium (for privacy enthusiasts) or any other chromium-based browsers (e.g brave, opera gx, ...).
+# Soon
+defects.mobile=We currently provide no touch control support\nCome back on a desktop device.
+
+serverlist.skin.not_an_image=¡No es una imagen!
+serverlist.skin.wrong_size=¡Tamaño equivocado!
+serverlist.skin.successful=Vale
+serverlist.welcome=Bienvenido,\s
+serverlist.select_skin=Seleccionar aspecto
+serverlist.logout=Cerrar sesión
+serverlist.select=Seleccionar servidor
+serverlist.hosting_info=Alojar servidor
+serverlist.refresh=Actualizar
+serverlist.add_server=Añadir servidor
+serverlist.add_server.placeholder=ip del servidor
+
+pause.name=Game menu
+pause.resume=Back to Game
+pause.server_page=Server Page
+# Shown on bottom right, faint
+pause.credits=Credits
+pause.changelog=Changelog
+
+# Translations shared in common between more than one options screen
+options.common.sensitivity.fast=HYPERSPEED!!!
+options.common.sensitivity.slow=*yawn*
+options.common.volume.loud=LOUD
+options.common.volume.quiet=quiet
+options.common.percentage=\1%
+
+# options.abc = button label
+# options.abc.name = title of screen
+options.general=Options
+options.general.name=Options
+options.general.gui_scale=GUI scale: \1
+options.general.zoom=Zoom: \1
+options.general.zoom.super=SUPER
+options.general.sound=Sound: \1
+options.general.music=Music: \1
+options.general.chat_notifications.0=Chat notifications: None
+options.general.chat_notifications.1=Chat notifications: Mentions
+options.general.chat_notifications.2=Chat notifications: All
+
+options.controller=Controller
+options.controller.name=Controller options
+options.controller.joystick_mode=Joystick mode: \1
+options.controller.sensitivity=Controller sensitivity: \1
+
+options.controls=Controls
+options.controls.name=Controls
+options.controls.left_click.place=Left click: place
+options.controls.left_click.break=Left click: break
+options.controls.zoom_fx.0=Zoom FX: None
+options.controls.zoom_fx.1=Zoom FX: Normal
+options.controls.zoom_fx.2=Zoom FX: 3x
+options.controls.zoom_fx.3=Zoom FX: CRAZY!!!
+options.controls.sensitivity=Sensitivity: \1
+options.controls.camera.0=Camera: Dynamic
+options.controls.camera.1=Camera: Follow smooth
+options.controls.camera.2=Camera: Follow pointer
+options.controls.camera.3=Camera: Follow player
+options.controls.camera.4=Camera: Page
+options.controls.fullscreen.0=Fullscreen: NO
+options.controls.fullscreen.1=Fullscreen: YES
+
+options.advanced=Advanced
+options.advanced.name=Advanced Options
+options.advanced.speed=Speed: \1x
+options.advanced.speed.paused=Speed: Paused
+options.advanced.max_particles=Max particles: \1
+options.advanced.supersampling=Supersampling: \1
+options.advanced.default_debug.0=Default debug: NO
+options.advanced.default_debug.1=Default debug: MINIMAL
+options.advanced.default_debug.2=Default debug: DETAILED
+options.advanced.default_debug.3=Default debug: EVERYTHING
+
+keybinds=Keybinds
+keybinds.name=Keybinds

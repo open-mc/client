@@ -204,25 +204,6 @@ drawLayer('none', 200, (ctx, w, h) => {
 			ctx.drawRect(ifloat(W2-cam.x+2147483648-lineWidth2*.5),0,lineWidth2,-H2*2, axisLineCol)
 		if(abs(ifloat(cam.y + 2147483648)) <= H2 + lineWidth2*.5)
 			ctx.drawRect(0,ifloat(cam.y+2147483648-H2-lineWidth2*.5),W2*2,lineWidth2, axisLineCol)
-		const mx = floor(me.ix), my = floor(me.iy)
-		const refx = me.ix - mx, refy = me.iy - my
-		ctx.translate(ifloat(mx - cam.x), ifloat(my - cam.y))
-		const LENGTH = 6
-		const ct2 = ctx.sub()
-		for(let x = -LENGTH; x <= LENGTH; x++)
-		for(let y = -LENGTH; y <= LENGTH; y++){
-			const bl = getblock(mx + x, my + y)
-			const col = bl.solid ? vec4(.8) : bl.fluidType ? vec4(0,0,.8,.8) : bl.blockShape ? vec4(.53) : bl.targettable ? vec4(.21,.21,.21,.8) : vec4(0)
-			const tint = vec4(min(1, ((x - refx) * (x - refx) + (y - refy) * (y - refy))/LENGTH/LENGTH))
-			ct2.translate(x, y)
-			continue
-			ct2.save()
-			ct2.lineWidth = 0.0625
-			bl.trace(ct2)
-			ct2.clip(); ct2.stroke()
-			ct2.restore()
-			ct2.resetTo(ctx)
-		}
 	}
 })
 drawLayer('none', 300, ctx => {
@@ -317,7 +298,7 @@ drawLayer('ui', 1000, (ctx, w, h) => {
 	const mex = floor(me.x) >> 3 & 6, mexi = (floor(me.x) & 15) / 16
 	const lookingAt = getblock(floor(pointer.x + me.x), floor(pointer.y + me.y + me.head))
 	for(const t of f3<2 ? buttons.has(KEYS.ALT)?minif3Info:[
-`\\27${VERSION}\\0f; \\+${(fps<20?'9':fps<50?'3':fps<240?'a':'d')+fps}\\+f fps; \\4+${trueX} / ${trueY}\\0+; \\+6Day ${day} ${time}\\+f; ${(lookingAt.id?'':'\\+8')+lookingAt.className}\\+f`
+`\\27${VERSION}\\0f; \\+${(fps<20?'9':fps<50?'3':fps<240?'a':'d')+fps}\\+f fps; \\4+x: ${trueX}, y: ${trueY}\\0+; \\+6Day ${day} ${time}\\+f; ${(lookingAt.id?'':'\\+8')+lookingAt.className}\\+f`
 ] : buttons.has(KEYS.ALT)?helpOfft==0?[]:f3LeftInfo :
 `Paper MC ${VERSION} (Alt for f3 help)
 FPS: \\+${(fps<20?'9':fps<50?'3':fps<240?'a':'d')+fps}\\+f (${(timeToFrame*1000).toFixed(2).padStart(5,'\u2007')}ms)

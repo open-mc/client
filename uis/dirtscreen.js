@@ -1,12 +1,13 @@
 import { reconnect } from '../js/connectme.js'
 import { Btn, Div, Label, Row, showUI, UI } from '../js/ui.js'
 import { serverlist } from './serverlist.js'
+import texts from '../js/lang.js'
 
 let label, reconnectBtn
 const message = UI('dirtbg',
 	label = Label('').attr('style','overflow:visible'),
 	Div('spacing'),
-	reconnectBtn = Row(Btn('Back', serverlist), Btn('Reconnect', reconnect)),
+	reconnectBtn = Row(Btn(texts.misc.menu_back(), serverlist), Btn(texts.connection.reconnect(), reconnect)),
 	Div('spacing')
 )
 export function msg(txt, code = 15){
@@ -27,7 +28,7 @@ let label2
 const message2 = UI('dirtbg',
 	label2 = Label(''),
 	Div('spacing'),
-	Btn('Disconnect', serverlist),
+	Btn(texts.connection.disconnect(), serverlist),
 	Div('spacing')
 )
 

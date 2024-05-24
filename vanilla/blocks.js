@@ -1,4 +1,4 @@
-import { uiButtons, audioSet, lava, renderSlot, water, click, renderTooltip, renderGenericTooltip } from './effects.js'
+import { uiButtons, audioSet, lava, renderSlot, water, click, renderGenericTooltip } from './effects.js'
 import { sound, cam, world } from 'world'
 import { Blocks, Block, Items, BlockTexture } from 'definitions'
 import { BlockShape, blockShaped, fluidify } from './blockshapes.js'
