@@ -16,7 +16,7 @@ const a = vec4(0)
 let ctx = null, alphaTint = 0, style = 0, tint, tint2
 function drawGlyph(code){
 	const char = glyphs.get(code)
-	if(!code) return
+	if(!char) return
 	const w = char.w*16, charWidth = w+(style&16?LETTER_SPACING:0)
 	const otint2 = alphaTint<1 ? (a.x=1-(1-tint2.x)*alphaTint, a.y=1-(1-tint2.y)*alphaTint, a.z=1-(1-tint2.z)*alphaTint, a.w=1-(1-tint2.w)*alphaTint,a) : tint2
 	if(style&256){
@@ -74,26 +74,27 @@ const defaultTs = TokenSet()
 	.add('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZáéíóúñüÁÉÍÓÚÑÜ', 0, '-')
 	.add('0123456789')
 	.add(' \t', TokenSet.BREAK_INVISIBLE)
-let i = 0, j = 0, text = '', charWidth = 0, charCode = 0, cs0 = 0, strings = []
+let i = 0, j = 0, text = '', charWidth = 0, cs0 = 0, strings = []
 const hexToInt = a => a>47&&a<58?a-48:a>64&&a<71?a-55:a>96&&a<103?a-87:a==43?131072:65536
 function nextChar(c1 = 0){
 	while(i < text.length){
 		let c = text.charCodeAt(i)
 		if(c==92){ // Backslash
 			cs0<i&&strings.push(text.slice(cs0,i))
-			const c2 = text.charCodeAt(i+1)
-			if(c2>=97) c2 -= 32
+			let c2 = text.charCodeAt(i+1)
+			if(c2>96) c2 -= 32
 			if(c2==88){ // \x**
 				c = hexToInt(text.charCodeAt(i+2))<<4|hexToInt(text.charCodeAt(i+3))
 				i += 4
 				if(c > 65535) c = 65533
 			}else if(c2==85){ // \u****
-				c = hexToInt(text.charCodeAt(i+2))<<4|hexToInt(text.charCodeAt(i+3))|hexToInt(text.charCodeAt(i+4))<<4|hexToInt(text.charCodeAt(i+5))
+				c = hexToInt(text.charCodeAt(i+2))<<12|hexToInt(text.charCodeAt(i+3))<<8|hexToInt(text.charCodeAt(i+4))<<4|hexToInt(text.charCodeAt(i+5))
 				i += 6
 				if(c > 65535) c = 65533
-			}else if(c2==78){ c = 10; i++ }
-			else if(c2==84){ c = 9; i++ }
-			else if(c2 != 92){
+			}else if(c2==78){ c = 10; i+=2 }
+			else if(c2==92){ c = 92; i+=2 }
+			else if(c2==84){ c = 9; i+=2 }
+			else{
 				let s = hexToInt(text.charCodeAt(i+1))<<4|hexToInt(text.charCodeAt(i+2))
 				if(s&131072) s = s&-131088|style&15
 				if(s&2097152) s = s&-2097393|style&240
@@ -102,23 +103,24 @@ function nextChar(c1 = 0){
 				tint = colors[s&15]; tint2 = shadowColors[s&15]
 				style = style&-256|s
 				strings.push(style); continue
-			}else i++
+			}
 			strings.push(String.fromCharCode(c)); cs0 = i
 		}else i++
-		if(c1) return (charCode = c, null)
+		if(c1) return c
 		if(c>=0xd800&&c<0xdc00){ /* High/Low surrogate pair */
-			let j = i, cs1 = cs0; nextChar(c)
-			if(charCode >= 0xdc00 && charCode < 0xe000){
-				c = (c-0xd800<<10|charCode-0xdc00)+0x10000
+			let j = i, cs1 = cs0, c2 = nextChar(c)
+			if(c2 >= 0xdc00 && c2 < 0xe000){
+				c = (c-0xd800<<10|c2-0xdc00)+0x10000
 				i>cs0+1&&strings.push(text.slice(cs0, i-1), c)
 				cs0 = ++i
 			}
 			else i = j, cs0 = cs1
 		}
-		const glyph = glyphs.get(charCode = c)
-		if(glyph){ charWidth = glyph.w*16+LETTER_SPACING+(style&16 ? LETTER_SPACING : 0); return glyph }
+		const glyph = glyphs.get(c)
+		charWidth = glyph ? glyph.w*16+LETTER_SPACING+(style&16 ? LETTER_SPACING : 0) : 0
+		return c
 	}
-	return null
+	return -1
 }
 function pushStrings(arr, len = Infinity){
 	let x = 0
@@ -135,17 +137,17 @@ function pushStrings(arr, len = Infinity){
 	strings = []
 	return arr
 }
-export function calcText(t, maxW = undefined, ts = defaultTs, s = 15){
-	text = t; style = s; i = 0; cs0 = 0
+export function calcText(txt, maxW = undefined, ts = defaultTs, s = 271){
+	text = txt; style = s; i = 0; cs0 = 0
 	let char = nextChar(), line = 0, res = []
 	const results = [res], chars = []
 	let lineWidth = (typeof maxW == 'number' ? maxW : typeof maxW == 'function' ? maxW(line) : Array.isArray(maxW) ? maxW[line] : Infinity) + LETTER_SPACING, w = 0
 	let tokenMatch = null, tokenWidth = 0, count = 0
-	while(char){
-		tokenMatch = ts.get(charCode) ?? null
+	while(char>=0){
+		tokenMatch = ts.get(char) ?? null
 		if(tokenMatch) while(true){
 			chars.push(charWidth); tokenWidth += charWidth
-			if(!(j=i,count++,char = nextChar()) || !tokenMatch.has(charCode)) break
+			if((j=i,count++,(char = nextChar())<0) || !tokenMatch.has(char)) break
 		}else chars.push(charWidth), tokenWidth = charWidth, j=i,char = nextChar(), count++
 		w+=tokenWidth
 		while(w>lineWidth){

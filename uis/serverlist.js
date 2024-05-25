@@ -113,6 +113,7 @@ onServer(ip => {
 })
 
 export function serverlist(){
+	
 	finished()
 	showUI(null)
 	for(const ip of servers){

@@ -1,9 +1,9 @@
 import { DataReader, decoder } from '/server/modules/dataproto.js'
 import "../uis/chat.js"
-import { pendingConnection, reconn } from '../uis/dirtscreen.js'
-import { Btn, click, Div, Img, Label, ping, Row } from './ui.js'
-import { servers, saveServers, storage, options } from './save.js'
-import { destroyIframe, fwPacket, gameIframe, keyMsg, win } from './iframe.js'
+import { pendingConnection, msg } from '../uis/dirtscreen.js'
+import { Btn, click, Div, hideUI, Img, Label, Row } from './ui.js'
+import { servers, saveServers, storage } from './save.js'
+import { clearNotifs, destroyIframe, fwPacket, gameIframe } from './iframe.js'
 import { PROTOCOL_VERSION } from '../server/version.js'
 import texts from './lang.js'
 let lastIp = null
@@ -18,30 +18,6 @@ async function makeSign(challenge){
 	const k = await crypto.subtle.importKey('pkcs8', b.buffer, {name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256'}, false, ['sign'])
 	return new Uint8Array(await crypto.subtle.sign(k.algorithm.name, k, challenge))
 }
-const onerror = function(str){
-	finished()
-	const code = parseInt(str.slice(0,2), 16)
-	reconn(str.slice(2), code)
-}
-const onpending = function(str){
-	const code = parseInt(str.slice(0,2), 16)
-	pendingConnection(str.slice(2), code)
-}
-let blurred = false, notifs = 0
-
-function notif(force = false){
-	if(!blurred || !ws) return
-	document.title = texts.misc.title.notification(ws.name, ++notifs)
-	ping()
-}
-
-onfocus = () => {
-	blurred = false
-	notifs = 0
-	document.title = ws ? texts.misc.title.playing(ws.name) : texts.misc.title.menu()
-	win && keyMsg(Infinity)
-}
-onblur = () => { blurred = true; win && keyMsg(Infinity) }
 
 const unencrypted = /^(localhost|127.0.0.1|0.0.0.0|\[::1\])$/i
 
@@ -79,7 +55,7 @@ function hashv8(domain){
 	const [a, b, c, d] = hashCode(domain.toLowerCase(), 4)
 	return '['+hex4(a>>>16)+':'+hex4(a&0xffff)+':'+hex4(b>>>16)+':'+hex4(b&0xffff)+':'+hex4(c>>>16)+':'+hex4(c&0xffff)+':'+hex4(d>>>16)+':'+hex4(d&0xffff)+']'
 }
-
+let rctimeout = -1
 export function preconnect(ip, cb = Function.prototype, instant = false){
 	const displayIp = ip
 	if(!/:\d+$/.test(ip))ip += ':27277'
@@ -90,11 +66,12 @@ export function preconnect(ip, cb = Function.prototype, instant = false){
 	try{
 		ws = new WebSocket(`${ip}/${storage.name}/${encodeURIComponent(storage.pubKey)}/${encodeURIComponent(storage.authSig)}`)
 		ws.ip = ip
-	}catch(e){ws = {close(){this.onclose&&this.onclose()},ip,onclose:null}}
+	}catch(e){ws = {close(){this.onclose&&this.onclose({code:0,reason:''})},ip,onclose:null}}
 	ws.challenge = null
 	ws.displayIp = displayIp
 	ws.binaryType = 'arraybuffer'
 	let timeout = setTimeout(ws.close.bind(ws), 5000)
+	let authed = false
 	ws.onmessage = function({data}){
 		if(ws != globalThis.ws){ try{
 			if(typeof data == 'string') return
@@ -119,27 +96,18 @@ export function preconnect(ip, cb = Function.prototype, instant = false){
 			return
 		}catch(e){console.warn(e)} }
 		ws.challenge = null
-		if(typeof data === 'string'){
-			if(!data.length) return void ping()
-			const style = parseInt(data.slice(0,2), 16)
-			if(style === -1) return onerror(data.slice(2))
-			else if(style === -2) return onpending(data.slice(2))
-			else if(style === -3){
-				let i = data.indexOf(';')
-				pendingConnection(data.slice(i+3), parseInt(data.slice(i+1,i+3), 16))
-				i = Math.min(60e3, +data.slice(2, i) || 1000)
-				setTimeout(() => preconnect(displayIp, play, true), i)
-				finished()
-				return
-			}
-		}
+		if(!authed && typeof data === 'string') return void(data.length ? pendingConnection(data) : (authed=true, hideUI()))
 		fwPacket(data)
 	}
-	ws.onclose = () => {
+	ws.onclose = ({reason, code}) => {
 		if(ws === globalThis.ws || instant){
-			const msg = ws instanceof WebSocket ? timeout >= 0 ? texts.connection.refused() : texts.connection.lost() : texts.connection.invalid_ip()
+			reason = reason || (ws instanceof WebSocket ? timeout >= 0 ? texts.connection.refused() : texts.connection.lost() : texts.connection.invalid_ip())
 			finished()
-			reconn(msg)
+			if(code >= 3000 && code < 4000){
+				pendingConnection(reason)
+				if(rctimeout >= 0) clearTimeout(rctimeout), rctimeout = -1
+				rctimeout = setTimeout(() => preconnect(displayIp, play, true), (code-3000)*10)
+			}else msg(reason, false)
 			return
 		}
 		icon.src = './img/pack.png'
@@ -149,7 +117,7 @@ export function preconnect(ip, cb = Function.prototype, instant = false){
 		name.textContent = displayIp
 	}
 	ws.onopen = () => (clearTimeout(timeout), timeout = -1)
-	if(instant) return void ws.onclose()
+	if(instant) return void ws.onclose({code: 0, reason: ''})
 	let name, motd, icon
 	const node = Row(
 		icon = Img('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAJCAYAAADgkQYQAAAAAXNSR0IArs4c6QAAACZJREFUKFNjZCACMBKhhoEGijo6Ov5XVFQwotMg59DAOny+JMo6AMVLDArhBOpkAAAAAElFTkSuQmCC'),
@@ -180,7 +148,7 @@ export function preconnect(ip, cb = Function.prototype, instant = false){
 	node.classList.add('selectable')
 	node.onclick = () => {click(); play(ws)}
 	node.end = () => {if(ws != globalThis.ws) ws.close(); node.remove()}
-	if(!(ws instanceof WebSocket)) ws.onclose()
+	if(!(ws instanceof WebSocket)) ws.onclose({code:0,reason:''})
 	return node
 }
 
@@ -208,12 +176,12 @@ export function reconnect(){
 	preconnect(lastIp, play, true)
 }
 export function finished(){
+	if(rctimeout >= 0) clearTimeout(rctimeout), rctimeout = -1
 	if(!ws) return
-	chat.innerHTML = ''
 	ws.onclose = Function.prototype
 	ws.close()
 	ws = null
-	notifs = 0
+	clearNotifs()
 	onfocus()
 	destroyIframe()
 }

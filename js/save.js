@@ -25,10 +25,10 @@ export function saveServers(){
 export const options = {}
 const defaults = {
 	guiScale: 1,
-	zoom: 0.6,
+	zoom: 0.8,
 	supersample: 2/3,
-	sound: 0.75,
-	music: 0.75,
+	sound: 0.5,
+	music: 0.3,
 	sensitivity: 0.5,
 	controllerSensitivity: 0.5,
 	camera: 0,

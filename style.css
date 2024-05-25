@@ -32,7 +32,7 @@ body{
 	margin:0;box-sizing:border-box;
 	padding:0;line-height:1;min-width:0;
 	flex-shrink:0;-webkit-tap-highlight-color:transparent;
-	overscroll-behavior: none;
+	overscroll-behavior: none; touch-action: manipulation;
 }
 input, textarea{
 	font: inherit;
@@ -227,31 +227,9 @@ column{
 	flex-direction: column;
 	align-items: stretch;
 }
-
-#chat{
-	position: fixed;
-	bottom: 42rem;
-	z-index: 20;
-	left: 2rem;
-	width: 250rem;
-	display: flex;
-	flex-direction: column-reverse;
-}
 @keyframes fade{
 	0%{opacity: 1;}
 	100%{opacity: 0;}
-}
-#chat > div{
-	padding: 0 3rem;
-	background: #0004;
-	white-space: pre-wrap;
-	animation: fade 1s linear 9s both;
-	word-break: break-word;
-	display: none;
-}
-#chat.focus > div{
-	opacity: 1 !important;
-	animation-play-state: paused;
 }
 #chat.voice:after{
 	content: '';
@@ -278,11 +256,12 @@ column{
 #serverlist{
 	box-shadow: inset 0 0 10rem black;
 	background: #0004;
-	padding: 7rem;
-	width: 100%;
+	--padding: 7rem;
+	width: 100vw;
 	flex-grow: 10;
 	min-height: 200px;
 	overflow-y: auto;
+	padding: var(--padding) calc(var(--padding) + env(safe-area-inset-right)) var(--padding) calc(var(--padding) + env(safe-area-inset-left));
 }
 #serverlist > row{
 	padding: 1rem;
@@ -312,7 +291,7 @@ img:after{
 }
 
 @media (orientation: portrait) and (max-width: 450px) {
-	#orientation{display: flex !important}
+	#orientationdiv{display: flex !important}
 }
 
 .serverlist > row{
@@ -324,7 +303,7 @@ img:after{
 		min-width: 40rem; height: 40rem;
 	}
 	#serverlist > row{ height: 46rem }
-	#serverlist{ padding: 5rem }
+	#serverlist{ --padding: 5rem }
 	.serverlist > row{ padding: 4rem }
 }
 @media (max-height: 380px){
@@ -332,7 +311,7 @@ img:after{
 		min-width: 32rem; height: 32rem;
 	}
 	#serverlist > row{ height: 38rem }
-	#serverlist{ padding: 3rem }
+	#serverlist{ --padding: 3rem }
 	.serverlist > row{ padding: 2rem }
 	#serverlist > row > div > span{ transform: translateY(-6rem) }
 }
@@ -370,4 +349,11 @@ img:after{
 	height: 0;
 	pointer-events: none;
 	touch-action: none;
+}
+
+.textc{
+	white-space: pre-wrap;
+}
+.textc > span{
+	display: inline;
 }

@@ -83,9 +83,9 @@ onwheel.bind(dy => {
 	cummulative += dy
 	if(buttons.has(KEYS.CTRL)){
 		if(cummulative > 60)
-			options.zoom = max(0, options.zoom - .05), cummulative = 0
+			options.zoom = max(0, options.zoom - .0625), cummulative = 0
 		else if(cummulative < -60)
-			options.zoom = min(1, options.zoom + .05), cummulative = 0
+			options.zoom = min(1, options.zoom + .0625), cummulative = 0
 	}else if(cummulative > 60)
 		me.selected = (me.selected + 1) % 9, cummulative = 0
 	else if(cummulative < -60)

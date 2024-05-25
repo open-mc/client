@@ -204,6 +204,7 @@ Entities.player = class extends LivingEntity{
 		if(this == me && perms<3)this.state&=-2
 	}
 	drawInterface(id, c, drawInv, w, h){
+		return
 		if(id == 1){
 			c.image(meInterface, -88, 0)
 			c.push()

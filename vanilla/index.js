@@ -130,7 +130,7 @@ const inventory = Img(src`inv.png`)
 const heart = icons.crop(52,0,9,9), halfHeart = icons.crop(61,0,9,9)
 const heartEmpty = icons.crop(16,0,9,9)
 
-const btnW = uiButtons.large.w
+const btnW = uiButtons.large.width*uiButtons.large.w
 
 let respawnClicked = false
 let hotbarTooltipAlpha = 0, lastSelected = -1
@@ -152,7 +152,7 @@ drawLayer('ui', 1000, (c, w, h) => {
 		}
 		if(me.mode < 1){
 			c2.resetTo(c)
-			c2.translate(hotBarLeft, hotbar.h + 6)
+			c2.translate(hotBarLeft, hotbar.height + 6)
 			const wiggle = me.health < 5 ? (t*24&2)-1 : 0
 			for(let h = 0; h < 20; h+=2){
 				const x = h*4, y = (wiggle * ((h&2)-1) + 1) / 2
@@ -169,7 +169,7 @@ drawLayer('ui', 1000, (c, w, h) => {
 			if(!item) break a
 			const name = item.name || item.defaultName
 			const arr = calcText(name)
-			drawText(c2, arr, hotBarLeft + hotbar.width / 2 - arr.width*4, hotbar.height + 16, 8, item.name ? 79 : 15, min(1, max(0, 1-hotbarTooltipAlpha)))
+			drawText(c2, arr, hotBarLeft + hotbar.width / 2 - arr.width*4, hotbar.height + 24, 8, item.name ? 79 : 15, min(1, max(0, 1-hotbarTooltipAlpha)))
 		}
 		if(voice.active) proximityChatTooltip = 0
 		if(proximityChatTooltip > 0){
@@ -177,17 +177,11 @@ drawLayer('ui', 1000, (c, w, h) => {
 			drawText(c2, 'Press Enter to talk with proximity chat', 5, 5, 8, 265, 1-min(1, proximityChatTooltip/5))
 		}
 	}
-	return
 	if(me.health <= 0){
 		const h3 = h / 3
-		c2.fillStyle = '#f003'
-		c2.fillRect(0, 0, w, h)
-		c2.textAlign = 'center'
-		c2.textBaseline = 'alphabetic'
-		c2.fillStyle = '#333'
-		c2.fillText('You died!', w / 2 + 4, h3*2 - 4, 40)
-		c2.fillStyle = '#fff'
-		c2.fillText('You died!', w / 2, h3*2, 40)
+		c2.drawRect(0, 0, w, h, vec4(.2, 0, 0, .2))
+		const arr = calcText('You died!')
+		drawText(c2, arr, w / 2 - arr.width*16, h3*2, 32)
 		const {x: mx, y: my} = c2.from(cursor)
 		const selectedBtn = mx >= (w - btnW) / 2 && mx < (w + btnW) / 2 ?
 			my >= h3 && my < h3 + 20 ? 1
@@ -196,17 +190,13 @@ drawLayer('ui', 1000, (c, w, h) => {
 		: 0
 		if(!respawnClicked){
 			pause()
-			c2.image(uiButtons.large, (w - btnW) / 2, h3)
-			c2.fillStyle = '#333'
-			c2.fillText('Respawn', w / 2 + 1, h3 + 6, 10)
-			c2.fillStyle = selectedBtn == 1 ? '#fff' : '#999'
-			c2.fillText('Respawn', w / 2, h3 + 7, 10)
-
-			c2.image(uiButtons.large, (w - btnW) / 2, h3 - 30)
-			c2.fillStyle = '#333'
-			c2.fillText('Rage quit', w / 2 + 1, h3 - 24, 10)
-			c2.fillStyle = selectedBtn == -1 ? '#fff' : '#999'
-			c2.fillText('Rage quit', w / 2, h3 - 23, 10)
+			c2.drawRect((w - btnW) / 2, h3, btnW, 20, selectedBtn == 1 ? uiButtons.largeSelected : uiButtons.large)
+			let arr = calcText('Respawn')
+			drawText(c2, arr, w / 2 - arr.width*4, h3 + 7, 8)
+			
+			c2.drawRect((w - btnW) / 2, h3 - 30, btnW, 20, selectedBtn == -1 ? uiButtons.largeSelected : uiButtons.large)
+			arr = calcText('Rage quit')
+			drawText(c2, arr, w / 2 - arr.width*4, h3 - 23, 8)
 			if((changed.has(LBUTTON) && !buttons.has(LBUTTON) && selectedBtn == 1) || (changed.has(GAMEPAD.A) && !buttons.has(GAMEPAD.A) && selectedBtn == 1)){
 				click()
 				respawnClicked = true
@@ -219,10 +209,8 @@ drawLayer('ui', 1000, (c, w, h) => {
 				quit()
 			}
 		}else{
-			c2.fillStyle = '#333'
-			c2.fillText('Hang on...', w / 2 + 1, h3 - 1, 10)
-			c2.fillStyle = '#fff'
-			c2.fillText('Hang on...', w / 2, h3, 10)
+			const arr = calcText('Hang on...')
+			drawText(c2, arr, w / 2 - arr.width*4, h3, 8)
 		}
 		return
 	}else respawnClicked = false
@@ -232,14 +220,14 @@ drawLayer('ui', 1000, (c, w, h) => {
 	if(!invInterface) return
 	pause()
 	resetSlot()
-	c2.fillStyle = '#0006'
-	c2.fillRect(0, 0, w, h)
+	c2.drawRect(0, 0, w, h, vec4(0, 0, 0, .4))
 	c2.translate(w / 2, h / 2)
 	invInterface.drawInterface?.(interfaceId, c2, (x, y) => {
 		const c3 = c2.sub()
 		c3.translate(x, y)
-		c3.image(inventory, -88, -inventory.h)
-		c3.translate(-72,8 - inventory.h)
+		const invH = inventory.height*inventory.h
+		c3.drawRect(-88, -invH, 176, invH, inventory)
+		c3.translate(-72, 8 - invH)
 		c3.scale(16,16)
 		for(let i = 0; i < 9; i++){
 			renderSlot(c3, me, i)
@@ -262,7 +250,7 @@ drawLayer('ui', 1000, (c, w, h) => {
 			buf.byte(32); buf.byte(slotI)
 			send(buf)
 		}
-	}else a: if(action == 2 && slotI > -1){
+	}else if(action == 2 && slotI > -1){
 		const int = slotI > 127 ? invInterface : me, id = slotI > 127 ? interfaceId : 0
 		const r = int.slotAltClicked(id, slotI&127, me.getItem(2, 0), me)
 		if(r !== undefined){

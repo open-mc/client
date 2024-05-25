@@ -6,7 +6,6 @@ export let me = null
 export let perms = 2
 export const _setPerms = p => perms=p
 export function foundMe(e){
-	if(!me) postMessage(false, '*')
 	me = globalThis.me = e
 	cam.x = me.ix = me.x
 	cam.y = me.iy = me.y

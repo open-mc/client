@@ -247,6 +247,7 @@ Blocks.chest = class extends Block{
 		return old
 	}
 	drawInterface(id, c, drawInv){
+		return
 		if(id == 0){
 			c.image(containerInterface, -88, 0)
 			c.push()
@@ -283,7 +284,7 @@ Blocks.chest = class extends Block{
 	render(c){
 		if(this.state&1) c.box(1, 0, -1, 1)
 		this.opening = max(this.opening - dt*3, 0)
-		const rot = (1-0.5**((this.state & 2 ? 1 - this.opening : this.opening)*4))*16/15
+		const rot = (0.5**((this.state & 2 ? 1 - this.opening : this.opening)*4)-1)*16/15
 		c.translate(0.0625, 0.625)
 		c.rotate(rot*PI/2)
 		c.drawRect(-0.0625, -0.625, 1, 1, chestTop)
@@ -510,6 +511,7 @@ Blocks.furnace = class extends Stone{
 	static interactible = true
 	render(c){ if(this.fuelTime>t) c.draw(toTex(litFurnaceTex)) }
 	drawInterface(id, c, drawInv){
+		return
 		if(id == 0){
 			c.push()
 			c.image(furnaceUI, -88, 0)
@@ -581,6 +583,7 @@ Blocks.command_block = class extends Stone{
 	static tool = 'pick'
 	static interactible = true
 	drawInterface(id, c){
+		return
 		if(id == 0){
 			const buttonsY = -160
 			const btnW = uiButtons.large.w

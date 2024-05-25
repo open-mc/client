@@ -52,19 +52,17 @@ const CAMERA_DYNAMIC = 0, CAMERA_FOLLOW_SMOOTH = 1, CAMERA_FOLLOW_POINTER = 2,
 let flashbang = 0
 let frames = 0
 globalThis.fps = 0
-globalThis.frameCount = 0
-onfocus.bind(() => frameCount = 0)
 export function frame(){
 	const correctT = t
 	t *= options.speed; dt *= options.speed
 	_networkUsage()
-	const p = 0.5**(dt*max(60-++frameCount,2))
+	const p = 0.5**(dt*2)
 	fps = round((frames = frames*p+1) * (1-p)/dt)
 	pause(false)
 	playerControls()
 	for(const entity of entityMap.values()) stepEntity(entity)
 	const tzoom = (me.state & 4 ? -0.13 : 0) * ((1 << options.ffx * (options.camera != 4)) - 1) + 1
-	cam.z = sqrt(sqrt(cam.z * cam.z * cam.z * 2 ** (options.zoom * 10 - 6) * tzoom * 2**cam.baseZ))
+	cam.z = sqrt(sqrt(cam.z * cam.z * cam.z * max(((sqrt(map.size)-1)*128/min(innerWidth,innerHeight)), 2 ** (options.zoom * 8 - 4) * tzoom * 2**cam.baseZ)))
 	_recalcDimensions(cam.z)
 	const reach = pointer.effectiveReach()
 	if(options.camera == CAMERA_DYNAMIC){
@@ -215,7 +213,7 @@ drawLayer('none', 300, ctx => {
 		if(!map.has((ev.x>>>6)+(ev.y>>>6)*0x4000000) || ev(ctx)) gridEventMap.delete(ev.i)
 	}
 })
-const entityHitboxCol = vec4(.8), entityHitboxHeadCol = vec4(.8,0,0,1), entityHitboxFacingCol = vec4(.8, .64, 0, 1)
+const entityHitboxCol = vec4(1), entityHitboxHeadCol = vec4(.8,0,0,1), entityHitboxFacingCol = vec4(.8, .64, 0, 1)
 function renderEntity(ctx, entity, a=1){
 	if(!entity.render) return
 	const hitboxes = buttons.has(KEYS.SYMBOL) + renderBoxes
@@ -227,23 +225,21 @@ function renderEntity(ctx, entity, a=1){
 	ctx.translate(ifloat(entity.ix - cam.x), ifloat(entity.iy - cam.y))
 	entity.render(ctx.sub())
 	if(hitboxes){
-		if(entity.head){
+		if(entity.head && hitboxes >= 2){
 			const L = entity == me ? sqrt(pointer.x * pointer.x + pointer.y * pointer.y) : 0.8
-			if(hitboxes >= 2){
-				const ct2 = ctx.sub()
-				ct2.translate(0, entity.head)
-				ct2.rotate(entity.f)
-				ct2.drawRect(-0.015625,-0.015625,0.03125,L,entityHitboxFacingCol)
-				ct2.translate(0,L); ct2.rotate(PI * -1.25)
-				ct2.drawRect(-0.015625,-0.015625,0.03125,0.2,entityHitboxFacingCol)
-				ct2.drawRect(-0.015625,-0.015625,0.2,0.03125,entityHitboxFacingCol)
-			}
-			ctx.drawRect(-entity.width + 0.046875, entity.head - 0.0234375, entity.width*2 - 0.09375, 0.046875, entityHitboxHeadCol)
+			const ct2 = ctx.sub()
+			ct2.translate(0, entity.head)
+			ct2.rotate(entity.f)
+			ct2.drawRect(-0.015625,-0.015625,0.03125,L,entityHitboxFacingCol)
+			ct2.translate(0,L); ct2.rotate(PI * -1.25)
+			ct2.drawRect(-0.015625,-0.015625,0.03125,0.2,entityHitboxFacingCol)
+			ct2.drawRect(-0.015625,-0.015625,0.2,0.03125,entityHitboxFacingCol)
+			ctx.drawRect(-entity.width + 0.04, entity.head - 0.02, entity.width*2 - 0.08, 0.04, entityHitboxHeadCol)
 		}
-		ctx.drawRect(-entity.width, .046875, .046875, entity.height-.09375, entityHitboxCol)
-		ctx.drawRect(-entity.width, 0, entity.width*2, .046875, entityHitboxCol)
-		ctx.drawRect(entity.width, .046875, -.046875, entity.height-.09375, entityHitboxCol)
-		ctx.drawRect(-entity.width, entity.height, entity.width*2, -.046875, entityHitboxCol)
+		ctx.drawRect(-entity.width, .04, .04, entity.height-.08, entityHitboxCol)
+		ctx.drawRect(-entity.width, 0, entity.width*2, .04, entityHitboxCol)
+		ctx.drawRect(entity.width, .04, -.04, entity.height-.08, entityHitboxCol)
+		ctx.drawRect(-entity.width, entity.height, entity.width*2, -.04, entityHitboxCol)
 	}
 }
 drawLayer('world', 100, (ctx, w, h) => {

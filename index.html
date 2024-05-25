@@ -26,6 +26,9 @@
 			<span><b style="color:#FC8">Not affiliated</b> with <b style="color:red">Mojang Studios</b></span>
 		</div>
 	</body>
+	<div id="orientationdiv" style="z-index: 9999; background: #000; display: none; width: 100%; position: fixed; height: 100%; top: 0; left: 0; flex-flow: column; justify-content: center; gap: 100px">
+		<span style="font-size: 1.25em; text-align: center;"></span>
+	</div>
 	<script type="module">
 		import { start } from './uis/defects.js'
 		import texts from '../js/lang.js'
@@ -38,10 +41,8 @@
 			setTimeout(() => errors.childNodes[0].remove(), 10000)
 		}
 		onunhandledrejection=({reason})=>onerror(undefined,'',0,0,reason)
-		orientation.firstElementChild.textContent = texts.misc.landscape_notice()
+		orientationdiv.firstElementChild.textContent = texts.misc.landscape_notice()
 		document.generateManifest({name:texts.misc.app_name(),short_name:texts.misc.app_name_short(),theme_color:"#000",background_color:"#000"})
 	</script>
-	<div id="orientation" style="z-index: 9999; background: #000; display: none; width: 100%; position: fixed; height: 100%; top: 0; left: 0; flex-flow: column; justify-content: center; gap: 100px">
-		<span style="font-size: 1.25em; text-align: center;"></span>
-	</div>
+	
 </html>

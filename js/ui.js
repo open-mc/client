@@ -28,10 +28,11 @@ NONE.esc = hideUI
 document.body.append(NONE)
 
 export let ptrSuccess = Function.prototype, ptrFail = Function.prototype
+const ptrLockOpts = {unadjustedMovement: true}
 export const ptrlock = () => new Promise((r, c) => {
 	const fs = options.fsc ? document.documentElement.requestFullscreen({navigationUI: 'hide'}) : undefined
-	if(fs instanceof Promise) fs.catch(e=>null).then(() => document.body.requestPointerLock?.()?.catch(e=>null))
-	else document.body.requestPointerLock?.()?.catch(e=>null)
+	if(fs instanceof Promise) fs.catch(e=>null).then(() => document.body.requestPointerLock?.(ptrLockOpts)?.catch(e=>null))
+	else document.body.requestPointerLock?.(ptrLockOpts)?.catch(e=>null)
 	ptrSuccess = r; ptrFail = c
 })
 
@@ -245,4 +246,44 @@ if(devicePixelRatio == 1){
 		document.body.style.height = (innerHeight+1&-2)+'px'
 	}
 	onresize()
+}
+
+const hexToInt = a => a>47&&a<58?a-48:a>64&&a<71?a-55:a>96&&a<103?a-87:a==43?131072:65536
+export const styleToHtml = (str, node) => {
+	let i = 0, res = ''
+	node.textContent = ''
+	node.classList.add('textc')
+	let style = 15
+	while(i < str.length){
+		let c = str.charCodeAt(i++)
+		if(c != 92){ res += str[i-1]; continue }
+		c = str.charCodeAt(i++)
+		if(c > 96) c -= 32
+		if(c == 92){ res += '\\'; continue }
+		if(c == 78){ res += '\n'; continue }
+		if(c == 84){ res += '\t'; continue }
+		if(c == 88 || c == 85){
+			c = (parseInt(str.slice(i,i+=(c==85?4:2)),16)+1||65534)-1
+			if(c == 127) c = 0x2421
+			if(c < 32) c |= 0x2400
+			res += String.fromCharCode(c); continue
+		}
+		const s = style; style = hexToInt(c)<<4|hexToInt(str.charCodeAt(i++))
+		if(style&131072) style = style&-131088|s&15
+		if(style&2097152) style = style&-2097393|s&240
+		if(style>65535) continue
+		if(res){
+			const e = document.createElement('span')
+			e.textContent = res; res = ''
+			e.className = `s${s >> 4} c${s & 15}`
+			node.append(e)
+		}
+	}
+	if(res){
+		console.log(res, style)
+		const e = document.createElement('span')
+		e.textContent = res; res = ''
+		e.className = `s${style >> 4} c${style & 15}`
+		node.append(e)
+	}
 }

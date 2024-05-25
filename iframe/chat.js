@@ -5,6 +5,7 @@ const chat = []
 const chatLimit = 200
 
 export function onChat(str){
+	if(!str.length) return void ping()
 	const pinged = options.notifs === 2 || (options.notifs === 1 && !!me&&str.includes('@'+me.name))
 	if(pinged) ping()
 	const m = calcText(str, 30.5)

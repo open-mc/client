@@ -21,6 +21,7 @@ ephemeralInterfaces[1] = class extends EphemeralInterface{
 		else return holding
 	}
 	drawInterface(id, c, drawInv){
+		return
 		if(id == 0){
 			c.image(craftingInterface, -88, 0)
 			c.push()

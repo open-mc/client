@@ -39,6 +39,22 @@ export function gameIframe(f, flags=0){
 const empty = new Comment()
 empty.esc = pause
 
+let blurred = false, notifs = 0
+
+function notif(){
+	if(!blurred || !ws) return
+	document.title = texts.misc.title.notification(ws.name, ++notifs)
+	ping()
+}
+
+onfocus = () => {
+	blurred = false
+	notifs = 0
+	document.title = ws ? texts.misc.title.playing(ws.name) : texts.misc.title.menu()
+	win && keyMsg(Infinity)
+}
+onblur = () => { blurred = true; win && keyMsg(Infinity) }
+
 onmessage = ({data, source}) => {
 	if(source != iframe.contentWindow || !iframe.contentWindow) return
 	if(typeof data != 'object'){
@@ -47,7 +63,7 @@ onmessage = ({data, source}) => {
 		else if(data !== data) serverlist()
 		else if(data === Infinity) voiceOn()
 		else if(data === -Infinity) voiceOff()
-		else if(data === '') ping()
+		else if(data === '') notif()
 		return
 	}
 	if(data === null){
@@ -134,3 +150,8 @@ function voiceOn(){
 	if(!m && win) microphone()
 }
 function voiceOff(){ voice = false; chat.classList.remove('voice') }
+
+export const clearNotifs = () => {
+	notifs = 0
+	document.title = ws ? texts.misc.title.playing(ws.name) : texts.misc.title.menu()
+}

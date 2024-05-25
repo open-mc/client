@@ -14,8 +14,8 @@ const loaded = () => {
 	msgQueue = null
 }
 globalThis.addToQueue = p => p?.then&&(loading++,p.then(()=>--loading||loaded()))
-listen('music', () => bgGain.gain.value = options.music * options.music)
-listen('sound', () => masterVolume = options.sound)
+listen('music', () => bgGain.gain.value = options.music * options.music * 2)
+listen('sound', () => masterVolume = options.sound*2)
 listen('fps', () => ctxFramerate = options.fps ? options.fps < 1 ? options.fps*250 : Infinity : -1)
 const onMsg = ({data,origin}) => {
 	if(origin=='null') return
@@ -27,8 +27,8 @@ const onMsg = ({data,origin}) => {
 				if(_optionListeners[a]) for(const f of _optionListeners[a]) f(b)
 			}else if(me){
 				if(paused){
-					delta.x = -(cursor.x - (cursor.x = a * devicePixelRatio))
-					delta.y = -(cursor.y - (cursor.y = b * devicePixelRatio))
+					delta.x = -(cursor.x - (cursor.x = a / innerWidth))
+					delta.y = -(cursor.y - (cursor.y = 1 - b / innerHeight))
 				}else{
 					delta.x = a; delta.y = b
 					onmousemove.fire(a, b)

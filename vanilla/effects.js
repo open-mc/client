@@ -126,6 +126,7 @@ export function renderTooltip(c, item){
 	renderGenericTooltip(c, lines, styles)
 }
 export function renderGenericTooltip(c, lines, styles){
+	return
 	const {x, y} = c.from(cursor)
 	let width = 0
 	for(const l of lines) width = max(c.measureText(l, 10).width, width)

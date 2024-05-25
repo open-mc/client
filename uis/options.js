@@ -17,19 +17,19 @@ function guiChange(){
 	renderScale()
 }
 function zoomChange(a = options.zoom){
-	a = Math.round(a * 20)
-	const z = 2 ** ((options.zoom = a / 20) * 10 - 7)
-	return [texts.zoom(z<16?z.toPrecision(2+a%2):texts.zoom.super()), options.zoom]
+	a = Math.round(a * 16)
+	const z = 2 ** ((options.zoom = a / 16) * 8 - 5)
+	return [texts.zoom(z<8?z:texts.zoom.super()), options.zoom]
 }
 
 const textsCommon = allTexts.options.common
 function soundChange(a = options.sound){
 	options.sound = a
-	return [texts.sound(a >= 0.005 ? a < 0.995 ? textsCommon.percentage(Math.round(a*100)) : textsCommon.volume.loud() : textsCommon.volume.quiet()), a]
+	return [texts.sound(a >= 0.005 ? a < 0.995 ? textsCommon.percentage(Math.round(a*200)) : textsCommon.volume.loud() : textsCommon.volume.quiet()), a]
 }
 function musicChange(a = options.music){
 	options.music = a
-	return [texts.music(a >= 0.005 ? a < 0.995 ? textsCommon.percentage(Math.round(a*100)) : textsCommon.volume.loud() : textsCommon.volume.quiet()), a]
+	return [texts.music(a >= 0.005 ? a < 0.995 ? textsCommon.percentage(Math.round(a*200)) : textsCommon.volume.loud() : textsCommon.volume.quiet()), a]
 }
 
 function fpsChange(a = options.fps){

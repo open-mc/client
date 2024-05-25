@@ -172,6 +172,7 @@ export function checkBlockPlacing(buf){
 		if(blockPlacing) setblock(bpx, bpy, blockPlacing)
 		buf.byte(me.selected)
 		buf.float(x); buf.float(y)
+		buf.int(bpx); buf.int(bpy)
 		lastPlace = t
 	}else if(hasB && bx == bx && !paused && !(me.mode == 1 && !buttons.has(KEYS.ALT) && t <= lastPlace + .12)){
 		buf.byte(me.selected | 128)
