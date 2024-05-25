@@ -3,7 +3,7 @@ import { DataWriter } from '/server/modules/dataproto.js'
 import { mePhysics, stepEntity } from './entity.js'
 import { gridEventMap, getblock, entityMap, map, cam, onPlayerLoad, world, bigintOffset, me } from 'world'
 import * as pointer from './pointer.js'
-import { onKey, drawLayer, options, paused, _renderPhases, renderBoxes, renderF3, send, download, copy, pause, _updatePaused, drawText, measureWidth, textShadeCol, _networkUsage, networkUsage, onfocus } from 'api'
+import { onKey, drawLayer, options, paused, _renderPhases, renderBoxes, renderF3, send, download, copy, pause, _updatePaused, drawText, calcText, textShadeCol, _networkUsage, networkUsage, onfocus } from 'api'
 import { particles, blockAtlas, _recalcDimensions, W2, H2, SCALE, toBlockExact, prep } from 'definitions'
 import { VERSION } from '../server/version.js'
 
@@ -312,9 +312,9 @@ XY: \\4+${trueX} / ${trueY}\\0+
 ChXY: ${(floor(me.x) & 63).toString().padStart(2,'\u2007')} ${(floor(me.y) & 63).toString().padStart(2,'\u2007')} in ${toString(bigintOffset.x>>6n,floor(me.x) >> 6, 0)} ${toString(bigintOffset.y>>6n,floor(me.y) >> 6, 0)}
 Facing: ${(me.f >= 0 ? 'R' : 'L') + (90 - abs(me.f / PI2 * 360)).toFixed(1).padStart(5, '\u2007')} (${me.f.toFixed(3)})
 `.slice(0, -1).split('\n')){
-		const width = measureWidth(t)
-		ct2.drawRect(.125, -.125, width+.25, -1.25, textShadeCol)
-		drawText(ct2, t, .25, -1.25, 1, 15)
+		const arr = calcText(t)
+		ct2.drawRect(.125, -.125, arr.width+.25, -1.25, textShadeCol)
+		drawText(ct2, arr, .25, -1.25, 1, 15)
 		ct2.translate(0, -1.25)
 	}
 	if(f3 < 2) return
@@ -330,9 +330,9 @@ Block: ${lookingAt.className+(lookingAt.savedata?' {...}':'')} (${lookingAt.id})
 Block.texture: ${lookingAt.texture>=0?`${lookingAt.texture.toHex().slice(2)}[${(lookingAt.texture>>>24)+1}]`+(lookingAt.render?'*':''):lookingAt.render?'na*':'na'}
 Item.texture: ${holding?.texture>=0?`${holding.texture.toHex().slice(2)}[${(holding.texture>>>24)+1}]`+(holding.render?'*':''):holding?.render?'na*':'na'}
 `.slice(0, -1).split('\n')){
-		const width = measureWidth(t)
-		ct2.drawRect(-.125, -.125, -width-.25, -1.25, textShadeCol)
-		drawText(ct2, t, -width-.25, -1.25, 1, 15)
+		const arr = calcText(t)
+		ct2.drawRect(-.125, -.125, -arr.width-.25, -1.25, textShadeCol)
+		drawText(ct2, arr, -arr.width-.25, -1.25, 1, 15)
 		ct2.translate(0, -1.25)
 	}
 })

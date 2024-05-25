@@ -132,14 +132,6 @@ export function preconnect(ip, cb = Function.prototype, instant = false){
 				finished()
 				return
 			}
-			if(style != style) return
-			const box = chat.children[9] || document.createElement('div')
-			box.textContent = data.slice(2)
-			chat.insertAdjacentElement('afterbegin', box)
-			box.className = `c${style&15} s${style>>4}`
-			const {color, fontStyle, fontWeight, textDecoration} = getComputedStyle(box)
-			console.log('%c'+data.slice(2), 'color:'+color+';font-size:12px;font-family:mc,monospace,Arial;font-weight:'+fontWeight+';font-style:'+fontStyle+';text-decoration:'+textDecoration)
-			if(options.notifs === 2 || (options.notifs === 1 && pingRegex.test(box.textContent))) notif(), box.style.backgroundColor = '#8608'
 		}
 		fwPacket(data)
 	}

@@ -1,6 +1,6 @@
 import { uiButtons, icons, renderItem, renderItemCount, click, renderSlot, renderTooltip, resetSlot, slotI, audioSet } from './effects.js'
 import './entities.js'
-import { onKey, drawLayer, pause, renderUI, quit, onpacket, send, voice } from 'api'
+import { onKey, drawLayer, pause, renderUI, quit, onpacket, send, voice, drawText, calcText } from 'api'
 import { getblock, gridEvents, sound, entityMap, pointer, cam, world, configLoaded, me } from 'world'
 import { Item, BlockParticle, addParticle, blockBreak, ephemeralInterfaces, W2, H2 } from 'definitions'
 import { AshParticle, BlastParticle, explode } from './defs.js'
@@ -137,69 +137,58 @@ let hotbarTooltipAlpha = 0, lastSelected = -1
 let proximityChatTooltip = 0
 configLoaded(CONFIG => proximityChatTooltip = CONFIG.proximitychat ? 10 : 0)
 drawLayer('ui', 1000, (c, w, h) => {
-	return
+	const c2 = c.sub()
 	if(renderUI){
-		let hotBarLeft = w / 2 - hotbar.w/2
-		c.push()
-		c.translate(hotBarLeft, 5)
-		c.image(hotbar, 0, 0, hotbar.w, hotbar.h)
-		c.translate(11, 3)
-		c.scale(16, 16)
+		let hotBarLeft = w / 2 - hotbar.width/2
+		c2.translate(hotBarLeft, 5)
+		c2.drawRect(0, 0, hotbar.width, hotbar.height, hotbar)
+		c2.translate(11, 3)
+		c2.scale(16, 16)
 		for(let i = 0; i < 9; i++){
-			renderItem(c, me.inv[i])
-			renderItemCount(c, me.inv[i])
-			if(i == me.selected) c.image(selected, -0.75, -0.25, 1.5, 1.5)
-			c.translate(1.25, 0)
+			renderItem(c2, me.inv[i])
+			renderItemCount(c2, me.inv[i])
+			if(i == me.selected) c2.drawRect(-0.75, -0.25, 1.5, 1.5, selected)
+			c2.translate(1.25, 0)
 		}
 		if(me.mode < 1){
-			c.peek()
-			c.translate(hotBarLeft, hotbar.h + 6)
+			c2.resetTo(c)
+			c2.translate(hotBarLeft, hotbar.h + 6)
 			const wiggle = me.health < 5 ? (t*24&2)-1 : 0
 			for(let h = 0; h < 20; h+=2){
 				const x = h*4, y = (wiggle * ((h&2)-1) + 1) / 2
-				c.image(heartEmpty,x,y,9,9)
-				if(me.health>h+1) c.image(heart,x,y,9,9)
-				else if(me.health>h) c.image(halfHeart,x,y,9,9)
+				c2.drawRect(x,y,9,9, heartEmpty)
+				if(me.health>h+1) c2.drawRect(x,y,9,9,heart)
+				else if(me.health>h) c2.drawRect(x,y,9,9,halfHeart)
 			}
 		}
-		c.pop()
-		c.textAlign = 'center'; c.textBaseline = 'middle'
+		c2.resetTo(c)
 		if(lastSelected != me.selected) lastSelected = me.selected, hotbarTooltipAlpha = 5
-		if(hotbarTooltipAlpha > 0){
-			c.globalAlpha = min(1, max(0, hotbarTooltipAlpha))
+		a: if(hotbarTooltipAlpha > 0){
 			hotbarTooltipAlpha -= dt*2
 			const item = me.inv[me.selected]
-			if(item) c.styledText(item.name ? 79 : 15, item.name || item.defaultName, hotBarLeft + hotbar.w / 2, hotbar.h + 24, 10)
-			c.globalAlpha = 1
+			if(!item) break a
+			const name = item.name || item.defaultName
+			const arr = calcText(name)
+			drawText(c2, arr, hotBarLeft + hotbar.width / 2 - arr.width*4, hotbar.height + 16, 8, item.name ? 79 : 15, min(1, max(0, 1-hotbarTooltipAlpha)))
 		}
 		if(voice.active) proximityChatTooltip = 0
 		if(proximityChatTooltip > 0){
-			c.globalAlpha = min(1, proximityChatTooltip/5)
 			proximityChatTooltip -= dt
-			c.textAlign = 'left'
-			c.textBaseline = 'alphabetic'
-			c.fillStyle = '#800'
-			c.fillText('Press Enter to talk with proximity chat', 6, 4, 10)
-			c.fillStyle = '#f00'
-			c.shadowBlur = 10
-			c.shadowColor = '#000'
-			c.fillText('Press Enter to talk with proximity chat', 5, 5, 10)
-			c.globalAlpha = 1
-			c.shadowBlur = 0
-			c.shadowColor = '#0000'
+			drawText(c2, 'Press Enter to talk with proximity chat', 5, 5, 8, 265, 1-min(1, proximityChatTooltip/5))
 		}
 	}
+	return
 	if(me.health <= 0){
 		const h3 = h / 3
-		c.fillStyle = '#f003'
-		c.fillRect(0, 0, w, h)
-		c.textAlign = 'center'
-		c.textBaseline = 'alphabetic'
-		c.fillStyle = '#333'
-		c.fillText('You died!', w / 2 + 4, h3*2 - 4, 40)
-		c.fillStyle = '#fff'
-		c.fillText('You died!', w / 2, h3*2, 40)
-		const {x: mx, y: my} = c.from(cursor)
+		c2.fillStyle = '#f003'
+		c2.fillRect(0, 0, w, h)
+		c2.textAlign = 'center'
+		c2.textBaseline = 'alphabetic'
+		c2.fillStyle = '#333'
+		c2.fillText('You died!', w / 2 + 4, h3*2 - 4, 40)
+		c2.fillStyle = '#fff'
+		c2.fillText('You died!', w / 2, h3*2, 40)
+		const {x: mx, y: my} = c2.from(cursor)
 		const selectedBtn = mx >= (w - btnW) / 2 && mx < (w + btnW) / 2 ?
 			my >= h3 && my < h3 + 20 ? 1
 			: my >= h3 - 30 && my < h3 - 10 ? -1
@@ -207,17 +196,17 @@ drawLayer('ui', 1000, (c, w, h) => {
 		: 0
 		if(!respawnClicked){
 			pause()
-			c.image(uiButtons.large, (w - btnW) / 2, h3)
-			c.fillStyle = '#333'
-			c.fillText('Respawn', w / 2 + 1, h3 + 6, 10)
-			c.fillStyle = selectedBtn == 1 ? '#fff' : '#999'
-			c.fillText('Respawn', w / 2, h3 + 7, 10)
+			c2.image(uiButtons.large, (w - btnW) / 2, h3)
+			c2.fillStyle = '#333'
+			c2.fillText('Respawn', w / 2 + 1, h3 + 6, 10)
+			c2.fillStyle = selectedBtn == 1 ? '#fff' : '#999'
+			c2.fillText('Respawn', w / 2, h3 + 7, 10)
 
-			c.image(uiButtons.large, (w - btnW) / 2, h3 - 30)
-			c.fillStyle = '#333'
-			c.fillText('Rage quit', w / 2 + 1, h3 - 24, 10)
-			c.fillStyle = selectedBtn == -1 ? '#fff' : '#999'
-			c.fillText('Rage quit', w / 2, h3 - 23, 10)
+			c2.image(uiButtons.large, (w - btnW) / 2, h3 - 30)
+			c2.fillStyle = '#333'
+			c2.fillText('Rage quit', w / 2 + 1, h3 - 24, 10)
+			c2.fillStyle = selectedBtn == -1 ? '#fff' : '#999'
+			c2.fillText('Rage quit', w / 2, h3 - 23, 10)
 			if((changed.has(LBUTTON) && !buttons.has(LBUTTON) && selectedBtn == 1) || (changed.has(GAMEPAD.A) && !buttons.has(GAMEPAD.A) && selectedBtn == 1)){
 				click()
 				respawnClicked = true
@@ -230,10 +219,10 @@ drawLayer('ui', 1000, (c, w, h) => {
 				quit()
 			}
 		}else{
-			c.fillStyle = '#333'
-			c.fillText('Hang on...', w / 2 + 1, h3 - 1, 10)
-			c.fillStyle = '#fff'
-			c.fillText('Hang on...', w / 2, h3, 10)
+			c2.fillStyle = '#333'
+			c2.fillText('Hang on...', w / 2 + 1, h3 - 1, 10)
+			c2.fillStyle = '#fff'
+			c2.fillText('Hang on...', w / 2, h3, 10)
 		}
 		return
 	}else respawnClicked = false
@@ -243,28 +232,27 @@ drawLayer('ui', 1000, (c, w, h) => {
 	if(!invInterface) return
 	pause()
 	resetSlot()
-	c.fillStyle = '#0006'
-	c.fillRect(0, 0, w, h)
-	c.translate(w / 2, h / 2)
-	c.push()
-	invInterface.drawInterface?.(interfaceId, c, (x, y) => {
-		c.push()
-		c.translate(x, y)
-		c.image(inventory, -88, -inventory.h)
-		c.translate(-72,8 - inventory.h)
-		c.scale(16,16)
+	c2.fillStyle = '#0006'
+	c2.fillRect(0, 0, w, h)
+	c2.translate(w / 2, h / 2)
+	invInterface.drawInterface?.(interfaceId, c2, (x, y) => {
+		const c3 = c2.sub()
+		c3.translate(x, y)
+		c3.image(inventory, -88, -inventory.h)
+		c3.translate(-72,8 - inventory.h)
+		c3.scale(16,16)
 		for(let i = 0; i < 9; i++){
-			renderSlot(c, me, i)
-			c.translate(1.125,0)
+			renderSlot(c3, me, i)
+			c3.translate(1.125,0)
 		}
-		c.translate(-10.125, 1.375)
+		c3.translate(-10.125, 1.375)
 		for(let i = 9; i < 36; i++){
-			renderSlot(c, me, i)
-			if(i % 9 == 8) c.translate(-9, 1.125)
-			else c.translate(1.125,0)
+			renderSlot(c3, me, i)
+			if(i % 9 == 8) c3.translate(-9, 1.125)
+			else c3.translate(1.125,0)
 		}
-		c.pop()
 	}, w/2, h/2)
+	c2.resetTo(c)
 	if(action == 1 && slotI > -1){
 		const int = slotI > 127 ? invInterface : me, id = slotI > 127 ? interfaceId : 0
 		const r = int.slotClicked(id, slotI&127, me.getItem(2, 0), me)
@@ -284,15 +272,13 @@ drawLayer('ui', 1000, (c, w, h) => {
 			send(buf)
 		}
 	}
-	c.peek()
-	c.scale(16,16)
-	const {x, y} = c.from(cursor)
-	c.translate(x, y - .5)
-	renderItem(c, me.inv[36])
-	renderItemCount(c, me.inv[36])
-	c.peek()
-	if(!me.inv[36]) renderTooltip(c, slotI > 127 ? me.items[slotI & 127] : slotI >= 0 ? me.inv[slotI] : null)
-	c.pop()
+	c2.scale(16,16)
+	const {x, y} = c2.from(cursor)
+	c2.translate(x, y - .5)
+	renderItem(c2, me.inv[36])
+	renderItemCount(c2, me.inv[36])
+	c2.resetTo(c)
+	if(!me.inv[36]) renderTooltip(c2, slotI > 127 ? me.items[slotI & 127] : slotI >= 0 ? me.inv[slotI] : null)
 })
 
 

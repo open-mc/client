@@ -926,8 +926,8 @@ Array.null = len => {
 globalThis.ctxSupersample = 1
 globalThis.ctxFramerate = -1
 globalThis.pixelRatio = 1
-const m=await import('./index.js')
 globalThis.t = performance.now()/1000; globalThis.dt = 0
+const m=await import('./index.js')
 let nextF = 0
 setInterval(function g(j){
 	if(j) m.step?.()

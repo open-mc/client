@@ -95,6 +95,7 @@ export function stopVoice(){
 	postMessage(-Infinity, '*')
 	voice.active = false
 }
+export const ping = () => postMessage('', '*')
 voice.sampleRate = 0
 voice.active = false
 
@@ -106,4 +107,4 @@ export function uiButton(c, x0, y0, w, h){
 	return 1
 }
 
-export { drawText, measureWidth, textShadeCol} from './font.js'
+export { drawText, calcText, textShadeCol} from './font.js'

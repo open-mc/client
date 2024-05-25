@@ -4,7 +4,7 @@ import { Entities, Entity, Item, Blocks, BlockIDs, toTex, addParticle } from 'de
 import { renderF3, drawLayer } from 'api'
 import { getblock, cam, worldEvents, world, me, perms } from 'world'
 import { renderLeft, renderRight } from './creativeInventory.js'
-import { drawText, measureWidth } from '../iframe/font.js'
+import { drawText, calcText } from '../iframe/font.js'
 
 const src = loader(import.meta)
 
@@ -57,9 +57,9 @@ export class LivingEntity extends Entity{
 			const c2 = c.sub()
 			c2.translate(0, this.height+0.15)
 			c2.scale(0.25)
-			const width = measureWidth(this.name)
-			c2.drawRect(width * -0.5 - .2, -.2, width + 0.4, 1.4, nameBgCol)
-			drawText(c2, (this.state&0x100?'\\+9':'')+this.name, width * -0.5, 0, 1, 15)
+			const arr = calcText(this.name)
+			c2.drawRect(arr.width * -0.5 - .2, -.2, arr.width + 0.4, 1.4, nameBgCol)
+			drawText(c2, arr, arr.width * -0.5, 0, 1, this.state&0x100?9:15)
 		}
 		if(ys < 0) c.translate(0, this.height)
 		c.scale(xs, ys)

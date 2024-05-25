@@ -12,81 +12,157 @@ const LETTER_SPACING = .125
 const colors = [vec4(1,1,1,0), vec4(.333,1,1,0), vec4(1,.333,1,0), vec4(0,.333,1,0), vec4(1,1,.333,0), vec4(.333,1,.333,0), vec4(1,.333,.333,0), vec4(.333,.333,.333,0), vec4(.666,.666,.666,0), vec4(0,.666,.666,0), vec4(.666,0,.666,0), vec4(0,0,.666,0), vec4(.666,.666,0,0), vec4(0,.666,0,0), vec4(.666,0,0,0), vec4(0)]
 const shadowColors = [vec4(1,1,1,.98), vec4(.84,1,1,0), vec4(1,.84,1,0), vec4(.84,.84,1,0), vec4(1,1,.84,0), vec4(.84,1,.84,0), vec4(1,.84,.84,0), vec4(.84,.84,.84,0), vec4(.98,.98,.98,.73), vec4(.75,.92,.92,0), vec4(.92,.75,.92,0), vec4(.75,.75,.92,0), vec4(.92,.92,.75,0), vec4(.75,.92,.75,0), vec4(.92,.75,.75,0), vec4(.75,.75,.75,0)]
 
-const hexToInt = a => a>47&&a<58?a-48:a>64&&a<71?a-55:a>96&&a<103?a-87:a==43?131072:65536
-
-let i = 0, text = '', style = 15, tint, tint2
-
-function init(t, s){
-	text = t; style = s; i = 0
-	tint = colors[s&15]; tint2 = shadowColors[s&15]
+const a = vec4(0)
+let ctx = null, alphaTint = 0, style = 0, tint, tint2
+function drawGlyph(code){
+	const char = glyphs.get(code)
+	if(!code) return
+	const w = char.w*16, charWidth = w+(style&16?LETTER_SPACING:0)
+	const otint2 = alphaTint<1 ? (a.x=1-(1-tint2.x)*alphaTint, a.y=1-(1-tint2.y)*alphaTint, a.z=1-(1-tint2.z)*alphaTint, a.w=1-(1-tint2.w)*alphaTint,a) : tint2
+	if(style&256){
+		ctx.drawRect(.125, -.125, w, 1, char, otint2)
+		if(style&16) ctx.drawRect(.25, -.125, w, 1, char, otint2)
+	}
+	const otint = alphaTint<1 ? (a.x=1-(1-tint.x)*alphaTint, a.y=1-(1-tint.y)*alphaTint, a.z=1-(1-tint.z)*alphaTint, a.w=1-(1-tint.w)*alphaTint,a) : tint
+	ctx.drawRect(0, 0, w, 1, char, otint)
+	if(style&16) ctx.drawRect(.125, 0, w, 1, char, otint)
+	if(style&64) ctx.drawRect(w, -.0625, style&4194304?-charWidth-LETTER_SPACING:-charWidth, .125, vec4(1), otint)
+	if(style&128) ctx.drawRect(w, 0.4375, style&8388608?-charWidth-LETTER_SPACING:-charWidth, .125, vec4(1), otint)
+	ctx.translate(charWidth+LETTER_SPACING, 0)
+	style = style&65535|style<<16
 }
-function nextChar(){
+export function drawText(c, t, x=0, y=0, size=1, s = 271, aT = 0){
+	alphaTint = 1-aT; style = s
+	ctx = c.sub()
+	ctx.translate(x, y)
+	ctx.scale(size)
+	tint = colors[s&15]; tint2 = shadowColors[s&15]
+	if(s&32) ctx.skew(.2, 0),ctx.translate(-.0625,0)
+	if(typeof t=='string') t = [t]
+	for(const v of t){
+		if(typeof v == 'number' && v<65536){ style = style&-65536|v; continue }
+		if((style^(style>>16))&15) tint = colors[style&15], tint2 = shadowColors[style&15]
+		if((style^(style>>16))&32) ctx.skew(style&32?.2:-.2,0),ctx.translate(style&32?-.0625:.0625,0)
+		if(typeof v == 'number') drawGlyph(v)
+		else for(let i = 0; i < v.length; i++) drawGlyph(v.charCodeAt(i))
+	}
+	return style
+}
+export const TokenSet = (...a) => {
+	const m = new Map
+	m.add = (s, f, sep) => {
+		const set = new Set
+		for(let i = 0; i < s.length; i++){
+			const c = s.codePointAt(i)
+			if(c > 65535) i++
+			set.add(c)
+		}
+		set.sepLen = 0
+		if(set.sep = sep) for(let i = 0; i < sep.length; i++){
+			const c = sep.codePointAt(i)
+			if(c > 65535) i++
+			set.sepWidth = glyphs.get(c).w*16+LETTER_SPACING, set.sepLen++
+		}else set.sepWidth = 0
+		set.flags = f
+		for(const itm of set) m.set(itm, set)
+		return m
+	}
+	return m
+}
+TokenSet.BREAK_INVISIBLE = 1
+const defaultTs = TokenSet()
+	.add('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZáéíóúñüÁÉÍÓÚÑÜ', 0, '-')
+	.add('0123456789')
+	.add(' \t', TokenSet.BREAK_INVISIBLE)
+let i = 0, j = 0, text = '', charWidth = 0, charCode = 0, cs0 = 0, strings = []
+const hexToInt = a => a>47&&a<58?a-48:a>64&&a<71?a-55:a>96&&a<103?a-87:a==43?131072:65536
+function nextChar(c1 = 0){
 	while(i < text.length){
 		let c = text.charCodeAt(i)
 		if(c==92){ // Backslash
+			cs0<i&&strings.push(text.slice(cs0,i))
 			const c2 = text.charCodeAt(i+1)
-			if(c2==88||c2==120){ // \x**
+			if(c2>=97) c2 -= 32
+			if(c2==88){ // \x**
 				c = hexToInt(text.charCodeAt(i+2))<<4|hexToInt(text.charCodeAt(i+3))
 				i += 4
 				if(c > 65535) c = 65533
-			}else if(c2==85||c2==117){ // \u****
+			}else if(c2==85){ // \u****
 				c = hexToInt(text.charCodeAt(i+2))<<4|hexToInt(text.charCodeAt(i+3))|hexToInt(text.charCodeAt(i+4))<<4|hexToInt(text.charCodeAt(i+5))
 				i += 6
 				if(c > 65535) c = 65533
-			}else if(c2==78||c2==110){ c = 10; i++ }
-			else if(c2==84||c2==116){ c = 9; i++ }
+			}else if(c2==78){ c = 10; i++ }
+			else if(c2==84){ c = 9; i++ }
 			else if(c2 != 92){
 				let s = hexToInt(text.charCodeAt(i+1))<<4|hexToInt(text.charCodeAt(i+2))
 				if(s&131072) s = s&-131088|style&15
 				if(s&2097152) s = s&-2097393|style&240
-				i += 3
+				cs0 = i += 3
 				if(s>255) continue
 				tint = colors[s&15]; tint2 = shadowColors[s&15]
-				style = style&-256|s; continue
+				style = style&-256|s
+				strings.push(style); continue
 			}else i++
-		}else if(c>=0xd800&&c<0xdc00){ /* High/Low surrogate pair */
-			const c2 = text.charCodeAt(++i)
-			if(c2 >= 0xdc00 && c2 < 0xe000) i++, c = (c-0xd800<<10|c2-0xdc00)+0x10000
+			strings.push(String.fromCharCode(c)); cs0 = i
 		}else i++
-		const glyph = glyphs.get(c)
-		if(glyph) return glyph
+		if(c1) return (charCode = c, null)
+		if(c>=0xd800&&c<0xdc00){ /* High/Low surrogate pair */
+			let j = i, cs1 = cs0; nextChar(c)
+			if(charCode >= 0xdc00 && charCode < 0xe000){
+				c = (c-0xd800<<10|charCode-0xdc00)+0x10000
+				i>cs0+1&&strings.push(text.slice(cs0, i-1), c)
+				cs0 = ++i
+			}
+			else i = j, cs0 = cs1
+		}
+		const glyph = glyphs.get(charCode = c)
+		if(glyph){ charWidth = glyph.w*16+LETTER_SPACING+(style&16 ? LETTER_SPACING : 0); return glyph }
 	}
 	return null
 }
-
-export function drawText(ctx, t, x=0, y=0, size=1, s = 271){
-	init(t, s&255)
-	ctx = ctx.sub()
-	ctx.translate(x, y)
-	ctx.scale(size)
-	if(s&32) ctx.skew(.2, 0),ctx.translate(-.0625,0)
-	let char
-	while(char = nextChar()){
-		if((style^(style>>8))&32) ctx.skew(style&32?.2:-.2,0),ctx.translate(style&32?-.0625:.0625,0)
-		const w = char.w*16
-		if(s&256){
-			ctx.drawRect(.125, -.125, w, 1, char, tint2)
-			if(style&16) ctx.drawRect(.25, -.125, w, 1, char, tint2)
-		}
-		ctx.drawRect(0, 0, w, 1, char, tint)
-		if(style&16) ctx.drawRect(.125, 0, w, 1, char, tint)
-		if(style&64) ctx.drawRect(w, -.0625, style&16384?-w-LETTER_SPACING:-w, .125, vec4(1), tint)
-		if(style&128) ctx.drawRect(w, 0.4375, style&32768?-w-LETTER_SPACING:-w, .125, vec4(1), tint)
-		ctx.translate(w+LETTER_SPACING + (style&16 ? LETTER_SPACING : 0), 0)
-		style = style&255|style<<8
+function pushStrings(arr, len = Infinity){
+	let x = 0
+	if(cs0<j) strings.push(text.slice(cs0,j)), cs0 = j
+	while(x<strings.length&&len>0){
+		const i = strings[x++]
+		if(typeof i=='string'){
+			if((len-=i.length)>=0) arr.push(i)
+			else arr.push(i.slice(0,len)),strings[--j]=i.slice(len)
+		}else i>65535&&len--,arr.push(i)
 	}
-	return style
+	if(len==Infinity) return void(strings.length = 0)
+	;(arr=strings).splice(0, j)
+	strings = []
+	return arr
 }
-
-export function measureWidth(t, maxW = NaN, startStyle = 15){
-	init(t, startStyle)
-	let results = []
-	let char, w = 0
-	while(char = nextChar()){
-		w += char.w*16 + LETTER_SPACING + (style&16 ? LETTER_SPACING : 0)
+export function calcText(t, maxW = undefined, ts = defaultTs, s = 15){
+	text = t; style = s; i = 0; cs0 = 0
+	let char = nextChar(), line = 0, res = []
+	const results = [res], chars = []
+	let lineWidth = (typeof maxW == 'number' ? maxW : typeof maxW == 'function' ? maxW(line) : Array.isArray(maxW) ? maxW[line] : Infinity) + LETTER_SPACING, w = 0
+	let tokenMatch = null, tokenWidth = 0, count = 0
+	while(char){
+		tokenMatch = ts.get(charCode) ?? null
+		if(tokenMatch) while(true){
+			chars.push(charWidth); tokenWidth += charWidth
+			if(!(j=i,count++,char = nextChar()) || !tokenMatch.has(charCode)) break
+		}else chars.push(charWidth), tokenWidth = charWidth, j=i,char = nextChar(), count++
+		w+=tokenWidth
+		while(w>lineWidth){
+			let excess = (w-lineWidth)+(tokenMatch?tokenMatch.sepWidth:0)
+			res.width = w-LETTER_SPACING
+			line++; lineWidth = (typeof maxW == 'number' ? maxW : typeof maxW == 'function' ? maxW(line) : Array.isArray(maxW) ? maxW[line] : Infinity) + LETTER_SPACING; w = 0
+			while(excess > 0){ const cw = chars.pop(); if(cw===undefined) break; excess -= cw; res.width -= cw; w += cw; count-- }
+			const r = res
+			results.push(res = pushStrings(res, count))
+			if(chars.length>0) r.push(tokenMatch.sep)
+			count = 0
+		}
+		chars.length = 0; tokenWidth = 0; tokenMatch = null
 	}
-	results.push(w&&w-LETTER_SPACING)
-	return maxW == maxW ? results : results[0]
+	res.width = w-LETTER_SPACING
+	pushStrings(res)
+	return maxW != undefined ? results : results[0]
 }
 
 export const textShadeCol = vec4(.1777, .1777, .1777, .43)

@@ -1,5 +1,5 @@
 import { music, me, server } from 'world'
-import { renderF3, drawText, measureWidth, drawLayer } from 'api'
+import { renderF3, drawText, calcText, drawLayer } from 'api'
 import { toTex } from 'definitions'
 const src = loader(import.meta)
 
@@ -94,8 +94,8 @@ export function renderItemCount(c, item){
 	if(!item) return
 	if(item.count == 1) return
 	const count = (item.count !== (item.count & 255) ? '\\+9' : '') + item.count
-	const width = measureWidth(count)*.5
-	drawText(c, count, 5/6-width, 0, 0.5)
+	const arr = calcText(count)
+	drawText(c, arr, 0.4375-arr.width*.5, 0, 0.5)
 }
 let slotx = NaN, sloty = NaN
 export let slotI = -1
@@ -151,7 +151,8 @@ drawLayer('ui', 999, (ctx, w, h) => {
 	for(const line of server.title.split('\n')){
 		ctx.textAlign = 'center'
 		ctx.drawRect(-w, -18, w*2, 32, tabMenuBg)
-		drawText(ctx, line, -measureWidth(line)*6, -3, 12)
+		const arr = calcText(line)
+		drawText(ctx, arr, -arr.width*6, -3, 12)
 	}
 	ctx.translate(0, -17)
 	const playerCount = server.players.length
@@ -173,7 +174,8 @@ drawLayer('ui', 999, (ctx, w, h) => {
 	ctx.translate(0, -20)
 	for(const line of server.sub.split('\n')){
 		ctx.drawRect(-w, -3, w*2, 10, tabMenuBg)
-		drawText(ctx, line, -measureWidth(line)*4, 0, 8)
+		const arr = calcText(line)
+		drawText(ctx, arr, -arr.width*4, 0, 8)
 		ctx.translate(0, -10)
 	}
 })

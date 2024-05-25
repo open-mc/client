@@ -1,5 +1,5 @@
 import { listen, options, storage } from './save.js'
-import { hideUI, showUI } from './ui.js'
+import { hideUI, ping, showUI } from './ui.js'
 import { pause } from '../uis/pauseui.js'
 import { serverlist } from '../uis/serverlist.js'
 import texts from './lang.js'
@@ -47,6 +47,8 @@ onmessage = ({data, source}) => {
 		else if(data !== data) serverlist()
 		else if(data === Infinity) voiceOn()
 		else if(data === -Infinity) voiceOff()
+		else if(data === '') ping()
+		return
 	}
 	if(data === null){
 		win = iframe.contentWindow
