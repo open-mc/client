@@ -1,13 +1,13 @@
-import { uiButton } from 'api'
+import { uiButton, drawText, calcText, send } from 'api'
 import { commandBlockTexs } from './blocks.js'
-import { click, renderItem, renderTooltip } from './effects.js'
+import { click, renderItem, renderTooltip, slotHighlightColor } from './effects.js'
+import { toTex } from 'definitions'
 import './items.js'
-import { send } from 'api'
 
 const Category = (name, icon, ...a) => { a.name = name; a.icon = icon; return a }
 
 const categories = [
-	Category('Wood', Items.oak_log.texture,
+	Category('Wood', Items.oak_log,
 		Items.oak_log, Items.birch_log,
 		Items.spruce_log, Items.dark_oak_log,
 		Items.acacia_log, Items.jungle_log,
@@ -19,14 +19,14 @@ const categories = [
 		Items.acacia_planks_slab, Items.jungle_planks_slab,
 	),
 
-	Category('Building', Items.cobblestone.texture,
+	Category('Building', Items.cobblestone,
 		Items.cobblestone, Items.glass,
 		Items.oak_planks, Items.birch_planks,
 		Items.spruce_planks, Items.dark_oak_planks,
 		Items.acacia_planks, Items.jungle_planks,
 	),
 
-	Category('Deco', Items.red_wool.texture,
+	Category('Deco', Items.red_wool,
 		Items.black_wool, Items.grey_wool, Items.light_grey_wool, Items.white_wool,
 		Items.brown_wool, Items.red_wool, Items.orange_wool, Items.yellow_wool,
 		Items.lime_wool, Items.green_wool, Items.cyan_wool, Items.light_blue_wool,
@@ -34,7 +34,7 @@ const categories = [
 		Items.glass
 	),
 
-	Category('Forest', Items.oak_sapling.texture,
+	Category('Forest', Items.oak_sapling,
 		Items.oak_log, Items.birch_log,
 		Items.spruce_log, Items.dark_oak_log,
 		Items.acacia_log, Items.jungle_log,
@@ -43,7 +43,7 @@ const categories = [
 		Items.acacia_leaves, Items.jungle_leaves,
 	),
 
-	Category('Desert', Items.sand.texture,
+	Category('Desert', Items.sand,
 		Items.sand, Items.sandstone,
 		Items.cut_sandstone, Items.smooth_sandstone,
 		Items.chiseled_sandstone, Items.red_sandstone,
@@ -51,7 +51,7 @@ const categories = [
 		Items.smooth_red_sandstone,
 	),
 
-	Category('Ground', Items.grass.texture,
+	Category('Ground', Items.grass,
 		Items.grass, Items.dirt,
 		Items.sand, Items.stone,
 		Items.sandstone, Items.netherrack,
@@ -59,13 +59,13 @@ const categories = [
 		Items.bucket_of_water, Items.bucket_of_lava,
 	),
 
-	Category('Slabs', Items.oak_planks_slab.texture,
+	Category('Slabs', Items.oak_planks_slab,
 		Items.oak_planks_slab, Items.birch_planks_slab,
 		Items.spruce_planks_slab, Items.dark_oak_planks_slab,
 		Items.acacia_planks_slab, Items.jungle_planks_slab,
 	),
 
-	Category('Crops', Items.sugar_cane.texture,
+	Category('Crops', Items.sugar_cane,
 		Items.sugar_cane, Items.sand,
 		Items.dirt, Items.bucket_of_water,
 		Items.oak_sapling, Items.birch_sapling,
@@ -74,52 +74,53 @@ const categories = [
 		Items.bone_meal,
 	),
 
-	Category('Food', Items.apple.texture,
+	Category('Food', Items.apple,
 		Items.apple
 	),
 
-	Category('Tools', Items.diamond_pickaxe.texture,
+	Category('Tools', Items.diamond_pickaxe,
 		Items.diamond_pickaxe, Items.diamond_shovel, Items.diamond_axe,
 		Items.flint_and_steel, Items.bucket
 	),
 
-	Category('Destructive', Items.tnt.texture,
+	Category('Destructive', Items.tnt,
 		Items.tnt, Items.flint_and_steel, Items.end_crystal,
 		Items.glowing_obsidian, Items.bucket_of_lava, Items.bucket_of_water
 	),
 
-	Category('General', Items.stick.texture,
+	Category('General', Items.stick,
 		Items.stick, Items.eye_of_ender,
 		Items.lapis, Items.coal, Items.iron,
 		Items.gold, Items.emerald, Items.diamond,
 	),
 
-	Category('Special', Items.eye_of_ender.texture,
+	Category('Special', Items.eye_of_ender,
 		Items.eye_of_ender,
 	),
 
-	Category('Tool blocks', Items.crafting_table.texture,
+	Category('Tool blocks', Items.crafting_table,
 		Items.crafting_table, Items.chest, Items.furnace,
 	),
 
-	Category('Technical', commandBlockTexs[0].crop(0,0,16,16),
+	Category('Technical', Items.command_block,
 		Items.command_block, Items.end_portal_frame,
 		Items.bedrock,
 	),
 ]
 
+let catBgFill = vec4(0, 0, 0, .5)
 let selectedCat = null, catPreview = null
 export function renderLeft(c){
-	c.textBaseline = 'alphabetic'
 	catPreview = null
 	for(const cat of categories){
-		c.fillStyle = '#0008'
-		c.fillRect(1, -21, 150, 20)
+		c.drawRect(1, -21, 150, 20, catBgFill)
 		const L = uiButton(c, 0, -21, 152, 21)
 		if(L || selectedCat == cat){
-			c.strokeStyle = L == 2 || selectedCat == cat ? '#fff' : '#fff8'
-			c.lineWidth = 1
-			c.strokeRect(1.5, -20.5, 149, 19)
+			const col = L == 2 || selectedCat == cat ? vec4.white : vec4(.5)
+			c.drawRect(1, -20, 1, 18, col)
+			c.drawRect(1, -21, 150, 1, col)
+			c.drawRect(151, -20, -1, 18, col)
+			c.drawRect(1, -1, 150, -1, col)
 			if(L) catPreview = cat
 		}
 		if(L == 2){
@@ -127,13 +128,14 @@ export function renderLeft(c){
 			else selectedCat = cat
 			click()
 		}
-		c.fillStyle = '#fff'
-		c.image(cat.icon, 3, -19, 16, 16)
+		const c2 = c.sub()
+		c2.box(11, -19, 16, 16)
+		renderItem(c2, cat.icon)
 		c.textAlign = 'left'
-		c.fillText(cat.name, 23, -15, 10)
+		drawText(c, cat.name, 23, -15, 8)
 		c.textAlign = 'right'
-		c.fillStyle = '#fff8'
-		c.fillText(cat.length, 147, -15, 10)
+		const arr = calcText('\\+7'+cat.length)
+		drawText(c, arr, 147 - arr.width*8, -15, 8)
 		c.translate(0, -21)
 	}
 }
@@ -141,19 +143,18 @@ const ROW_SIZE = 8
 export function renderRight(c){
 	const cat = catPreview ?? selectedCat
 	if(!cat) return
-	c.push()
-	c.translate(-10, 0)
-	c.scale(16, 16)
-	c.fillStyle = '#fff3'
+	const c2 = c.sub()
+	c2.translate(-10, 0)
+	c2.scale(16, 16)
 	let i = 0
 	let sel = null
 	for(const item of cat){
-		if((i++)%ROW_SIZE) c.translate(1.125, 0)
-		else c.translate(-1.125*(ROW_SIZE-1), -1.125)
-		renderItem(c, item, false)
-		const L = uiButton(c, -0.5, 0, 1, 1)
+		if((i++)%ROW_SIZE) c2.translate(1.125, 0)
+		else c2.translate(-1.125*(ROW_SIZE-1), -1.125)
+		renderItem(c2, item, false)
+		const L = uiButton(c2, -0.5, 0, 1, 1)
 		if(L){
-			c.fillRect(-0.5, 0, 1, 1)
+			c2.drawRect(-0.5, 0, 1, 1, slotHighlightColor)
 			sel = item
 		}
 		if(L == 2){
@@ -170,6 +171,5 @@ export function renderRight(c){
 			send(d)
 		}
 	}
-	c.pop()
 	if(sel) renderTooltip(c, sel)
 }

@@ -96,7 +96,7 @@ export function preconnect(ip, cb = Function.prototype, instant = false){
 			return
 		}catch(e){console.warn(e)} }
 		ws.challenge = null
-		if(!authed && typeof data === 'string') return void(data.length ? pendingConnection(data) : (authed=true, hideUI()))
+		if(!authed && typeof data === 'string') return void(data.length ? pendingConnection(data) : authed=true)
 		fwPacket(data)
 	}
 	ws.onclose = ({reason, code}) => {

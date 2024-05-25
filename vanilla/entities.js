@@ -1,10 +1,9 @@
 import { explode, AshParticle, BlastParticle, hurt } from './defs.js'
 import { audioSet, renderItem, renderItemCount, renderSlot } from './effects.js'
 import { Entities, Entity, Item, Blocks, BlockIDs, toTex, addParticle } from 'definitions'
-import { renderF3, drawLayer } from 'api'
+import { renderF3, drawLayer, drawText, calcText } from 'api'
 import { getblock, cam, worldEvents, world, me, perms } from 'world'
 import { renderLeft, renderRight } from './creativeInventory.js'
-import { drawText, calcText } from '../iframe/font.js'
 
 const src = loader(import.meta)
 
@@ -57,9 +56,9 @@ export class LivingEntity extends Entity{
 			const c2 = c.sub()
 			c2.translate(0, this.height+0.15)
 			c2.scale(0.25)
-			const arr = calcText(this.name)
+			const arr = calcText(this.name, _, this.state&0x100?9:15)
 			c2.drawRect(arr.width * -0.5 - .2, -.2, arr.width + 0.4, 1.4, nameBgCol)
-			drawText(c2, arr, arr.width * -0.5, 0, 1, this.state&0x100?9:15)
+			drawText(c2, arr, arr.width * -0.5, 0, 1)
 		}
 		if(ys < 0) c.translate(0, this.height)
 		c.scale(xs, ys)
@@ -204,47 +203,41 @@ Entities.player = class extends LivingEntity{
 		if(this == me && perms<3)this.state&=-2
 	}
 	drawInterface(id, c, drawInv, w, h){
-		return
-		if(id == 1){
-			c.image(meInterface, -88, 0)
-			c.push()
-			c.translate(-38,5)
-			c.scale(32,32)
-			const f = this.f
-			const {x, y} = c.from(cursor)
-			this.f = atan2(x, y - me.head)
-			this.render(c)
-			this.f = f
-			c.peek()
-			c.translate(-72, 2)
-			c.scale(16,16)
-			for(let i = 0; i < 4; i++){
-				renderSlot(c, this, i, 1)
-				c.translate(0, 1.125)
-			}
-			c.translate(4.3125, -4.5)
-			renderSlot(c, this, 4, 1)
-			c.translate(1.3125, 1.625)
-			renderSlot(c, this, 5, 1)
-			c.translate(1.125, 0)
-			renderSlot(c, this, 6, 1)
-			c.translate(-1.125, 1.125)
-			renderSlot(c, this, 7, 1)
-			c.translate(1.125, 0)
-			renderSlot(c, this, 8, 1)
-			c.translate(2.375, -0.625)
-			renderSlot(c, this, 10, 1)
-			c.pop()
-			drawInv(0, 0)
-			if(this.mode == 1){
-				c.translate(-w, h)
-				c.push()
-				renderLeft(c)
-				c.pop()
-				c.translate(w*2, 0)
-				c.push()
-				renderRight(c)
-			}
+		if(id != 1) return
+		c.drawRect(-88, 0, 176, meInterface.subHeight, meInterface)
+		const c2 = c.sub()
+		c2.translate(-38,5)
+		c2.scale(32,32)
+		const f = this.f
+		const {x, y} = c2.from(cursor)
+		this.f = atan2(x, y - me.head)
+		this.render(c2)
+		this.f = f
+		c2.resetTo(c)
+		c2.translate(-72, 2)
+		c2.scale(16,16)
+		for(let i = 0; i < 4; i++){
+			renderSlot(c2, this, i, 1)
+			c2.translate(0, 1.125)
+		}
+		c2.translate(4.3125, -4.5)
+		renderSlot(c2, this, 4, 1)
+		c2.translate(1.3125, 1.625)
+		renderSlot(c2, this, 5, 1)
+		c2.translate(1.125, 0)
+		renderSlot(c2, this, 6, 1)
+		c2.translate(-1.125, 1.125)
+		renderSlot(c2, this, 7, 1)
+		c2.translate(1.125, 0)
+		renderSlot(c2, this, 8, 1)
+		c2.translate(2.375, -0.625)
+		renderSlot(c2, this, 10, 1)
+		drawInv(0, 0)
+		if(this.mode == 1){
+			c.translate(-w, h)
+			renderLeft(c.sub())
+			c.translate(w*2, 0)
+			renderRight(c)
 		}
 	}
 	20(buf){ this.mode = buf.byte() }

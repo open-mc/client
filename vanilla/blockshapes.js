@@ -1,6 +1,5 @@
 import { Item, toTex, BlockTexture, editBlockTexture, awaitLoad } from 'definitions'
-import { getblock, world } from 'world'
-import { blockAtlas } from '../iframe/definitions.js'
+import { getblock } from 'world'
 
 export const BlockShape = {}
 BlockShape.SLAB = [0, 0, 1, 0.5]

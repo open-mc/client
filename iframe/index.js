@@ -284,7 +284,7 @@ Item.texture: \\+a[Atlas tex ID of held item]\\+f[\\+d[Animation frames]\\+f]
 `.split('\n')
 const minif3Info = [`\\27[Game version]\\0f; \\+a[FPS]\\+f; \\4+[Player position]\\0+; \\+6[MC day & time]\\+f; [Looking at block]`]
 
-drawLayer('ui', 1000, (ctx, w, h) => {
+drawLayer('ui', 999, (ctx, w, h) => {
 	const f3 = min(renderF3+buttons.has(KEYS.SYMBOL), 2)
 	if(!f3) return
 	const ct2 = ctx.sub()
@@ -296,10 +296,10 @@ drawLayer('ui', 1000, (ctx, w, h) => {
 	let helpOfft = w < 600 ? t%6<3 ? 1 : 0 : NaN
 	const mex = floor(me.x) >> 3 & 6, mexi = (floor(me.x) & 15) / 16
 	const lookingAt = getblock(floor(pointer.x + me.x), floor(pointer.y + me.y + me.head))
-	for(const t of f3<2 ? buttons.has(KEYS.ALT)?minif3Info:[
+	for(const t of f3<2 ? buttons.has(KEYS.CTRL)?minif3Info:[
 `\\27${VERSION}\\0f; \\+${(fps<20?'9':fps<50?'3':fps<235?'a':'d')+fps}\\+f fps; \\4+x: ${trueX}, y: ${trueY}\\0+; \\+6Day ${day} ${time}\\+f; ${(lookingAt.id?'':'\\+8')+lookingAt.className}\\+f`
-] : buttons.has(KEYS.ALT)?helpOfft==0?[]:f3LeftInfo :
-`Paper MC ${VERSION} (Alt for f3 help)
+] : buttons.has(KEYS.CTRL)?helpOfft==0?[]:f3LeftInfo :
+`Paper MC ${VERSION} (Ctrl for f3 help)
 FPS: \\+${(fps<20?'9':fps<50?'3':fps<235?'a':'d')+fps}\\+f (${(timeToFrame*1000).toFixed(2).padStart(5,'\u2007')}ms)
 Net: ${Number.formatData(networkUsage)}/s${performance.memory ? ', Mem: '+Number.formatData(performance.memory.usedJSHeapSize) : ''}
 Draw: ${Number.formatData(frameData)}/${frameSprites}/${frameDrawCalls}
@@ -308,9 +308,9 @@ XY: \\4+${trueX} / ${trueY}\\0+
 ChXY: ${(floor(me.x) & 63).toString().padStart(2,'\u2007')} ${(floor(me.y) & 63).toString().padStart(2,'\u2007')} in ${toString(bigintOffset.x>>6n,floor(me.x) >> 6, 0)} ${toString(bigintOffset.y>>6n,floor(me.y) >> 6, 0)}
 Facing: ${(me.f >= 0 ? 'R' : 'L') + (90 - abs(me.f / PI2 * 360)).toFixed(1).padStart(5, '\u2007')} (${me.f.toFixed(3)})
 `.slice(0, -1).split('\n')){
-		const arr = calcText(t)
+		const arr = calcText(t, _, 15)
 		ct2.drawRect(.125, -.125, arr.width+.25, -1.25, textShadeCol)
-		drawText(ct2, arr, .25, -1.25, 1, 15)
+		drawText(ct2, arr, .25, -1.25, 1)
 		ct2.translate(0, -1.25)
 	}
 	if(f3 < 2) return
@@ -318,7 +318,7 @@ Facing: ${(me.f >= 0 ? 'R' : 'L') + (90 - abs(me.f / PI2 * 360)).toFixed(1).padS
 	ct2.translate(w, h)
 	ct2.scale(8, 8)
 	const holding = me.inv[me.selected]
-	for(const t of buttons.has(KEYS.ALT)?helpOfft==1?[]:f3RightInfo:`Tick ${world.tick}, Day ${day}, Time ${time}
+	for(const t of buttons.has(KEYS.CTRL)?helpOfft==1?[]:f3RightInfo:`Tick ${world.tick}, Day ${day}, Time ${time}
 Dimension: ${world.id}
 Biome: ${me.chunk ? round(me.chunk.biomes[mex] * (1 - mexi) + me.chunk.biomes[mex+2] * mexi) : 0}/${me.chunk ? round(me.chunk.biomes[mex+1] * (1 - mexi) + me.chunk.biomes[mex+3] * mexi) : 0}
 Looking at: \\4+${toString(bigintOffset.x, floor(pointer.x + me.x)|0, 0)} ${toString(bigintOffset.y, floor(pointer.y + me.y + me.head)|0, 0)}\\0+
@@ -326,9 +326,9 @@ Block: ${lookingAt.className+(lookingAt.savedata?' {...}':'')} (${lookingAt.id})
 Block.texture: ${lookingAt.texture>=0?`${lookingAt.texture.toHex().slice(2)}[${(lookingAt.texture>>>24)+1}]`+(lookingAt.render?'*':''):lookingAt.render?'na*':'na'}
 Item.texture: ${holding?.texture>=0?`${holding.texture.toHex().slice(2)}[${(holding.texture>>>24)+1}]`+(holding.render?'*':''):holding?.render?'na*':'na'}
 `.slice(0, -1).split('\n')){
-		const arr = calcText(t)
+		const arr = calcText(t, _, 15)
 		ct2.drawRect(-.125, -.125, -arr.width-.25, -1.25, textShadeCol)
-		drawText(ct2, arr, -arr.width-.25, -1.25, 1, 15)
+		drawText(ct2, arr, -arr.width-.25, -1.25, 1)
 		ct2.translate(0, -1.25)
 	}
 })

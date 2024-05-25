@@ -105,42 +105,45 @@ export function resetSlot(){
 	slotI = -1
 }
 
+export const slotHighlightColor = vec4(.2)
 export function renderSlot(c, e, i, id=0){
 	const item = e.getItem(id, i)
 	renderItem(c, item)
 	renderItemCount(c, item)
 	const {x, y} = c.from(cursor)
 	if(y >= 0 && y < 1 && x >= -0.5 && x < .5){
-		c.fillStyle = '#fff'
-		c.globalAlpha = 0.2
-		c.fillRect(-0.5, 0, 1, 1)
-		c.globalAlpha = 1
+		c.drawRect(-0.5, 0, 1, 1, slotHighlightColor)
 		void ({x: slotx, y: sloty} = c.to(1.0625, 1.125))
 		slotI = e == me && id == 0 ? i : i|128
 	}
 }
 export function renderTooltip(c, item){
 	if(!item) return
-	const lines = [item.name || item.defaultName], styles = [15]
-	if(renderF3) lines.push(`${item.className}*${item.count}${(item.savedata?'+NBT':'')} (${item.id})`), styles.push(8)
-	renderGenericTooltip(c, lines, styles)
+	const lines = [item.name || item.defaultName]
+	if(renderF3) lines.push(`\\+8${item.className}*${item.count}${(item.savedata?'+NBT':'')} (${item.id})`)
+	renderGenericTooltip(c, lines)
 }
-export function renderGenericTooltip(c, lines, styles){
-	return
+const tooltipBg = vec4(.06, 0, .06, .9), tooltipBorder = vec4(.133, 0, .3)
+export function renderGenericTooltip(c, lines){
+	c = c.sub()
 	const {x, y} = c.from(cursor)
 	let width = 0
-	for(const l of lines) width = max(c.measureText(l, 10).width, width)
+	const arrs = []
+	for(const l of lines){
+		const arr = calcText(l)
+		if(arr.width > width) width = arr.width
+		arrs.push(arr)
+	}
+	width *= 8
 	if(x+width+20 >= c.width || y+(lines.length+1)*12 >= c.height) c.translate(x - width - 12, y)
 	else c.translate(x + 12, y + 8)
-	c.fillStyle = '#110010e4'
-	c.fillRect(-1, lines.length*-12-2, width+8, lines.length*12+2)
-	c.fillRect(0, lines.length*-12-3, width+6, lines.length*12+4)
-	c.strokeStyle = '#22004b'
-	c.lineWidth = 1
-	c.strokeRect(0.5, lines.length*-12-1.5, width+5, lines.length*12+1)
-	c.textAlign = 'left'; c.textBaseline = 'middle'
-	let i = -1
-	for(const l of lines) c.styledText(styles[++i], l, 3, -7-i*12, 10)
+	c.drawRect(-1, lines.length*-12-2, width+8, lines.length*12+2, tooltipBg)
+	c.drawRect(0, lines.length*-12-3, width+6, lines.length*12+4, tooltipBg)
+	c.drawRect(0, 0, width+6, -1, tooltipBorder)
+	c.drawRect(0, lines.length*-12-2, width+6, 1, tooltipBorder)
+	c.drawRect(0, lines.length*-12-1, 1, lines.length*12, tooltipBorder)
+	c.drawRect(width+6, lines.length*-12-1, -1, lines.length*12, tooltipBorder)
+	for(const l of arrs) drawText(c, l, 3, -11, 8), c.translate(0,-12)
 }
 
 const pingIcons = [0,1,2,3,4].map(i => icons.crop(0,16+i*8,10,7))

@@ -31,13 +31,12 @@ function drawGlyph(code){
 	ctx.translate(charWidth+LETTER_SPACING, 0)
 	style = style&65535|style<<16
 }
-export function drawText(c, t, x=0, y=0, size=1, s = 271, aT = 0){
-	alphaTint = 1-aT; style = s
+export function drawText(c, t, x=0, y=0, size=1, aT = 0){
+	alphaTint = 1-aT; style = 271
 	ctx = c.sub()
 	ctx.translate(x, y)
 	ctx.scale(size)
-	tint = colors[s&15]; tint2 = shadowColors[s&15]
-	if(s&32) ctx.skew(.2, 0),ctx.translate(-.0625,0)
+	tint = colors[15]; tint2 = shadowColors[15]
 	if(typeof t=='string') t = [t]
 	for(const v of t){
 		if(typeof v == 'number' && v<65536){ style = style&-65536|v; continue }
@@ -133,13 +132,14 @@ function pushStrings(arr, len = Infinity){
 		}else i>65535&&len--,arr.push(i)
 	}
 	if(len==Infinity) return void(strings.length = 0)
-	;(arr=strings).splice(0, j)
-	strings = []
-	return arr
+	if(style == 271) strings.splice(0, j)
+	else if(j) strings.splice(0, j-1), strings[0]=style
+	else strings.unshift(style)
+	return arr = strings, strings = [], arr
 }
-export function calcText(txt, maxW = undefined, ts = defaultTs, s = 271){
+export function calcText(txt, maxW = undefined, s = 271, ts = defaultTs){
 	text = txt; style = s; i = 0; cs0 = 0
-	let char = nextChar(), line = 0, res = []
+	let char = nextChar(), line = 0, res = s != 271 ? [s] : []
 	const results = [res], chars = []
 	let lineWidth = (typeof maxW == 'number' ? maxW : typeof maxW == 'function' ? maxW(line) : Array.isArray(maxW) ? maxW[line] : Infinity) + LETTER_SPACING, w = 0
 	let tokenMatch = null, tokenWidth = 0, count = 0

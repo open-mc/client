@@ -168,13 +168,13 @@ drawLayer('ui', 1000, (c, w, h) => {
 			const item = me.inv[me.selected]
 			if(!item) break a
 			const name = item.name || item.defaultName
-			const arr = calcText(name)
-			drawText(c2, arr, hotBarLeft + hotbar.width / 2 - arr.width*4, hotbar.height + 24, 8, item.name ? 79 : 15, min(1, max(0, 1-hotbarTooltipAlpha)))
+			const arr = calcText(name, _, item.name ? 79 : 15)
+			drawText(c2, arr, hotBarLeft + hotbar.width / 2 - arr.width*4, hotbar.height + 24, 8, min(1, max(0, 1-hotbarTooltipAlpha)))
 		}
 		if(voice.active) proximityChatTooltip = 0
 		if(proximityChatTooltip > 0){
 			proximityChatTooltip -= dt
-			drawText(c2, 'Press Enter to talk with proximity chat', 5, 5, 8, 265, 1-min(1, proximityChatTooltip/5))
+			drawText(c2, [265, 'Press Enter to talk with proximity chat'], 5, 5, 8, 1-min(1, proximityChatTooltip/5))
 		}
 	}
 	if(me.health <= 0){

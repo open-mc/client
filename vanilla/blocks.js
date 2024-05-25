@@ -1,10 +1,9 @@
 import { uiButtons, audioSet, lava, renderSlot, water, click, renderGenericTooltip } from './effects.js'
 import { sound, cam, world } from 'world'
-import { Blocks, Block, Items, BlockTexture } from 'definitions'
+import { Blocks, Block, Items, BlockTexture, toTex } from 'definitions'
 import { BlockShape, blockShaped, fluidify } from './blockshapes.js'
 import { closeInterface } from './index.js'
-import { uiButton } from 'api'
-import { drawLayer } from '../iframe/api.js'
+import { uiButton, drawLayer, drawText } from 'api'
 const src = loader(import.meta)
 
 export const terrainPng = Img(src`terrain.png`)
@@ -247,28 +246,19 @@ Blocks.chest = class extends Block{
 		return old
 	}
 	drawInterface(id, c, drawInv){
-		return
-		if(id == 0){
-			c.image(containerInterface, -88, 0)
-			c.push()
-			c.translate(-72, 46)
-			c.scale(16, 16)
-			for(let i = 0; i < 27; i++){
-				renderSlot(c, this, i)
-				if(i%9==8) c.translate(-9, -1.125)
-				else c.translate(1.125, 0)
-			}
-			c.pop()
-			c.textAlign = 'left'
-			c.textBaseline = 'alphabetic'
-			c.fillStyle = '#505050'
-			c.fillText(this.name||Items.chest.defaultName, -80, 65, 10)
-			drawInv(0, 0)
-			c.textAlign = 'left'
-			c.textBaseline = 'alphabetic'
-			c.fillStyle = '#505050'
-			c.fillText('Inventory', -80, -1, 10)
+		if(id != 0) return
+		c.drawRect(-88, 0, 176, containerInterface.subHeight, containerInterface)
+		const c2 = c.sub()
+		c2.translate(-72, 46)
+		c2.scale(16, 16)
+		for(let i = 0; i < 27; i++){
+			renderSlot(c2, this, i)
+			if(i%9==8) c2.translate(-9, -1.125)
+			else c2.translate(1.125, 0)
 		}
+		drawText(c, [8, this.name||Items.chest.defaultName], -80, 65, 8)
+		drawInv(0, 0)
+		drawText(c, [8, 'Inventory'], -80, -1, 8)
 	}
 	name = ''
 	state = 0
@@ -505,31 +495,28 @@ Blocks.crafting_table = class extends Planks{
 }
 const litFurnaceTex = BlockTexture(terrainPng, 13, 3)
 const furnaceInterface = Img(src`furnace.png`)
-const furnaceUI = furnaceInterface.crop(0, 0, 176, 80), cookArrow = furnaceInterface.crop(176, 14, 24, 17), fuelIndicator = furnaceInterface.crop(176, 0, 15, 14)
+const furnaceUI = furnaceInterface.crop(0, 0, 176, 80), cookArrow = furnaceInterface.crop(176, 14, 24, 17), fuelIndicator = furnaceInterface.crop(176, 0, 14, 14)
 Blocks.furnace = class extends Stone{
 	static texture = BlockTexture(terrainPng, 12, 2)
 	static interactible = true
 	render(c){ if(this.fuelTime>t) c.draw(toTex(litFurnaceTex)) }
 	drawInterface(id, c, drawInv){
-		return
-		if(id == 0){
-			c.push()
-			c.image(furnaceUI, -88, 0)
-			c.translate(-24, 11)
-			c.scale(16, 16)
-			renderSlot(c, this, 1, 0)
-			c.translate(0, 2.25)
-			renderSlot(c, this, 0, 0)
-			c.translate(3.75, -1.125)
-			renderSlot(c, this, 2, 0)
-			c.peek()
-			const w = max(0, ceil(24-(t>=this.cookTime?10:this.cookTime-t)/10*24))
-			c.image(cookArrow, -9, 28, w, 17, 0, 0, w, 17)
-			const h = max(0, ceil(((this.fuelTime-t)/this._fuelCap||0)*15))
-			c.image(fuelIndicator, -32, 29, 14, h, 0, 15-h, 14, h)
-			c.pop()
-			drawInv(0, 0)
-		}
+		if(id != 0) return
+		const c2 = c.sub()
+		c2.drawRect(-88, 0, 176, furnaceUI.subHeight, furnaceUI)
+		c2.translate(-24, 11)
+		c2.scale(16, 16)
+		renderSlot(c2, this, 1, 0)
+		c2.translate(0, 2.25)
+		renderSlot(c2, this, 0, 0)
+		c2.translate(3.75, -1.125)
+		renderSlot(c2, this, 2, 0)
+		c2.resetTo(c)
+		const w = max(0, ceil(24-(t>=this.cookTime?10:this.cookTime-t)/10*24))
+		c2.drawRect(-9, 28, w, 17, cookArrow.sub(0, 0, w/24, 1))
+		const h = max(0, ceil(((this.fuelTime-t)/this._fuelCap||0)*14))
+		c2.drawRect(-32, 29, 14, h, fuelIndicator.sub(0, 0, 1, h/14))
+		drawInv(0, 0)
 	}
 	10(buf){
 		this._cookTime = t+buf.byte()/world.tps
@@ -569,9 +556,12 @@ Blocks.furnace = class extends Stone{
 const commandBlockTex = Img(src`command_blocks.png`)
 export const commandBlockTexs = [0,1,2,3,4,5].mmap(a => commandBlockTex.crop(a<<4,0,16,64))
 const commandBlockNames = ['Impulse','Impulse (inversed)','Repeating','Repeating (needs redstone)','Callable','Callable (once per tick)']
+const btnW = uiButtons.large.w
+const btnH = uiButtons.large.h
 Blocks.command_block = class extends Stone{
 	type = 0
 	commands = []
+	static texture = -1
 	render(c){
 		const a = floor(t*2)&3
 		const tex = commandBlockTexs[this.type]
@@ -584,48 +574,43 @@ Blocks.command_block = class extends Stone{
 	static interactible = true
 	drawInterface(id, c){
 		return
-		if(id == 0){
-			const buttonsY = -160
-			const btnW = uiButtons.large.w
-			const btnH = uiButtons.large.h
-			const halfBtnW = btnW / 2
-			const halfBtnH = btnH / 2
-			c.textAlign = 'center'
-			c.textBaseline = 'middle'
-			const doneHit = uiButton(c, -halfBtnW, buttonsY, btnW, btnH)
-			c.image(doneHit ? uiButtons.largeSelected : uiButtons.large, -halfBtnW, buttonsY)
-			c.fillStyle = '#333'
-			c.fillText('Done', 1, buttonsY + halfBtnH - 1, 10)
-			c.fillStyle = doneHit ? '#fff' : '#999'
-			c.fillText('Done', 0, buttonsY + halfBtnH, 10)
-			const typeHit = uiButton(c, -halfBtnW - btnH*1.5, buttonsY, btnH, btnH)
-			if(typeHit == 2) this.type = (this.type+1)%6, click()
-			c.image(typeHit ? uiButtons.tinySelected : uiButtons.tiny, -halfBtnW - btnH*1.5, buttonsY, btnH, btnH)
-			c.push()
-			c.translate(-halfBtnW - btnH*1.5+4, buttonsY+4)
-			c.scale(12, 12)
-			this.render(c)
-			c.peek()
-			if(typeHit) renderGenericTooltip(c, [commandBlockNames[this.type]], [15])
-			c.pop()
+		if(id != 0) return
+		const buttonsY = -160
+		c.textAlign = 'center'
+		c.textBaseline = 'middle'
+		const doneHit = uiButton(c, -100, buttonsY, 200, 20)
+		c.image(doneHit ? uiButtons.largeSelected : uiButtons.large, -100, buttonsY)
+		c.fillStyle = '#333'
+		c.fillText('Done', 1, buttonsY + 9, 10)
+		c.fillStyle = doneHit ? '#fff' : '#999'
+		c.fillText('Done', 0, buttonsY + 10, 10)
+		const typeHit = uiButton(c, -130, buttonsY, 20, 20)
+		if(typeHit == 2) this.type = (this.type+1)%6, click()
+		c.image(typeHit ? uiButtons.tinySelected : uiButtons.tiny, -130, buttonsY, 20, 20)
+		c.push()
+		c.translate(-126, buttonsY+4)
+		c.scale(12, 12)
+		this.render(c)
+		c.peek()
+		if(typeHit) renderGenericTooltip(c, [commandBlockNames[this.type]])
+		c.pop()
 
-			if(doneHit == 2){
-				closeInterface()
-				click()
-			}
-
-			c.textAlign = 'center'
-			c.textBaseline = 'alphabetic'
-			c.fillStyle = '#fff'
-			c.fillText('Set console command for block', 0, 150, 10)
-
-			c.textAlign = 'left'
-			c.textBaseline = 'alphabetic'
-			c.fillStyle = '#000'
-			c.strokeStyle = '#a0a0a0'
-			c.fillRect(-160, -120, 320, 240)
-			c.lineWidth = 1
-			c.strokeRect(-160, -120, 320, 240)
+		if(doneHit == 2){
+			closeInterface()
+			click()
 		}
+
+		c.textAlign = 'center'
+		c.textBaseline = 'alphabetic'
+		c.fillStyle = '#fff'
+		c.fillText('Set console command for block', 0, 150, 10)
+
+		c.textAlign = 'left'
+		c.textBaseline = 'alphabetic'
+		c.fillStyle = '#000'
+		c.strokeStyle = '#a0a0a0'
+		c.fillRect(-160, -120, 320, 240)
+		c.lineWidth = 1
+		c.strokeRect(-160, -120, 320, 240)
 	}
 }

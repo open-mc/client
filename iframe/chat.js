@@ -15,10 +15,9 @@ export function onChat(str){
 drawLayer('ui', 999, (ctx, w, h) => {
 	ctx.translate(6, 43)
 	for(const {data, sent, pinged} of chat){
-		let style = 271
 		const alpha = max(0, min(1, t-sent-9)), a = (1-alpha)*.25
 		ctx.drawRect(-3, -1, 250, 10*data.length, vec4(0, 0, 0, a))
 		if(pinged) ctx.drawRect(-3, -1, 2, 10*data.length, vec4(a*4, a*3, 0, a*2))
-		for(const part of data) style = drawText(ctx, part, 0, 0, 8, style, alpha), ctx.translate(0, 10)
+		for(const part of data) drawText(ctx, part, 0, 0, 8, alpha), ctx.translate(0, 10)
 	}
 })

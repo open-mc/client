@@ -280,7 +280,6 @@ export const styleToHtml = (str, node) => {
 		}
 	}
 	if(res){
-		console.log(res, style)
 		const e = document.createElement('span')
 		e.textContent = res; res = ''
 		e.className = `s${style >> 4} c${style & 15}`
