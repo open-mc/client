@@ -62,7 +62,7 @@ export function frame(){
 	playerControls()
 	for(const entity of entityMap.values()) stepEntity(entity)
 	const tzoom = (me.state & 4 ? -0.13 : 0) * ((1 << options.ffx * (options.camera != 4)) - 1) + 1
-	cam.z = sqrt(sqrt(cam.z * cam.z * cam.z * max(((sqrt(map.size)-1)*128/min(innerWidth,innerHeight)), 2 ** (options.zoom * 8 - 4) * tzoom * 2**cam.baseZ)))
+	cam.z = sqrt(sqrt(cam.z * cam.z * cam.z * max((min(innerWidth,innerHeight)/(ceil(sqrt(map.size))-1)/580), 2 ** (options.zoom * 8 - 4) * tzoom * 2**cam.baseZ)))
 	_recalcDimensions(cam.z)
 	const reach = pointer.effectiveReach()
 	if(options.camera == CAMERA_DYNAMIC){
