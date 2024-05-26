@@ -97,7 +97,7 @@ export class Chunk extends Uint16Array{
 			this.ctx = Texture(64, 64, 1, 0, Formats.RG16)
 			this.ctx2 = Texture(64, 64, 1, 0, Formats.R16)
 		}
-		for(let i = 0; i < 4096; x++){
+		for(let i = 0; i < 4096; i++){
 			const b = this[i]
 			const {texture, render} = b==65535 ? this.tileData.get(i) : BlockIDs[b]
 			if(render) this.rerenders.push(i)
