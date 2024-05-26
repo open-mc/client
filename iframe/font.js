@@ -128,7 +128,7 @@ function pushStrings(arr, len = Infinity){
 		const i = strings[x++]
 		if(typeof i=='string'){
 			if((len-=i.length)>=0) arr.push(i)
-			else arr.push(i.slice(0,len)),strings[--j]=i.slice(len)
+			else arr.push(i.slice(0,len)),strings[--x]=i.slice(len)
 		}else i>65535&&len--,arr.push(i)
 	}
 	if(len==Infinity) return void(strings.length = 0)

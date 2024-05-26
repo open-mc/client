@@ -97,17 +97,14 @@ export class Chunk extends Uint16Array{
 			this.ctx = Texture(64, 64, 1, 0, Formats.RG16)
 			this.ctx2 = Texture(64, 64, 1, 0, Formats.R16)
 		}
-		for(let x = 0; x < 64; x++){
-			for(let y = 0; y < 64; y++){
-				const i = x|(y<<6)
-				const b = this[i]
-				const {texture, render} = b==65535 ? this.tileData.get(x|(y<<6)) : BlockIDs[b]
-				if(render) this.rerenders.push(x|(y<<6))
-				if(texture>=0){
-					chunkUVData[i<<1] = texture
-					chunkUVData[i<<1|1] = texture>>16
-				}else chunkUVData[i<<1|1] = 65535
-			}
+		for(let i = 0; i < 4096; x++){
+			const b = this[i]
+			const {texture, render} = b==65535 ? this.tileData.get(i) : BlockIDs[b]
+			if(render) this.rerenders.push(i)
+			if(texture>=0){
+				chunkUVData[i<<1] = texture
+				chunkUVData[i<<1|1] = texture>>16
+			}else chunkUVData[i<<1|1] = 65535
 		}
 		this.ctx.pasteData(chunkUVData)
 	}
