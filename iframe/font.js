@@ -132,8 +132,8 @@ function pushStrings(arr, len = Infinity){
 		}else i>65535&&len--,arr.push(i)
 	}
 	if(len==Infinity) return void(strings.length = 0)
-	if(style == 271) strings.splice(0, j)
-	else if(j) strings.splice(0, j-1), strings[0]=style
+	if(style == 271) strings.splice(0, x)
+	else if(x) strings.splice(0, x-1), strings[0]=style
 	else strings.unshift(style)
 	return arr = strings, strings = [], arr
 }
@@ -154,11 +154,11 @@ export function calcText(txt, maxW = undefined, s = 271, ts = defaultTs){
 			let excess = (w-lineWidth)+(tokenMatch?tokenMatch.sepWidth:0)
 			res.width = w-LETTER_SPACING
 			line++; lineWidth = (typeof maxW == 'number' ? maxW : typeof maxW == 'function' ? maxW(line) : Array.isArray(maxW) ? maxW[line] : Infinity) + LETTER_SPACING; w = 0
-			while(excess > 0){ const cw = chars.pop(); if(cw===undefined) break; excess -= cw; res.width -= cw; w += cw; count-- }
+			let c = 0
+			while(excess > 0){ const cw = chars.pop(); if(cw===undefined) break; excess -= cw; res.width -= cw; w += cw; c++ }
 			const r = res
-			results.push(res = pushStrings(res, count))
-			if(chars.length>0) r.push(tokenMatch.sep)
-			count = 0
+			results.push(res = pushStrings(res, count-c)); count = c
+			if(chars.length>0&&tokenMatch.sep) r.push(tokenMatch.sep)
 		}
 		chars.length = 0; tokenWidth = 0; tokenMatch = null
 	}
