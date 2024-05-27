@@ -176,9 +176,8 @@ drawLayer('none', 200, (ctx, w, h) => {
 	const lineWidth = .5/min(1024,S)
 	visibleChunks = 0
 	for(const chunk of map.values()){
-		const cxs = chunk.x << 6, cys = chunk.y << 6
-		const x0 = ifloat(cxs - cam.x) * SCALE
-		const y0 = ifloat(cys - cam.y) * SCALE
+		const x0 = ifloat((chunk.x << 6) - cam.x) * SCALE
+		const y0 = ifloat((chunk.y << 6) - cam.y) * SCALE
 		if(x0+S <= -limX || y0+S <= -limY || x0 >= limX || y0 >= limY){ if(chunk.ctx) chunk.hide(); continue }
 		visibleChunks++
 		if(!chunk.ctx) chunk.draw()
@@ -187,6 +186,9 @@ drawLayer('none', 200, (ctx, w, h) => {
 	ctx.shader = null
 	for(const chunk of map.values()){
 		if(!chunk.ctx) continue
+		const cxs = chunk.x << 6, cys = chunk.y << 6
+		const x0 = ifloat(cxs - cam.x) * SCALE
+		const y0 = ifloat(cys - cam.y) * SCALE
 		const a = ctx.sub()
 		const l = a.sub()
 		for(const i of chunk.rerenders){
