@@ -119,6 +119,7 @@ async function microphone(){
 	m = 1
 	try{
 		m = await navigator.mediaDevices.getUserMedia({audio: true})
+		if(!voice) return voiceOff()
 		let node, ctx = null, sampleRate
 		// Firefox, wtf??? https://bugzilla.mozilla.org/show_bug.cgi?id=1388586
 		for(sampleRate of [TARGET_SAMPLE_RATE, 8000, 16000, 32000, 44100, 48000]) try{
@@ -129,7 +130,7 @@ async function microphone(){
 		if(!node) throw alert(texts.warning.unsupported_microphone_api), 'browser does not support processing microphone input'
 		let bufferSize = 2048, r = null
 		if(sampleRate !== TARGET_SAMPLE_RATE){
-			bufferSize = 2**Math.round(Math.log2(sampleRate/10))
+			bufferSize = 1<<Math.round(Math.log2(sampleRate/10))
 			const {resampler} = await import('/img/_resampler.js')
 			r = resampler(sampleRate, TARGET_SAMPLE_RATE, 1, bufferSize)
 		}
@@ -140,7 +141,7 @@ async function microphone(){
 			const f32 = r?r(inputBuffer.getChannelData(0)):inputBuffer.getChannelData(0)
 			win.postMessage(f32, '*')
 		}
-		m.source=ctx.createMediaStreamSource(m);m.source.connect(a)
+		m.source=node;m.source.connect(a)
 		a.connect(ctx.destination)
 	}catch(e){console.warn(e)}
 }
@@ -149,7 +150,15 @@ function voiceOn(){
 	chat.classList.add('voice')
 	if(!m && win) microphone()
 }
-function voiceOff(){ voice = false; chat.classList.remove('voice') }
+function voiceOff(){
+	if(m && typeof m == 'object'){
+		m.source.disconnect()
+		m.getAudioTracks()[0].stop(), m = null
+	}
+	if(!voice) return
+	voice = false
+	chat.classList.remove('voice')
+}
 
 export const clearNotifs = () => {
 	notifs = 0

@@ -7,7 +7,9 @@ export class Chunk extends Uint16Array{
 	constructor(buf){
 		super(4096)
 		this.light = new Uint16Array(4096)
-		this.light.fill(240)
+		for(let i = 0; i < 4096; i++){
+			this.light[i] = 240//(i>>2)&240
+		}
 		this.tileData = new Map
 		this.x = buf.int()
 		this.y = buf.int()

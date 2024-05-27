@@ -498,12 +498,10 @@ function v4times(o){
 globalThis.vec2 = (x=0,y=x)=>({x,y,plus:v2plus,times:v2times})
 globalThis.vec3 = (x=0,y=x,z=x)=>({x,y,z, plus: v3plus, times: v3times})
 globalThis.vec4 = (x=0,y=x,z=x,w=x)=>({x,y,z,w, plus: v4plus, times: v4times})
-vec4.white = vec4(1), vec4.black = vec4(0)
-vec3.white = vec3(1), vec3.black = vec3(0)
-vec2.white = vec2(1), vec2.black = vec2(0)
-const v2z = {x:0,y:0}
-const v3z = {x:0,y:0,z:0}
-const v4z = {x:0,y:0,z:0,w:0}
+vec4.one = vec4(1), vec3.one = vec3(1), vec2.one = vec2(1)
+const v2z = vec2.zero = {x:0,y:0}
+const v3z = vec3.zero = {x:0,y:0,z:0}
+const v4z = vec4.zero = {x:0,y:0,z:0,w:0}
 let D
 globalThis.Formats={R:[33321,6403,5121],RG:[33323,33319,5121],RGB:[32849,6407,5121],RGBA:D=[32856,T=6408,5121],RGB565:[36194,6407,33635],R11F_G11F_B10F:[35898,6407,35899],RGB5_A1:[32855,T,32820],RGB10_A2:[32857,T,33640],RGBA4:[32854,T,32819],RGB9_E5:[35901,6407,35902],R8:[33330,T=36244,5121,1<<31],RG8:[33336,33320,5121,1<<31],RGB8:[36221,36248,5121,1<<31],RGBA8:[36220,36249,5121,1<<31],R16:[33332,T,5123,1<<31],RG16:[33338,33320,5123,1<<31],RGB16:[36215,36248,5123,1<<31],RGBA16:[36214,36249,5123,1<<31],R32:[33334,T,5125,1<<31],RG32:[33340,33320,5125,1<<31],RGB32:[36209,36248,5125,1<<31],RGBA32:[36208,36249,5125,1<<31],R16F:[33325,6403,5131],RG16F:[33327,33319,5131],RGB16F:[34843,6407,5131],RGBA16F:[34842,6408,5131],R16F_32F:[33325,6403,5126],RG16F_32F:[33327,33319,5126],RGB16F_32F:[34843,6407,5126],RGBA16F_32F:[34842,6408,5126],R32F:[33326,6403,5126],RG32F:[33328,33319,5126],RGB32F:[34837,6407,5126],RGBA32F:[34836,6408,5126]}
 globalThis.loader=({url})=>{
@@ -692,7 +690,7 @@ const treeIf = (s=0, e=maxTex,o=0) => {
 	return `if(u<${m+o}){${treeIf(s,m,o)}}else{${treeIf(m,e,o)}}`
 }
 const names = ['float','vec2','vec3','vec4','int','ivec2','ivec3','ivec4','uint','uvec2','uvec3','uvec4']
-globalThis.Shader = (src, inputs, uniforms, output=4, frat=0.5) => {
+globalThis.Shader = (src, inputs, uniforms, output=4, defaults, uDefaults, frat=0.5) => {
 	const fnParams = ['(function({'], fnBody = ['',''], shaderHead = ['#version 300 es\nprecision mediump float;precision highp int;in vec2 _pos;out vec2 pos,xy;in mat2x3 GL_;',''], shaderBody = ['void main(){gl_PointSize=1.0;gl_Position=vec4((xy=vec3(pos=_pos,1.)*GL_)*2.-1.,0.,1.);'], shaderHead2 = ['#version 300 es\nprecision mediump float;precision highp int;in vec2 pos,xy;uniform vec2 viewport;out '+(output==0?'highp vec4 color;':output==16||output==32?'uvec4 color;':'lowp vec4 color;'),'']
 	let j = 6, o = 0, fCount = 0, iCount = 0
 	const types = [3,3]
@@ -701,10 +699,13 @@ globalThis.Shader = (src, inputs, uniforms, output=4, frat=0.5) => {
 	let id = 0
 	inputs = typeof inputs=='number' ? [inputs] : inputs || []
 	uniforms = typeof uniforms=='number' ? [uniforms] : uniforms || []
+	defaults = defaults != null ? Array.isArray(defaults) ? defaults : [defaults] : []
+	uDefaults = uDefaults != null ? Array.isArray(uDefaults) ? uDefaults : [uDefaults] : []
 	for(const t of inputs){
 		let c = (t&3)+1, n = names[t&3|t>>4<<2]
 		const isCol = t==4||t==8||t==12
-		fnParams.push(id+':a'+j+(c==1&&!isCol?'=0,':c==2?'=v2z,':c==3?'=v3z,':'=v4z,'))
+		defaults[id] ??= t==4?vec4.zero:c==1?0:c==2?vec2.zero:c==3?vec3.zero:vec4.zero
+		fnParams.push(id+':a'+j+'=defaults['+id+'],')
 		const A = t>15?(o|=1,'iarr[j+'):'arr[j+'
 		if(t==20||t==24||t==28){
 			n='int',o|=(1<<(t>>2)-3),fCount++
@@ -741,7 +742,8 @@ globalThis.Shader = (src, inputs, uniforms, output=4, frat=0.5) => {
 	const uniTex = [], uniLocs = []
 	for(const t of uniforms){
 		let c = (t&3)+1, n = names[t&3|t>>4<<2]
-		fn2Params.push('a'+j2)
+		uDefaults[id] ??= t==4?vec4.zero:c==1?0:c==2?vec2.zero:c==3?vec3.zero:vec4.zero
+		fn2Params.push('a'+j2+'=uDefaults['+id+']')
 		if(t==12||t==28) o|=2
 		if(t==8||t==24) iCount++,fCount--
 		if(t==20||t==24||t==28){
@@ -829,7 +831,7 @@ globalThis.frameDrawCalls = 0
 globalThis.frameSprites = 0
 globalThis.frameData = 0
 let fdc = 0, fs = 0, fd = 0
-Shader.DEFAULT = sh = Shader(`void main(){color=arg0()*(1.-arg1);}`, [COLOR, VEC4])
+Shader.DEFAULT = sh = Shader(`void main(){color=arg0()*arg1;}`, [COLOR, VEC4], _, _, [_, vec4.one])
 Shader.UINT = Shader(`void main(){color=arg0();}`, UCOLOR, _, UINT)
 Shader.NONE = Shader(`void main(){color=vec4(0,0,0,1);}`)
 gl.useProgram(sh.program)

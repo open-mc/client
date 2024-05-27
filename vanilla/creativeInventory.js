@@ -116,7 +116,7 @@ export function renderLeft(c){
 		c.drawRect(1, -21, 150, 20, catBgFill)
 		const L = uiButton(c, 0, -21, 152, 21)
 		if(L || selectedCat == cat){
-			const col = L == 2 || selectedCat == cat ? vec4.white : vec4(.5)
+			const col = L == 2 || selectedCat == cat ? vec4.one : vec4(.5)
 			c.drawRect(1, -20, 1, 18, col)
 			c.drawRect(1, -21, 150, 1, col)
 			c.drawRect(151, -20, -1, 18, col)
@@ -151,7 +151,7 @@ export function renderRight(c){
 	for(const item of cat){
 		if((i++)%ROW_SIZE) c2.translate(1.125, 0)
 		else c2.translate(-1.125*(ROW_SIZE-1), -1.125)
-		renderItem(c2, item, false)
+		renderItem(c2, item, _, 0)
 		const L = uiButton(c2, -0.5, 0, 1, 1)
 		if(L){
 			c2.drawRect(-0.5, 0, 1, 1, slotHighlightColor)

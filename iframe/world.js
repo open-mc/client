@@ -145,20 +145,20 @@ export function getLightValue(x, y){
 }
 
 export function getTint(x, y, a = 1){
-	lightTint.w = 1-a
+	lightTint.w = a
 	const ch = map.get(((x=floor(x))>>>6)+((y=floor(y))>>>6)*0x4000000)
 	if(!ch){
-		lightTint.x = lightTint.y = lightTint.z = 0
+		lightTint.x = lightTint.y = lightTint.z = a
 		return lightTint
 	}
 	const j = ch.light[(x & 63) + ((y & 63) << 6)]<<2
-	lightTint.x = 1-lightArr[j]/255; lightTint.y = 1-lightArr[j|1]/255; lightTint.z = 1-lightArr[j|2]/255
+	lightTint.x = lightArr[j]*.003921568627451*a; lightTint.y = lightArr[j|1]*.003921568627451*a; lightTint.z = lightArr[j|2]*.003921568627451*a
 	return lightTint
 }
 
 export let lightTint = vec4(0)
 export const lightTex = Texture(256, 1, 1, _, Formats.RGBA), lightArr = new Uint8Array(1024)
-export function genLightmap(id, b1, b2, bx, s1, s2, sx, base = vec3.black){
+export function genLightmap(id, b1, b2, bx, s1, s2, sx, base = vec3.zero){
 	if(lastLm==(lastLm=id)) return
 	const br = b1.x*(1-bx)+b2.x*bx, bg = b1.y*(1-bx)+b2.y*bx, bb = b1.z*(1-bx)+b2.z*bx
 	const sr = s1.x*(1-sx)+s2.x*sx, sg = s1.y*(1-sx)+s2.y*sx, sb = s1.z*(1-sx)+s2.z*sx

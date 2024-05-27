@@ -103,7 +103,7 @@ const onMsg = ({data,origin}) => {
 		_onPacket(data)
 	}else if(typeof data == 'string'){
 		onChat(data)
-	}else if(data instanceof Float32Array) _onvoice(data)
+	}else if(data instanceof Float32Array) _onvoice?.(data)
 	else if(typeof data == 'number'){
 		if(!Number.isFinite(data)){
 			if(data > 0) onfocus.fire()

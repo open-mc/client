@@ -1,5 +1,5 @@
 import { drawLayer, options } from 'api'
-import { getblock, sound, entityMap, cam, world, me, foundMe, BlockIDs, _setDims } from 'world'
+import { getblock, sound, entityMap, cam, world, me, foundMe, BlockIDs, _setDims, getTint } from 'world'
 import { registerTypes } from '/server/modules/dataproto.js'
 import * as pointer from './pointer.js'
 import { EPSILON } from './entity.js'
@@ -291,7 +291,7 @@ drawLayer('world', 300, c => {
 	let tx = 0, ty = 0
 	for(const particle of particles){
 		c.translate(-(tx - (tx = ifloat(particle.x - cam.x))), -(ty - (ty = ifloat(particle.y - cam.y))))
-		particle.render(c)
+		particle.render(c, getTint(particle.x, particle.y))
 		particle.step()
 	}
 })
@@ -305,10 +305,10 @@ export class BlockParticle extends Particle{
 		this.frac = (random() * 16) | 0
 		this.tex = toTex(block ? block.particleTexture ?? block.texture : -1).crop((this.frac & 3) << 2, (this.frac & 12), (this.frac&2)+2, (this.frac<<1&2)+2)
 	}
-	render(c){
+	render(c, tint){
 		if(!this.tex) return
 		const w = (this.frac&2)/40+.05, h = (this.frac<<1&2)/40+.05
-		c.drawRect(-w, -h, w*2, h*2, this.tex)
+		c.drawRect(-w, -h, w*2, h*2, this.tex, tint)
 	}
 }
 export function blockBreak(block, x, y){

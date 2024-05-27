@@ -2,7 +2,7 @@ import { explode, AshParticle, BlastParticle, hurt } from './defs.js'
 import { audioSet, renderItem, renderItemCount, renderSlot } from './effects.js'
 import { Entities, Entity, Item, Blocks, BlockIDs, toTex, addParticle } from 'definitions'
 import { renderF3, renderUI, drawLayer, drawText, calcText } from 'api'
-import { getblock, cam, worldEvents, world, me, perms } from 'world'
+import { getblock, cam, worldEvents, world, me, perms, getTint } from 'world'
 import { renderLeft, renderRight } from './creativeInventory.js'
 
 const src = loader(import.meta)
@@ -96,7 +96,7 @@ export class LivingEntity extends Entity{
 const portalExit = Audio(src`sound/portal/exit.mp3`), endPortalMake = Audio(src`sound/portal/end.mp3`)
 const thunder = audioSet('misc/thunder', 3)
 
-const entityBackTint = vec4(.2, .2, .2, 0), entityHurtTint = vec4(.1, .4, .4, 0), entityBackHurtTint = vec4(.28, .52, .52, 0)
+const entityBackTint = vec4(.8, .8, .8, 1), entityHurtTint = vec4(.9, .6, .6, 1), entityBackHurtTint = vec4(.72, .48, .48, 1)
 Entities.player = class extends LivingEntity{
 	static alive = true
 	inv = Array.null(37)
@@ -130,8 +130,9 @@ Entities.player = class extends LivingEntity{
 		const angle = (this.state & 3) == 2 ? sin(t * 4) * this.dx / 5 : sin(t * 12) * this.dx / 10
 		const extraAngle = this.state & 8 ? ((-5*t%1+1)%1)*((-5*t%1+1)%1)/3 : 0
 		c.scale(0.9, 0.9)
-		let backTint = entityBackTint
-		if(this.hitTimer) tint = entityHurtTint, backTint = entityBackHurtTint
+		let backTint
+		if(this.hitTimer) backTint = tint.times(entityBackHurtTint), tint = tint.times(entityHurtTint)
+		else backTint = tint.times(entityBackTint)
 		if(this.state & 2){
 			c.translate(0.2, 1.2)
 			c.rotate(.5 - angle)
@@ -150,7 +151,7 @@ Entities.player = class extends LivingEntity{
 			c.rotate(angle + .5 - extraAngle)
 			c.translate(0.2,-0.8)
 			c.scale(0.4,0.4)
-			renderItem(c, this.inv[this.selected], true)
+			renderItem(c, this.inv[this.selected], tint, 1)
 			c.scale(2.5,2.5)
 			c.translate(-0.2,0.8)
 			c.drawRect(-0.125, -0.625, 0.25, 0.75, this.textures.arm1, tint)
@@ -172,7 +173,7 @@ Entities.player = class extends LivingEntity{
 			c.rotate(angle - extraAngle)
 			c.translate(0.2,-0.8)
 			c.scale(0.4,0.4)
-			renderItem(c, this.inv[this.selected], true)
+			renderItem(c, this.inv[this.selected], tint, 1)
 			c.scale(2.5,2.5)
 			c.translate(-0.2,0.8)
 			c.drawRect(-0.125, -0.625, 0.25, 0.75, this.textures.arm1, tint)
@@ -211,7 +212,7 @@ Entities.player = class extends LivingEntity{
 		const f = this.f
 		const {x, y} = c2.from(cursor)
 		this.f = atan2(x, y - me.head)
-		this.render(c2)
+		this.render(c2, getTint(this.x, this.y))
 		this.f = f
 		c2.resetTo(c)
 		c2.translate(-72, 2)
@@ -268,27 +269,27 @@ Entities.item = class extends Entity{
 	static height = 0.25
 	static head = 0
 	static savedata = {item: Item}
-	render(c){
+	render(c, tint){
 		if(!this.item) return
 		c.translate(0, sin(t*2)/12+.15)
 		c.scale(0.36, 0.36)
-		renderItem(c, this.item)
+		renderItem(c, this.item, tint)
 		const c2 = c.sub()
 		if(this.item.count > 1){
 			c2.translate(0.4, 0.4)
-			renderItem(c2, this.item)
+			renderItem(c2, this.item, tint)
 		}
 		if(this.item.count > 16){
 			c2.translate(-0.8, -0.2)
-			renderItem(c2, this.item)
+			renderItem(c2, this.item, tint)
 		}
 		if(this.item.count > 32){
 			c2.translate(0.6, -0.4)
-			renderItem(c2, this.item)
+			renderItem(c2, this.item, tint)
 		}
 		if(this.item.count > 48){
 			c2.translate(-0.4, 0.1)
-			renderItem(c2, this.item)
+			renderItem(c2, this.item, tint)
 		}
 		if(renderF3)
 			renderItemCount(c, this.item)

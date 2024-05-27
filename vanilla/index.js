@@ -55,32 +55,32 @@ drawLayer('none', -100, c => {
 			const fac = ((time + 12600) % 24000 / 8400 - .5)
 			const xo = wspan * fac - 50 - reach/4 - effx
 			const yo = h/2 - 30 - h/3 * sin(fac * PI) + effy
-			c.draw(stars.crop(-xo/2, -yo/2, w/2, h/2), vec4(rainyness))
+			c.draw(stars.crop(-xo/2, -yo/2, w/2, h/2), vec4(1-rainyness))
 		}
-		if(light && rainyness < 1) c.draw(dayGradient, vec4(1-light))
+		if(light && rainyness < 1) c.draw(dayGradient, vec4(light))
 		const a = min(light, rainyness)
 		if(world.weather > 0x10000000){
-			if(light) c.draw(rainGradient, vec4(1-light))
-			if(a) c.draw(rainNightGradient, vec4(1-a))
-		}else if(a) c.draw(rainGradient, vec4(1-a))
+			if(light) c.draw(rainGradient, vec4(light))
+			if(a) c.draw(rainNightGradient, vec4(a))
+		}else if(a) c.draw(rainGradient, vec4(a))
 
-		if(orangeness) c.draw(sunsetGradient, vec4(1-orangeness))
+		if(orangeness) c.draw(sunsetGradient, vec4(orangeness))
 
 		c.blend = Blend.ADD
 		
 		c.scale(1/w, 1/h)
 		if(time < 15600){
 			const progress = time / 15600
-			c.drawRect(wspan * progress - 128 - reach/4 - effx, h/2 - 32 + h/3 * sin(progress * PI) - effy, 128, 128, sun, vec4(rainyness))
+			c.drawRect(wspan * progress - 128 - reach/4 - effx, h/2 - 32 + h/3 * sin(progress * PI) - effy, 128, 128, sun, vec4(1-rainyness))
 		}else{
 			const progress = (time - 15600) / 8400
-			c.drawRect(wspan * progress - 128 - reach/4 - effx, h/2 - 32 + h/3 * sin(progress * PI) - effy, 128, 128, moons[world.tick / 24000 & 7], vec4(rainyness))
+			c.drawRect(wspan * progress - 128 - reach/4 - effx, h/2 - 32 + h/3 * sin(progress * PI) - effy, 128, 128, moons[world.tick / 24000 & 7], vec4(1-rainyness))
 		}
 		c.blend = 0
 	}else if(world.id == 'nether'){
 		c.draw(vec4(0.1, .015, .015, 1))
 	}else if(world.id == 'end'){
-		c.draw(endSky.sub(0, 0, w/64, h/64), vec4(.75, .75, .75, 0))
+		c.draw(endSky.sub(0, 0, w/64, h/64), vec4(.25, .25, .25, 1))
 	}
 })
 drawLayer('none', 500, (c, w, h) => {

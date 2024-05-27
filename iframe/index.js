@@ -162,11 +162,11 @@ drawLayer('none', 200, (ctx, w, h) => {
 	const mipmap = max(0, min(4, 4-round(log2(SCALE)-.05)))
 	if(world.id == 'overworld'){
 		const time = world.tick % 24000, light = time < 1800 ? time / 1800 : time < 13800 ? 1 : time < 15600 ? (15600 - time) / 1800 : 0
-		genLightmap(light, block, vec3.black, 0, night, day, light)
+		genLightmap(light, block, vec3.zero, 0, night, day, light)
 	}else if(world.id == 'nether'){
-		genLightmap(-1, block, vec3.black, 0, day, vec3.black, 0, netherBase)
+		genLightmap(-1, block, vec3.zero, 0, day, vec3.zero, 0, netherBase)
 	}else if(world.id == 'end'){
-		genLightmap(-2, block, vec3.black, 0, day, vec3.black, 0, endBase)
+		genLightmap(-2, block, vec3.zero, 0, day, vec3.zero, 0, endBase)
 	}else genLightmap(1, block, vec3.zero, 0, day, vec3.zero, 0)
 	chunkShader.uniforms(blockAtlas, vec2(world.animTick, mipmap), lightTex)
 	const sr = sin(cam.f), cr = cos(cam.f)
@@ -189,7 +189,7 @@ drawLayer('none', 200, (ctx, w, h) => {
 			l.box((i&63)*SCALE+x0, (i>>6)*SCALE+y0, SCALE, SCALE)
 			const b = chunk[i]
 			const j = chunk.light[i]<<2
-			lightTint.x = 1-lightArr[j]/255; lightTint.y = 1-lightArr[j|1]/255; lightTint.z = 1-lightArr[j|2]/255; lightTint.w = 0
+			lightTint.x = lightArr[j]*.003921568627451; lightTint.y = lightArr[j|1]*.003921568627451; lightTint.z = lightArr[j|2]*.003921568627451; lightTint.w = 1
 			void(b==65535?chunk.tileData.get(i):BlockIDs[b]).render(l, lightTint, cxs|(i&63),cys|(i>>6))
 			l.resetTo(a)
 		}

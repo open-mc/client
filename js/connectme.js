@@ -126,7 +126,7 @@ export function preconnect(ip, cb = Function.prototype, instant = false){
 				name = Label(displayIp),
 				Btn('...', () => {
 					window.open(ip.replace('ws', 'http'), '_blank','width=1024,height=768,left='+screenX+',top='+screenY)
-				},'tiny').attr('style','line-height:1.5'),
+				},'tiny').attr('style','line-height:16rem'),
 				Btn('^', () => {
 					const i = node.parentElement.children.indexOf(node)
 					if(!i) return
@@ -135,7 +135,7 @@ export function preconnect(ip, cb = Function.prototype, instant = false){
 					servers[i-1] = s
 					node.parentElement.insertBefore(node, node.parentElement.children[i-1])
 					saveServers()
-				},'tiny').attr('style','line-height:2.2'),
+				},'tiny').attr('style','line-height:24rem'),
 				Btn('x', () => {
 					servers.splice(node.parentElement.children.indexOf(node), 1)
 					node.remove()
@@ -167,7 +167,6 @@ export async function play(ws){
 	onfocus()
 	pendingConnection(texts.connection.authenticating())
 	gameIframe(ws.packs, 0)
-	console.clear()
 }
 const urlServer = location.search.slice(1)
 if(urlServer) preconnect(urlServer, play, true)

@@ -360,7 +360,7 @@ drawLayer('none', 400, c => {
 	inPortal = false
 	cam.nausea += (min(1, portalEffect/2)-cam.nausea)*dt
 	if(!portalEffect && cam.nausea < 0.1) cam.nausea = max(0, cam.nausea-dt*.2)
-	if(cam.nausea) c.draw(portalOverlay.sub(0, (world.animTick%32)/32, 1, 1/32), vec4(1-cam.nausea))
+	if(cam.nausea) c.draw(portalOverlay.sub(0, (world.animTick%32)/32, 1, 1/32), vec4(cam.nausea))
 })
 const endPortalOverlay = Img(src`endportaloverlay.png`)
 const endShader = Shader(`
@@ -377,8 +377,8 @@ void main(){
 	color += getCol(uni0, MULTIPLY(pos,PIHALF,.25))*.9;
 	color += getCol(uni0, MULTIPLY(pos,PINQUARTER,.5))*.5;
 	color += getCol(uni0, MULTIPLY(pos,PIONE,.75))*.4;
-	color *= (1.-arg0);
-}`, VEC4, [TEXTURE, FLOAT, VEC2])
+	color *= arg0;
+}`, VEC4, [TEXTURE, FLOAT, VEC2], _, vec4.one)
 let endShaderT = -1
 Blocks.end_portal = class extends Block{
 	static solid = false
@@ -568,7 +568,7 @@ Blocks.command_block = class extends Stone{
 		const a = floor(t*2)&3
 		const tex = commandBlockTexs[this.type]
 		c.draw(tex.sub(0, a/4, 1, .25), tint)
-		c.draw(tex.sub(0, (a+1&3)/4, 1, .25), vec4(1-(t*2)%1), tint)
+		c.draw(tex.sub(0, (a+1&3)/4, 1, .25), tint.times((t*2)%1))
 	}
 	get particleTexture(){ return commandBlockTexs[this.type] }
 	static breaktime = Infinity
@@ -592,7 +592,7 @@ Blocks.command_block = class extends Stone{
 		c.push()
 		c.translate(-126, buttonsY+4)
 		c.scale(12, 12)
-		this.render(c)
+		this.render(c, vec4.one)
 		c.peek()
 		if(typeHit) renderGenericTooltip(c, [commandBlockNames[this.type]])
 		c.pop()

@@ -135,12 +135,12 @@ Items.eye_of_ender = class extends Item{
 }
 
 Items.command_block = class extends Item{
-	render(c){
+	render(c, tint){
 		const a = floor(t*2)&3
 		const alpha = true
 		c.draw(commandBlockTexs[0].crop(0, a<<4, 16, 16))
 		if(alpha)
-			c.draw(commandBlockTexs[0].crop(0, (a+1&3)<<4, 16, 16), vec4(1-(t*2)%1))
+			c.draw(commandBlockTexs[0].crop(0, (a+1&3)<<4, 16, 16), tint.times((t*2)%1))
 	}
 	static defaultName = 'Command block'
 }
@@ -251,7 +251,7 @@ Items.furnace = itemify(Blocks.furnace, 'Furnace')
 Items.chest = class extends Item{
 	static texture = Blocks.chest.texture
 	static defaultName = 'Chest'
-	render(c, model){
-		c.draw(chestTop)
+	render(c, tint){
+		c.draw(chestTop, tint)
 	}
 }

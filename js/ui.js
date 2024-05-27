@@ -8,7 +8,7 @@ const Sound = src => {
 	fetch(src).then(a => a.blob()).then(a => arr[0].src = URL.createObjectURL(a))
 	return () => {
 		let a = arr.length > 1 ? arr.pop() : arr[0].cloneNode(true)
-		a.volume = options.sound*2
+		a.volume = Math.min(1, options.sound*2)
 		a.onended = () => {
 			a.onended = null
 			if(arr.length<3)arr.push(a)
@@ -241,7 +241,7 @@ export const Column = (...a) => {
 }
 
 onresize = () => {
-	document.documentElement.style.setProperty('--pr', (innerWidth&1)&&devicePixelRatio==1 ? '1px' : '0')
+	document.documentElement.style.setProperty('--pr', (innerWidth&1)&&devicePixelRatio==1 ? '-1px' : '0')
 }
 onresize()
 

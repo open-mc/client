@@ -9,8 +9,8 @@ for(const g of `c0009,c1019,c2029,c8039,ca049,cb059,cd065,d3079,d4089,d5099,da0a
 }
 
 const LETTER_SPACING = .125
-const colors = [vec4(1,1,1,0), vec4(.333,1,1,0), vec4(1,.333,1,0), vec4(0,.333,1,0), vec4(1,1,.333,0), vec4(.333,1,.333,0), vec4(1,.333,.333,0), vec4(.333,.333,.333,0), vec4(.666,.666,.666,0), vec4(0,.666,.666,0), vec4(.666,0,.666,0), vec4(0,0,.666,0), vec4(.666,.666,0,0), vec4(0,.666,0,0), vec4(.666,0,0,0), vec4(0)]
-const shadowColors = [vec4(1,1,1,.98), vec4(.84,1,1,0), vec4(1,.84,1,0), vec4(.84,.84,1,0), vec4(1,1,.84,0), vec4(.84,1,.84,0), vec4(1,.84,.84,0), vec4(.84,.84,.84,0), vec4(.98,.98,.98,.73), vec4(.75,.92,.92,0), vec4(.92,.75,.92,0), vec4(.75,.75,.92,0), vec4(.92,.92,.75,0), vec4(.75,.92,.75,0), vec4(.92,.75,.75,0), vec4(.75,.75,.75,0)]
+const colors = [vec4(0,0,0,1), vec4(.667,0,0,1), vec4(0,.667,0,1), vec4(1,.667,0,1), vec4(0,0,.667,1), vec4(.667,0,.667,1), vec4(0,.667,.667,1), vec4(.667,.667,.667,1), vec4(.333,.333,.333,1), vec4(1,.333,.333,1), vec4(.333,1,.333,1), vec4(1,1,.333,1), vec4(.333,.333,1,1), vec4(1,.333,1,1), vec4(.333,1,1,1), vec4(1)]
+const shadowColors = [vec4(0,0,0,.02), vec4(.16,0,0,1), vec4(0,.16,0,1), vec4(.16,.16,0,1), vec4(0,0,.16,1), vec4(.16,0,.16,1), vec4(0,.16,.16,1), vec4(.16,.16,.16,1), vec4(.02,.02,.02,.27), vec4(.25,.08,.08,1), vec4(.08,.25,.08,1), vec4(.25,.25,.08,1), vec4(.08,.08,.25,1), vec4(.25,.08,.25,1), vec4(.08,.25,.25,1), vec4(.25,.25,.25,1)]
 
 const a = vec4(0)
 let ctx = null, alphaTint = 0, style = 0, tint, tint2
@@ -18,16 +18,16 @@ function drawGlyph(code){
 	const char = glyphs.get(code)
 	if(!char) return
 	const w = char.w*16, charWidth = w+(style&16?LETTER_SPACING:0)
-	const otint2 = alphaTint<1 ? (a.x=1-(1-tint2.x)*alphaTint, a.y=1-(1-tint2.y)*alphaTint, a.z=1-(1-tint2.z)*alphaTint, a.w=1-(1-tint2.w)*alphaTint,a) : tint2
+	const otint2 = alphaTint<1 ? (a.x=tint2.x*alphaTint, a.y=tint2.y*alphaTint, a.z=tint2.z*alphaTint, a.w=tint2.w*alphaTint,a) : tint2
 	if(style&256){
 		ctx.drawRect(.125, -.125, w, 1, char, otint2)
 		if(style&16) ctx.drawRect(.25, -.125, w, 1, char, otint2)
 	}
-	const otint = alphaTint<1 ? (a.x=1-(1-tint.x)*alphaTint, a.y=1-(1-tint.y)*alphaTint, a.z=1-(1-tint.z)*alphaTint, a.w=1-(1-tint.w)*alphaTint,a) : tint
+	const otint = alphaTint<1 ? (a.x=tint.x*alphaTint, a.y=tint.y*alphaTint, a.z=tint.z*alphaTint, a.w=tint.w*alphaTint,a) : tint
 	ctx.drawRect(0, 0, w, 1, char, otint)
 	if(style&16) ctx.drawRect(.125, 0, w, 1, char, otint)
-	if(style&64) ctx.drawRect(w, -.0625, style&4194304?-charWidth-LETTER_SPACING:-charWidth, .125, vec4(1), otint)
-	if(style&128) ctx.drawRect(w, 0.4375, style&8388608?-charWidth-LETTER_SPACING:-charWidth, .125, vec4(1), otint)
+	if(style&64) ctx.drawRect(w, -.0625, style&4194304?-charWidth-LETTER_SPACING:-charWidth, .125, vec4.one, otint)
+	if(style&128) ctx.drawRect(w, 0.4375, style&8388608?-charWidth-LETTER_SPACING:-charWidth, .125, vec4.one, otint)
 	ctx.translate(charWidth+LETTER_SPACING, 0)
 	style = style&65535|style<<16
 }

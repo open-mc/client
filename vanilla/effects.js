@@ -52,43 +52,21 @@ export const water = {
 	ambient: [Audio(src`sound/water/ambient1.mp3`), Audio(src`sound/water/ambient2.mp3`)],
 }
 
-export function renderItem(c, item, respectModel = false){
+export function renderItem(c, item, tint = vec4.one, respectModel = 0){
+	if(!item) return
 	c = c.sub()
-	if(item && item.texture >= 0){
-		if(!respectModel || item.model == 0){
-			c.translate(-0.5, 0)
-			c.draw(toTex(item.texture))
-			item.render?.(c, 0)
-		}else if(item.model == 1){
-			c.translate(-0.7,1.2)
-			c.rotate(PI * 0.75)
-			c.scale(-1.6, 1.6)
-			c.translate(-0.5, 0)
-			c.draw(toTex(item.texture))
-			item.render?.(c, 1)
-		}else if(item.model == 2){
-			c.translate(-0.75, -0.25)
-			c.scale(1.5, 1.5)
-			c.draw(toTex(item.texture))
-			item.render?.(c, 2)
-		}
-	}else if(item && item.render){
-		if(!respectModel || item.model == 0){
-			c.translate(-0.5, 0)
-			item.render(c, 0)
-		}else if(item.model == 1){
-			c.translate(0.5,0)
-			c.translate(-1.2,1.2)
-			c.rotate(PI * 0.75)
-			c.scale(-1.6, 1.6)
-			c.translate(-0.5, 0)
-			item.render(c, 1)
-		}else if(item.model == 2){
-			c.translate(-0.75, -0.25)
-			c.scale(1.5, 1.5)
-			item.render(c, 2)
-		}
-	}
+	const model = respectModel && item.model
+	if(model == 1){
+		c.translate(-0.7,1.2)
+		c.rotate(PI * 0.75)
+		c.scale(-1.6, 1.6)
+		c.translate(-0.5, 0)
+	}else if(model == 2){
+		c.translate(-0.75, -0.25)
+		c.scale(1.5, 1.5)
+	}else c.translate(-0.5, 0)
+	if(item.texture >= 0) c.draw(toTex(item.texture), tint)
+	item.render?.(c, tint)
 }
 export function renderItemCount(c, item){
 	if(!item) return

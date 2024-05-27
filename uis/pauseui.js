@@ -20,7 +20,7 @@ const pauseui = UI('menu',
 		Label(texts.pause.credits()).attr('style', 'height:unset;cursor:pointer;line-height:unset').attr('onclick', "window.open('https://github.com/open-mc/client/blob/main/CREDITS.md','_blank')"),
 		Label(' / ').attr('style', 'height:unset;line-height:unset'),
 		Label(texts.pause.changelog()).attr('style', 'height:unset;cursor:pointer;line-height:unset').attr('onclick', "window.open('https://github.com/open-mc/client/blob/main/CHANGELOG.md','_blank')")
-	).attr('style', 'position: absolute; bottom: 2rem; display: flex; right: 2rem; opacity: 0.4; font-size: 10rem; cursor: pointer')
+	).attr('style', 'position: absolute; bottom: 2rem; display: flex; right: 2rem; opacity: 0.4; font-size: 8rem; cursor: pointer')
 )
 pauseui.esc = hideUI
 
