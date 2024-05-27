@@ -3,7 +3,7 @@ import { DataWriter } from '/server/modules/dataproto.js'
 import { mePhysics, stepEntity } from './entity.js'
 import { gridEventMap, getblock, entityMap, map, cam, onPlayerLoad, world, bigintOffset, me, genLightmap, lightTint, lightTex, lightArr, setGamma, getTint, getLightValue, W2, H2, SCALE, toBlockExact } from 'world'
 import * as pointer from './pointer.js'
-import { onKey, drawLayer, options, paused, _renderPhases, renderBoxes, renderF3, send, download, copy, pause, _updatePaused, drawText, calcText, textShadeCol, _networkUsage, networkUsage, listen } from 'api'
+import { onKey, drawLayer, options, paused, _renderPhases, renderBoxes, renderF3, send, download, copy, pause, _updatePaused, drawText, calcText, textShadeCol, _networkUsage, networkUsage, listen, _tickPhases } from 'api'
 import { particles, blockAtlas, _recalcDimensions, prep } from 'definitions'
 import { VERSION } from '../server/version.js'
 
@@ -22,7 +22,7 @@ export function step(){
 
 const sendDelay = 1 //send packet every tick
 function tick(){
-	if(dt < 1/20000)dt = 1/20000
+	const t = performance.now()/1000
 	if(world.tick % sendDelay == 0 && me && !(me.health <= 0)){
 		let buf = new DataWriter()
 		buf.byte(4)
@@ -44,6 +44,7 @@ function tick(){
 	const randomBlock = getblock(x, y)
 	if(randomBlock.random) randomBlock.random(x, y)
 	for(const e of entityMap.values()) if(e.tick) e.tick()
+	for(const f of _tickPhases) try{f(t)}catch(e){Promise.reject(e)}
 }
 export let zoom_correction = 0
 let camMovingX = false, camMovingY = false
@@ -181,9 +182,12 @@ drawLayer('none', 200, (ctx, w, h) => {
 		if(x0+S <= -limX || y0+S <= -limY || x0 >= limX || y0 >= limY){ if(chunk.ctx) chunk.hide(); continue }
 		visibleChunks++
 		if(!chunk.ctx) chunk.draw()
+		ctx.drawRect(x0, y0, S, S, chunk.ctx, chunk.ctx2)
+	}
+	ctx.shader = null
+	for(const chunk of map.values()){
+		if(!chunk.ctx) continue
 		const a = ctx.sub()
-		a.drawRect(x0, y0, S, S, chunk.ctx, chunk.ctx2)
-		a.shader = null
 		const l = a.sub()
 		for(const i of chunk.rerenders){
 			l.box((i&63)*SCALE+x0, (i>>6)*SCALE+y0, SCALE, SCALE)

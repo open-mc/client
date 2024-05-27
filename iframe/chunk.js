@@ -1,5 +1,4 @@
 import { BlockIDs, EntityIDs, Classes } from 'definitions'
-import { entityMap } from 'world'
 
 const texturePool = []
 const chunkUVData = new Uint16Array(8192)

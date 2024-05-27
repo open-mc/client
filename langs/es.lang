@@ -99,6 +99,9 @@ options.advanced.default_debug.0=Depuraciónes: Ninguna
 options.advanced.default_debug.1=Depuraciónes: Mínima
 options.advanced.default_debug.2=Depuraciónes: Detallada
 options.advanced.default_debug.3=Depuraciónes: Todas
+options.advanced.gamma=Lumino.: \1
+options.advanced.gamma.0=Lumino.: sombrío
+options.advanced.gamma.1=Lumino.: RADIANTE
 
 keybinds=Teclas
 keybinds.name=Teclas

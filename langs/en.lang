@@ -99,6 +99,9 @@ options.advanced.default_debug.0=Default debug: NO
 options.advanced.default_debug.1=Default debug: MINIMAL
 options.advanced.default_debug.2=Default debug: DETAILED
 options.advanced.default_debug.3=Default debug: EVERYTHING
+options.advanced.gamma=Gamma: \1
+options.advanced.gamma.0=Gamma: Moody
+options.advanced.gamma.1=Gamma: BRIGHT
 
 keybinds=Keybinds
 keybinds.name=Keybinds

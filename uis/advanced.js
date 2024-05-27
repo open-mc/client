@@ -20,12 +20,16 @@ function supersampleChange(a = options.supersample){
 	const z = 2 ** (a - 3)
 	return [texts.supersampling((z>=1?''+z:'1/'+1/z)), options.supersample]
 }
+function gammaChange(a = options.gamma){
+	options.gamma = a
+	return [a==0?texts.gamma[0]:a==1?texts.gamma[1]:texts.gamma(allTexts.options.common.percentage(Math.round(a*100))), a]
+}
 
-let af3Node, msaaNode
+let af3Node
 const ui = UI('menu',
 	Label(texts.name()),
 	Scale(speedChange),
-	Row(ScaleSmall(supersampleChange), msaaNode = Btn('MSAA: None')),
+	Row(ScaleSmall(supersampleChange), ScaleSmall(gammaChange)),
 	Scale(maxParticlesChange),
 	af3Node = Btn(texts.default_debug[options.autof3](), () => {
 		options.autof3 = (options.autof3+1)%4
@@ -34,7 +38,6 @@ const ui = UI('menu',
 	Spacer(20),
 	Btn(allTexts.misc.menu_back(), optionsScreen)
 )
-msaaNode.disabled = true
 ui.esc = optionsScreen
 export function advancedOptionsScreen(){
 	showUI(ui)

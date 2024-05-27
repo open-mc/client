@@ -311,9 +311,9 @@ Entities.falling_block = class extends Entity{
 	static width = 0.49
 	static height = 0.98
 	block = 0
-	render(c){
+	render(c, tint){
 		const {texture} = BlockIDs[this.block] ?? Blocks.air
-		if(texture) c.drawRect(-0.5, 0, 1, 1, toTex(texture))
+		if(texture) c.drawRect(-0.5, 0, 1, 1, toTex(texture), tint)
 	}
 }
 
@@ -322,14 +322,14 @@ Entities.tnt = class extends Entity{
 	static width = 0.49
 	static height = 0.98
 	fusing = 0
-	render(c){
+	render(c, tint){
 		if(this.fusing){
 			c.scale(1.1 - 1/(this.fusing+10), 1.1 - 1/(this.fusing+10))
 			this.fusing++
 		}
-		c.drawRect(-0.5, 0, 1, 1, toTex(Blocks.tnt.texture))
+		c.drawRect(-0.5, 0, 1, 1, toTex(Blocks.tnt.texture), tint)
 		const a = (t*3&1)&&.7
-		c.drawRect(-0.5, 0, 1, 1, vec4(a,a,a,.7))
+		c.drawRect(-0.5, 0, 1, 1, vec4(a,a,a,.7), tint)
 	}
 	1(){ this.sound(fuse) }
 	2(){ this.fusing = 1 }

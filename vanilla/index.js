@@ -1,6 +1,6 @@
 import { uiButtons, icons, renderItem, renderItemCount, click, renderSlot, renderTooltip, resetSlot, slotI, audioSet } from './effects.js'
 import './entities.js'
-import { onKey, drawLayer, pause, renderUI, quit, onpacket, send, voice, drawText, calcText } from 'api'
+import { onKey, drawLayer, pause, renderUI, quit, onpacket, send, voice, drawText, calcText, tickPhase } from 'api'
 import { getblock, gridEvents, sound, entityMap, pointer, cam, world, configLoaded, me, W2, H2 } from 'world'
 import { Item, BlockParticle, addParticle, blockBreak, ephemeralInterfaces } from 'definitions'
 import { AshParticle, BlastParticle, explode } from './defs.js'
@@ -39,9 +39,11 @@ const rainNightGradient = gradients.sub(.9, .25, 0, .5)
 
 const rainSound = audioSet('misc/rain', 4)
 let lastRainPlay = 0
+tickPhase(-1000, now => {
+	if(world.weather && now - lastRainPlay > 0.8333333) lastRainPlay = now, me.sound(rainSound, 0.5)
+})
 drawLayer('none', -100, c => {
 	const w = c.width/pixelRatio, h = c.height/pixelRatio
-	if(world.weather && t - lastRainPlay > 0.8333333) lastRainPlay = t, me.sound(rainSound, 0.5)
 	if(world.id == 'overworld'){
 		const rainyness = min(world.weather&&(1-world.weatherFade/40), 1, (world.weather&0x0FFFFFFF)/40)
 		const reach = pointer.effectiveReach()

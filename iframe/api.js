@@ -1,18 +1,23 @@
 export const _cbs = []
 export const _joypadMoveCbs = {}
-export const _renderPhases = []
+export const _renderPhases = [], _tickPhases = []
 export const _optionListeners = {}
 const coords = {__proto__: null, none: 0, ui: 1, world: 2}
-export function drawLayer(coord, prio, fn){
+
+export function tickPhase(prio=0, fn){
+	let i = _tickPhases.push(null) - 2
+	while(i >= 0 && _tickPhases[i].prio > prio)
+		_tickPhases[i+1] = _tickPhases[i--]
+	fn.prio = prio
+	_tickPhases[i+1] = fn
+}
+export function drawLayer(coord, prio=0, fn){
 	let i = _renderPhases.push(null) - 2
-	while(i >= 0 && _renderPhases[i].prio > prio){
-		_renderPhases[i + 1] = _renderPhases[i]
-		i--
-	}
+	while(i >= 0 && _renderPhases[i].prio > prio)
+		_renderPhases[i + 1] = _renderPhases[i--]
 	fn.prio = prio
 	fn.coordSpace = coords[coord] || 0
-	i++
-	_renderPhases[i] = fn
+	_renderPhases[i+1] = fn
 }
 
 
