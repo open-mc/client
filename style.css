@@ -120,7 +120,7 @@ btn{
 	text-align: center;
 	height: 20rem;
 	width: 200rem;
-	line-height: 19rem;
+	line-height: 20rem;
 	background: url('./img/button.png') right center/324rem no-repeat;
 	cursor: pointer;
 	flex-shrink: 0;
@@ -341,7 +341,7 @@ img:after{
 	flex-direction: column;
 	white-space: pre-wrap;
 	width: 75%;
-	height: 0;
+	height: 0; font-size: 4rem; line-height: 5rem;
 	pointer-events: none;
 	touch-action: none;
 }
