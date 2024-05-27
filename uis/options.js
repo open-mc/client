@@ -13,7 +13,7 @@ function renderScale(){
 }
 function guiChange(){
 	options.guiScale *= 2
-	if(options.guiScale == 8)options.guiScale = 0.5
+	if(options.guiScale == 4)options.guiScale = 0.5
 	renderScale()
 }
 function zoomChange(a = options.zoom){

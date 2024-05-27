@@ -1,5 +1,9 @@
 import { musicdict } from './sounds.js'
 
+let _offx = 0, _offy = 0
+export let W2 = 0, H2 = 0, SCALE = 1
+export const _setDims = (a,b,c,d,e) => (_offx=a,_offy=b,W2=c,H2=d,SCALE=e)
+
 export const BlockIDs = []
 
 export let me = null
@@ -31,10 +35,18 @@ export const cam = {
 	baseF: 0, baseZ: 0, baseX: 0, baseY: 0,
 	staticX: NaN, staticY: NaN,
 	transform(c, scale = 1){
-		c.reset(scale/c.width,0,0,scale/c.height,0.5,0.5)
+		c.reset(scale/c.width,0,0,scale/c.height,_offx,_offy)
 		c.rotate(-this.f)
 		if(this.nausea > 0) c.skew(sin(t*3)/3*this.nausea, cos(t*3)/3*this.nausea)
 	}
+}
+
+export function toBlockExact(c, bx, by){
+	cam.transform(c)
+	const x0 = ifloat(bx - cam.x) * SCALE
+	const y0 = ifloat(by - cam.y) * SCALE
+	const xa0 = round(x0), ya0 = round(y0)
+	c.box(xa0, ya0, round(x0+SCALE)-xa0, round(y0+SCALE)-ya0)
 }
 
 function variant(ch, i, x, y, b){
@@ -99,10 +111,10 @@ export function sound(fn, x, y, vol = 1, pitch = 1){
 	// 340m/s => 2x pitch, -170m/s => 0.5x pitch, -340m/s => 0x pitch (sound can never reach us)
 	// The dot product (x0,y0) . (x1,y1) is x0*x1 + y0*y1
 	// "Fix" the inputs x and y by normalizing them with / dist
-	const speed = (me.dx * x + me.dy * y) / dist
+	const speed = (me.dx * x + me.dy * y) / dist / SPEEDOFSOUND
 	// For 2d, the inverse square law becomes the inverse linear law
 	// Add some reasonable limits to prevent pitch from going to 0 or Infinity
-	fn(vol * 2 / (dist + 1), pitch * max(SPEEDOFSOUND / 20, speed + SPEEDOFSOUND) / SPEEDOFSOUND, min(1, max(-1, x / 16)))
+	fn(vol * 2 / (dist + 1), pitch * max(.2, speed + 1), min(1, max(-1, x / 16)))
 }
 
 export const gridEventMap = new Map
@@ -125,3 +137,43 @@ export let bigintOffset = {x: 0n, y: 0n}
 
 export let pointer = e => pointer = e
 export let worldEvents = e => worldEvents = e
+
+
+export function getLightValue(x, y){
+	const ch = map.get(((x=floor(x))>>>6)+((y=floor(y))>>>6)*0x4000000)
+	return ch ? ch.light[(x & 63) + ((y & 63) << 6)] : 255
+}
+
+export function getTint(x, y, a = 1){
+	lightTint.w = 1-a
+	const ch = map.get(((x=floor(x))>>>6)+((y=floor(y))>>>6)*0x4000000)
+	if(!ch){
+		lightTint.x = lightTint.y = lightTint.z = 0
+		return lightTint
+	}
+	const j = ch.light[(x & 63) + ((y & 63) << 6)]<<2
+	lightTint.x = 1-lightArr[j]/255; lightTint.y = 1-lightArr[j|1]/255; lightTint.z = 1-lightArr[j|2]/255
+	return lightTint
+}
+
+export let lightTint = vec4(0)
+export const lightTex = Texture(256, 1, 1, _, Formats.RGBA), lightArr = new Uint8Array(1024)
+export function genLightmap(id, b1, b2, bx, s1, s2, sx, base = vec3.black){
+	if(lastLm==(lastLm=id)) return
+	const br = b1.x*(1-bx)+b2.x*bx, bg = b1.y*(1-bx)+b2.y*bx, bb = b1.z*(1-bx)+b2.z*bx
+	const sr = s1.x*(1-sx)+s2.x*sx, sg = s1.y*(1-sx)+s2.y*sx, sb = s1.z*(1-sx)+s2.z*sx
+	for(let i = 0, j = 0; i < 256; i++, j+=4){
+		const a = powTable[i&15], b = powTable[i>>4]
+		lightArr[j] = round(max(0, min(1, br*a + sr*b + base.x))*255)
+		lightArr[j+1] = round(max(0, min(1, bg*a + sg*b + base.y))*255)
+		lightArr[j+2] = round(max(0, min(1, bb*a + sb*b + base.z))*255)
+		lightArr[j+3] = 255
+	}
+	lightTex.pasteData(lightArr)
+}
+let lastLm = NaN
+const powTable = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+export function setGamma(p){
+	for(let i = 0; i < 16; i++) powTable[i] = p**(~i&15)
+	lastLm = NaN
+}

@@ -1,4 +1,5 @@
 import { BlockIDs, EntityIDs, Classes } from 'definitions'
+import { entityMap } from 'world'
 
 const texturePool = []
 const chunkUVData = new Uint16Array(8192)
@@ -6,6 +7,7 @@ export class Chunk extends Uint16Array{
 	constructor(buf){
 		super(4096)
 		this.light = new Uint16Array(4096)
+		this.light.fill(240)
 		this.tileData = new Map
 		this.x = buf.int()
 		this.y = buf.int()
@@ -28,7 +30,7 @@ export class Chunk extends Uint16Array{
 			e.dx = buf.float(); e.dy = buf.float()
 			e.f = buf.float(); e.age = buf.double()
 			e.chunk = this
-			if(e.savedata)buf.read(e.savedatahistory[buf.flint()] || e.savedata, e)
+			if(e.savedata) buf.read(e.savedatahistory[buf.flint()] || e.savedata, e)
 			e.place()
 			this.entities.add(e)
 		}
@@ -107,6 +109,7 @@ export class Chunk extends Uint16Array{
 			}else chunkUVData[i<<1|1] = 65535
 		}
 		this.ctx.pasteData(chunkUVData)
+		this.ctx2.pasteData(this.light)
 	}
 	updateDrawn({texture, render}, i){
 		if(!this.ctx) return

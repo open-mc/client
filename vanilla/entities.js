@@ -1,7 +1,7 @@
 import { explode, AshParticle, BlastParticle, hurt } from './defs.js'
 import { audioSet, renderItem, renderItemCount, renderSlot } from './effects.js'
 import { Entities, Entity, Item, Blocks, BlockIDs, toTex, addParticle } from 'definitions'
-import { renderF3, drawLayer, drawText, calcText } from 'api'
+import { renderF3, renderUI, drawLayer, drawText, calcText } from 'api'
 import { getblock, cam, worldEvents, world, me, perms } from 'world'
 import { renderLeft, renderRight } from './creativeInventory.js'
 
@@ -52,7 +52,7 @@ export class LivingEntity extends Entity{
 		if(this.hitTimer < 0) this.hitTimer = 0
 		if(false && !this.hitTimer) return true
 		const xs = this.f >= 0 ? 1 : -1, ys = this.name == 'Dinnerbone' || this.name == 'Grumm' ? -1 : 1
-		if(this.name && (renderF3 || this != me)){
+		if(this.name && ((renderF3&&renderUI) || this != me)){
 			const c2 = c.sub()
 			c2.translate(0, this.height+0.15)
 			c2.scale(0.25)
@@ -124,13 +124,13 @@ Entities.player = class extends LivingEntity{
 	selected = 0
 	skin = null
 	textures = null
-	render(c){
+	render(c, tint){
 		if(super.render(c)) return
 		if(!this.textures) return
 		const angle = (this.state & 3) == 2 ? sin(t * 4) * this.dx / 5 : sin(t * 12) * this.dx / 10
 		const extraAngle = this.state & 8 ? ((-5*t%1+1)%1)*((-5*t%1+1)%1)/3 : 0
 		c.scale(0.9, 0.9)
-		let tint = undefined, backTint = entityBackTint
+		let backTint = entityBackTint
 		if(this.hitTimer) tint = entityHurtTint, backTint = entityBackHurtTint
 		if(this.state & 2){
 			c.translate(0.2, 1.2)

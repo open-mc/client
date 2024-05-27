@@ -31,8 +31,8 @@ function drawGlyph(code){
 	ctx.translate(charWidth+LETTER_SPACING, 0)
 	style = style&65535|style<<16
 }
-export function drawText(c, t, x=0, y=0, size=1, aT = 0){
-	alphaTint = 1-aT; style = 271
+export function drawText(c, t, x=0, y=0, size=1, alpha = 1){
+	alphaTint = alpha; style = 271
 	ctx = c.sub()
 	ctx.translate(x, y)
 	ctx.scale(size)
@@ -68,11 +68,15 @@ export const TokenSet = (...a) => {
 	}
 	return m
 }
-TokenSet.BREAK_INVISIBLE = 1
+TokenSet.BREAK_BEFORE = 1
+TokenSet.BREAK_AFTER = 2
+TokenSet.TRIM_START = 4
+
 const defaultTs = TokenSet()
-	.add('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZáéíóúñüÁÉÍÓÚÑÜ', 0, '-')
-	.add('0123456789')
-	.add(' \t', TokenSet.BREAK_INVISIBLE)
+	.add('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZáéíóúñüÁÉÍÓÚÑÜ', _, '-')
+	.add('0123456789()+-.,[]{}')
+	.add(' \t', TokenSet.TRIM_START)
+	.add('\n', TokenSet.BREAK_AFTER)
 let i = 0, j = 0, text = '', charWidth = 0, cs0 = 0, strings = []
 const hexToInt = a => a>47&&a<58?a-48:a>64&&a<71?a-55:a>96&&a<103?a-87:a==43?131072:65536
 function nextChar(c1 = 0){
@@ -121,9 +125,11 @@ function nextChar(c1 = 0){
 	}
 	return -1
 }
+let ls = 271
 function pushStrings(arr, len = Infinity){
 	let x = 0
 	if(cs0<j) strings.push(text.slice(cs0,j)), cs0 = j
+	if(arr.length==0&&ls!=271) arr.push(ls)
 	while(x<strings.length&&len>0){
 		const i = strings[x++]
 		if(typeof i=='string'){
@@ -131,34 +137,58 @@ function pushStrings(arr, len = Infinity){
 			else arr.push(i.slice(0,len)),strings[--x]=i.slice(len)
 		}else i>65535&&len--,arr.push(i)
 	}
-	if(len==Infinity) return void(strings.length = 0)
-	if(style == 271) strings.splice(0, x)
+	if(len==Infinity) return void(ls = style, strings.length = 0)
+	if(ls == 271) strings.splice(0, x)
 	else if(x) strings.splice(0, x-1), strings[0]=style
 	else strings.unshift(style)
-	return arr = strings, strings = [], arr
+	return ls = style, arr = strings, strings = [], arr
 }
 export function calcText(txt, maxW = undefined, s = 271, ts = defaultTs){
-	text = txt; style = s; i = 0; cs0 = 0
+	text = txt; style = ls = s; i = 0; cs0 = 0
 	let char = nextChar(), line = 0, res = s != 271 ? [s] : []
 	const results = [res], chars = []
 	let lineWidth = (typeof maxW == 'number' ? maxW : typeof maxW == 'function' ? maxW(line) : Array.isArray(maxW) ? maxW[line] : Infinity) + LETTER_SPACING, w = 0
-	let tokenMatch = null, tokenWidth = 0, count = 0
+	let tokenMatch = null, tokenWidth = 0, count = 0, f = 0
 	while(char>=0){
-		tokenMatch = ts.get(char) ?? null
+		tokenMatch = ts.get(char) ?? null; f = tokenMatch?tokenMatch.flags:0
 		if(tokenMatch) while(true){
 			chars.push(charWidth); tokenWidth += charWidth
-			if((j=i,count++,(char = nextChar())<0) || !tokenMatch.has(char)) break
-		}else chars.push(charWidth), tokenWidth = charWidth, j=i,char = nextChar(), count++
-		w+=tokenWidth
+			if((j=i,(char = nextChar())<0) || !tokenMatch.has(char)) break
+		}else chars.push(charWidth), tokenWidth = charWidth, j=i,char = nextChar()
+		if(f&1){
+			res.width = w-LETTER_SPACING
+			pushStrings(res); results.push(res = [])
+			line++; lineWidth = (typeof maxW == 'number' ? maxW : typeof maxW == 'function' ? maxW(line) : Array.isArray(maxW) ? maxW[line] : Infinity) + LETTER_SPACING; w = count = 0
+		}
+		count += chars.length; w += tokenWidth
 		while(w>lineWidth){
 			let excess = (w-lineWidth)+(tokenMatch?tokenMatch.sepWidth:0)
-			res.width = w-LETTER_SPACING
+			res.width = w-LETTER_SPACING-tokenWidth
 			line++; lineWidth = (typeof maxW == 'number' ? maxW : typeof maxW == 'function' ? maxW(line) : Array.isArray(maxW) ? maxW[line] : Infinity) + LETTER_SPACING; w = 0
+			if((f&4)){
+				for(const x of strings) if(typeof x == 'number' && x < 65536) res.push(x)
+				cs0 = j; strings.length = 0
+				results.push(res = []); count = 0
+				break
+			}
+			if(tokenWidth < lineWidth){
+				results.push(res = pushStrings(res, count-chars.length)); w = tokenWidth
+				count = chars.length
+				break
+			}
 			let c = 0
-			while(excess > 0){ const cw = chars.pop(); if(cw===undefined) break; excess -= cw; res.width -= cw; w += cw; c++ }
+			while(excess > 0){ const cw = chars.pop(); if(cw===undefined) break; excess -= cw; w += cw; c++; tokenWidth -= cw }
 			const r = res
 			results.push(res = pushStrings(res, count-c)); count = c
-			if(chars.length>0&&tokenMatch.sep) r.push(tokenMatch.sep)
+			if(chars.length>0){
+				r.width += tokenWidth
+				tokenMatch.sep && r.push(tokenMatch.sep)
+			}
+		}
+		if(f&2){
+			res.width = w-LETTER_SPACING
+			pushStrings(res); results.push(res = [])
+			line++; lineWidth = (typeof maxW == 'number' ? maxW : typeof maxW == 'function' ? maxW(line) : Array.isArray(maxW) ? maxW[line] : Infinity) + LETTER_SPACING; w = count = 0
 		}
 		chars.length = 0; tokenWidth = 0; tokenMatch = null
 	}

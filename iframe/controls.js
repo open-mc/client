@@ -74,7 +74,7 @@ onKey(KEYS.NUM_9, () => {me.selected = 8})
 
 onKey(KEYS.BACK, () => {
 	const d = new DataWriter()
-	d.byte(me.linked ? 6 : 7)
+	d.byte(6)
 	send(d.build())
 })
 

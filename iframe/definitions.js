@@ -1,12 +1,10 @@
 import { drawLayer, options } from 'api'
-import { getblock, sound, entityMap, cam, world, me, foundMe, BlockIDs } from 'world'
+import { getblock, sound, entityMap, cam, world, me, foundMe, BlockIDs, _setDims } from 'world'
 import { registerTypes } from '/server/modules/dataproto.js'
 import * as pointer from './pointer.js'
 import { EPSILON } from './entity.js'
 
 export const TEX_SIZE = 16
-
-export let W2 = 0, H2 = 0, SCALE = 1
 
 export function _recalcDimensions(camZ){
 	if(_gl.isContextLost?.()){
@@ -17,9 +15,8 @@ export function _recalcDimensions(camZ){
 		document.body.style = 'color:white;background:#000;text-align:center;line-height:90vh;font-size:32px;font-family:monospace;'
 		return
 	}
-	SCALE = camZ * TEX_SIZE * pixelRatio
-	W2 = ctx.width / SCALE / 2
-	H2 = ctx.height / SCALE / 2
+	const SCALE = camZ * TEX_SIZE * pixelRatio
+	_setDims((ctx.width+1&-2)/ctx.width*.5, (ctx.height+1&-2)/ctx.height*.5, ctx.width / SCALE / 2, ctx.height / SCALE / 2, SCALE)
 	ctxSupersample = 2**(options.supersample*6-3) || 1
 }
 
@@ -166,8 +163,9 @@ export class Entity{
 	}
 	update(){}
 	place(){
-		if(entityMap.has(this.netId)) return false
+		const s = entityMap.size
 		entityMap.set(this.netId, this)
+		if(entityMap.size == s) return false
 		this.ix = this.x; this.iy = this.y
 		if(Entity.meid === this.netId && me != this) foundMe(this)
 		return true
@@ -400,13 +398,6 @@ export const toTex = i => {
 	return blockAtlas
 }
 
-export function toBlockExact(c, bx, by){
-	cam.transform(c)
-	const x0 = ifloat(bx - cam.x) * SCALE
-	const y0 = ifloat(by - cam.y) * SCALE
-	const xa0 = round(x0), ya0 = round(y0)
-	c.box(xa0, ya0, round(x0+SCALE)-xa0, round(y0+SCALE)-ya0)
-}
 export function prep(){
 	if(!blocksMipmapped){
 		blockAtlas.genMipmaps()

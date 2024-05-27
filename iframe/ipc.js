@@ -21,7 +21,7 @@ const onMsg = ({data,origin}) => {
 	if(origin=='null') return
 	if(Array.isArray(data)){
 		if(data.length == 2){
-			const [a, b] = data
+			const {0:a,1:b} = data
 			if(typeof a == 'string'){
 				options[a] = b
 				if(_optionListeners[a]) for(const f of _optionListeners[a]) f(b)

@@ -2,7 +2,7 @@ import { DataReader, decoder } from '/server/modules/dataproto.js'
 import "../uis/chat.js"
 import { pendingConnection, msg } from '../uis/dirtscreen.js'
 import { Btn, click, Div, hideUI, Img, Label, Row } from './ui.js'
-import { servers, saveServers, storage } from './save.js'
+import { servers, saveServers, storage, options } from './save.js'
 import { clearNotifs, destroyIframe, fwPacket, gameIframe } from './iframe.js'
 import { PROTOCOL_VERSION } from '../server/version.js'
 import texts from './lang.js'

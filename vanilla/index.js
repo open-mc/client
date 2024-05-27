@@ -1,12 +1,13 @@
 import { uiButtons, icons, renderItem, renderItemCount, click, renderSlot, renderTooltip, resetSlot, slotI, audioSet } from './effects.js'
 import './entities.js'
 import { onKey, drawLayer, pause, renderUI, quit, onpacket, send, voice, drawText, calcText } from 'api'
-import { getblock, gridEvents, sound, entityMap, pointer, cam, world, configLoaded, me } from 'world'
-import { Item, BlockParticle, addParticle, blockBreak, ephemeralInterfaces, W2, H2 } from 'definitions'
+import { getblock, gridEvents, sound, entityMap, pointer, cam, world, configLoaded, me, W2, H2 } from 'world'
+import { Item, BlockParticle, addParticle, blockBreak, ephemeralInterfaces } from 'definitions'
 import { AshParticle, BlastParticle, explode } from './defs.js'
 import { terrainPng } from './blocks.js'
 import './interfaces.js'
 import './voice.js'
+
 const src = loader(import.meta)
 
 const BREAKING = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].mmap(x => terrainPng.sub(x/16, 0, 1/16, 1/16))
@@ -169,12 +170,12 @@ drawLayer('ui', 1000, (c, w, h) => {
 			if(!item) break a
 			const name = item.name || item.defaultName
 			const arr = calcText(name, _, item.name ? 79 : 15)
-			drawText(c2, arr, hotBarLeft + hotbar.width / 2 - arr.width*4, hotbar.height + 24, 8, min(1, max(0, 1-hotbarTooltipAlpha)))
+			drawText(c2, arr, hotBarLeft + hotbar.width / 2 - arr.width*4, hotbar.height + 24, 8, min(1, max(0, hotbarTooltipAlpha)))
 		}
 		if(voice.active) proximityChatTooltip = 0
 		if(proximityChatTooltip > 0){
 			proximityChatTooltip -= dt
-			drawText(c2, [265, 'Press Enter to talk with proximity chat'], 5, 5, 8, 1-min(1, proximityChatTooltip/5))
+			drawText(c2, [265, 'Press Enter to talk with proximity chat'], 5, 5, 8, min(1, proximityChatTooltip/5))
 		}
 	}
 	if(me.health <= 0){

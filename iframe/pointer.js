@@ -1,7 +1,7 @@
-import { setblock, getblock, map, cam, me, onPlayerLoad, perms, pointer } from 'world'
+import { setblock, getblock, map, cam, me, onPlayerLoad, perms, pointer, W2, H2, toBlockExact } from 'world'
 import './controls.js'
 import { onKey, onmousemove, options, paused, renderUI, drawLayer } from 'api'
-import { Entity, TEX_SIZE, W2, H2, toBlockExact } from 'definitions'
+import { Entity, TEX_SIZE } from 'definitions'
 
 export let x = 2, y = 0
 export let bx = 0, by = 0, bpx = 0, bpy = 0, bpfx = 0, bpfy = 0
@@ -208,7 +208,7 @@ export function pointerMoved(dx, dy){
 	jrx = jry = 0
 	const reach = effectiveReach()
 	const s = min(reach, sqrt(x * x + y * y))
-	const sens = Math.floor(9 ** options.sensitivity / 3) / cam.z / TEX_SIZE / 2
+	const sens = 9 ** options.sensitivity / 3 / cam.z / TEX_SIZE / 2
 	x += dx * sens; y += dy * sens
 	const ns = sqrt(x * x + y * y)
 	if(!ns) return x = y = 0

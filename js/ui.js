@@ -8,7 +8,7 @@ const Sound = src => {
 	fetch(src).then(a => a.blob()).then(a => arr[0].src = URL.createObjectURL(a))
 	return () => {
 		let a = arr.length > 1 ? arr.pop() : arr[0].cloneNode(true)
-		a.volume = Math.min(1, options.sound)
+		a.volume = options.sound*2
 		a.onended = () => {
 			a.onended = null
 			if(arr.length<3)arr.push(a)
@@ -239,14 +239,11 @@ export const Column = (...a) => {
 	for(const c of a)el.append(c)
 	return el
 }
-if(devicePixelRatio == 1){
-	document.body.style.left = '0.4px'
-	onresize = () => {
-		document.body.style.width = (innerWidth+1&-2)+'px'
-		document.body.style.height = (innerHeight+1&-2)+'px'
-	}
-	onresize()
+
+onresize = () => {
+	document.documentElement.style.setProperty('--pr', (innerWidth&1)&&devicePixelRatio==1 ? '1px' : '0')
 }
+onresize()
 
 const hexToInt = a => a>47&&a<58?a-48:a>64&&a<71?a-55:a>96&&a<103?a-87:a==43?131072:65536
 export const styleToHtml = (str, node) => {

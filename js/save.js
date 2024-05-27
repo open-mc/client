@@ -42,6 +42,7 @@ const defaults = {
 	joy: 0,
 	lang: '',
 	fps: 0,
+	gamma: .5,
 }
 const optionListeners = {}
 for(const k in defaults){

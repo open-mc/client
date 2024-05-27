@@ -11,7 +11,6 @@
 <script>
 	"use strict";
 	const flags = location.hash.slice(1)|0
-	globalThis.antialias = flags&1
 	if(globalThis.pako) pako = null
 	delete window.localStorage; delete window.sessionStorage
 	onmessage = ({data,origin}) => origin!='null'&&msgQueue.push(data)
@@ -197,7 +196,7 @@ let T=document.body
 T.parentElement.style.overflow='hidden'
 T.replaceWith(T=T.firstChild)
 /** @type WebGL2RenderingContext */
-const gl = T.getContext('webgl2', {preserveDrawingBuffer: false, antialias: globalThis.antialias||false, depth: false, premultipliedAlpha: true, stencil: true})
+const gl = T.getContext('webgl2', {preserveDrawingBuffer: false, antialias: false, depth: false, premultipliedAlpha: true, stencil: true})
 gl.pixelStorei(37440,1) // unpack flip-y
 gl.stencilMask(1)
 gl.clearStencil(0)
@@ -389,15 +388,6 @@ class img{
 			gl.bindTexture(35866, t.tex)
 		}
 	}
-	resize(w=0, h=0, d=0, mips=0){
-		const {t}=this
-		if(t.src) return
-		if(!oU)img.fakeBind(t)
-		if(w&&h) gl.texStorage3D(35866, (t.m = mips)||1, t.f[0], t.w=w, t.h=h, t.d=+d||1)
-		else gl.texStorage3D(35866, (t.m = mips)||1, t.f[0], t.w=1, t.h=1, t.d=1)
-		gl.texParameterf(35866, 10241, mips?9984+(t.o>>1&3):9728+(t.o>>1&1))
-		if(t.i<0) gl.bindTexture(35866, null)
-	}
 	setOptions(o){
 		const {t}=this
 		img.fakeBind(t)
@@ -433,12 +423,15 @@ class img{
 let oU=0
 let arr = new Float32Array(16), iarr = new Int32Array(arr.buffer), i = 0
 globalThis.Texture = (w=0, h=0, d=0, o=0, f=Formats.RGBA, mips=0) => {
-	const t = new img({tex: gl.createTexture(), i: -1, o: 0, src: null, f, w, h, d: +d||1,cbs:null,m:0})
+	const t = {tex: gl.createTexture(), i: -1, o: 0, src: null, f, w, h, d: +d||1,cbs:null,m:0}, tx = new img(t)
 	oU=-2
-	t.setOptions(o)
-	t.resize(w, h, d, mips)
+	tx.setOptions(o)
+	if(w&&h) gl.texStorage3D(35866, (t.m = mips)||1, t.f[0], t.w=w, t.h=h, t.d=+d||1)
+	else gl.texStorage3D(35866, (t.m = mips)||1, t.f[0], t.w=1, t.h=1, t.d=1)
+	gl.texParameterf(35866, 10241, mips?9984+(t.o>>1&3):9728+(t.o>>1&1))
+	gl.bindTexture(35866, null)
 	oU=0
-	return t
+	return tx
 }
 globalThis.Img = (src, o=0, fmt=Formats.RGBA, mips=0) => new img({tex:null,i:-1,f:fmt,o,src:src?typeof src=='string'?[src]:src:[],w:0,h:0,d:0,cbs:null,m:mips})
 Object.assign(globalThis, {
@@ -484,9 +477,27 @@ Object.assign(globalThis, {
 	FIXED: 4, _: undefined,
 	TRIANGLE_STRIP: 5, TRIANGLES: 4, TRIANGLE_FAN: 6, LINE_LOOP: 2, LINE_STRIP: 3, LINES: 1, POINTS: 0
 })
-globalThis.vec2 = (x=0,y=x)=>({x,y})
-globalThis.vec3 = (x=0,y=x,z=x)=>({x,y,z})
-globalThis.vec4 = (x=0,y=x,z=x,w=x)=>({x,y,z,w})
+function v2plus(o){
+	return typeof o == 'number' ? {x: this.x+o, y: this.y+o, plus: v2plus, times: v2times} : {x: this.x+o.x, y: this.y+o.y, plus: v2plus, times: v2times}
+}
+function v2times(o){
+	return typeof o == 'number' ? {x: this.x*o, y: this.y*o, plus: v2plus, times: v2times} : {x: this.x*o.x, y: this.y*o.y, plus: v2plus, times: v2times}
+}
+function v3plus(o){
+	return typeof o == 'number' ? {x: this.x+o, y: this.y+o, z: this.z+o, plus: v3plus, times: v3times} : {x: this.x+o.x, y: this.y+o.y, z: this.z+o.z, plus: v3plus, times: v3times}
+}
+function v3times(o){
+	return typeof o == 'number' ? {x: this.x*o, y: this.y*o, z: this.z*o, plus: v3plus, times: v3times} : {x: this.x*o.x, y: this.y*o.y, z: this.z*o.z, plus: v3plus, times: v3times}
+}
+function v4plus(o){
+	return typeof o == 'number' ? {x: this.x+o, y: this.y+o, z: this.z+o, w: this.w+o, plus: v4plus, times: v4times} : {x: this.x+o.x, y: this.y+o.y, z: this.z+o.z, w: this.w+o.w, plus: v4plus, times: v4times}
+}
+function v4times(o){
+	return typeof o == 'number' ? {x: this.x*o, y: this.y*o, z: this.z*o, w: this.w*o, plus: v4plus, times: v4times} : {x: this.x*o.x, y: this.y*o.y, z: this.z*o.z, w: this.w*o.w, plus: v4plus, times: v4times}
+}
+globalThis.vec2 = (x=0,y=x)=>({x,y,plus:v2plus,times:v2times})
+globalThis.vec3 = (x=0,y=x,z=x)=>({x,y,z, plus: v3plus, times: v3times})
+globalThis.vec4 = (x=0,y=x,z=x,w=x)=>({x,y,z,w, plus: v4plus, times: v4times})
 vec4.white = vec4(1), vec4.black = vec4(0)
 vec3.white = vec3(1), vec3.black = vec3(0)
 vec2.white = vec2(1), vec2.black = vec2(0)
@@ -697,7 +708,7 @@ globalThis.Shader = (src, inputs, uniforms, output=4, frat=0.5) => {
 		const A = t>15?(o|=1,'iarr[j+'):'arr[j+'
 		if(t==20||t==24||t==28){
 			n='int',o|=(1<<(t>>2)-3),fCount++
-			texCheck.push(`a${j}=(img.auto(a${j+(t==24?'.t,-1':'.t,0')})+1||(i&&draw(b^boundUsed),img.auto(a${j+(t==24?'.t,-1':'.t,0')})+1))-1<<8|a${j}.l`)
+			texCheck.push(`a${j}=(img.auto(a${j+(t==24?'.t,-1':'.t,0')})+1||(i&&draw(b^boundUsed),img.auto(a${j+(t==24?'.t,-1':'.t,0')})+1))-1`)
 		}
 		if(t==12||t==28) o|=2
 		if(t==8||t==24) iCount++,fCount--
@@ -819,7 +830,7 @@ globalThis.frameSprites = 0
 globalThis.frameData = 0
 let fdc = 0, fs = 0, fd = 0
 Shader.DEFAULT = sh = Shader(`void main(){color=arg0()*(1.-arg1);}`, [COLOR, VEC4])
-Shader.INT = Shader(`void main(){color=arg0();}`, UCOLOR, _, UINT)
+Shader.UINT = Shader(`void main(){color=arg0();}`, UCOLOR, _, UINT)
 Shader.NONE = Shader(`void main(){color=vec4(0,0,0,1);}`)
 gl.useProgram(sh.program)
 gl.bindVertexArray(sh.vao)
@@ -941,14 +952,13 @@ setInterval(function g(j){
 	let now = performance.now()/1000
 	if(now < nextF) return
 	dt = -(globalThis.t-(globalThis.t=now))
+	frameDrawCalls = fdc; frameSprites = fs; frameData = fd*4+fdc*24; fdc = fs = fd = 0
 	ctx.clear(); ctx.reset()
-	i&&draw()
 	try{m.frame?.(dt)}catch(e){Promise.reject(e)}; i&&draw()
 	if((now=performance.now()/1000) >= (nextF+=1/ctxFramerate)) setImmediate(g, 0)
 }, 0, 1)
 requestAnimationFrame(function f(){
 	requestAnimationFrame(f)
-	frameDrawCalls = fdc; frameSprites = fs; frameData = fd*4+fdc*24; fdc = fs = fd = 0
 	i&&draw()
 	pixelRatio = devicePixelRatio * ctxSupersample
 	gl.canvas.style.imageRendering = ctxSupersample > 1 ? 'auto' : 'pixelated'
@@ -957,6 +967,7 @@ requestAnimationFrame(function f(){
 	if(ctxFramerate>=0) return
 	const now = performance.now()/1000
 	dt = Math.min(-(globalThis.t-(globalThis.t=performance.now()/1000)), .5)
+	frameDrawCalls = fdc; frameSprites = fs; frameData = fd*4+fdc*24; fdc = fs = fd = 0
 	ctx.reset(); try{m.frame?.(dt)}catch(e){Promise.reject(e)}; i&&draw()
 })
 </script>

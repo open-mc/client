@@ -271,13 +271,13 @@ Blocks.chest = class extends Block{
 			sound(this.state&2 ? chestOpen : chestClose, x, y, 0.5, 1 - random()*.1)
 		}
 	}
-	render(c){
+	render(c, tint){
 		if(this.state&1) c.box(1, 0, -1, 1)
 		this.opening = max(this.opening - dt*3, 0)
 		const rot = (0.5**((this.state & 2 ? 1 - this.opening : this.opening)*4)-1)*16/15
 		c.translate(0.0625, 0.625)
 		c.rotate(rot*PI/2)
-		c.drawRect(-0.0625, -0.625, 1, 1, chestTop)
+		c.drawRect(-0.0625, -0.625, 1, 1, chestTop, tint)
 	}
 	static tool = 'axe'
 }
@@ -366,28 +366,30 @@ const endPortalOverlay = Img(src`endportaloverlay.png`)
 const endShader = Shader(`
 #define PI 3.1415927
 #define ROT_MAT(rot) mat2(cos(rot),-sin(rot),-sin(rot),-cos(rot))
-#define MULTIPLY(pos, mat, off) vec3(mod(pos*mat+vec2(0,uni0/100.),vec2(.25,1.))+vec2(off,0),0)
+#define MULTIPLY(pos, mat, off) vec3(mod(pos*mat+vec2(0,uni1/100.),vec2(.25,1.))+vec2(off,0),0)
 void main(){
 	const mat2 PITHIRD = ROT_MAT(PI/3.);
 	const mat2 PIHALF = ROT_MAT(PI/2.);
 	const mat2 PINQUARTER = ROT_MAT(PI/-4.);
 	const mat2 PIONE = ROT_MAT(PI);
-	vec2 pos = xy*uni1/1000.;
-	color = getCol(arg0, MULTIPLY(pos,PITHIRD,0.));
-	color += getCol(arg0, MULTIPLY(pos,PIHALF,.25))*.9;
-	color += getCol(arg0, MULTIPLY(pos,PINQUARTER,.5))*.5;
-	color += getCol(arg0, MULTIPLY(pos,PIONE,.75))*.4;
-}`, TEXTURE, [FLOAT, VEC2])
+	vec2 pos = xy*uni2/1000.;
+	color = getCol(uni0, MULTIPLY(pos,PITHIRD,0.));
+	color += getCol(uni0, MULTIPLY(pos,PIHALF,.25))*.9;
+	color += getCol(uni0, MULTIPLY(pos,PINQUARTER,.5))*.5;
+	color += getCol(uni0, MULTIPLY(pos,PIONE,.75))*.4;
+	color *= (1.-arg0);
+}`, VEC4, [TEXTURE, FLOAT, VEC2])
 let endShaderT = -1
 Blocks.end_portal = class extends Block{
 	static solid = false
 	static blockShape = [0, 0, 1, 0.75]
 	static softness = 1
 	static texture = BlockTexture(terrainPng, 14, 0)
-	render(c){
-		if(endShaderT != (endShaderT=t)) endShader.uniforms(t, vec2(c.width, c.height))
+	render(c, tint){
+		if(endShaderT != (endShaderT=t))
+			endShader.uniforms(endPortalOverlay, t, vec2(c.width, c.height))
 		c.shader = endShader
-		c.drawRect(0, 0, 1, 0.75, endPortalOverlay)
+		c.drawRect(0, 0, 1, 0.75, tint)
 		c.shader = null
 	}
 }
@@ -499,7 +501,7 @@ const furnaceUI = furnaceInterface.crop(0, 0, 176, 80), cookArrow = furnaceInter
 Blocks.furnace = class extends Stone{
 	static texture = BlockTexture(terrainPng, 12, 2)
 	static interactible = true
-	render(c){ if(this.fuelTime>t) c.draw(toTex(litFurnaceTex)) }
+	render(c, tint){ if(this.fuelTime>t) c.draw(toTex(litFurnaceTex), tint) }
 	drawInterface(id, c, drawInv){
 		if(id != 0) return
 		const c2 = c.sub()
@@ -562,11 +564,11 @@ Blocks.command_block = class extends Stone{
 	type = 0
 	commands = []
 	static texture = -1
-	render(c){
+	render(c, tint){
 		const a = floor(t*2)&3
 		const tex = commandBlockTexs[this.type]
-		c.draw(tex.sub(0, a/4, 1, .25))
-		c.draw(tex.sub(0, (a+1&3)/4, 1, .25), vec4(1-(t*2)%1))
+		c.draw(tex.sub(0, a/4, 1, .25), tint)
+		c.draw(tex.sub(0, (a+1&3)/4, 1, .25), vec4(1-(t*2)%1), tint)
 	}
 	get particleTexture(){ return commandBlockTexs[this.type] }
 	static breaktime = Infinity
