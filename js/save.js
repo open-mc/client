@@ -32,7 +32,7 @@ const defaults = {
 	sensitivity: 0.5,
 	controllerSensitivity: 0.5,
 	camera: 0,
-	fsc: 1,
+	fsc: 0,
 	speed: 1,
 	click: true,
 	ffx: 1,
@@ -43,6 +43,7 @@ const defaults = {
 	lang: '',
 	fps: 0,
 	gamma: .5,
+	touch: +!!navigator.userAgentData.mobile
 }
 const optionListeners = {}
 for(const k in defaults){

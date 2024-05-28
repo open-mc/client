@@ -138,7 +138,7 @@ Items.command_block = class extends Item{
 	render(c, tint){
 		const a = floor(t*2)&3
 		const alpha = true
-		c.draw(commandBlockTexs[0].crop(0, a<<4, 16, 16))
+		c.draw(commandBlockTexs[0].crop(0, a<<4, 16, 16), tint)
 		if(alpha)
 			c.draw(commandBlockTexs[0].crop(0, (a+1&3)<<4, 16, 16), tint.times((t*2)%1))
 	}

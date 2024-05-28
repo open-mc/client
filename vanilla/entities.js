@@ -10,20 +10,20 @@ const src = loader(import.meta)
 const meInterface = Img(src`meint.png`)
 
 const damageSounds = [
-	null, Audio(src`sound/fire/extinguish.mp3`)
+	null, Wave(src`sound/fire/extinguish.mp3`)
 ]
 
 const enterWaterSounds = [
-	Audio(src`sound/water/enter1.mp3`),
-	Audio(src`sound/water/enter2.mp3`),
-	Audio(src`sound/water/enter3.mp3`)
+	Wave(src`sound/water/enter1.mp3`),
+	Wave(src`sound/water/enter2.mp3`),
+	Wave(src`sound/water/enter3.mp3`)
 ], exitWaterSounds = [
-	Audio(src`sound/water/exit1.mp3`),
-	Audio(src`sound/water/exit2.mp3`),
-	Audio(src`sound/water/exit3.mp3`)
+	Wave(src`sound/water/exit1.mp3`),
+	Wave(src`sound/water/exit2.mp3`),
+	Wave(src`sound/water/exit3.mp3`)
 ], splashSounds = [
-	Audio(src`sound/water/splash1.mp3`),
-	Audio(src`sound/water/splash2.mp3`)
+	Wave(src`sound/water/splash1.mp3`),
+	Wave(src`sound/water/splash2.mp3`)
 ]
 const nameBgCol = vec4(0, 0, 0, .2)
 export class LivingEntity extends Entity{
@@ -93,7 +93,7 @@ export class LivingEntity extends Entity{
 	}
 }
 
-const portalExit = Audio(src`sound/portal/exit.mp3`), endPortalMake = Audio(src`sound/portal/end.mp3`)
+const portalExit = Wave(src`sound/portal/exit.mp3`), endPortalMake = Wave(src`sound/portal/end.mp3`)
 const thunder = audioSet('misc/thunder', 3)
 
 const entityBackTint = vec4(.8, .8, .8, 1), entityHurtTint = vec4(.9, .6, .6, 1), entityBackHurtTint = vec4(.72, .48, .48, 1)
@@ -261,7 +261,7 @@ worldEvents[53] = buf => {
 	me.sound(thunder, buf.float(), random()*.2+.8)
 }
 
-const pop = Audio(src`sound/misc/pop.mp3`)
+const pop = Wave(src`sound/misc/pop.mp3`)
 
 Entities.item = class extends Entity{
 	item = null
@@ -317,7 +317,7 @@ Entities.falling_block = class extends Entity{
 	}
 }
 
-const fuse = Audio(src`sound/misc/fuse.mp3`)
+const fuse = Wave(src`sound/misc/fuse.mp3`)
 Entities.tnt = class extends Entity{
 	static width = 0.49
 	static height = 0.98

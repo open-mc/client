@@ -12,7 +12,7 @@ export const animatedPng = Img(src`animated.png`)
 Blocks.air = class extends Block{
 	static solid = false
 	static replacable = true
-	static translucency = 0
+	static opacity = 0
 }
 Blocks.grass = class extends Block{
 	static dirt = true
@@ -36,6 +36,7 @@ Blocks.cobblestone = class extends Stone{
 Blocks.obsidian = class extends Stone{
 	static texture = BlockTexture(terrainPng, 5, 2)
 	static breaktime = 250
+	static opacity = 8
 }
 
 Blocks.glowing_obsidian = class extends Blocks.obsidian{
@@ -62,6 +63,7 @@ Blocks.bedrock = class extends Stone{
 	static texture = BlockTexture(terrainPng, 1, 1)
 	static breaktime = Infinity
 	static tool = 'pick'
+	static opacity = 15
 }
 class Wood extends Block{
 	static placeSounds = audioSet('wood/place', 4)
@@ -123,7 +125,9 @@ Blocks.sand = class extends Block{
 	static stepSounds = audioSet('sand/step', 5)
 }
 Blocks.glass = class extends Block{
+	static opacity = 0
 	static breaktime = 0.6
+	static breakSounds = audioSet('glass/break', 3)
 	static texture = BlockTexture(terrainPng, 1, 3)
 	static placeSounds = Blocks.stone.placeSounds
 	static stepSounds = Blocks.stone.stepSounds
@@ -137,6 +141,7 @@ const bucketSounds = {
 }
 
 class Water extends Block{
+	static opacity = 1
 	static solid = false
 	static replacable = true
 	static climbable = true
@@ -230,7 +235,7 @@ Blocks.endstone = class extends Block{
 	static stepSounds = Blocks.stone.stepSounds
 }
 export const chestTop = terrainPng.crop(9*16, 3*16, 16, 16)
-const chestOpen = Audio(src`sound/containers/open_chest.mp3`), chestClose = Audio(src`sound/containers/close_chest.mp3`)
+const chestOpen = Wave(src`sound/containers/open_chest.mp3`), chestClose = Wave(src`sound/containers/close_chest.mp3`)
 const containerInterface = Img(src`container.png`)
 Blocks.chest = class extends Block{
 	static blockShape = [1/16, 0, 15/16, 7/8]
@@ -322,14 +327,14 @@ Blocks.gold_block = MineralBlock
 Blocks.emerald_block = MineralBlock
 Blocks.diamond_block = MineralBlock
 
-const fireAmbient = Audio(src`sound/fire/ambient.mp3`), portalAmbient = Audio(src`sound/portal/ambient.mp3`)
-const fireExtinguish = Audio(src`sound/fire/extinguish.mp3`)
+const fireAmbient = Wave(src`sound/fire/ambient.mp3`), portalAmbient = Wave(src`sound/portal/ambient.mp3`)
+const fireExtinguish = Wave(src`sound/fire/extinguish.mp3`)
 
 Blocks.fire = class extends Block{
 	static solid = false
 	static replacable = true
 	static texture = BlockTexture(animatedPng, 1, 0, 32)
-	static placeSounds = [Audio(src`sound/fire/ignite.mp3`)]
+	static placeSounds = [Wave(src`sound/fire/ignite.mp3`)]
 	random(x, y){
 		sound(fireAmbient, x, y, random() + 1, random() * 0.7 + 0.3)
 	}
@@ -337,7 +342,7 @@ Blocks.fire = class extends Block{
 		sound(fireExtinguish, x, y, 0.5, random() * 1.6 + 1.8)
 	}
 }
-const portalEnter = Audio(src`sound/portal/enter.mp3`)
+const portalEnter = Wave(src`sound/portal/enter.mp3`)
 let portalEffect = 0, inPortal = false
 Blocks.portal = class extends Block{
 	static solid = false
@@ -450,6 +455,7 @@ Blocks.jungle_sapling = class extends Sapling{
 }
 
 class Leaves extends Block{
+	static opacity = 1
 	static placeSounds = Blocks.grass.placeSounds
 	static stepSounds = Blocks.grass.stepSounds
 }

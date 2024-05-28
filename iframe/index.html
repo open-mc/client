@@ -843,7 +843,7 @@ const actx = new AudioContext({latencyHint: 'interactive'})
 globalThis.bgGain = actx.createGain()
 bgGain.connect(actx.destination)
 globalThis.masterVolume = 1
-globalThis.Audio = src => {
+globalThis.Wave = src => {
 	let buf = null
 	return function play(vol = 1, pitch = 1, pan = 0, start = 0, end = NaN, ends = true, bg = false){
 		if(buf === null){

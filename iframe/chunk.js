@@ -1,17 +1,18 @@
 import { BlockIDs, EntityIDs, Classes } from 'definitions'
+import { map } from 'world'
+import { pushLightUpdate } from './lighting.js'
 
 const texturePool = []
 const chunkUVData = new Uint16Array(8192)
 export class Chunk extends Uint16Array{
 	constructor(buf){
 		super(4096)
-		this.light = new Uint16Array(4096)
-		for(let i = 0; i < 4096; i++){
-			this.light[i] = 240//(i>>2)&240
-		}
+		this.light = new Uint8Array(4096)
 		this.tileData = new Map
-		this.x = buf.int()
-		this.y = buf.int()
+		this.x = buf.int()&0x3ffffff
+		this.y = buf.int()&0x3ffffff
+		this.up = this.left = this.right = this.down = null
+		this.lightBuds = null
 		this.ref = 0
 		this.entities = new Set()
 		this.ctx2 = this.ctx = this.writeCtx = null
@@ -89,7 +90,7 @@ export class Chunk extends Uint16Array{
 		if(!this.ctx) return
 		texturePool.push(this.ctx, this.ctx2)
 		this.ctx = this.ctx2 = this.writeCtx = null
-		this.rerenders.length = 0
+		this.rerenders.length = this.changed = 0
 	}
 	draw(){
 		if(this.ctx) return
@@ -98,7 +99,7 @@ export class Chunk extends Uint16Array{
 		this.ctx = texturePool.pop()
 		if(!this.ctx){
 			this.ctx = Texture(64, 64, 1, 0, Formats.RG16)
-			this.ctx2 = Texture(64, 64, 1, 0, Formats.R16)
+			this.ctx2 = Texture(64, 64, 1, 0, Formats.R8)
 		}
 		for(let i = 0; i < 4096; i++){
 			const b = this[i]
@@ -112,7 +113,7 @@ export class Chunk extends Uint16Array{
 		this.ctx.pasteData(chunkUVData)
 		this.ctx2.pasteData(this.light)
 	}
-	updateDrawn({texture, render}, i){
+	updateDrawn(i, {texture, render, opacity: o1}, {opacity: o2}){
 		if(!this.ctx) return
 		if(!this.writeCtx){
 			const ctx = this.writeCtx = this.ctx.drawable()
@@ -124,7 +125,9 @@ export class Chunk extends Uint16Array{
 		if((j == -1) & (render != undefined)) this.rerenders.push(i)
 		else if((j > -1) & (render == undefined)) this.rerenders.splice(j, 1)
 		this.writeCtx.drawRect(i&63,i>>6,1,1,texture)
+		if(o1!=o2) pushLightUpdate(this, i)
 	}
+	changed = 0
 }
 const pointGeometry = Geometry(POINTS, [0, 0])
 const ctxWriteShader = Shader(`void main(){

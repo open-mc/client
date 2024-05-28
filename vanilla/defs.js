@@ -5,8 +5,8 @@ import './blocks.js'
 const src = loader(import.meta)
 
 export const particlePng = Img(src`particles.png`)
-export const explode = [1,2,3,4].mmap(a => Audio(src`sound/misc/explode${a}.mp3`))
-export const hurt = [1,2,3].mmap(a => Audio(src`sound/misc/hurt${a}.mp3`))
+export const explode = [1,2,3,4].mmap(a => Wave(src`sound/misc/explode${a}.mp3`))
+export const hurt = [1,2,3].mmap(a => Wave(src`sound/misc/hurt${a}.mp3`))
 
 const explodeParticles = [0,8,16,24,32,40,48,56,64,72,80,88,96,104,112].mmap(a => particlePng.crop(a,80,8,8))
 const ashParticles = [0,8,16,24,32,40,48,56].mmap(a => particlePng.crop(a,0,8,8))

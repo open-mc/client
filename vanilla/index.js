@@ -142,9 +142,17 @@ configLoaded(CONFIG => proximityChatTooltip = CONFIG.proximitychat ? 10 : 0)
 drawLayer('ui', 1000, (c, w, h) => {
 	const c2 = c.sub()
 	if(renderUI){
+		const action = invAction
 		let hotBarLeft = w / 2 - hotbar.width/2
 		c2.translate(hotBarLeft, 5)
 		c2.drawRect(0, 0, hotbar.width, hotbar.height, hotbar)
+		if (action && options.touch) {
+			const {x, y} = c2.from(cursor)
+			const selI = Math.floor(x / hotbar.width * 9)
+			if (selI >= 0 && selI < 9 && y < hotbar.height) {
+				me.selected = selI
+			}
+		}
 		c2.translate(11, 3)
 		c2.scale(16, 16)
 		for(let i = 0; i < 9; i++){
@@ -366,8 +374,9 @@ gridEvents[1] = (buf, x, y) => {
 gridEvents[2] = (buf, x, y) => {
 	const b = getblock(x, y)
 	if(b.destroyed) return void b.destroyed?.(x, y)
-	if(b.placeSounds.length)
-		sound(b.placeSounds, x, y, 1, 0.8)
+	const p = b.breakSounds ?? b.placeSounds
+	if(p.length)
+		sound(p, x, y, 1, 0.8)
 	blockBreak(b, x, y)
 }
 

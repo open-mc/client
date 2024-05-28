@@ -13,7 +13,11 @@ function rubberPacket(data){
 	world.tps = data.float()
 	_setPerms(data.byte())
 }
+export const skylightUpdates = new Set()
+export let loadingChunks = true
 function dimensionPacket(data){
+	if(!data.left) return void (loadingChunks = false)
+	loadingChunks = true
 	if(world.id != (world.id = data.string())){
 		queue(world.id)
 		gridEventMap.clear()
@@ -27,19 +31,40 @@ function clockPacket(data){
 }
 function chunkPacket(buf){
 	const chunk = new Chunk(buf)
-	const k = (chunk.x&0x3FFFFFF)+(chunk.y&0x3FFFFFF)*0x4000000
+	const {x,y} = chunk
+	const ky = y*0x4000000
+	const k = x+ky
+	const up = x+(y+1&0x3FFFFFF)*0x4000000
+	const u = map.get(up)
+	skylightUpdates.delete(k)
+	if(!u) skylightUpdates.add(up)
+	else u.down = chunk, chunk.up = u
 	const {ref} = map.get(k) || chunk
 	chunk.ref = ref + 1
 	map.set(k, chunk)
+	const d = map.get(x+(y-1&0x3FFFFFF)*0x4000000)
+	if(d) d.up = chunk, chunk.down = d
+	const l = map.get((x-1&0x3FFFFFF)+ky)
+	if(l) l.right = chunk, chunk.left = l
+	const r = map.get((x+1&0x3FFFFFF)+ky)
+	if(r) r.left = chunk, chunk.right = r
 }
 function chunkDeletePacket(data){
 	while(data.left){
 		const cx = data.int() & 0x3FFFFFF, cy = data.int() & 0x3FFFFFF
-		const k = cx+cy*0x4000000
-		const chunk = map.get(k)
+		const ky = cy*0x4000000
+		const chunk = map.get(ky+cx)
 		if(!--chunk.ref){
 			chunk.hide()
-			map.delete(k)
+			map.delete(ky+cx)
+			const u = map.get(cx+(cy+1&0x3FFFFFF)*0x4000000)
+			if(u) u.down = null
+			const d = map.get(cx+(cy-1&0x3FFFFFF)*0x4000000)
+			if(d) d.up = null
+			const l = map.get((cx-1&0x3FFFFFF)+ky)
+			if(l) l.right = null
+			const r = map.get((cx+1&0x3FFFFFF)+ky)
+			if(r) r.left = null
 			for(const v of gridEventMap.values()){
 				if(v.x>>>6 == cx && v.y>>>6 == cy) gridEventMap.delete(v.i)
 			}

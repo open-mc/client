@@ -3,9 +3,9 @@ import { renderF3, drawText, calcText, drawLayer } from 'api'
 import { toTex } from 'definitions'
 const src = loader(import.meta)
 
-export const audioSet = (path, count) => Array.from({length: count}, (_, i) => Audio(src`sound/${path+(i+1)}.mp3`))
+export const audioSet = (path, count) => Array.from({length: count}, (_, i) => Wave(src`sound/${path+(i+1)}.mp3`))
 
-export const click = Audio(src`../img/click.mp3`)
+export const click = Wave(src`../img/click.mp3`)
 
 export const icons = Img(src`icons.png`)
 const btns = Img(src`../img/button.png`)
@@ -19,37 +19,37 @@ export const uiButtons = {
 }
 
 music('overworld',
-	Audio(src`sound/calm1.mp3`),
-	Audio(src`sound/calm2.mp3`),
-	Audio(src`sound/calm3.mp3`),
-	Audio(src`sound/hal1.mp3`),
-	Audio(src`sound/hal2.mp3`),
-	Audio(src`sound/hal3.mp3`),
-	Audio(src`sound/hal4.mp3`),
-	Audio(src`sound/nuance1.mp3`),
-	Audio(src`sound/nuance2.mp3`),
-	Audio(src`sound/piano1.mp3`),
-	Audio(src`sound/piano2.mp3`),
-	Audio(src`sound/piano3.mp3`)
+	Wave(src`sound/calm1.mp3`),
+	Wave(src`sound/calm2.mp3`),
+	Wave(src`sound/calm3.mp3`),
+	Wave(src`sound/hal1.mp3`),
+	Wave(src`sound/hal2.mp3`),
+	Wave(src`sound/hal3.mp3`),
+	Wave(src`sound/hal4.mp3`),
+	Wave(src`sound/nuance1.mp3`),
+	Wave(src`sound/nuance2.mp3`),
+	Wave(src`sound/piano1.mp3`),
+	Wave(src`sound/piano2.mp3`),
+	Wave(src`sound/piano3.mp3`)
 )
 music('nether',
-	Audio(src`sound/nether1.mp3`),
-	Audio(src`sound/nether2.mp3`),
-	Audio(src`sound/nether3.mp3`),
-	Audio(src`sound/nether4.mp3`)
+	Wave(src`sound/nether1.mp3`),
+	Wave(src`sound/nether2.mp3`),
+	Wave(src`sound/nether3.mp3`),
+	Wave(src`sound/nether4.mp3`)
 )
 
-music('end', Audio(src`sound/end.mp3`))
+music('end', Wave(src`sound/end.mp3`))
 
-music('void', Audio(src`sound/deep1.mp3`))
+music('void', Wave(src`sound/deep1.mp3`))
 
 export const lava = {
-	ambient: Audio(src`sound/lava/ambient.mp3`),
-	pop: Audio(src`sound/lava/pop.mp3`)
+	ambient: Wave(src`sound/lava/ambient.mp3`),
+	pop: Wave(src`sound/lava/pop.mp3`)
 }
 
 export const water = {
-	ambient: [Audio(src`sound/water/ambient1.mp3`), Audio(src`sound/water/ambient2.mp3`)],
+	ambient: [Wave(src`sound/water/ambient1.mp3`), Wave(src`sound/water/ambient2.mp3`)],
 }
 
 export function renderItem(c, item, tint = vec4.one, respectModel = 0){
@@ -148,7 +148,7 @@ drawLayer('ui', 999, (ctx, w, h) => {
 		}
 		i++
 		ctx.drawRect(x+8, 0, 72, 8, tabMenuEntryBg)
-		ctx.drawRect(x, 0, 8, 8, skin)
+		ctx.drawRect(x, 8, 8, -8, skin)
 		drawText(ctx, name, x+9, 1, 6)
 		ctx.drawRect(x+70, 0, 10, 7, pingIcons[ping < 25 ? 0 : ping < 60 ? 1 : ping < 300 ? 2 : ping < 1000 ? 3 : 4])
 	}

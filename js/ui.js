@@ -28,12 +28,12 @@ NONE.esc = hideUI
 document.body.append(NONE)
 
 export let ptrSuccess = Function.prototype, ptrFail = Function.prototype
-const ptrLockOpts = {unadjustedMovement: true}
+const ptrLockOpts = navigator.platform.startsWith('Linux') ? {} : {unadjustedMovement: true}
 export const ptrlock = () => new Promise((r, c) => {
-	const fs = options.fsc ? document.documentElement.requestFullscreen({navigationUI: 'hide'}) : undefined
+	ptrSuccess = r; ptrFail = c
+	const fs = options.fsc ? document.documentElement.requestFullscreen() : undefined
 	if(fs instanceof Promise) fs.catch(e=>null).then(() => document.body.requestPointerLock?.(ptrLockOpts)?.catch(e=>null))
 	else document.body.requestPointerLock?.(ptrLockOpts)?.catch(e=>null)
-	ptrSuccess = r; ptrFail = c
 })
 
 export let ui = null
@@ -42,9 +42,9 @@ export async function hideUI(){
 	try{
 		await ptrlock()
 		ui.replaceWith(NONE)
-		void (ui.finish||Function.prototype)()
-		ui = null
-	}catch(e){ defaultUI() }
+		void (ui.finish||Function.prototype)()	
+		ui = null	
+	}catch(e){ defaultUI() }	
 }
 
 export function showUI(a = null){

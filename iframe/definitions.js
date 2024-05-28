@@ -74,13 +74,14 @@ export class EphemeralInterface{
 
 export class Block{
 	static placeSounds = []; static stepSounds = []
+	static breakSounds = null
 	static solid = true
 	static replacable = false
 	static texture = -1
 	static climbable = false
 	static viscosity = 0
 	static breaktime = 3
-	static translucency = 3
+	static opacity = 2
 	punch(x, y){
 		if(this.stepSounds.length)
 			sound(this.stepSounds, x, y, 0.1375, 0.5)

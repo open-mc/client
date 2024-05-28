@@ -6,6 +6,8 @@ import * as pointer from './pointer.js'
 import { onKey, drawLayer, options, paused, _renderPhases, renderBoxes, renderF3, send, download, copy, pause, _updatePaused, drawText, calcText, textShadeCol, _networkUsage, networkUsage, listen, _tickPhases } from 'api'
 import { particles, blockAtlas, _recalcDimensions, prep } from 'definitions'
 import { VERSION } from '../server/version.js'
+import { loadingChunks, skylightUpdates } from './incomingPacket.js'
+import { lI, performLightUpdates, propagateSkylight } from './lighting.js'
 
 let last = performance.now(), timeToFrame = 0
 export function step(){
@@ -48,8 +50,8 @@ function tick(){
 }
 export let zoom_correction = 0
 let camMovingX = false, camMovingY = false
-const CAMERA_DYNAMIC = 0, CAMERA_FOLLOW_SMOOTH = 1, CAMERA_FOLLOW_POINTER = 2,
-	CAMERA_FOLLOW_PLAYER = 3, CAMERA_PAGE = 4
+const { CAMERA_DYNAMIC, CAMERA_FOLLOW_SMOOTH, CAMERA_FOLLOW_POINTER,
+	CAMERA_FOLLOW_PLAYER, CAMERA_PAGE } = pointer
 let flashbang = 0
 let frames = 0
 globalThis.fps = 0
@@ -59,11 +61,18 @@ export function frame(){
 	_networkUsage()
 	const p = 0.5**(dt*2)
 	fps = round((frames = frames*p+1) * (1-p)/dt)
+	if(loadingChunks){
+		const s = options.guiScale * pixelRatio * 2, w = ctx.width/s, h = ctx.height/s
+		ctx.reset(s/ctx.width, 0, 0, s/ctx.height, (w>>1)/w, (h>>2)/h)
+		const arr = calcText('Loading chunks...', _, 271 | 16)
+		drawText(ctx, arr, -arr.width*8, 0, 16)
+		return
+	}
 	pause(false)
 	playerControls()
 	for(const entity of entityMap.values()) stepEntity(entity)
 	const tzoom = (me.state & 4 ? -0.13 : 0) * ((1 << options.ffx * (options.camera != 4)) - 1) + 1
-	cam.z = sqrt(sqrt(cam.z * cam.z * cam.z * max((min(innerWidth,innerHeight)/(ceil(sqrt(map.size))-1)/580), 2 ** (options.zoom * 8 - 4) * tzoom * 2**cam.baseZ)))
+	cam.z = cam.z**.75 * max((max(innerWidth,innerHeight)/(ceil(sqrt(map.size))-1.375)/1024), 2 ** (options.zoom * 8 - 4) * tzoom * 2**cam.baseZ)**.25
 	_recalcDimensions(cam.z)
 	const reach = pointer.effectiveReach()
 	if(options.camera == CAMERA_DYNAMIC){
@@ -135,7 +144,12 @@ globalThis.cam = cam
 const chunkShader = Shader(`void main(){
 	ivec2 pos = ivec2(pos*1024.);
 	uvec2 a = uGetPixel(arg0, ivec3(pos>>4u,0), 0).xy;
-	if(a.y>=65535u) discard;
+	uint light = uGetPixel(arg1, ivec3(pos>>4u,0), 0).x;
+	if(a.y>=65535u){
+		if(light>=240u) discard;
+		color = vec4(0,0,0,.9-float(light>>4u)*.06);
+		return;
+	}
 	if(a.y>255u){
 		a.x += uint(uni1.x)%((a.y>>8u)+1u);
 		a.y &= 255u;
@@ -143,9 +157,11 @@ const chunkShader = Shader(`void main(){
 	}
 	ivec3 p = ivec3(int(a.x&255u)<<4|pos.x&15, int(a.x>>8u)<<4|pos.y&15,a.y);
 	p.xy >>= uni1.y;
-	uint light = uGetPixel(arg1, ivec3(pos>>4u,0), 0).x;
 	color = getPixel(uni0, p, uni1.y) * getPixel(uni2, ivec3(light, 0, 0), 0);
-}`, [UTEXTURE, UTEXTURE], [TEXTURE, IVEC2, TEXTURE], FIXED)
+	if(color.a < 1.){
+		color += vec4(0,0,0,.9-float(light>>4u)*.06)*(1.-color.a);
+	}
+}`, [UTEXTURE, UTEXTURE], [TEXTURE, IVEC3, TEXTURE], FIXED)
 const chunkLineCol = vec4(0, .4, 1, 1)
 const axisLineCol = vec4(0, 0, 1, 1)
 let visibleChunks = 0
@@ -154,6 +170,15 @@ const day = vec3(.93), night = vec3(.11,.11,.22)
 const block = vec3(1.51, 1.32, 1), netherBase = vec3(.565,.485,.353), endBase = vec3(.185,.243,.21)
 listen('gamma', () => setGamma(.8+options.gamma/10))
 drawLayer('none', 200, (ctx, w, h) => {
+	for(const k of skylightUpdates){
+		skylightUpdates.delete(k)
+		const x = k&0x3FFFFFF, ky = k-x, y = ky/67108864|0
+		let x0 = x, x1 = x
+		while(skylightUpdates.delete((x0=x0-1&0x3FFFFFF)+ky));
+		while(skylightUpdates.delete((x1=x1+1&0x3FFFFFF)+ky));
+		propagateSkylight(y, (x0=x0+1&0x3FFFFFF), x1)
+	}
+	if(lI.length) performLightUpdates()
 	const a = cam.z / 12
 	const chunkSublineCol = vec4(0, .53*a, a, a)
 	const hitboxes = renderBoxes + buttons.has(KEYS.SYMBOL)
@@ -169,7 +194,7 @@ drawLayer('none', 200, (ctx, w, h) => {
 	}else if(world.id == 'end'){
 		genLightmap(-2, block, vec3.zero, 0, day, vec3.zero, 0, endBase)
 	}else genLightmap(1, block, vec3.zero, 0, day, vec3.zero, 0)
-	chunkShader.uniforms(blockAtlas, vec2(world.animTick, mipmap), lightTex)
+	chunkShader.uniforms(blockAtlas, vec3(world.animTick, mipmap, 1), lightTex)
 	const sr = sin(cam.f), cr = cos(cam.f)
 	const limX = (abs(ctx.width*cr)+abs(ctx.height*sr)+(cam.nausea*.333*ctx.height))/2, limY = (abs(ctx.width*sr)+abs(ctx.height*cr)+(cam.nausea*.333*ctx.width))/2
 	const S = 64*SCALE-.0001
@@ -181,6 +206,7 @@ drawLayer('none', 200, (ctx, w, h) => {
 		if(x0+S <= -limX || y0+S <= -limY || x0 >= limX || y0 >= limY){ if(chunk.ctx) chunk.hide(); continue }
 		visibleChunks++
 		if(!chunk.ctx) chunk.draw()
+		if(chunk.changed&1) chunk.changed&=-2, chunk.ctx2.pasteData(chunk.light)
 		ctx.drawRect(x0, y0, S, S, chunk.ctx, chunk.ctx2)
 	}
 	ctx.shader = null
@@ -263,7 +289,7 @@ function renderEntity(ctx, entity, a=1){
 		ctx.drawRect(-entity.width, entity.height, entity.width*2, -.04, entityHitboxCol)
 	}
 }
-drawLayer('world', 100, (ctx, w, h) => {
+drawLayer('world', 350, (ctx, w, h) => {
 	for(const e of entityMap.values()) renderEntity(ctx.sub(), e)
 	if(!me.linked && !(me.health<=0))
 		renderEntity(ctx.sub(), me, .2)
@@ -293,6 +319,7 @@ Draw: \\+a[GPU mem bandwidth]\\+f/\\+a[Sprite count]\\+f/\\+a[GL draw calls]\\+f
 Ch: \\+a[Visible chunks]\\+f/\\+a[Cached chunks]\\+f, E: \\+a[Entities]\\+f, P: \\+a[Particles]\\+f
 XY: \\+3[Player feet position]\\+f
 ChXY: \\+3[Position w/in chunk]\\+f in \\+3[Chunk coords]\\+f
+ChXY: \\+a[chTileIndex]\\+f in \\+a[chKey]\\+f
 Facing: \\+c[\\4+L\\0+eft/\\4+R\\0+ight]\\+f \\+d[head direction in deg]\\+f (\\+d[in rad]\\+f`
 const f3RightInfo = `Tick \\+d[dimension age]\\+f, Day \\+d[current day in MC days]\\+f, Time \\+d[time within MC day]\\+f
 Dimension: \\+e[current dimension ID]\\+f
@@ -312,6 +339,8 @@ function f3Text(detail){
 	const lookingAt = getblock(floor(pointer.x + me.x), floor(pointer.y + me.y + me.head))
 	const holding = me.inv[me.selected]
 	const pointX = floor(pointer.x + me.x)|0, pointY = floor(pointer.y + me.y + me.head)|0, light = getLightValue(pointX, pointY)
+	const mei = floor(me.x)&63|(floor(me.y)&63)<<6
+	const mek = (floor(me.x)>>>6)+(floor(me.y)>>>6)*0x4000000
 	if(detail < 2) return `\\27${VERSION}\\0f; \\+${(fps<20?'9':fps<50?'3':fps<235?'a':'d')+fps}\\+f fps; \\4+x: ${trueX}, y: ${trueY}\\0+; \\+6Day ${day} ${time}\\+f; ${(lookingAt.id?'':'\\+8')+lookingAt.className}\\+f`
 	return [`Paper MC ${VERSION} (Ctrl for f3 help)
 FPS: \\+${(fps<20?'9':fps<50?'3':fps<235?'a':'d')+fps}\\+f (${(timeToFrame*1000).toFixed(2).padStart(5,'\u2007')}ms)
@@ -319,7 +348,8 @@ Net: ${Number.formatData(networkUsage)}/s${performance.memory ? ', Mem: '+Number
 Draw: ${Number.formatData(frameData)}/${frameSprites}/${frameDrawCalls}
 Ch: ${visibleChunks}/${map.size}, E: ${entityMap.size}, P: ${particles.size}
 XY: \\4+${trueX} / ${trueY}\\0+
-ChXY: ${(floor(me.x) & 63).toString().padStart(2,'\u2007')} ${(floor(me.y) & 63).toString().padStart(2,'\u2007')} in ${toString(bigintOffset.x>>6n,floor(me.x) >> 6, 0)} ${toString(bigintOffset.y>>6n,floor(me.y) >> 6, 0)}
+ChXY: ${(mei&63).toString().padStart(2,'\u2007')} ${(mei>>6).toString().padStart(2,'\u2007')} in ${toString(bigintOffset.x>>6n,floor(me.x) >> 6, 0)} ${toString(bigintOffset.y>>6n,floor(me.y) >> 6, 0)}
+ChKey: ${mei} in ${mek}
 Facing: ${(me.f >= 0 ? 'R' : 'L') + (90 - abs(me.f / PI2 * 360)).toFixed(1).padStart(5, '\u2007')} (${me.f.toFixed(3)})`,`Tick ${world.tick}, Day ${day}, Time ${time}
 Dimension: ${world.id}
 Biome: ${me.chunk ? round(me.chunk.biomes[mex] * (1 - mexi) + me.chunk.biomes[mex+2] * mexi) : 0}/${me.chunk ? round(me.chunk.biomes[mex+1] * (1 - mexi) + me.chunk.biomes[mex+3] * mexi) : 0}

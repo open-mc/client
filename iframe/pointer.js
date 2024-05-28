@@ -3,6 +3,8 @@ import './controls.js'
 import { onKey, onmousemove, options, paused, renderUI, drawLayer } from 'api'
 import { Entity, TEX_SIZE } from 'definitions'
 
+export const CAMERA_DYNAMIC = 0, CAMERA_FOLLOW_SMOOTH = 1, CAMERA_FOLLOW_POINTER = 2,
+	CAMERA_FOLLOW_PLAYER = 3, CAMERA_PAGE = 4
 export let x = 2, y = 0
 export let bx = 0, by = 0, bpx = 0, bpy = 0, bpfx = 0, bpfy = 0
 export const REACH = 10
@@ -29,7 +31,7 @@ drawLayer('none', -1000, () => {
 		}
 		x += (jrx * reach - x) / 3; y += (jry * reach - y) / 3
 	}
-	if(options.camera == 0){
+	if(options.camera == CAMERA_DYNAMIC){
 		if(cam.staticX != cam.staticX) cam.x += (x - oldx) / 3
 		if(cam.staticY != cam.staticY) cam.y += (y - oldy) / 3
 	}

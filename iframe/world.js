@@ -49,12 +49,9 @@ export function toBlockExact(c, bx, by){
 	c.box(xa0, ya0, round(x0+SCALE)-xa0, round(y0+SCALE)-ya0)
 }
 
-function variant(ch, i, x, y, b){
+function variant(ch, i, x, y){
 	if(!ch) return
-	if(!b){
-		const id = ch[i]
-		b = id==65535?ch.tileData.get(i):BlockIDs[id]
-	}
+	const id = ch[i], b = id==65535?ch.tileData.get(i):BlockIDs[id]
 	if(b.variant){
 		const old = b
 		if(!(b = b.variant(x, y))) return
@@ -62,9 +59,8 @@ function variant(ch, i, x, y, b){
 			ch[i] = 65535
 			ch.tileData.set(i, b=b===b.constructor?new b:b)
 		}else{ ch[i] = b.id; if(old.savedata) ch.tileData.delete(i) }
-		ch.updateDrawn(b, i)
+		ch.updateDrawn(i, b)
 	}
-	return b
 }
 
 export function setblock(x, y, b){
@@ -78,8 +74,15 @@ export function setblock(x, y, b){
 		ch[i] = 65535
 		ch.tileData.set(i, b)
 	}else{ ch[i] = b.id; if(old.savedata) ch.tileData.delete(i) }
-	ch.updateDrawn(b, i)
-	variant(ch, i, x, y, b)
+	if(b.variant){
+		const old = b
+		if(!(b = b.variant(x, y))) b = old
+		else if(b.savedata){
+			ch[i] = 65535
+			ch.tileData.set(i, b)
+		}else{ ch[i] = b.id; if(old.savedata) ch.tileData.delete(i) }
+	}
+	ch.updateDrawn(i, b, old)
 	if((i&63) == 63) variant(map.get((x+1>>>6)+(y>>>6)*0x4000000), i&0b111111000000, x+1, y)
 	else variant(ch, i+1, x+1, y)
 	if((i&63) == 0) variant(map.get((x-1>>>6)+(y>>>6)*0x4000000), i|0b000000111111, x-1, y)
