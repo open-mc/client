@@ -1,5 +1,5 @@
 import { BlockIDs, EntityIDs, Classes } from 'definitions'
-import { addLightUpdate, addDarkUpdate } from './lighting.js'
+import { _add, _addDark } from './lighting.js'
 
 const texturePool = []
 const chunkUVData = new Uint16Array(8192)
@@ -110,6 +110,7 @@ export class Chunk extends Uint16Array{
 		}
 		this.ctx.pasteData(chunkUVData)
 		this.ctx2.pasteData(this.light)
+		this.changed = 0
 	}
 	updateDrawn(i, {texture, render, opacity: o2}, {opacity: o1}){
 		if(!this.ctx) return
@@ -123,8 +124,8 @@ export class Chunk extends Uint16Array{
 		if((j == -1) & (render != undefined)) this.rerenders.push(i)
 		else if((j > -1) & (render == undefined)) this.rerenders.splice(j, 1)
 		this.writeCtx.drawRect(i&63,i>>6,1,1,texture)
-		if(o2>o1) addDarkUpdate(this, i)
-		else if(o2<o1) addLightUpdate(this, i)
+		if(o2>o1) _add(this, i)
+		else if(o2<o1) _addDark(this, i)
 	}
 	changed = 0
 }

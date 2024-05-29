@@ -34,12 +34,12 @@ export const playerControls = () => {
 	}
 	R=r;L=l;U=u;D=d
 	if(!me.linked && !(me.health<=0)){
-		const SPEED = 6*dt
+		const SPEED = 8*dt
 		if(R) me.x += SPEED
 		if(L) me.x -= SPEED
 		if(U) me.y += SPEED
 		if(D) me.y -= SPEED
-		me.dx *= 1e-20**dt; me.dy *= 1e-20**dt
+		me.dx *= .00001**dt; me.dy *= .00001**dt
 	}
 	if((me.state & 2) || !(L || R)) me.state &= -5
 	if(buttons.has(KEYS.SHIFT)) gamepadToggleCrouch = false
