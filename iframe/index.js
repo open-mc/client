@@ -172,14 +172,14 @@ const block = vec3(1.51, 1.32, 1), netherBase = vec3(.565,.485,.353), endBase = 
 listen('gamma', () => setGamma(.8+options.gamma/10))
 drawLayer('none', 200, (ctx, w, h) => {
 	const skyDarks = []
-	for(const k of skylightUpdates){
+	if(world.id!='nether' && world.id!='end') for(const k of skylightUpdates){
 		skylightUpdates.delete(k)
 		const x = k&0x3FFFFFF, ky = k-x, y = ky/67108864|0
 		let x0 = x, x1 = x
 		while(skylightUpdates.delete((x0=x0-1&0x3FFFFFF)+ky));
 		while(skylightUpdates.delete((x1=x1+1&0x3FFFFFF)+ky));
 		skyDarks.push(propagateSkylight(y, (x0=x0+1&0x3FFFFFF), x1))
-	}
+	}else skylightUpdates.clear()
 	performLightUpdates()
 	if(skyDarks.length){
 		for(const d of skyDarks) d()

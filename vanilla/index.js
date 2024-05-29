@@ -85,12 +85,12 @@ drawLayer('none', -100, c => {
 		c.draw(endSky.sub(0, 0, w/64, h/64), vec4(.25, .25, .25, 1))
 	}
 })
-drawLayer('none', 500, (c, w, h) => {
+/*drawLayer('none', 500, (c, w, h) => {
 	if(world.id == 'nether'){
 		c.draw(vec4(.05, 0, 0, .2))
 		return
 	}
-})
+})*/
 
 const cloudLayers = [
 	{y: 64, h: 4, s: 1, a: 1},

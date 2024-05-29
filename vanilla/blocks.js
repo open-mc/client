@@ -348,6 +348,7 @@ Blocks.portal = class extends Block{
 	static solid = false
 	static blockShape = [0.375, 0, 0.625, 1]
 	static texture = BlockTexture(animatedPng, 0, 0, 32)
+	static opacity = 0
 	random(x, y){
 		sound(portalAmbient, x, y, 0.5, random() * 0.4 + 0.8)
 	}

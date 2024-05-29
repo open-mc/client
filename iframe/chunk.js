@@ -124,8 +124,8 @@ export class Chunk extends Uint16Array{
 		if((j == -1) & (render != undefined)) this.rerenders.push(i)
 		else if((j > -1) & (render == undefined)) this.rerenders.splice(j, 1)
 		this.writeCtx.drawRect(i&63,i>>6,1,1,texture)
-		if(o2>o1) _add(this, i)
-		else if(o2<o1) _addDark(this, i)
+		if(o2>o1) _addDark(this, i)
+		else if(o2<o1) _add(this, i)
 	}
 	changed = 0
 }
