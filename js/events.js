@@ -27,8 +27,7 @@ document.ontouchstart = e => {
 	if(ui === NONE){
 		win.postMessage([clientX, clientY], '*')
 		keyMsg(0)
-	}
-	else if(ui) return
+	}else if(ui) return
 	win.postMessage([clientX, clientY], '*')
 }
 document.ontouchmove = e => {
@@ -36,11 +35,13 @@ document.ontouchmove = e => {
 	win.postMessage([clientX, clientY], '*')
 }
 document.ontouchend = e => void(win && keyMsg(~0))
+
 document.onmousedown = e => void(win && (!ui || (ui instanceof Comment)) && keyMsg(e.button))
 document.onmouseup = e => void(win && keyMsg(~e.button))
 
-let mtarget = null
+let mtarget = null, lastMovementX = 0, lastMovementY = 0
 document.onmousemove = ({movementX, movementY, clientX, clientY, target}) => {
+	if (Math.abs(movementX - lastMovementX) > 150 ||  Math.abs(movementY - lastMovementY) > 150) return
 	if(mtarget) mtarget.classList.remove('hover')
 	while(target && target.nodeName!='BTN' && target.nodeName!='INPUT' && !target.classList.contains('selectable')) target=target.parentElement
 	;(mtarget=target)?.classList.add('hover')
@@ -58,6 +59,7 @@ document.onmousemove = ({movementX, movementY, clientX, clientY, target}) => {
 	}else if(ui) return
 	const movementScale = globalThis.netscape ? devicePixelRatio : /Opera|OPR\//.test(navigator.userAgent) ? 1/devicePixelRatio : 1
 	win.postMessage([movementX * movementScale, -movementY * movementScale], '*')
+	lastMovementX = movementX, lastMovementY = movementY
 }
 
 document.onwheel = ({deltaY}) => {

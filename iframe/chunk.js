@@ -76,6 +76,7 @@ export class Chunk extends Uint16Array{
 		for(let j=0;j<4096;j++){
 			if(this[j] == 65535) this[j] = buf.short()
 			const block = BlockIDs[this[j]]
+			if(block.brightness) _add(this, j)
 			if(!block.savedata)continue
 			this[j] = 65535
 			this.tileData.set(j, buf.read(block.savedatahistory[buf.flint()] || block.savedata, new block))
@@ -112,13 +113,11 @@ export class Chunk extends Uint16Array{
 		this.ctx2.pasteData(this.light)
 		this.changed = 0
 	}
-	updateDrawn(i, {texture, render, opacity: o2, solid: s2}, {opacity: o1, solid: s1}){
-		if(o2>o1) _addDark(this, i)
-		else if(o2<o1) _add(this, i)
-		if(s2){if(!s1){
+	updateDrawn(i, b, ob){
+		if(b.solid){if(!ob.solid){
 			const y = this.y<<6|i>>6
 			if(this.exposure[i&63]-y<=0) this.exposure[i&63] = y+1|0
-		}}else if(s1){
+		}}else if(ob.solid){
 			let y = (this.y<<6|i>>6)+1|0
 			let i2 = i, ch = this
 			if(this.exposure[i&63]==y){
@@ -130,6 +129,10 @@ export class Chunk extends Uint16Array{
 				this.exposure[i&63] = i2
 			}
 		}
+		const {opacity:o2,brightness:b2} = b
+		const {opacity:o1,brightness:b1} = ob
+		if(o2>o1||b2<b1) _addDark(this, i)
+		if(o2<o1||b2>b1) _add(this, i)
 		if(!this.ctx) return
 		if(!this.writeCtx){
 			const ctx = this.writeCtx = this.ctx.drawable()
@@ -138,9 +141,9 @@ export class Chunk extends Uint16Array{
 			ctx.shader = ctxWriteShader
 		}
 		let j = this.rerenders.indexOf(i)
-		if((j == -1) & (render != undefined)) this.rerenders.push(i)
-		else if((j > -1) & (render == undefined)) this.rerenders.splice(j, 1)
-		this.writeCtx.drawRect(i&63,i>>6,1,1,texture)
+		if((j == -1) & (b.render != undefined)) this.rerenders.push(i)
+		else if((j > -1) & (b.render == undefined)) this.rerenders.splice(j, 1)
+		this.writeCtx.drawRect(i&63,i>>6,1,1,b.texture)
 	}
 	changed = 0
 }

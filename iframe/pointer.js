@@ -97,8 +97,8 @@ export function drawPointer(c){
 		}
 	}
 	if(d >= reach){
-		const {targettable, solid, replacable} = getblock(bpx, bpy)
-		if(targettable && !solid && !replacable){
+		const {targettable, solid, replaceable} = getblock(bpx, bpy)
+		if(targettable && !solid && !replaceable){
 			px -= bpx - bx; py -= bpy - by
 			bx = bpx; by = bpy; bpx = bppx; bpy = bppy
 			if(bpx > bx) px = 1
@@ -112,7 +112,7 @@ export function drawPointer(c){
 			bx = by = NaN
 		}
 	}else px -= bpx - bx, py -= bpy - by, bpfx = px, bpfy = py
-	if(!getblock(bpx, bpy).replacable) bpx = bpy = bpfx = bpfy = NaN
+	if(!getblock(bpx, bpy).replaceable) bpx = bpy = bpfx = bpfy = NaN
 	blockPlacing = perms >= 2 && (!getblock(bx, by).interactible || (me.state&2)) ? item?.places?.(bpfx, bpfy, bpx, bpy, bx, by) : undefined
 	const up = getblock(bpx, bpy + 1), down = getblock(bpx, bpy - 1), left = getblock(bpx - 1, bpy), right = getblock(bpx + 1, bpy)
 	if(interactFluid ?

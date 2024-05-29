@@ -59,7 +59,7 @@ function variant(ch, i, x, y){
 			ch[i] = 65535
 			ch.tileData.set(i, b2=b2===b2.constructor?new b2:b2)
 		}else{ ch[i] = b2.id; if(b.savedata) ch.tileData.delete(i) }
-		ch.updateDrawn(i, b2)
+		ch.updateDrawn(i, b2, b)
 	}
 }
 

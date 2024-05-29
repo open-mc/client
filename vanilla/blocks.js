@@ -11,7 +11,7 @@ export const animatedPng = Img(src`animated.png`)
 
 Blocks.air = class extends Block{
 	static solid = false
-	static replacable = true
+	static replaceable = true
 	static opacity = 0
 }
 Blocks.grass = class extends Block{
@@ -42,6 +42,8 @@ Blocks.obsidian = class extends Stone{
 Blocks.glowing_obsidian = class extends Blocks.obsidian{
 	static breaktime = 500
 	static texture = BlockTexture(terrainPng, 5, 4)
+	static opacity = 8
+	static brightness = 15
 }
 Blocks.dirt = class extends Block{
 	static dirt = true
@@ -143,7 +145,7 @@ const bucketSounds = {
 class Water extends Block{
 	static opacity = 1
 	static solid = false
-	static replacable = true
+	static replaceable = true
 	static climbable = true
 	static viscosity = 0.15
 	random(x, y){
@@ -167,10 +169,12 @@ void({
 } = fluidify(Water, 'water', BlockTexture(animatedPng, 2, 0, 32), BlockTexture(animatedPng, 5, 0, 64)))
 
 class Lava extends Block{
+	static opacity = 0
 	static solid = false
-	static replacable = true
+	static replaceable = true
 	static climbable = true
 	static viscosity = 0.5
+	static brightness = 15
 	random(x, y){
 		const r = random()
 		if(r < .015)
@@ -201,6 +205,7 @@ Blocks.cut_red_sandstone = class extends Blocks.sandstone{}
 Blocks.chiseled_red_sandstone = class extends Blocks.sandstone{}
 Blocks.smooth_red_sandstone = class extends Blocks.sandstone{}
 Blocks.snow_block = class extends Block{
+	static opacity = 1
 	static texture = BlockTexture(terrainPng, 2, 4)
 	static breaktime = 0.75
 }
@@ -288,6 +293,7 @@ Blocks.chest = class extends Block{
 }
 
 class Wool extends Block{
+	static opacity = 1
 	static tool = 'shears'
 	static breaktime = 1.2
 	static stepSounds = audioSet('wool/place', 4)
@@ -313,10 +319,15 @@ Blocks.brown_wool = class extends Wool{ static texture = BlockTexture(terrainPng
 
 Blocks.dragon_egg = class extends Block{
 	static texture = BlockTexture(terrainPng, 15, 0)
+	static brightness = 1
 }
 
-Blocks.ice = class Ice extends Block{}
-Blocks.packed_ice = class extends Blocks.ice{}
+Blocks.ice = class Ice extends Block{
+	static opacity = 1
+}
+Blocks.packed_ice = class extends Blocks.ice{
+	static opacity = 2
+}
 
 
 class MineralBlock extends Block{}
@@ -332,9 +343,11 @@ const fireExtinguish = Wave(src`sound/fire/extinguish.mp3`)
 
 Blocks.fire = class extends Block{
 	static solid = false
-	static replacable = true
+	static replaceable = true
 	static texture = BlockTexture(animatedPng, 1, 0, 32)
 	static placeSounds = [Wave(src`sound/fire/ignite.mp3`)]
+	static opacity = 0
+	static brightness = 14
 	random(x, y){
 		sound(fireAmbient, x, y, random() + 1, random() * 0.7 + 0.3)
 	}
@@ -349,6 +362,7 @@ Blocks.portal = class extends Block{
 	static blockShape = [0.375, 0, 0.625, 1]
 	static texture = BlockTexture(animatedPng, 0, 0, 32)
 	static opacity = 0
+	static brightness = 11
 	random(x, y){
 		sound(portalAmbient, x, y, 0.5, random() * 0.4 + 0.8)
 	}
@@ -391,6 +405,8 @@ Blocks.end_portal = class extends Block{
 	static blockShape = [0, 0, 1, 0.75]
 	static softness = 1
 	static texture = BlockTexture(terrainPng, 14, 0)
+	static opacity = 0
+	static brightness = 11
 	render(c, tint){
 		if(endShaderT != (endShaderT=t))
 			endShader.uniforms(endPortalOverlay, t, vec2(c.width, c.height))
@@ -413,13 +429,14 @@ Blocks.filled_end_portal_frame = class extends Blocks.end_portal_frame{
 
 Blocks.sugar_cane = class extends Block{
 	static breaktime = 0
+	static opacity = 0
 	static solid = false
 	static targettable = true
 	static placeSounds = Blocks.grass.placeSounds
 	static texture = BlockTexture(terrainPng, 9, 4)
 }
 Blocks.pumpkin_leaf = class extends Block{
-	
+	static opacity = 0
 }
 Blocks.pumpkin_leaf1 = class extends Blocks.pumpkin_leaf{ }
 Blocks.pumpkin_leaf2 = class extends Blocks.pumpkin_leaf{ }
@@ -427,6 +444,7 @@ Blocks.pumpkin_leaf3 = class extends Blocks.pumpkin_leaf{ }
 
 class Sapling extends Block{
 	static solid = false
+	static opacity = 0
 	static targettable = true
 	static placeSounds = Blocks.grass.placeSounds
 }
@@ -571,6 +589,7 @@ Blocks.command_block = class extends Stone{
 	type = 0
 	commands = []
 	static texture = -1
+	static opacity = 0
 	render(c, tint){
 		const a = floor(t*2)&3
 		const tex = commandBlockTexs[this.type]

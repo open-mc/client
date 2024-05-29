@@ -615,6 +615,8 @@ Object.assign(T, {
 })
 globalThis.PI ??= Math.PI; globalThis.PI2 ??= globalThis.PI*2
 function setv(t,m){
+	const s = t.stencil
+	let d = pmask^m
 	if(ca!=t){
 		i&&draw()
 		if(!t.img) gl.bindFramebuffer(36160,null),gl.viewport(0,0,gl.canvas.width,gl.canvas.height)
@@ -626,23 +628,20 @@ function setv(t,m){
 			if(t2.i>=0){
 				gl.activeTexture(33984 + t2.i); gl.bindTexture(35866, bound[t2.i] = null); t2.i = -1
 			}
+			if(ca.stencil!=s&&!(d&240)) d^=240
 		}
 		ca=t
 	}
-	const s = t.stencil
-	const d = pmask^m
 	if(d){
 		i&&draw()
 		if(d&15) gl.colorMask(m&1,m&2,m&4,m&8)
 		if(d&240){
 			if(m&240){
 				if(!(pmask&240)) gl.enable(2960) // STENCIL_TEST
-				if(d&240){
-					gl.stencilMask(1<<s)
-					gl.stencilFunc(m&32?m&16?gl.NEVER:gl.NOTEQUAL:m&16?gl.EQUAL:gl.ALWAYS,255,1<<s)
-					const op = m&128?m&64?gl.INVERT:gl.REPLACE:m&64?gl.ZERO:gl.KEEP
-					gl.stencilOp(op, op, op)
-				}
+				gl.stencilMask(1<<s)
+				gl.stencilFunc(m&32?m&16?gl.NEVER:gl.NOTEQUAL:m&16?gl.EQUAL:gl.ALWAYS,255,1<<s)
+				const op = m&128?m&64?gl.INVERT:gl.REPLACE:m&64?gl.ZERO:gl.KEEP
+				gl.stencilOp(op, op, op)
 			}else if(pmask&240) gl.disable(2960) // STENCIL_TEST
 		}
 		if(d&1996488704) gl.blendEquationSeparate((m>>24&7)+32773,(m>>28&7)+32773)

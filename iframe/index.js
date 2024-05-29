@@ -7,7 +7,7 @@ import { onKey, drawLayer, options, paused, _renderPhases, renderBoxes, renderF3
 import { particles, blockAtlas, _recalcDimensions, prep } from 'definitions'
 import { VERSION } from '../server/version.js'
 import { loadingChunks, skylightUpdates } from './incomingPacket.js'
-import { performLightUpdates, propagateSkylight } from './lighting.js'
+import { performLightUpdates, propagateSkydark, propagateSkylight } from './lighting.js'
 
 let last = performance.now(), timeToFrame = 0
 export function step(){
@@ -168,24 +168,21 @@ const axisLineCol = vec4(0, 0, 1, 1)
 let visibleChunks = 0
 
 const day = vec3(.93), night = vec3(.11,.11,.22)
-const block = vec3(1.51, 1.32, 1), netherBase = vec3(.565,.485,.353), endBase = vec3(.185,.243,.21)
+const block = vec3(2, 1.8, 1.5), netherBase = vec3(.565,.485,.353), endBase = vec3(.185,.243,.21)
 listen('gamma', () => setGamma(.8+options.gamma/10))
 drawLayer('none', 200, (ctx, w, h) => {
-	const skyDarks = []
-	if(world.id!='nether' && world.id!='end') for(const k of skylightUpdates){
-		skylightUpdates.delete(k)
-		const x = k&0x3FFFFFF, ky = k-x, y = ky/67108864|0
-		let x0 = x, x1 = x
-		while(skylightUpdates.delete((x0=x0-1&0x3FFFFFF)+ky));
-		while(skylightUpdates.delete((x1=x1+1&0x3FFFFFF)+ky));
-		skyDarks.push(propagateSkylight(y, (x0=x0+1&0x3FFFFFF), x1))
-	}else skylightUpdates.clear()
+	if(world.id!='nether' && world.id!='end'&&skylightUpdates.size){
+		for(const k of skylightUpdates){
+			skylightUpdates.delete(k)
+			const x = k&0x3FFFFFF, ky = k-x, y = ky/67108864|0
+			let x0 = x, x1 = x
+			while(skylightUpdates.delete((x0=x0-1&0x3FFFFFF)+ky));
+			while(skylightUpdates.delete((x1=x1+1&0x3FFFFFF)+ky));
+			propagateSkylight(y, (x0=x0+1&0x3FFFFFF), x1)
+		}
+		propagateSkydark()
+	}else skylightUpdates.size&&skylightUpdates.clear()
 	performLightUpdates()
-	if(skyDarks.length){
-		for(const d of skyDarks) d()
-		performLightUpdates()
-		skyDarks.length = 0
-	}
 	const a = cam.z / 12
 	const chunkSublineCol = vec4(0, .53*a, a, a)
 	const hitboxes = renderBoxes + buttons.has(KEYS.SYMBOL)
