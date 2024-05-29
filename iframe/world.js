@@ -54,7 +54,7 @@ function variant(ch, i, x, y){
 	const id = ch[i], b = id==65535?ch.tileData.get(i):BlockIDs[id]
 	if(b.variant){
 		const b2 = b.variant(x, y)
-		if(b2 == b) return
+		if(!b2 || b2 == b) return
 		if(b2.savedata){
 			ch[i] = 65535
 			ch.tileData.set(i, b2=b2===b2.constructor?new b2:b2)
@@ -161,15 +161,14 @@ export function getTint(x, y, a = 1){
 
 export let lightTint = vec4(0)
 export const lightTex = Texture(256, 1, 1, _, Formats.RGBA), lightArr = new Uint8Array(1024)
-export function genLightmap(id, b1, b2, bx, s1, s2, sx, base = vec3.zero){
+export function genLightmap(id, b1, s1, s2, sx, base = vec3.zero){
 	if(lastLm==(lastLm=id)) return
-	const br = b1.x*(1-bx)+b2.x*bx, bg = b1.y*(1-bx)+b2.y*bx, bb = b1.z*(1-bx)+b2.z*bx
 	const sr = s1.x*(1-sx)+s2.x*sx, sg = s1.y*(1-sx)+s2.y*sx, sb = s1.z*(1-sx)+s2.z*sx
 	for(let i = 0, j = 0; i < 256; i++, j+=4){
 		const a = powTable[i&15], b = powTable[i>>4]
-		lightArr[j] = round(max(0, min(1, br*a + sr*b + base.x))*255)
-		lightArr[j+1] = round(max(0, min(1, bg*a + sg*b + base.y))*255)
-		lightArr[j+2] = round(max(0, min(1, bb*a + sb*b + base.z))*255)
+		lightArr[j] = round(max(0, min(1, b1.x*a + sr*b + base.x))*255)
+		lightArr[j+1] = round(max(0, min(1, b1.y*a + sg*b + base.y))*255)
+		lightArr[j+2] = round(max(0, min(1, b1.z*a + sb*b + base.z))*255)
 		lightArr[j+3] = 255
 	}
 	lightTex.pasteData(lightArr)

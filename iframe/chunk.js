@@ -88,7 +88,7 @@ export class Chunk extends Uint16Array{
 		if(!this.ctx) return
 		texturePool.push(this.ctx, this.ctx2)
 		this.ctx = this.ctx2 = this.writeCtx = null
-		this.rerenders.length = this.changed = 0
+		this.rerenders.length = 0
 	}
 	draw(){
 		if(this.ctx) return
@@ -113,6 +113,8 @@ export class Chunk extends Uint16Array{
 		this.changed = 0
 	}
 	updateDrawn(i, {texture, render, opacity: o2}, {opacity: o1}){
+		if(o2>o1) _addDark(this, i)
+		else if(o2<o1) _add(this, i)
 		if(!this.ctx) return
 		if(!this.writeCtx){
 			const ctx = this.writeCtx = this.ctx.drawable()
@@ -124,8 +126,6 @@ export class Chunk extends Uint16Array{
 		if((j == -1) & (render != undefined)) this.rerenders.push(i)
 		else if((j > -1) & (render == undefined)) this.rerenders.splice(j, 1)
 		this.writeCtx.drawRect(i&63,i>>6,1,1,texture)
-		if(o2>o1) _addDark(this, i)
-		else if(o2<o1) _add(this, i)
 	}
 	changed = 0
 }

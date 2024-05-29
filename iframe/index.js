@@ -195,12 +195,12 @@ drawLayer('none', 200, (ctx, w, h) => {
 	const mipmap = max(0, min(4, 4-round(log2(SCALE)-.05)))
 	if(world.id == 'overworld'){
 		const time = world.tick % 24000, light = time < 1800 ? time / 1800 : time < 13800 ? 1 : time < 15600 ? (15600 - time) / 1800 : 0
-		genLightmap(light, block, vec3.zero, 0, night, day, light)
+		genLightmap(light, block, night, day, light)
 	}else if(world.id == 'nether'){
-		genLightmap(-1, block, vec3.zero, 0, day, vec3.zero, 0, netherBase)
+		genLightmap(-1, block, day, vec3.zero, 0, netherBase)
 	}else if(world.id == 'end'){
-		genLightmap(-2, block, vec3.zero, 0, day, vec3.zero, 0, endBase)
-	}else genLightmap(1, block, vec3.zero, 0, day, vec3.zero, 0)
+		genLightmap(-2, block, day, vec3.zero, 0, endBase)
+	}else genLightmap(1, block, vec3.zero, day, 1)
 	chunkShader.uniforms(blockAtlas, vec3(world.animTick, mipmap, 1), lightTex)
 	const sr = sin(cam.f), cr = cos(cam.f)
 	const limX = (abs(ctx.width*cr)+abs(ctx.height*sr)+(cam.nausea*.333*ctx.height))/2, limY = (abs(ctx.width*sr)+abs(ctx.height*cr)+(cam.nausea*.333*ctx.width))/2
