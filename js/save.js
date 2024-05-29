@@ -43,7 +43,7 @@ const defaults = {
 	lang: '',
 	fps: 0,
 	gamma: .5,
-	touch: +!!navigator.userAgentData.mobile
+	//touch: +!!navigator.userAgentData.mobile
 }
 const optionListeners = {}
 for(const k in defaults){

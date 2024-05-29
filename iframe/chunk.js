@@ -1,6 +1,5 @@
 import { BlockIDs, EntityIDs, Classes } from 'definitions'
-import { map } from 'world'
-import { pushLightUpdate } from './lighting.js'
+import { addLightUpdate, addDarkUpdate } from './lighting.js'
 
 const texturePool = []
 const chunkUVData = new Uint16Array(8192)
@@ -12,8 +11,7 @@ export class Chunk extends Uint16Array{
 		this.x = buf.int()&0x3ffffff
 		this.y = buf.int()&0x3ffffff
 		this.up = this.left = this.right = this.down = null
-		this.lightBuds = null
-		this.ref = 0
+		this.lightI = -1
 		this.entities = new Set()
 		this.ctx2 = this.ctx = this.writeCtx = null
 		this.lastFrame = 0
@@ -113,7 +111,7 @@ export class Chunk extends Uint16Array{
 		this.ctx.pasteData(chunkUVData)
 		this.ctx2.pasteData(this.light)
 	}
-	updateDrawn(i, {texture, render, opacity: o1}, {opacity: o2}){
+	updateDrawn(i, {texture, render, opacity: o2}, {opacity: o1}){
 		if(!this.ctx) return
 		if(!this.writeCtx){
 			const ctx = this.writeCtx = this.ctx.drawable()
@@ -125,7 +123,8 @@ export class Chunk extends Uint16Array{
 		if((j == -1) & (render != undefined)) this.rerenders.push(i)
 		else if((j > -1) & (render == undefined)) this.rerenders.splice(j, 1)
 		this.writeCtx.drawRect(i&63,i>>6,1,1,texture)
-		if(o1!=o2) pushLightUpdate(this, i)
+		if(o2>o1) addDarkUpdate(this, i)
+		else if(o2<o1) addLightUpdate(this, i)
 	}
 	changed = 0
 }

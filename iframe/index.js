@@ -7,7 +7,7 @@ import { onKey, drawLayer, options, paused, _renderPhases, renderBoxes, renderF3
 import { particles, blockAtlas, _recalcDimensions, prep } from 'definitions'
 import { VERSION } from '../server/version.js'
 import { loadingChunks, skylightUpdates } from './incomingPacket.js'
-import { lI, performLightUpdates, propagateSkylight } from './lighting.js'
+import { performLightUpdates, propagateSkylight } from './lighting.js'
 
 let last = performance.now(), timeToFrame = 0
 export function step(){
@@ -72,7 +72,8 @@ export function frame(){
 	playerControls()
 	for(const entity of entityMap.values()) stepEntity(entity)
 	const tzoom = (me.state & 4 ? -0.13 : 0) * ((1 << options.ffx * (options.camera != 4)) - 1) + 1
-	cam.z = cam.z**.75 * max((max(innerWidth,innerHeight)/(ceil(sqrt(map.size))-1.375)/1024), 2 ** (options.zoom * 8 - 4) * tzoom * 2**cam.baseZ)**.25
+	const minZoom = renderBoxes ? 0 : max(innerWidth,innerHeight)/(ceil(sqrt(map.size))-1.375)/1024
+	cam.z = cam.z**.75 * max(minZoom, 2 ** (options.zoom * 8 - 4) * tzoom * 2**cam.baseZ)**.25
 	_recalcDimensions(cam.z)
 	const reach = pointer.effectiveReach()
 	if(options.camera == CAMERA_DYNAMIC){
@@ -178,7 +179,7 @@ drawLayer('none', 200, (ctx, w, h) => {
 		while(skylightUpdates.delete((x1=x1+1&0x3FFFFFF)+ky));
 		propagateSkylight(y, (x0=x0+1&0x3FFFFFF), x1)
 	}
-	if(lI.length) performLightUpdates()
+	performLightUpdates()
 	const a = cam.z / 12
 	const chunkSublineCol = vec4(0, .53*a, a, a)
 	const hitboxes = renderBoxes + buttons.has(KEYS.SYMBOL)
@@ -197,7 +198,7 @@ drawLayer('none', 200, (ctx, w, h) => {
 	chunkShader.uniforms(blockAtlas, vec3(world.animTick, mipmap, 1), lightTex)
 	const sr = sin(cam.f), cr = cos(cam.f)
 	const limX = (abs(ctx.width*cr)+abs(ctx.height*sr)+(cam.nausea*.333*ctx.height))/2, limY = (abs(ctx.width*sr)+abs(ctx.height*cr)+(cam.nausea*.333*ctx.width))/2
-	const S = 64*SCALE-.0001
+	const S = 64*SCALE
 	const lineWidth = .5/min(1024,S)
 	visibleChunks = 0
 	for(const chunk of map.values()){
