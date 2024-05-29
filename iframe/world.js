@@ -53,13 +53,13 @@ function variant(ch, i, x, y){
 	if(!ch) return
 	const id = ch[i], b = id==65535?ch.tileData.get(i):BlockIDs[id]
 	if(b.variant){
-		const old = b
-		if(!(b = b.variant(x, y))) return
-		if(b.savedata){
+		const b2 = b.variant(x, y)
+		if(b2 == b) return
+		if(b2.savedata){
 			ch[i] = 65535
-			ch.tileData.set(i, b=b===b.constructor?new b:b)
-		}else{ ch[i] = b.id; if(old.savedata) ch.tileData.delete(i) }
-		ch.updateDrawn(i, b)
+			ch.tileData.set(i, b2=b2===b2.constructor?new b2:b2)
+		}else{ ch[i] = b2.id; if(b.savedata) ch.tileData.delete(i) }
+		ch.updateDrawn(i, b2)
 	}
 }
 
