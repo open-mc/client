@@ -21,7 +21,7 @@ function supersampleChange(a = options.supersample){
 	return [texts.supersampling((z>=1?''+z:'1/'+1/z)), options.supersample]
 }
 function gammaChange(a = options.gamma){
-	options.gamma = a
+	options.gamma = a = Math.round(a*50)/50
 	return [a==0?texts.gamma[0]:a==1?texts.gamma[1]:texts.gamma(allTexts.options.common.percentage(Math.round(a*100))), a]
 }
 

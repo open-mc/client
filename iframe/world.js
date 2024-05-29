@@ -179,3 +179,6 @@ export function setGamma(p){
 	for(let i = 0; i < 16; i++) powTable[i] = p**(~i&15)
 	lastLm = NaN
 }
+
+export const exposureMap = new Map
+globalThis.exposureMap = exposureMap

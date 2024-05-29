@@ -1,7 +1,7 @@
 import { uiButtons, icons, renderItem, renderItemCount, click, renderSlot, renderTooltip, resetSlot, slotI, audioSet } from './effects.js'
 import './entities.js'
 import { onKey, drawLayer, pause, renderUI, quit, onpacket, send, voice, drawText, calcText, tickPhase } from 'api'
-import { getblock, gridEvents, sound, entityMap, pointer, cam, world, configLoaded, me, W2, H2 } from 'world'
+import { getblock, gridEvents, sound, entityMap, pointer, cam, world, configLoaded, me, W2, H2, exposureMap } from 'world'
 import { Item, BlockParticle, addParticle, blockBreak, ephemeralInterfaces } from 'definitions'
 import { AshParticle, BlastParticle, explode } from './defs.js'
 import { terrainPng } from './blocks.js'
@@ -38,9 +38,11 @@ const rainGradient = gradients.sub(.7, .25, 0, .5)
 const rainNightGradient = gradients.sub(.9, .25, 0, .5)
 
 const rainSound = audioSet('misc/rain', 4)
-let lastRainPlay = 0
+let lastRainPlay = -1
 tickPhase(-1000, now => {
-	if(world.weather && now - lastRainPlay > 0.8333333) lastRainPlay = now, me.sound(rainSound, 0.5)
+	const x = floor(me.x)
+	const e = exposureMap.get(x>>>6), exp = e?e[x&63]-floor(me.y+me.head)<0:true
+	if(world.weather && now - lastRainPlay > 1.3) lastRainPlay = now+.35, me.sound(rainSound, exp?0.4:0.2)
 })
 drawLayer('none', -100, c => {
 	const w = c.width/pixelRatio, h = c.height/pixelRatio
@@ -114,14 +116,17 @@ drawLayer('world', 150, c => {
 	c.blend = 0
 	const rainyness = min(1-world.weatherFade/40, 1, (world.weather&0x0FFFFFFF)/40)
 	if(rainyness && cam.z > .125){
-		const col = vec4(1-rainyness/2)
+		const col = vec4(rainyness/2)
 		const end = iceil(cam.x+W2)
 		const rainOff = t*30%16
-		for(let x = ifloor(cam.x-W2); x != end; x=x+1|0){
+		let x = ifloor(cam.x-W2-1), e = exposureMap.get(x>>>6)
+		while((x=x+1|0) != end){
+			if(!(x&63)) e = exposureMap.get(x>>>6)
+			const exp = e?min(H2, max(-H2, e[x&63]-cam.y)):-H2
 			const off = ((x ^ x>>2 ^ x>>4 ^ x>>6) & 3)
 			let off2 = imul(x, 0x13F255A7) >> 16
 			off2 = ((off2 ^ off2 >> 2 ^ off2 >> 4 ^ off2 >> 6) & 3) << 2
-			c.drawRect(ifloat(x-cam.x), -H2, 1, H2*2, rain.sub(off/4,(rainOff+off2)/16,.25,H2/8), col)
+			c.drawRect(ifloat(x-cam.x), exp, 1, H2*2-exp, rain.sub(off/4,(rainOff+off2+cam.y%16)/16,.25,(H2*2-exp)/16), col)
 		}
 	}
 })

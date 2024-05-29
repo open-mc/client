@@ -892,7 +892,7 @@ globalThis.Wave = src => {
 			source.start(0, start, end == end ? end - start : buf.duration)
 			if(typeof ends == 'function') source.onended = ends
 		}
-		return () => { source.onended = null; source.stop() }
+		return (fire=false) => (fire || (source.onended = null), source.stop())
 	}
 }
 

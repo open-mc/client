@@ -1,4 +1,4 @@
-import { getblock, setblock, gridEventMap, gridEvents, map, entityMap, server, world, CONFIG, bigintOffset, configLoaded, me, foundMe, _setPerms, worldEvents } from 'world'
+import { getblock, setblock, gridEventMap, gridEvents, map, entityMap, server, world, CONFIG, bigintOffset, configLoaded, me, foundMe, _setPerms, worldEvents, exposureMap } from 'world'
 import { Chunk } from './chunk.js'
 import { queue } from './sounds.js'
 import { moveEntity } from './entity.js'
@@ -41,11 +41,24 @@ function chunkPacket(buf){
 	const u = map.get(x+(y+1&0x3FFFFFF)*0x4000000)
 	if(u) u.down = chunk, chunk.up = u
 	const d = map.get(down)
-	if(d) d.up = chunk, chunk.down = d
+	let ex = null
+	if(d) d.up = chunk, chunk.down = d, chunk.exposure = ex = d.exposure, ex.ref++
+	else (ex=exposureMap.get(x))?(chunk.exposure=ex).ref++:(exposureMap.set(x,chunk.exposure=ex=new Int32Array(64)),ex.ref=1)
 	const l = map.get((x-1&0x3FFFFFF)+ky)
 	if(l) l.right = chunk, chunk.left = l
 	const r = map.get((x+1&0x3FFFFFF)+ky)
 	if(r) r.left = chunk, chunk.right = r
+	let chy = y<<6
+	for(let x = 0; x < 64; x++){
+		if((ex[x]-chy-64|0)>=0) continue
+		let y = 64
+		while(--y>=0){
+			const b = chunk[y<<6|x], {solid} = b===65535?chunk.tileData.get(y<<6|x):BlockIDs[b]
+			if(solid) break
+		}
+		if(y<0) continue
+		ex[x] = chy+y+1|0
+	}
 }
 function chunkDeletePacket(data){
 	while(data.left){
@@ -54,6 +67,7 @@ function chunkDeletePacket(data){
 		const chunk = map.get(ky+cx)
 		chunk.hide()
 		map.delete(ky+cx)
+		if(!--chunk.exposure.ref) exposureMap.delete(cx)
 		const u = map.get(cx+(cy+1&0x3FFFFFF)*0x4000000)
 		if(u) u.down = null
 		const d = map.get(cx+(cy-1&0x3FFFFFF)*0x4000000)

@@ -112,9 +112,24 @@ export class Chunk extends Uint16Array{
 		this.ctx2.pasteData(this.light)
 		this.changed = 0
 	}
-	updateDrawn(i, {texture, render, opacity: o2}, {opacity: o1}){
+	updateDrawn(i, {texture, render, opacity: o2, solid: s2}, {opacity: o1, solid: s1}){
 		if(o2>o1) _addDark(this, i)
 		else if(o2<o1) _add(this, i)
+		if(s2){if(!s1){
+			const y = this.y<<6|i>>6
+			if(this.exposure[i&63]-y<=0) this.exposure[i&63] = y+1|0
+		}}else if(s1){
+			let y = (this.y<<6|i>>6)+1|0
+			let i2 = i, ch = this
+			if(this.exposure[i&63]==y){
+				while(true){
+					if(i2<64){ const c = ch.down; if(!c){ i2=ch.y<<6; break }; ch=c; i2 += 4096 }
+					const b = ch[i2-=64], {solid} = b==65535?ch.tileData.get(i2):BlockIDs[b]
+					if(solid){ i2 = (ch.y<<6|i2>>6)+1|0; break }
+				}
+				this.exposure[i&63] = i2
+			}
+		}
 		if(!this.ctx) return
 		if(!this.writeCtx){
 			const ctx = this.writeCtx = this.ctx.drawable()

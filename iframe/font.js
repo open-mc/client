@@ -49,7 +49,7 @@ export function drawText(c, t, x=0, y=0, size=1, alpha = 1){
 }
 export const TokenSet = (...a) => {
 	const m = new Map
-	m.add = (s, f, sep) => {
+	m.add = (s, f=0, sep) => {
 		const set = new Set
 		for(let i = 0; i < s.length; i++){
 			const c = s.codePointAt(i)
@@ -135,13 +135,13 @@ function pushStrings(arr, len = Infinity){
 		if(typeof i=='string'){
 			if((len-=i.length)>=0) arr.push(i)
 			else arr.push(i.slice(0,len)),strings[--x]=i.slice(len)
-		}else i>65535&&len--,arr.push(i)
+		}else i>65535?len--:ls=i,arr.push(i)
 	}
-	if(len==Infinity) return void(ls = style, strings.length = 0)
+	if(len==Infinity) return void(strings.length = 0)
 	if(ls == 271) strings.splice(0, x)
 	else if(x) strings.splice(0, x-1), strings[0]=style
 	else strings.unshift(style)
-	return ls = style, arr = strings, strings = [], arr
+	return arr = strings, strings = [], arr
 }
 export function calcText(txt, maxW = undefined, s = 271, ts = defaultTs){
 	text = txt; style = ls = s; i = 0; cs0 = 0
@@ -166,6 +166,7 @@ export function calcText(txt, maxW = undefined, s = 271, ts = defaultTs){
 			res.width = w-LETTER_SPACING-tokenWidth
 			line++; lineWidth = (typeof maxW == 'number' ? maxW : typeof maxW == 'function' ? maxW(line) : Array.isArray(maxW) ? maxW[line] : Infinity) + LETTER_SPACING; w = 0
 			if((f&4)){
+				res = pushStrings(res, count-chars.length)
 				for(const x of strings) if(typeof x == 'number' && x < 65536) res.push(x)
 				cs0 = j; strings.length = 0
 				results.push(res = []); count = 0

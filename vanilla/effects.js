@@ -68,11 +68,12 @@ export function renderItem(c, item, tint = vec4.one, respectModel = 0){
 	if(item.texture >= 0) c.draw(toTex(item.texture), tint)
 	item.render?.(c, tint)
 }
+const counts = []
+for(let i = 2; i <= 64; i++) counts.push(calcText(i+''))
 export function renderItemCount(c, item){
 	if(!item) return
 	if(item.count == 1) return
-	const count = (item.count !== (item.count & 255) ? '\\+9' : '') + item.count
-	const arr = calcText(count)
+	const arr = item.count > 1 && item.count <= 64 ? counts[item.count-2] :  calcText('\\+9' + item.count)
 	drawText(c, arr, 0.4375-arr.width*.5, 0, 0.5)
 }
 let slotx = NaN, sloty = NaN

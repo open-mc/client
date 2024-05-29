@@ -47,7 +47,7 @@ export function performLightUpdates(){
 					const l = c2.light[i&63]
 					if(l) if((l>>4) < v) c2.light[i&63] = l, _addDark(c2, i&63)
 					else{
-						_add(ch, i&63)
+						_add(c2, i&63)
 						if(dark){
 							const b = c2[i], {opacity} = b==65535?c2.tileData.get(i):BlockIDs[b]
 							if(!opacity&&(l>>4)==v) continue
@@ -62,7 +62,7 @@ export function performLightUpdates(){
 				else _add(ch, i-64)
 			}else{
 				const c2 = ch.down
-				if(c2){ const l = c2.light[i|4032]; if(l) if((l>>4) <= v) c2.light[i|4032] = l, _addDark(c2, i|4032); else _add(ch, i|4032) }
+				if(c2){ const l = c2.light[i|4032]; if(l) if((l>>4) <= v) c2.light[i|4032] = l, _addDark(c2, i|4032); else _add(c2, i|4032) }
 			}
 			if(i&63){
 				const l = light[i-1]
@@ -70,7 +70,7 @@ export function performLightUpdates(){
 				else _add(ch, i-1)
 			}else{
 				const c2 = ch.left
-				if(c2){ const l = c2.light[i|63]; if(l) if((l>>4) < v) c2.light[i|63] = l, _addDark(c2, i|63); else _add(ch, i|64) }
+				if(c2){ const l = c2.light[i|63]; if(l) if((l>>4) < v) c2.light[i|63] = l, _addDark(c2, i|63); else _add(c2, i|64) }
 			}
 			if((i&63)!=63){
 				const l = light[i+1]
@@ -78,7 +78,7 @@ export function performLightUpdates(){
 				else _add(ch, i+1)
 			}else{
 				const c2 = ch.right
-				if(c2){ const l = c2.light[i&4032]; if(l) if((l>>4) < v) c2.light[i&4032] = l, _addDark(c2, i&4032); else _add(ch, i&4032) }
+				if(c2){ const l = c2.light[i&4032]; if(l) if((l>>4) < v) c2.light[i&4032] = l, _addDark(c2, i&4032); else _add(c2, i&4032) }
 			}
 		}
 		dark += a.length
