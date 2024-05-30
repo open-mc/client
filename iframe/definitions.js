@@ -119,6 +119,7 @@ export class Item{
 	breaktime(b){ return b.breaktime }
 	static maxStack = 64
 	static model = 0
+	static useTint = true
 	static decode(buf, target){
 		const count = buf.flint2()
 		if(!count) return null

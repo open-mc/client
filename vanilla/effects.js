@@ -55,6 +55,7 @@ export const water = {
 export function renderItem(c, item, tint = vec4.one, respectModel = 0){
 	if(!item) return
 	c = c.sub()
+	if(!item.useTint) tint = vec4.one
 	const model = respectModel && item.model
 	if(model == 1){
 		c.translate(-0.7,1.2)

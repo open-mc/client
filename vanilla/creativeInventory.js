@@ -31,7 +31,11 @@ const categories = [
 		Items.brown_wool, Items.red_wool, Items.orange_wool, Items.yellow_wool,
 		Items.lime_wool, Items.green_wool, Items.cyan_wool, Items.light_blue_wool,
 		Items.blue_wool, Items.purple_wool, Items.magenta_wool, Items.pink_wool,
-		Items.glass
+		Items.glass, Items.glowstone
+	),
+
+	Category('Lights', Items.glowstone,
+		Items.glowstone, Items.glowing_obsidian, Items.bucket_of_lava, Items.flint_and_steel
 	),
 
 	Category('Forest', Items.oak_sapling,

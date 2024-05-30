@@ -52,6 +52,7 @@ export const itemify = (B, n, cat) => class extends Item{
 	static texture = B.texture
 	static defaultName = n
 	static categories = cat
+	static useTint = B.brightness==0
 	places(){return B}
 }
 let fluidGeometry
