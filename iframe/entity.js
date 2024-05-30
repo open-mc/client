@@ -29,7 +29,7 @@ export let mePhysics = {
 	impactDx: 0, impactDy: 0,
 	factor: 1, climbable: false
 }
-export const EPSILON = .0001
+export const EPSILON = .00001
 
 function solidCheck(x0, y0, x1, y1){
 	const ex = floor(x1 - EPSILON), ey = floor(y1 - EPSILON), sx = floor(x0 + EPSILON), sy = floor(y0 + EPSILON)
@@ -54,8 +54,8 @@ function fastCollision(e){
 	e.impactDx = e.impactDy = 0
 	const xw = e.x + e.width - EPSILON - x0
 	y: if(dy > 0){
-		const ey = ceil(e.y + e.height + dy - EPSILON) - y0
-		for(let y = ceil(e.y + e.height - EPSILON) - y0 - 1; y < ey; y++){
+		const ey = ceil(e.y + e.height + dy) - y0
+		for(let y = ceil(e.y + e.height) - y0 - 1; y < ey; y++){
 			let ys = 2, ex0 = e.x - e.width + EPSILON - x0 + 1, ex1 = e.x + e.width - x0 - EPSILON + 1
 			for(let x = 0; x < xw; x++){
 				ex0 -= 1; ex1 -= 1
@@ -68,7 +68,7 @@ function fastCollision(e){
 				}
 			}
 			const ty = ys + y + y0 - e.height
-			if((y === ey - 1 ? ty >= e.y + dy + EPSILON : ys > 1) || ty < e.y - EPSILON) continue
+			if((y === ey - 1 ? ty >= e.y + dy : ys > 1) || ty < e.y) continue
 			e.y = ty
 			e.impactDy = e.dy
 			if(e == me && abs(mePhysics.impactDy) < e.dy) mePhysics.impactDy = e.dy
@@ -77,7 +77,7 @@ function fastCollision(e){
 		}
 		e.y += dy
 	}else if(dy < 0){
-		const ey = floor(e.y + dy + EPSILON) - 1 - y0
+		const ey = floor(e.y + dy) - 1 - y0
 		for(let y = 0; y > ey; y--){
 			let ys = -1, ex0 = e.x - e.width + EPSILON - x0 + 1, ex1 = e.x + e.width - x0 - EPSILON + 1
 			for(let x = 0; x < xw; x++){
@@ -91,7 +91,7 @@ function fastCollision(e){
 				}
 			}
 			const ty = ys + y + y0
-			if((y === ey + 1 ? ty <= e.y + dy - EPSILON : ys < 0) || ty > e.y + EPSILON) continue
+			if((y === ey + 1 ? ty <= e.y + dy : ys < 0) || ty > e.y) continue
 			e.y = ty
 			e.impactDy = e.dy
 			if(e == me && abs(mePhysics.impactDy) < -e.dy) mePhysics.impactDy = e.dy
@@ -102,8 +102,8 @@ function fastCollision(e){
 	}
 	y0 = floor(e.y + EPSILON)
 	x: if(dx > 0){
-		const ex = ceil(e.x + e.width + dx - EPSILON) - x0
-		for(let x = ceil(e.x + e.width - EPSILON) - x0 - 1; x < ex; x++){
+		const ex = ceil(e.x + e.width + dx) - x0
+		for(let x = ceil(e.x + e.width) - x0 - 1; x < ex; x++){
 			let xs = 2, ey0 = e.y + EPSILON - y0 + 1
 			let climb = 0
 			const yh = e.y + e.height - EPSILON - y0
@@ -119,13 +119,13 @@ function fastCollision(e){
 					if(blockShape[i] <= xs) xs = blockShape[i]
 				}
 			}
-			if(climb > 0 && climb < Infinity && !solidCheck(xs + x + x0 - e.width - e.width, e.y + e.height, x === ex - 1 ? e.x + dx + e.width + EPSILON : x + x0 + 1, e.y + e.height + climb)){
+			if(climb > 0 && climb < Infinity && !solidCheck(xs + x + x0 - e.width - e.width, e.y + e.height, x === ex - 1 ? e.x + dx + e.width : x + x0 + 1, e.y + e.height + climb)){
 				e.y += climb
 				y0 = floor(e.y + EPSILON)
 				continue
 			}
 			const tx = xs + x + x0 - e.width
-			if((x === ex - 1 ? tx >= e.x + dx + EPSILON : xs > 1) || tx < e.x - EPSILON) continue
+			if((x === ex - 1 ? tx >= e.x + dx : xs > 1) || tx < e.x) continue
 			e.x = tx
 			e.impactDx = e.dx
 			if(e == me && abs(mePhysics.impactDx) < e.dx) mePhysics.impactDx = e.dx
@@ -134,7 +134,7 @@ function fastCollision(e){
 		}
 		e.x += dx
 	}else if(dx < 0){
-		const ex = floor(e.x - e.width + dx + EPSILON) - 1 - x0
+		const ex = floor(e.x - e.width + dx) - 1 - x0
 		for(let x = 0; x > ex; x--){
 			let xs = -1, ey0 = e.y + EPSILON - y0 + 1
 			let climb = 0
@@ -151,13 +151,13 @@ function fastCollision(e){
 					if(blockShape[i+2] >= xs) xs = blockShape[i+2]
 				}
 			}
-			if(climb > 0 && climb < Infinity && !solidCheck(x === ex + 1 ? e.x + dx - e.width - EPSILON : x + x0, e.y + e.height, xs + x + x0 + e.width + e.width, e.y + e.height + climb)){
+			if(climb > 0 && climb < Infinity && !solidCheck(x === ex + 1 ? e.x + dx - e.width : x + x0, e.y + e.height, xs + x + x0 + e.width + e.width, e.y + e.height + climb)){
 				e.y += climb
 				y0 = floor(e.y + EPSILON)
 				continue
 			}
 			const tx = xs + x + x0 + e.width
-			if((x === ex + 1 ? tx <= e.x + dx - EPSILON : xs < 0) || tx > e.x + EPSILON) continue
+			if((x === ex + 1 ? tx <= e.x + dx : xs < 0) || tx > e.x) continue
 			e.x = tx
 			e.impactDx = e.dx
 			if(e == me && abs(mePhysics.impactDx) < -e.dx) mePhysics.impactDx = e.dx

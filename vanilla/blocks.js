@@ -581,11 +581,10 @@ Blocks.furnace = class extends Stone{
 	}
 }
 
-Blocks.glowstone = class extends Block{
+Blocks.glowstone = class extends Blocks.glass{
 	static breaktime = 0.45
-	static opacity = 0
-	static placeSounds = Blocks.grass.placeSounds
-	static texture = BlockTexture(blocksPng, 9, 4)
+	static brightness = 15
+	static texture = BlockTexture(blocksPng, 9, 6)
 }
 
 const commandBlockTex = Img(src`command_blocks.png`)
