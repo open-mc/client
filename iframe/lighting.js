@@ -49,6 +49,7 @@ export function performLightUpdates(){
 				const v2 = v>>4; v1 = (v1>opacity?v1-opacity:0)
 				if(brightness>v1) v1=brightness
 				v = (v2>opacity?v2-opacity:0)<<4|v1
+				if(brightness) _add(ch, i)
 			}
 			if(i<4032){
 				const l = light[i+64]

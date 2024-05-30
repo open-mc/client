@@ -51,7 +51,11 @@ function chunkPacket(buf){
 		chunk.exposure = ex = d.exposure, ex.ref++
 		const {light,lightI} = d
 		if(lightI>-2) for(let i = 4032; i < 4096; i++) if(light[i]) _add(d, i)
-	}else (ex=exposureMap.get(x))?(chunk.exposure=ex).ref++:(exposureMap.set(x,chunk.exposure=ex=new Int32Array(64)),ex.ref=1)
+	}else if(ex=exposureMap.get(x))(chunk.exposure=ex).ref++
+	else{
+		exposureMap.set(x,chunk.exposure=ex=new Int32Array(64))
+		ex.ref=1; ex.fill(chunk.y+1<<6)
+	}
 	const l = map.get((x-1&0x3FFFFFF)+ky)
 	if(l){
 		l.right = chunk, chunk.left = l
