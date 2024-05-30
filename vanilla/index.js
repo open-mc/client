@@ -4,13 +4,13 @@ import { onKey, drawLayer, pause, renderUI, quit, onpacket, send, voice, drawTex
 import { getblock, gridEvents, sound, entityMap, pointer, cam, world, configLoaded, me, W2, H2, exposureMap } from 'world'
 import { Item, BlockParticle, addParticle, blockBreak, ephemeralInterfaces } from 'definitions'
 import { AshParticle, BlastParticle, explode } from './defs.js'
-import { terrainPng } from './blocks.js'
+import { blocksPng } from './blocks.js'
 import './interfaces.js'
 import './voice.js'
 
 const src = loader(import.meta)
 
-const BREAKING = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].mmap(x => terrainPng.sub(x/16, 0, 1/16, 1/16))
+const BREAKING = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].mmap(x => blocksPng.sub(x/16, 0, 1/16, 1/16))
 const skyPng = await Img(src`sky.png`)
 const stars = Img(src`stars.png`, REPEAT)
 const sun = skyPng.crop(128, 64, 32, 32), moons = [

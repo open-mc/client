@@ -390,6 +390,7 @@ export function awaitLoad(j){
 }
 
 export const toTex = i => {
+	if(i<0) i = bai
 	const baH = blockAtlas.height>>4
 	i += world.animTick%((i>>>24)+1)
 	blockAtlas.x = (i&255)/256

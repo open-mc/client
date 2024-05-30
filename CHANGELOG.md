@@ -8,8 +8,6 @@ Todo: Hostile mobs
 
 # Beta 1.1
 
-Todo: Pretty lighting
-
 Todo: Farm & crops
 
 Todo: Fishing
@@ -30,7 +28,7 @@ Todo: Creating accounts (deprecating account keys)
 
 </details>
 
-## Alpha 9 (current version)
+## Alpha 9
 
 - Proximity chat
 - Chest, furnace, crafting table
