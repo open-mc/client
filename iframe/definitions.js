@@ -2,7 +2,6 @@ import { drawLayer, options } from 'api'
 import { getblock, sound, entityMap, cam, world, me, foundMe, BlockIDs, _setDims, getTint } from 'world'
 import { registerTypes } from '/server/modules/dataproto.js'
 import * as pointer from './pointer.js'
-import { EPSILON } from './entity.js'
 
 export const TEX_SIZE = 16
 
@@ -224,8 +223,8 @@ export class Particle{
 						if(blockShape[i]+x > this.x | blockShape[i+2]+x < this.x) continue
 						if(blockShape[i+1] <= ys) ys = blockShape[i+1]
 					}else ys = 0
-					if((y === ey - 1 ? ys + y >= this.y + dy + EPSILON : ys > 1) || ys + y < this.y - EPSILON) continue
-					this.y = ys + y - EPSILON
+					if((y === ey - 1 ? ys + y >= this.y + dy : ys > 1) || ys + y < this.y) continue
+					this.y = ys + y
 					this.dy = 0
 					break y
 				}
@@ -240,8 +239,8 @@ export class Particle{
 						if(blockShape[i]+x > this.x | blockShape[i+2]+x < this.x) continue
 						if(blockShape[i+3] > ys) ys = blockShape[i+3]
 					}else ys = 1
-					if((y === ey + 1 ? ys + y <= this.y + dy - EPSILON : ys < 0) || ys + y > this.y + EPSILON) continue
-					this.y = ys + y + EPSILON
+					if((y === ey + 1 ? ys + y <= this.y + dy : ys < 0) || ys + y > this.y) continue
+					this.y = ys + y
 					this.dy = 0
 					break y
 				}
@@ -258,8 +257,8 @@ export class Particle{
 						if(blockShape[i+1]+y > this.y | blockShape[i+3]+y < this.y) continue
 						if(blockShape[i] <= xs) xs = blockShape[i]
 					}else xs = 0
-					if((x === ex - 1 ? xs + x >= this.x + dx + EPSILON : xs > 1) || xs + x < this.x - EPSILON) continue
-					this.x = xs + x - EPSILON
+					if((x === ex - 1 ? xs + x >= this.x + dx : xs > 1) || xs + x < this.x) continue
+					this.x = xs + x
 					this.dx = 0
 					break x
 				}
@@ -274,8 +273,8 @@ export class Particle{
 						if(blockShape[i+1]+y > this.y | blockShape[i+3]+y < this.y) continue
 						if(blockShape[i+2] > xs) xs = blockShape[i+2]
 					}else xs = 1
-					if((x === ex + 1 ? xs + x <= this.x + dx - EPSILON : xs < 0) || xs + x > this.x + EPSILON) continue
-					this.x = xs + x + EPSILON
+					if((x === ex + 1 ? xs + x <= this.x + dx : xs < 0) || xs + x > this.x) continue
+					this.x = xs + x
 					this.dx = 0
 					break x
 				}

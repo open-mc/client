@@ -1,5 +1,5 @@
 import { onKey, onwheel, paused } from 'api'
-import { EPSILON, mePhysics } from './entity.js'
+import { mePhysics } from './entity.js'
 import { getblock, me, mode } from 'world'
 import { send } from './api.js'
 let R=false,L=false,U=false,D=false
@@ -55,7 +55,7 @@ export const playerControls = () => {
 		else if(me.impactDy < 0)me.dy = 9*mePhysics.factor
 	}
 	if((me.impactDy < 0) && (me.state & 2)){
-		const x = me.x + (me.dx > 0 ? -me.width + EPSILON * 2 : me.width - EPSILON * 2)
+		const x = me.x + (me.dx > 0 ? -me.width + .0001 : me.width - .0001)
 		if(getblock(floor(x), floor(me.y - .001)).solid && !getblock(floor(x + me.dx * dt + sign(me.dx)*.125), floor(me.y - .001)).solid){
 			me.dx = 0
 		}
