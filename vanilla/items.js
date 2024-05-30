@@ -135,17 +135,6 @@ Items.eye_of_ender = class extends Item{
 	static defaultName = 'Eye of ender'
 }
 
-Items.command_block = class extends Item{
-	render(c, tint){
-		const a = floor(t*2)&3
-		const alpha = true
-		c.draw(commandBlockTexs[0].crop(0, a<<4, 16, 16), tint)
-		if(alpha)
-			c.draw(commandBlockTexs[0].crop(0, (a+1&3)<<4, 16, 16), tint.times((t*2)%1))
-	}
-	static defaultName = 'Command block'
-}
-
 Items.endstone = itemify(Blocks.endstone, 'Endstone')
 
 Items.white_wool = itemify(Blocks.white_wool, 'White wool')
@@ -255,4 +244,16 @@ Items.chest = class extends Item{
 	render(c, tint){
 		c.draw(chestTop, tint)
 	}
+}
+
+Items.command_block = class extends Item{
+	render(c, tint){
+		const a = floor(t*2)&3
+		const alpha = true
+		c.draw(commandBlockTexs[0].crop(0, a<<4, 16, 16), tint)
+		if(alpha)
+			c.draw(commandBlockTexs[0].crop(0, (a+1&3)<<4, 16, 16), tint.times((t*2)%1))
+	}
+	places(){ return Blocks.command_block }
+	static defaultName = 'Command block'
 }

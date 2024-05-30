@@ -31,7 +31,7 @@ export const configLoaded = fn => configLoaded.listeners.push(fn)
 configLoaded.listeners = []
 
 export const cam = {
-	x: 0, y: 0, z: .5, f: 0, nausea: 0,
+	x: 0, y: 0, z: .5, f: 0, nausea: 0, minZoom: 0,
 	baseF: 0, baseZ: 0, baseX: 0, baseY: 0,
 	staticX: NaN, staticY: NaN,
 	transform(c, scale = 1){

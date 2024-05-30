@@ -72,8 +72,8 @@ export function frame(){
 	playerControls()
 	for(const entity of entityMap.values()) stepEntity(entity)
 	const tzoom = (me.state & 4 ? -0.13 : 0) * ((1 << options.ffx * (options.camera != 4)) - 1) + 1
-	const minZoom = renderBoxes ? 0 : max(innerWidth,innerHeight)/(ceil(sqrt(map.size))-1.375)/1024
-	cam.z = cam.z**.75 * max(minZoom, 2 ** (options.zoom * 8 - 4) * tzoom * 2**cam.baseZ)**.25
+	cam.minZoom = renderBoxes ? 0 : max(innerWidth,innerHeight)/(ceil(sqrt(map.size))-1.375)/1024
+	cam.z = cam.z**.75 * max(cam.minZoom, 2 ** (options.zoom * 8 - 4) * tzoom * 2**cam.baseZ)**.25
 	_recalcDimensions(cam.z)
 	const reach = pointer.effectiveReach()
 	if(options.camera == CAMERA_DYNAMIC){
@@ -178,7 +178,7 @@ drawLayer('none', 200, (ctx, w, h) => {
 	cam.transform(ctx)
 	ctx.shader = chunkShader
 	prep()
-	const mipmap = max(0, min(4, 4-round(log2(SCALE)-.05)))
+	const mipmap = max(0, min(4, 4-round(log2(SCALE)+.05)))
 	if(world.id == 'overworld'){
 		const time = world.tick % 24000, light = time < 1800 ? time / 1800 : time < 13800 ? 1 : time < 15600 ? (15600 - time) / 1800 : 0
 		genLightmap(light, block, night, day, light)

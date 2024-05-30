@@ -116,7 +116,7 @@ export class Chunk extends Uint16Array{
 	updateDrawn(i, b, ob){
 		if(b.solid){if(!ob.solid){
 			const y = this.y<<6|i>>6
-			if(this.exposure[i&63]-y<=0) this.exposure[i&63] = y+1|0
+			if((this.exposure[i&63]-y)|0<=0) this.exposure[i&63] = y+1|0
 		}}else if(ob.solid){
 			let y = (this.y<<6|i>>6)+1|0
 			let i2 = i, ch = this

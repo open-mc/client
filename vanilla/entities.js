@@ -2,7 +2,7 @@ import { explode, AshParticle, BlastParticle, hurt } from './defs.js'
 import { audioSet, renderItem, renderItemCount, renderSlot } from './effects.js'
 import { Entities, Entity, Item, Blocks, BlockIDs, toTex, addParticle } from 'definitions'
 import { renderF3, renderUI, drawLayer, drawText, calcText } from 'api'
-import { getblock, cam, worldEvents, world, me, perms, getTint } from 'world'
+import { getblock, cam, worldEvents, world, me, perms, getTint, mode } from 'world'
 import { renderLeft, renderRight } from './creativeInventory.js'
 
 const src = loader(import.meta)
@@ -234,7 +234,7 @@ Entities.player = class extends LivingEntity{
 		c2.translate(2.375, -0.625)
 		renderSlot(c2, this, 10, 1)
 		drawInv(0, 0)
-		if(this.mode == 1){
+		if(mode == 1){
 			c.translate(-w, h)
 			renderLeft(c.sub())
 			c.translate(w*2, 0)
