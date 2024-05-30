@@ -12,7 +12,7 @@ function rubberPacket(data){
 	if(e && (e != me)) foundMe(e)
 	world.r = data.byte()
 	world.tps = data.float()
-	_setPerms(data.byte())
+	_setPerms(data.byte(), data.byte())
 }
 export let loadingChunks = true
 function dimensionPacket(data){

@@ -7,8 +7,8 @@ export const _setDims = (a,b,c,d,e) => (_offx=a,_offy=b,W2=c,H2=d,SCALE=e)
 export const BlockIDs = []
 
 export let me = null
-export let perms = 2
-export const _setPerms = p => perms=p
+export let perms = 2, mode = 0
+export const _setPerms = (p,m) => {perms=p;mode=m}
 export function foundMe(e){
 	if(!me) postMessage(false, '*')
 	me = globalThis.me = e

@@ -1,7 +1,7 @@
 import { uiButtons, icons, renderItem, renderItemCount, click, renderSlot, renderTooltip, resetSlot, slotI, audioSet } from './effects.js'
 import './entities.js'
 import { onKey, drawLayer, pause, renderUI, quit, onpacket, send, voice, drawText, calcText, tickPhase } from 'api'
-import { getblock, gridEvents, sound, entityMap, pointer, cam, world, configLoaded, me, W2, H2, exposureMap } from 'world'
+import { getblock, gridEvents, sound, entityMap, pointer, cam, world, configLoaded, me, W2, H2, exposureMap, mode } from 'world'
 import { Item, BlockParticle, addParticle, blockBreak, ephemeralInterfaces } from 'definitions'
 import { AshParticle, BlastParticle, explode } from './defs.js'
 import { blocksPng } from './blocks.js'
@@ -166,7 +166,7 @@ drawLayer('ui', 1000, (c, w, h) => {
 			if(i == me.selected) c2.drawRect(-0.75, -0.25, 1.5, 1.5, selected)
 			c2.translate(1.25, 0)
 		}
-		if(me.mode < 1){
+		if(mode < 1){
 			c2.resetTo(c)
 			c2.translate(hotBarLeft, hotbar.height + 6)
 			const wiggle = me.health < 5 ? (t*24&2)-1 : 0

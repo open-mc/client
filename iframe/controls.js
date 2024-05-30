@@ -1,6 +1,6 @@
 import { onKey, onwheel, paused } from 'api'
 import { EPSILON, mePhysics } from './entity.js'
-import { getblock, me } from 'world'
+import { getblock, me, mode } from 'world'
 import { send } from './api.js'
 let R=false,L=false,U=false,D=false
 let lastPressUp = 0, lastPressRight = 0, lastPressLeft = 0
@@ -9,7 +9,7 @@ let gamepadToggleCrouch = false
 onKey(GAMEPAD.B, () => gamepadToggleCrouch=!gamepadToggleCrouch)
 export const playerControls = () => {
 	if(paused||!me) return
-	if((me.state&1)&&me.mode<1) me.state &= ~1
+	if((me.state&1)&&mode<1) me.state &= ~1
 	const r = buttons.has(KEYS.RIGHT) || buttons.has(KEYS.D) || cursor.jlx > 0.4
 	const l = buttons.has(KEYS.LEFT) || buttons.has(KEYS.A) || cursor.jlx < -0.4
 	const u = buttons.has(KEYS.UP) || buttons.has(KEYS.W) || buttons.has(KEYS.SPACE) || buttons.has(GAMEPAD.A) || cursor.jly > 0.4
@@ -28,7 +28,7 @@ export const playerControls = () => {
 	}
 	if(u&&!U){
 		if(lastPressUp > t - .3){
-			if(me.mode>=1)me.state ^= 1
+			if(mode>=1)me.state ^= 1
 			lastPressUp = 0
 		}else lastPressUp = t
 	}

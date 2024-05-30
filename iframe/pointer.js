@@ -1,4 +1,4 @@
-import { setblock, getblock, map, cam, me, onPlayerLoad, perms, pointer, W2, H2, toBlockExact } from 'world'
+import { setblock, getblock, map, cam, me, onPlayerLoad, perms, pointer, W2, H2, toBlockExact, mode } from 'world'
 import './controls.js'
 import { onKey, onmousemove, options, paused, renderUI, drawLayer } from 'api'
 import { Entity, TEX_SIZE } from 'definitions'
@@ -170,13 +170,13 @@ let didHit = false
 export function checkBlockPlacing(buf){
 	const hasP = buttons.has(options.click ? LBUTTON : RBUTTON) || buttons.has(options.click ? GAMEPAD.LT : GAMEPAD.RT)
 	const hasB = buttons.has(options.click ? RBUTTON : LBUTTON) || buttons.has(options.click ? GAMEPAD.RT : GAMEPAD.LT)
-	if(hasP && ((me.mode == 1 && buttons.has(KEYS.ALT)) || t > lastPlace + .12) && !paused && bpx == bpx){
+	if(hasP && ((mode == 1 && buttons.has(KEYS.ALT)) || t > lastPlace + .12) && !paused && bpx == bpx){
 		if(blockPlacing) setblock(bpx, bpy, blockPlacing)
 		buf.byte(me.selected)
 		buf.float(x); buf.float(y)
 		buf.int(bpx); buf.int(bpy)
 		lastPlace = t
-	}else if(hasB && bx == bx && !paused && !(me.mode == 1 && !buttons.has(KEYS.ALT) && t <= lastPlace + .12)){
+	}else if(hasB && bx == bx && !paused && !(mode == 1 && !buttons.has(KEYS.ALT) && t <= lastPlace + .12)){
 		buf.byte(me.selected | 128)
 		buf.float(x); buf.float(y)
 		blockbreakx = bx; blockbreaky = by
