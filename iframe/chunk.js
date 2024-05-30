@@ -11,7 +11,7 @@ export class Chunk extends Uint16Array{
 		this.x = buf.int()&0x3ffffff
 		this.y = buf.int()&0x3ffffff
 		this.up = this.left = this.right = this.down = null
-		this.lightI = -1
+		this.lightI = -2
 		this.entities = new Set()
 		this.ctx2 = this.ctx = this.writeCtx = null
 		this.lastFrame = 0

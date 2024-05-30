@@ -6,8 +6,8 @@ import * as pointer from './pointer.js'
 import { onKey, drawLayer, options, paused, _renderPhases, renderBoxes, renderF3, send, download, copy, pause, _updatePaused, drawText, calcText, textShadeCol, _networkUsage, networkUsage, listen, _tickPhases } from 'api'
 import { particles, blockAtlas, _recalcDimensions, prep } from 'definitions'
 import { VERSION } from '../server/version.js'
-import { loadingChunks, skylightUpdates } from './incomingPacket.js'
-import { performLightUpdates, propagateSkydark, propagateSkylight } from './lighting.js'
+import { loadingChunks } from './incomingPacket.js'
+import { performLightUpdates } from './lighting.js'
 
 let last = performance.now(), timeToFrame = 0
 export function step(){
@@ -171,17 +171,6 @@ const day = vec3(.93), night = vec3(.11,.11,.22)
 const block = vec3(2, 1.8, 1.5), netherBase = vec3(.565,.485,.353), endBase = vec3(.185,.243,.21)
 listen('gamma', () => setGamma(.8+options.gamma/10))
 drawLayer('none', 200, (ctx, w, h) => {
-	if(world.id!='nether' && world.id!='end'&&skylightUpdates.size){
-		for(const k of skylightUpdates){
-			skylightUpdates.delete(k)
-			const x = k&0x3FFFFFF, ky = k-x, y = ky/67108864|0
-			let x0 = x, x1 = x
-			while(skylightUpdates.delete((x0=x0-1&0x3FFFFFF)+ky));
-			while(skylightUpdates.delete((x1=x1+1&0x3FFFFFF)+ky));
-			propagateSkylight(y, (x0=x0+1&0x3FFFFFF), x1)
-		}
-		propagateSkydark()
-	}else skylightUpdates.size&&skylightUpdates.clear()
 	performLightUpdates()
 	const a = cam.z / 12
 	const chunkSublineCol = vec4(0, .53*a, a, a)

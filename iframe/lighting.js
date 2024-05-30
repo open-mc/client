@@ -1,4 +1,4 @@
-import { map } from 'world'
+import { world } from 'world'
 import { BlockIDs } from 'definitions'
 
 const uptChunks = []
@@ -16,9 +16,26 @@ export const _addDark = (ch, i=0) => {
 	dI.push(i+lightI)
 }
 
+export const newChunks = []
 export function performLightUpdates(){
+	if(newChunks.length){
+		const shouldSkylight = world.id!='end'&&world.id!='nether'
+		if(shouldSkylight) for(const ch of newChunks){
+			const {light} = ch
+			if(!ch.up){
+				for(let x = 0; x < 64; x++)
+					light[x&63|4032] = 240, _add(ch, x|4032)
+			}
+			const d = ch.down
+			if(d){
+				for(let x = 0; x < 64; x++)
+					if(d.light[x|4032]>15) _addDark(d, x|4032)
+			}
+		}
+		newChunks.length = 0
+	}
 	if(!(dI.length+lI.length)) return
-	const a = performance.now()
+	//const a = performance.now()
 	let dark = 0, light = 0
 	while(dI.length){
 		const a = dI
@@ -120,25 +137,5 @@ export function performLightUpdates(){
 	}
 	for(const c of uptChunks) c.lightI = -1, c.changed|=1
 	uptChunks.length = 0
-	console.info('Lighting update: %fms\nDark: %d, Light: %d', (performance.now()-a).toFixed(3), dark, light)
-}
-
-const tops = new Set
-export function propagateSkylight(y=0, x0=0, x1=0){
-	y *= 0x4000000; x1<<=6
-	let c = null, l = null, l1 = null
-	for(let x = x0<<6; x != x1; x=(x+1)|0){
-		if(!(x&63)){
-			c = c ? c.right : map.get((x>>>6)+y)
-			if(c) l = c.up ? c.up.light : (tops.add((x>>>6)+y), null), l1 = c.light
-			else l = null
-		}
-		if(c) l1[x&63|4032] = (l?l[x&63]&240:240)|l1[x&63|4032]&15, _add(c, x&63|4032)
-	}
-}
-export function propagateSkydark(){
-	for(const k of tops){
-		const c = map.get(k), d = c?.down
-		if(d){ tops.delete(k); for(let x = 0; x < 64; x++) if(d.light[x|4032]>15) _addDark(d, x|4032) }
-	}
+	//console.info('Lighting update: %fms\nDark: %d, Light: %d', (performance.now()-a).toFixed(3), dark, light)
 }

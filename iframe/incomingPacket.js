@@ -4,6 +4,7 @@ import { queue } from './sounds.js'
 import { moveEntity } from './entity.js'
 import { BlockIDs, EntityIDs, Classes, Entity } from 'definitions'
 import { codes } from 'api'
+import { _add, newChunks } from './lighting.js'
 
 function rubberPacket(data){
 	Entity.meid = data.uint32() + data.uint16() * 4294967296
@@ -13,7 +14,6 @@ function rubberPacket(data){
 	world.tps = data.float()
 	_setPerms(data.byte())
 }
-export const skylightUpdates = new Set()
 export let loadingChunks = true
 function dimensionPacket(data){
 	if(!data.left) return void (loadingChunks = false)
@@ -29,25 +29,41 @@ function dimensionPacket(data){
 function clockPacket(data){
 	world.tick = data.double()
 }
+
 function chunkPacket(buf){
 	const chunk = new Chunk(buf)
 	const {x,y} = chunk
 	const ky = y*0x4000000
 	const k = x+ky
 	const down = x+(y-1&0x3FFFFFF)*0x4000000
-	skylightUpdates.delete(down)
-	skylightUpdates.add(k)
 	map.set(k, chunk)
-	const u = map.get(x+(y+1&0x3FFFFFF)*0x4000000)
-	if(u) u.down = chunk, chunk.up = u
-	const d = map.get(down)
+	newChunks.push(chunk)
 	let ex = null
-	if(d) d.up = chunk, chunk.down = d, chunk.exposure = ex = d.exposure, ex.ref++
-	else (ex=exposureMap.get(x))?(chunk.exposure=ex).ref++:(exposureMap.set(x,chunk.exposure=ex=new Int32Array(64)),ex.ref=1)
+	const u = map.get(x+(y+1&0x3FFFFFF)*0x4000000)
+	if(u){
+		u.down = chunk, chunk.up = u
+		const {light,lightI} = u
+		if(lightI>-2) for(let i = 0; i < 64; i++) if(light[i]) _add(u, i)
+	}
+	const d = map.get(down)
+	if(d){
+		d.up = chunk, chunk.down = d
+		chunk.exposure = ex = d.exposure, ex.ref++
+		const {light,lightI} = d
+		if(lightI>-2) for(let i = 4032; i < 4096; i++) if(light[i]) _add(d, i)
+	}else (ex=exposureMap.get(x))?(chunk.exposure=ex).ref++:(exposureMap.set(x,chunk.exposure=ex=new Int32Array(64)),ex.ref=1)
 	const l = map.get((x-1&0x3FFFFFF)+ky)
-	if(l) l.right = chunk, chunk.left = l
+	if(l){
+		l.right = chunk, chunk.left = l
+		const {light,lightI} = l
+		if(lightI>-2) for(let i = 63; i < 4096; i+=64) if(light[i]) _add(l, i)
+	}
 	const r = map.get((x+1&0x3FFFFFF)+ky)
-	if(r) r.left = chunk, chunk.right = r
+	if(r){
+		r.left = chunk, chunk.right = r
+		const {light,lightI} = r
+		if(lightI>-2) for(let i = 0; i < 4096; i+=64) if(light[i]) _add(r, i)
+	}
 	let chy = y<<6
 	for(let x = 0; x < 64; x++){
 		if((ex[x]-chy-64|0)>=0) continue
