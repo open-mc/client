@@ -168,7 +168,7 @@ const axisLineCol = vec4(0, 0, 1, 1)
 let visibleChunks = 0
 
 const day = vec3(.93), night = vec3(.11,.11,.22)
-const block = vec3(2, 1.8, 1.5), netherBase = vec3(.565,.485,.353), endBase = vec3(.185,.243,.21)
+const block = vec3(2, 1.8, 1.5), netherBase = vec3(.424,.364,.265), endBase = vec3(.185,.243,.21)
 listen('gamma', () => setGamma(.8+options.gamma/10))
 drawLayer('none', 200, (ctx, w, h) => {
 	performLightUpdates()
