@@ -8,10 +8,11 @@ export class Chunk extends Uint16Array{
 		super(4096)
 		this.light = new Uint8Array(4096)
 		this.tileData = new Map
-		this.x = buf.int()&0x3ffffff
-		this.y = buf.int()&0x3ffffff
+		const x = (this.x = buf.int()&0x3ffffff)<<6
+		const y = (this.y = buf.int()&0x3ffffff)<<6
 		this.up = this.left = this.right = this.down = null
 		this.lightI = -2
+		this.ticks = new Map()
 		this.entities = new Set()
 		this.ctx2 = this.ctx = this.writeCtx = null
 		this.lastFrame = 0
@@ -79,7 +80,10 @@ export class Chunk extends Uint16Array{
 			if(block.brightness) _add(this, j)
 			if(!block.savedata)continue
 			this[j] = 65535
-			this.tileData.set(j, buf.read(block.savedatahistory[buf.flint()] || block.savedata, new block))
+			const b = buf.read(block.savedatahistory[buf.flint()] || block.savedata, new block)
+			const v = b.parsed?.()
+			if(v!==undefined) this.ticks.set(j, v)
+			this.tileData.set(j, b)
 		}
 		buf.read(Schema, this)
 		this.rerenders = []
@@ -140,9 +144,39 @@ export class Chunk extends Uint16Array{
 			ctx.geometry = pointGeometry
 			ctx.shader = ctxWriteShader
 		}
-		let j = this.rerenders.indexOf(i)
-		if((j == -1) & (b.render != undefined)) this.rerenders.push(i)
-		else if((j > -1) & (b.render == undefined)) this.rerenders.splice(j, 1)
+		const j = this.rerenders.indexOf(i), r = b.render != undefined
+		if((j == -1) & r) this.rerenders.push(i)
+		else if((j > -1) & !r) this.rerenders.splice(j, 1)
+		this.writeCtx.drawRect(i&63,i>>6,1,1,b.texture)
+	}
+	redrawBlock(i, b){
+		_addDark(this, i)
+		_add(this, i)
+		if(b.solid){
+			const y = this.y<<6|i>>6
+			if((this.exposure[i&63]-y)|0<=0) this.exposure[i&63] = y+1|0
+		}else{
+			let y = (this.y<<6|i>>6)+1|0
+			let i2 = i, ch = this
+			if(this.exposure[i&63]==y){
+				while(true){
+					if(i2<64){ const c = ch.down; if(!c){ i2=ch.y<<6; break }; ch=c; i2 += 4096 }
+					const b = ch[i2-=64], {solid} = b==65535?ch.tileData.get(i2):BlockIDs[b]
+					if(solid){ i2 = (ch.y<<6|i2>>6)+1|0; break }
+				}
+				this.exposure[i&63] = i2
+			}
+		}
+		if(!this.ctx) return
+		if(!this.writeCtx){
+			const ctx = this.writeCtx = this.ctx.drawable()
+			ctx.box(.0078125, .0078125, .015625, .015625)
+			ctx.geometry = pointGeometry
+			ctx.shader = ctxWriteShader
+		}
+		const j = this.rerenders.indexOf(i), r = b.render != undefined
+		if((j == -1) & r) this.rerenders.push(i)
+		else if((j > -1) & !r) this.rerenders.splice(j, 1)
 		this.writeCtx.drawRect(i&63,i>>6,1,1,b.texture)
 	}
 	changed = 0

@@ -4,7 +4,7 @@ import { mePhysics, stepEntity } from './entity.js'
 import { gridEventMap, getblock, entityMap, map, cam, onPlayerLoad, world, bigintOffset, me, genLightmap, lightTint, lightTex, lightArr, setGamma, getTint, getLightValue, W2, H2, SCALE, toBlockExact } from 'world'
 import * as pointer from './pointer.js'
 import { onKey, drawLayer, options, paused, _renderPhases, renderBoxes, renderF3, send, download, copy, pause, _updatePaused, drawText, calcText, textShadeCol, _networkUsage, networkUsage, listen, _tickPhases } from 'api'
-import { particles, blockAtlas, _recalcDimensions, prep } from 'definitions'
+import { particles, blockAtlas, _recalcDimensions, prep, BlockIDs } from 'definitions'
 import { VERSION } from '../server/version.js'
 import { loadingChunks } from './incomingPacket.js'
 import { performLightUpdates } from './lighting.js'
@@ -46,6 +46,16 @@ function tick(){
 	const randomBlock = getblock(x, y)
 	if(randomBlock.random) randomBlock.random(x, y)
 	for(const e of entityMap.values()) if(e.tick) e.tick()
+	for(const ch of map.values()){
+		if(!ch.ticks.size) continue
+		const x = ch.x<<6, y = ch.y<<6
+		for(const {0:i,1:v} of ch.ticks){
+			const id=ch[i],b=id==65535?ch.tileData.get(i):BlockIDs[i]
+			const v1 = b.update?.(v, x|i&63, y|i>>6)
+			if(v1 === undefined) ch.ticks.delete(i)
+			else if(v1!=v) ch.ticks.set(i, v1)
+		}
+	}
 	for(const f of _tickPhases) try{f(t)}catch(e){Promise.reject(e)}
 }
 export let zoom_correction = 0
@@ -347,10 +357,10 @@ Facing: ${(me.f >= 0 ? 'R' : 'L') + (90 - abs(me.f / PI2 * 360)).toFixed(1).padS
 Dimension: ${world.id}
 Biome: ${me.chunk ? round(me.chunk.biomes[mex] * (1 - mexi) + me.chunk.biomes[mex+2] * mexi) : 0}/${me.chunk ? round(me.chunk.biomes[mex+1] * (1 - mexi) + me.chunk.biomes[mex+3] * mexi) : 0}
 Looking at: \\4+${toString(bigintOffset.x, pointX, 0)} ${toString(bigintOffset.y, pointY, 0)}\\0+
-Light: ${light.toHex().slice(6)}, sky=${light>>4}, block=${light&15}
+Light: 0x${light.toHex().slice(6)}, sky=${light>>4}, block=${light&15}
 Block: ${lookingAt.className+(lookingAt.savedata?' {...}':'')} (${lookingAt.id})
-Block.texture: ${lookingAt.texture>=0?`${lookingAt.texture.toHex().slice(2)}[${(lookingAt.texture>>>24)+1}]`+(lookingAt.render?'*':''):lookingAt.render?'na*':'na'}
-Item.texture: ${holding?.texture>=0?`${holding.texture.toHex().slice(2)}[${(holding.texture>>>24)+1}]`+(holding.render?'*':''):holding?.render?'na*':'na'}`]
+Block.texture: 0x${lookingAt.texture>=0?`${lookingAt.texture.toHex().slice(2)}[${(lookingAt.texture>>>24)+1}]`+(lookingAt.render?'*':''):lookingAt.render?'na*':'na'}
+Item.texture: 0x${holding?.texture>=0?`${holding.texture.toHex().slice(2)}[${(holding.texture>>>24)+1}]`+(holding.render?'*':''):holding?.render?'na*':'na'}`]
 }
 
 drawLayer('ui', 999, (ctx, w, h) => {

@@ -63,6 +63,23 @@ function variant(ch, i, x, y){
 	}
 }
 
+export function updateblock(x, y, a=0){
+	const k = (x>>>6)+(y>>>6)*0x4000000
+	const ch = map.get(k)
+	if(!ch) return
+	const i = (x & 63) | (y & 63) << 6
+	ch.ticks.set(i, a)
+}
+
+export function redrawblock(x, y, b=null){
+	const k = (x>>>6)+(y>>>6)*0x4000000
+	const ch = map.get(k)
+	if(!ch) return
+	const i = (x & 63) | (y & 63) << 6
+	if(!b){ const id = ch[i]; b = id==65535?ch.tileData.get(i):BlockIDs[id] }
+	ch.redrawBlock(i, b)
+}
+
 export function setblock(x, y, b){
 	b = b.savedata&&b===b.constructor?new b:b
 	const k = (x>>>6)+(y>>>6)*0x4000000

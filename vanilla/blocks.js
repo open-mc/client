@@ -1,6 +1,6 @@
 import { uiButtons, audioSet, lava, renderSlot, water, click, renderGenericTooltip } from './effects.js'
-import { sound, cam, world } from 'world'
-import { Blocks, Block, Items, BlockTexture, toTex } from 'definitions'
+import { sound, cam, world, updateblock, redrawblock } from 'world'
+import { Blocks, Block, Items, BlockTexture } from 'definitions'
 import { BlockShape, blockShaped, fluidify } from './blockshapes.js'
 import { closeInterface } from './index.js'
 import { uiButton, drawLayer, drawText } from 'api'
@@ -520,13 +520,13 @@ Blocks.crafting_table = class extends Planks{
 	static texture = BlockTexture(blocksPng, 12, 3)
 	static interactible = true
 }
-const litFurnaceTex = BlockTexture(blocksPng, 13, 3)
 const furnaceInterface = Img(src`furnace.png`)
 const furnaceUI = furnaceInterface.crop(0, 0, 176, 80), cookArrow = furnaceInterface.crop(176, 14, 24, 17), fuelIndicator = furnaceInterface.crop(176, 0, 14, 14)
+const furnaceTex = BlockTexture(blocksPng, 12, 2), furnaceLitTex = BlockTexture(blocksPng, 13, 3)
 Blocks.furnace = class extends Stone{
-	static texture = BlockTexture(blocksPng, 12, 2)
 	static interactible = true
-	render(c, tint){ if(this.fuelTime>t) c.draw(toTex(litFurnaceTex), tint) }
+	static texture = furnaceTex
+	brightness = 0; texture = furnaceTex
 	drawInterface(id, c, drawInv){
 		if(id != 0) return
 		const c2 = c.sub()
@@ -539,23 +539,29 @@ Blocks.furnace = class extends Stone{
 		c2.translate(3.75, -1.125)
 		renderSlot(c2, this, 2, 0)
 		c2.resetTo(c)
-		const w = max(0, ceil(24-(t>=this.cookTime?10:this.cookTime-t)/10*24))
+		const w = this.cookTime?max(0, ceil(24-this.cookTime*.12)):0
 		c2.drawRect(-9, 28, w, 17, cookArrow.sub(0, 0, w/24, 1))
-		const h = max(0, ceil(((this.fuelTime-t)/this._fuelCap||0)*14))
+		const h = max(0, ceil((this._fuelTime/this._fuelCap||0)*14))
 		c2.drawRect(-32, 29, 14, h, fuelIndicator.sub(0, 0, 1, h/14))
 		drawInv(0, 0)
 	}
-	10(buf){
-		this._cookTime = t+buf.byte()/world.tps
-		const time = buf.short(), cap = buf.short()/world.tps
-		this._fuelTime = t+time/world.tps
+	10(buf, x, y){
+		this.cookTime = buf.byte()
+		this._fuelTime = buf.short()
+		const cap = buf.short()
 		if(cap) this._fuelCap = cap
+		if(!this.brightness&&this._fuelTime) this.brightness = 13, this.texture = furnaceLitTex, updateblock(x, y), redrawblock(x, y, this)
 	}
-	_fuelTime = 0; _cookTime = 0; _fuelCap = 0
-	set fuelTime(a){this._fuelTime = t+(this._fuelCap = a/world.tps)}
+	update(_, x, y){
+		if(this.cookTime) this.cookTime--
+		if(this._fuelTime>-10){
+			if(--this._fuelTime<=-10) this.brightness = 0, this.texture = furnaceTex, redrawblock(x, y, this)
+			else return 0
+		}
+	}
+	_fuelTime = 0; cookTime = 0; _fuelCap = 0
+	set fuelTime(a){this._fuelTime=a;this._fuelCap=a}
 	get fuelTime(){return this._fuelTime}
-	set cookTime(a){this._cookTime = t+a/world.tps}
-	get cookTime(){return this._cookTime}
 	input = null; fuel = null; output = null
 	getItem(id, slot){return slot == 0 ? this.input : slot == 1 ? this.fuel : slot == 2 ? this.output : undefined}
 	setItem(id, slot, item){
@@ -578,6 +584,9 @@ Blocks.furnace = class extends Stone{
 		const o = this.output
 		if(!--this.output.count) this.output = null
 		return new o.constructor(1)
+	}
+	parsed(){
+		if(this.fuelTime) return this.brightness = 13, this.texture = furnaceLitTex, 0
 	}
 }
 
