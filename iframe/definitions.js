@@ -305,7 +305,11 @@ export class BlockParticle extends Particle{
 			(frac & 3) + random()*2 - 2.5 , 2 + (frac >> 2) + random()*2
 		)
 		this.frac = (random() * 16) | 0
-		this.tex = (block ? block.particleTexture ?? toTex(block.texture) : toTex(-1)).crop((this.frac & 3) << 2, (this.frac & 12), (this.frac&2)+2, (this.frac<<1&2)+2)
+		if(!block) return
+		let p = block.particleTexture??block.texture
+		if(p==-1) p = block.texture
+		if(typeof p == 'number') p = toTex(p)
+		this.tex = p.crop((this.frac & 3) << 2, (this.frac & 12), (this.frac&2)+2, (this.frac<<1&2)+2)
 	}
 	render(c, tint){
 		if(!this.tex) return

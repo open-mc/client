@@ -183,7 +183,7 @@ drawLayer('ui', 1000, (c, w, h) => {
 			hotbarTooltipAlpha -= dt*2
 			const item = me.inv[me.selected]
 			if(!item) break a
-			const name = item.name || item.defaultName
+			const name = item.name || item.defaultName || item.className
 			const arr = calcText(name, _, item.name ? 79 : 15)
 			drawText(c2, arr, hotBarLeft + hotbar.width / 2 - arr.width*4, hotbar.height + 24, 8, min(1, max(0, hotbarTooltipAlpha)))
 		}

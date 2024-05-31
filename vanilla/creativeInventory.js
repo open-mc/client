@@ -7,6 +7,13 @@ import './items.js'
 const Category = (name, icon, ...a) => { a.name = name; a.icon = icon; return a }
 
 const categories = [
+	Category('Building', Items.cobblestone,
+		Items.cobblestone, Items.glass,
+		Items.oak_planks, Items.birch_planks,
+		Items.spruce_planks, Items.dark_oak_planks,
+		Items.acacia_planks, Items.jungle_planks,
+	),
+
 	Category('Wood', Items.oak_log,
 		Items.oak_log, Items.birch_log,
 		Items.spruce_log, Items.dark_oak_log,
@@ -19,11 +26,8 @@ const categories = [
 		Items.acacia_planks_slab, Items.jungle_planks_slab,
 	),
 
-	Category('Building', Items.cobblestone,
-		Items.cobblestone, Items.glass,
-		Items.oak_planks, Items.birch_planks,
-		Items.spruce_planks, Items.dark_oak_planks,
-		Items.acacia_planks, Items.jungle_planks,
+	Category('Stone', Items.stone,
+		Items.stone, Items.cobblestone
 	),
 
 	Category('Deco', Items.red_wool,
@@ -34,20 +38,27 @@ const categories = [
 		Items.glass, Items.glowstone
 	),
 
-	Category('Lights', Items.glowstone,
-		Items.glowstone, Items.glowing_obsidian, Items.bucket_of_lava, Items.flint_and_steel
+	Category('Lighting', Items.glowstone,
+		Items.glass, Items.glowstone, Items.glowing_obsidian, Items.bucket_of_lava, Items.flint_and_steel
 	),
 
-	Category('Forest', Items.oak_sapling,
+	Category('Shaped blocks', Items.oak_planks_slab,
+		Items.oak_planks_slab, Items.birch_planks_slab,
+		Items.spruce_planks_slab, Items.dark_oak_planks_slab,
+		Items.acacia_planks_slab, Items.jungle_planks_slab,
+	),
+
+	Category('Natural', Items.oak_sapling,
+		Items.grass, Items.dirt,
+		Items.stone, Items.netherrack,
+		Items.endstone, Items.obsidian, Items.bedrock,
+		Items.bucket_of_water, Items.bucket_of_lava,
 		Items.oak_log, Items.birch_log,
 		Items.spruce_log, Items.dark_oak_log,
 		Items.acacia_log, Items.jungle_log,
 		Items.oak_leaves, Items.birch_leaves,
 		Items.spruce_leaves, Items.dark_oak_leaves,
 		Items.acacia_leaves, Items.jungle_leaves,
-	),
-
-	Category('Desert', Items.sand,
 		Items.sand, Items.sandstone,
 		Items.cut_sandstone, Items.smooth_sandstone,
 		Items.chiseled_sandstone, Items.red_sandstone,
@@ -55,31 +66,20 @@ const categories = [
 		Items.smooth_red_sandstone,
 	),
 
-	Category('Ground', Items.grass,
-		Items.grass, Items.dirt,
-		Items.sand, Items.stone,
-		Items.sandstone, Items.netherrack,
-		Items.endstone, Items.obsidian, Items.bedrock,
-		Items.bucket_of_water, Items.bucket_of_lava,
+	Category('General', Items.iron,
+		Items.stick, Items.coal,
+		Items.iron, Items.lapis,
+		Items.gold, Items.diamond,  Items.emerald,
+		Items.eye_of_ender
 	),
 
-	Category('Slabs', Items.oak_planks_slab,
-		Items.oak_planks_slab, Items.birch_planks_slab,
-		Items.spruce_planks_slab, Items.dark_oak_planks_slab,
-		Items.acacia_planks_slab, Items.jungle_planks_slab,
-	),
-
-	Category('Crops', Items.sugar_cane,
+	Category('Crops & food', Items.apple,
 		Items.sugar_cane, Items.sand,
 		Items.dirt, Items.bucket_of_water,
 		Items.oak_sapling, Items.birch_sapling,
 		Items.spruce_sapling, Items.dark_oak_sapling,
 		Items.acacia_sapling, Items.jungle_sapling,
-		Items.bone_meal,
-	),
-
-	Category('Food', Items.apple,
-		Items.apple
+		Items.bone_meal, Items.apple
 	),
 
 	Category('Tools', Items.diamond_pickaxe,
@@ -92,23 +92,17 @@ const categories = [
 		Items.glowing_obsidian, Items.bucket_of_lava, Items.bucket_of_water
 	),
 
-	Category('General', Items.stick,
-		Items.stick, Items.eye_of_ender,
-		Items.lapis, Items.coal, Items.iron,
-		Items.gold, Items.emerald, Items.diamond,
+	Category('Special', Items.end_crystal,
+		Items.end_crystal, Items.eye_of_ender,
 	),
 
-	Category('Special', Items.eye_of_ender,
-		Items.eye_of_ender,
-	),
-
-	Category('Tool blocks', Items.crafting_table,
+	Category('Functional', Items.crafting_table,
 		Items.crafting_table, Items.chest, Items.furnace,
 	),
 
 	Category('Technical', Items.command_block,
 		Items.command_block, Items.end_portal_frame,
-		Items.bedrock,
+		Items.bedrock, Items.barrier
 	),
 ]
 

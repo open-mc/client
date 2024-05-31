@@ -1,11 +1,8 @@
 import { Blocks, Items, Item, BlockTexture } from 'definitions'
 import { itemify, slabifyItem } from './blockshapes.js'
-import { chestTop, commandBlockTexs } from './blocks.js'
+import { chestTop, commandBlockTexs, itemsPng, barrierTex } from './blocks.js'
 import { getblock } from 'world'
 
-const src = loader(import.meta)
-
-export const itemsPng = Img(src`items.png`)
 Items.oak_log = itemify(Blocks.oak_log, 'Oak log')
 Items.birch_log = itemify(Blocks.birch_log, 'Birch log')
 Items.spruce_log = itemify(Blocks.spruce_log, 'Spruce log')
@@ -101,8 +98,8 @@ const mineral = (name, tex) => class extends Item{
 
 Items.lapis = mineral('Lapis', BlockTexture(itemsPng, 15, 8))
 Items.coal = mineral('Coal', BlockTexture(itemsPng, 16, 5))
-Items.iron = mineral('Iron ingot', BlockTexture(itemsPng, 4, 14))
-Items.gold = mineral('Gold ingot', BlockTexture(itemsPng, 9, 13))
+Items.iron = mineral('Iron ingot', BlockTexture(itemsPng, 4, 12))
+Items.gold = mineral('Gold ingot', BlockTexture(itemsPng, 9, 11))
 Items.emerald = mineral('Emerald', BlockTexture(itemsPng, 13, 9))
 Items.diamond = mineral('Diamond', BlockTexture(itemsPng, 5, 8))
 
@@ -256,4 +253,11 @@ Items.command_block = class extends Item{
 	}
 	places(){ return Blocks.command_block }
 	static defaultName = 'Command block'
+}
+
+Items.barrier = class extends Item{
+	static texture = barrierTex
+	static useTint = false
+	places(){ return Blocks.barrier }
+	static defaultName = 'Barrier'
 }

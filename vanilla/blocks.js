@@ -1,12 +1,13 @@
 import { uiButtons, audioSet, lava, renderSlot, water, click, renderGenericTooltip } from './effects.js'
-import { sound, cam, world, updateblock, redrawblock } from 'world'
-import { Blocks, Block, Items, BlockTexture } from 'definitions'
+import { sound, cam, world, updateblock, redrawblock, mode } from 'world'
+import { Blocks, Block, Items, BlockTexture, toTex } from 'definitions'
 import { BlockShape, blockShaped, fluidify } from './blockshapes.js'
 import { closeInterface } from './index.js'
 import { uiButton, drawLayer, drawText } from 'api'
 const src = loader(import.meta)
 
 export const blocksPng = Img(src`blocks.png`)
+export const itemsPng = Img(src`items.png`)
 export const animatedPng = Img(src`animated.png`)
 
 Blocks.air = class extends Block{
@@ -212,8 +213,14 @@ Blocks.snow_block = class extends Block{
 Blocks.snowy_grass = class extends Blocks.grass{
 	static texture = BlockTexture(blocksPng, 4, 4)
 }
-Blocks.coal_ore = class extends Stone{ static texture = BlockTexture(blocksPng, 2, 2) }
-Blocks.iron_ore = class extends Stone{ static texture = BlockTexture(blocksPng, 1, 2) }
+Blocks.coal_ore = class extends Stone{
+	static breaktime = 15
+	static texture = BlockTexture(blocksPng, 2, 2)
+}
+Blocks.iron_ore = class extends Stone{
+	static breaktime = 15
+	static texture = BlockTexture(blocksPng, 1, 2)
+}
 Blocks.netherrack = class extends Block{
 	static breaktime = 2
 	static texture = BlockTexture(blocksPng, 7, 6)
@@ -656,5 +663,21 @@ Blocks.command_block = class extends Stone{
 		c.fillRect(-160, -120, 320, 240)
 		c.lineWidth = 1
 		c.strokeRect(-160, -120, 320, 240)
+	}
+}
+
+export const barrierTex = BlockTexture(itemsPng, 5, 0)
+
+Blocks.barrier = class extends Stone{
+	static breaktime = Infinity
+	static tool = 'pick'
+	static texture = -1
+	get particleTexture(){ return mode == 1 ? barrierTex : -1 }
+	static opacity = 0
+	render(c){
+		if(mode == 1 && me.inv[me.selected]?.constructor == Items.barrier) c.draw(toTex(barrierTex))
+	}
+	hover(c, itm){
+		return mode == 1 && me.inv[me.selected]?.constructor == Items.barrier
 	}
 }

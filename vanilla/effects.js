@@ -100,7 +100,7 @@ export function renderSlot(c, e, i, id=0){
 export function renderTooltip(c, item){
 	if(!item) return
 	const lines = [item.name || item.defaultName]
-	if(renderF3) lines.push(`\\+8${item.className}*${item.count}${(item.savedata?'+NBT':'')} (${item.id})`)
+	if(renderF3) lines.push(`\\+8${item.className}${item.count?'*'+item.count:''}${(item.savedata?'+NBT':'')} (${item.id})`)
 	renderGenericTooltip(c, lines)
 }
 const tooltipBg = vec4(.06, 0, .06, .9), tooltipBorder = vec4(.133, 0, .3)
@@ -115,8 +115,9 @@ export function renderGenericTooltip(c, lines){
 		arrs.push(arr)
 	}
 	width *= 8
-	if(x+width+20 >= c.width || y+(lines.length+1)*12 >= c.height) c.translate(x - width - 12, y)
-	else c.translate(x + 12, y + 8)
+	const {x: x1, y: y1} = c.to(x + width + 20, y-12)
+	if(x1 >= 1 || y1 >= 1) c.translate(x - width - 12, y-8)
+	else c.translate(x + 12, y)
 	c.drawRect(-1, lines.length*-12-2, width+8, lines.length*12+2, tooltipBg)
 	c.drawRect(0, lines.length*-12-3, width+6, lines.length*12+4, tooltipBg)
 	c.drawRect(0, 0, width+6, -1, tooltipBorder)

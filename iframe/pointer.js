@@ -129,10 +129,11 @@ export function drawPointer(c){
 					if(blockPlacing?.blockShape?.length!==0 && blockPlacing?.solid===true && !interactFluid) blockPlacing = null, bpx = bpy = bpfx = bpfy = NaN
 					break a
 				}
-		if(renderUI){
-			let {blockShape = DEFAULT_BLOCKSHAPE} = getblock(bx, by)
-			if(bx == bx && by == by){
-				toBlockExact(c, bx, by)
+		if(bx == bx && by == by){
+			toBlockExact(c, bx, by)
+			const block = getblock(bx, by)
+			if(renderUI && (block.hover?.(c, item)??true)){
+				const {blockShape = DEFAULT_BLOCKSHAPE} = block
 				c.shader = Shader.NONE
 				c.mask = SET
 				if(blockShape.length == 0) blockShape = DEFAULT_BLOCKSHAPE

@@ -264,14 +264,14 @@ const pop = Wave(src`sound/misc/pop.mp3`)
 
 Entities.item = class extends Entity{
 	item = null
-	static width = 0.125
-	static height = 0.25
+	static width = 0.16
+	static height = 0.32
 	static head = 0
 	static savedata = {item: Item}
 	render(c, tint){
 		if(!this.item) return
 		c.translate(0, sin(t*2)/12+.15)
-		c.scale(0.36, 0.36)
+		c.scale(0.4375, 0.4375)
 		renderItem(c, this.item, tint)
 		const c2 = c.sub()
 		if(this.item.count > 1){
