@@ -344,18 +344,20 @@ const endCrystalCore = endercrystal.crop(96,16,16,16)
 Entities.end_crystal = class extends Entity{
 	static width = 0.99
 	static height = 1.99
+	power = 180
 	render(c){
 		const t = this.age / world.tps
+		const a = 2-this.power/180, tint = vec4(1, a, a, 1)
 		c.translate(0, 1.2 + sin(t * 4) / 3)
 		c.rotate(t*0.5)
 		c.drawRect(-0.4, -0.4, 0.8, 0.8, endCrystalCore)
 		c.rotate(-t)
-		c.drawRect(-0.53, -0.53, 1.06, 1.06, endCrystalWiregrid)
+		c.drawRect(-0.53, -0.53, 1.06, 1.06, endCrystalWiregrid, tint)
 		c.rotate(t*1.5)
-		c.drawRect(-0.6, -0.6, 1.2, 1.2, endCrystalWiregrid)
+		c.drawRect(-0.6, -0.6, 1.2, 1.2, endCrystalWiregrid, tint)
 	}
 	3(){
-		this.sound(explode)
+		this.sound(explode, this.power/90-1)
 		for(let i = 0; i < 15; i++) addParticle(new BlastParticle(this.x, this.y))
 		for(let i = 0; i < 30; i++) addParticle(new AshParticle(this.x, this.y))
 	}

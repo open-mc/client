@@ -388,11 +388,37 @@ drawLayer('ui', 999, (ctx, w, h) => {
 })
 
 
-onKey(KEYS.F2, () => requestAnimationFrame(() => {
-	const method = buttons.has(KEYS.ALT) ? copy : download
-	if(method == copy) flashbang = 1
-	_gl.canvas.toBlob(method, 'image/png')
-}))
+onKey(KEYS.F2, () => requestAnimationFrame(() => _gl.canvas.toBlob(blob => {
+	const f = new File([blob], 'screenshot-'+timestamp(), blob)
+	if(buttons.has(KEYS.ALT)) copy(f), flashbang = 1
+	else download(f)
+}, 'image/png')))
+let rec = null
+const timestamp = (d = new Date()) => `${d.getYear()+1900}-${('0'+d.getMonth()).slice(-2)}-${('0'+d.getDate()).slice(-2)}-at-${('0'+d.getHours()).slice(-2)}-${('0'+d.getMinutes()).slice(-2)}-${('0'+d.getSeconds()).slice(-2)}`
+_gl.canvas.style.outlineOffset = '-1px'
+onKey(KEYS.F6, () => {
+	if(!rec){
+		audioOut = _actx.createMediaStreamDestination()
+		bgGain.connect(audioOut)
+		const s = _gl.canvas.captureStream()
+		s.addTrack(audioOut.stream.getTracks()[0])
+		rec = new MediaRecorder(s, {videoBitsPerSecond: buttons.has(KEYS.ALT) ? 75e5 : 25e5})
+		const chunks = []
+		rec.ondataavailable = e => chunks.push(e.data)
+		rec.onstop = (e) => {
+			download(new File(chunks, 'recording-'+timestamp(), {type: e.target.mimeType}))
+			chunks.length = 0
+		}
+		rec.start()
+		_gl.canvas.style.outline = options.guiScale*2+'px red solid'
+		return
+	}
+	rec.stop(); rec = null
+	bgGain.disconnect(audioOut)
+	audioOut = null
+	_gl.canvas.style.outline = ''
+})
+
 import('./ipc.js')
 import('./incomingPacket.js')
 await new Promise(onPlayerLoad)

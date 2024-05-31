@@ -85,7 +85,7 @@ export const _onPacket = data => {
 export const send = buf => void(postMessage(buf = (buf.build ? buf.build().buffer : buf.buffer || buf), '*'), bytes += buf.byteLength)
 
 export const download = blob => postMessage(blob, '*')
-export const copy = blob => postMessage([blob], '*')
+export const copy = blob => postMessage(globalThis.ClipboardItem ? [blob] : blob, '*')
 
 export let _onvoice = null
 

@@ -838,10 +838,11 @@ gl.bindVertexArray(sh.vao)
 globalThis._gl = gl
 globalThis.ctx = new can(ca={tex:gl.canvas,img:null,layer:0,stencil:0,stencilBuf:null,w:0,h:0})
 
-const actx = new AudioContext({latencyHint: 'interactive'})
+const actx = globalThis._actx = new AudioContext({latencyHint: 'interactive'})
 globalThis.bgGain = actx.createGain()
 bgGain.connect(actx.destination)
 globalThis.masterVolume = 1
+globalThis.audioOut = null
 globalThis.Wave = src => {
 	let buf = null
 	return function play(vol = 1, pitch = 1, pan = 0, start = 0, end = NaN, ends = true, bg = false){
@@ -866,22 +867,23 @@ globalThis.Wave = src => {
 		source.buffer = buf
 		if(bg) source.connect(bgGain)
 		else{
-			let dest = actx.destination
+			let s = source
 			const volume = masterVolume * vol
+			source.playbackRate.value = pitch
 			if(volume != 1){
 				const gain = actx.createGain()
 				gain.gain.value = volume
-				gain.connect(dest)
-				dest = gain
+				s.connect(gain)
+				s = gain
 			}
 			if(pan != 0){
 				const panner = actx.createStereoPanner()
 				panner.pan.value = min(1, max(-1, pan))
-				panner.connect(dest)
-				dest = panner
+				s.connect(panner)
+				s = panner
 			}
-			source.playbackRate.value = pitch
-			source.connect(dest)
+			if(audioOut) s.connect(audioOut)
+			s.connect(actx.destination)
 		}
 		if(source.loop = !ends){
 			source.loopStart = start

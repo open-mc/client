@@ -76,10 +76,9 @@ onmessage = ({data, source}) => {
 		queue.length = 0
 	}else if(data instanceof ArrayBuffer && globalThis.ws) ws.send(data)
 	else if(data instanceof Blob){
-		let d = new Date()
 		const a = document.createElement("a")
 		a.href = URL.createObjectURL(data)
-		a.download = `screenshot-${d.getYear()+1900}-${('0'+d.getMonth()).slice(-2)}-${('0'+d.getDay()).slice(-2)}-at-${('0'+d.getHours()).slice(-2)}-${('0'+d.getMinutes()).slice(-2)}-${('0'+d.getSeconds()).slice(-2)}`
+		a.download = data.name ?? data.type.split('/',1)[0]
 		a.click()
 		URL.revokeObjectURL(a.href)
 	}else if(Array.isArray(data)){
