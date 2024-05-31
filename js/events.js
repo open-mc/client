@@ -21,7 +21,7 @@ onkeyup = e => {
 	if(win) keyMsg(~e.keyCode)
 	e.preventDefault()
 }
-document.ontouchstart = e => {
+/*document.ontouchstart = e => {
 	if(!win) return
 	const clientX = e.touches[0].clientX, clientY = e.touches[0].clientY
 	if(ui === NONE){
@@ -31,10 +31,11 @@ document.ontouchstart = e => {
 	win.postMessage([clientX, clientY], '*')
 }
 document.ontouchmove = e => {
+	if(!win) return
 	const clientX = e.touches[0].clientX, clientY = e.touches[0].clientY
 	win.postMessage([clientX, clientY], '*')
 }
-document.ontouchend = e => void(win && keyMsg(~0))
+document.ontouchend = e => void(win && keyMsg(~0))*/
 
 document.onmousedown = e => void(win && (!ui || (ui instanceof Comment)) && keyMsg(e.button))
 document.onmouseup = e => void(win && keyMsg(~e.button))
