@@ -124,11 +124,13 @@ Entities.player = class extends LivingEntity{
 	selected = 0
 	skin = null
 	textures = null
+	handAnim = 0
 	render(c, tint){
 		if(super.render(c)) return
+		if((this.handAnim -= dt) <= 0) this.handAnim = this.state&8?.13:0
 		if(!this.textures) return
 		const angle = (this.state & 3) == 2 ? sin(t * 4) * this.dx / 5 : sin(t * 12) * this.dx / 10
-		const extraAngle = this.state & 8 ? ((-5*t%1+1)%1)*((-5*t%1+1)%1)/3 : 0
+		const extraAngle = this.handAnim*this.handAnim*12
 		c.scale(0.9, 0.9)
 		let backTint
 		if(this.hitTimer) backTint = tint.times(entityBackHurtTint), tint = tint.times(entityHurtTint)

@@ -297,10 +297,6 @@ drawLayer('world', 350, (ctx, w, h) => {
 	if(!me.linked && !(me.health<=0))
 		renderEntity(ctx.sub(), me, .2)
 })
-drawLayer('world', 400, ctx => {
-	if(paused) return
-	pointer.drawPointer(ctx)
-})
 
 function toString(big, num, precision = 3){
 	let v

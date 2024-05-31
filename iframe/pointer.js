@@ -41,7 +41,7 @@ drawLayer('none', -1000, () => {
 export const DEFAULT_BLOCKSHAPE = [0, 0, 1, 1]
 let blockPlacing = null
 const invertBlend = Blend(ONE_MINUS_DST, ADD, ONE_MINUS_SRC)
-export function drawPointer(c){
+drawLayer('world', 400, c => {
 	if(renderUI && me.health){
 		c.blend = invertBlend
 		const v = me.linked ? 1 : 0.2
@@ -129,44 +129,46 @@ export function drawPointer(c){
 					if(blockPlacing?.blockShape?.length!==0 && blockPlacing?.solid===true && !interactFluid) blockPlacing = null, bpx = bpy = bpfx = bpfy = NaN
 					break a
 				}
-		if(bx == bx && by == by){
-			toBlockExact(c, bx, by)
-			const block = getblock(bx, by)
-			if(renderUI && (block.hover?.(c, item)??true)){
-				const {blockShape = DEFAULT_BLOCKSHAPE} = block
-				c.shader = Shader.NONE
-				c.mask = SET
-				if(blockShape.length == 0) blockShape = DEFAULT_BLOCKSHAPE
-				for(let i = 0; i < blockShape.length; i += 4){
-					const x0 = blockShape[i], x1 = blockShape[i+2], y0 = blockShape[i+1], y1 = blockShape[i+3]
-					c.drawRect(x0, y0, x1-x0, y1-y0)
-					if(blockPlacing)
-					if(bpx > bx){
-						c.drawRect(x1, y0, 0.125, 0.0625)
-						c.drawRect(x1, y1 - 0.0625, 0.125, 0.0625)
-					}else if(bpx < bx){
-						c.drawRect(x0 - 0.125, y0, 0.125, 0.0625)
-						c.drawRect(x0 - 0.125, y1 - 0.0625, 0.125, 0.0625)
-					}else if(bpy > by){
-						c.drawRect(x0, y1, 0.0625, 0.125)
-						c.drawRect(x1 - 0.0625, y1, 0.0625, 0.125)
-					}else if(bpy < by){
-						c.drawRect(x0, y0 - 0.125, 0.0625, 0.125)
-						c.drawRect(x1 - 0.0625, y0 - 0.125, 0.0625, 0.125)
-					}
-				}
-				c.mask = UNSET
-				for(let i = 0; i < blockShape.length; i += 4){
-					const x0 = blockShape[i], x1 = blockShape[i+2], y0 = blockShape[i+1], y1 = blockShape[i+3]
-					c.drawRect(x0+.0625, y0+.0625, x1-x0-.125, y1-y0-.125)
-				}
-				c.mask = RGBA | IF_SET | UNSET
-				c.shader = null
-				c.drawRect(-0.5, -0.5, 2, 2, vec4(0, 0, 0, .5))
+	}
+})
+
+drawLayer('world', 201, (c, w, h) => {
+	if(bx != bx || by != by) return
+	toBlockExact(c, bx, by)
+	const block = getblock(bx, by)
+	if(renderUI && (block.hover?.(c, item)??true)){
+		const {blockShape = DEFAULT_BLOCKSHAPE} = block
+		c.shader = Shader.NONE
+		c.mask = SET
+		if(blockShape.length == 0) blockShape = DEFAULT_BLOCKSHAPE
+		for(let i = 0; i < blockShape.length; i += 4){
+			const x0 = blockShape[i], x1 = blockShape[i+2], y0 = blockShape[i+1], y1 = blockShape[i+3]
+			c.drawRect(x0, y0, x1-x0, y1-y0)
+			if(blockPlacing)
+			if(bpx > bx){
+				c.drawRect(x1, y0, 0.125, 0.0625)
+				c.drawRect(x1, y1 - 0.0625, 0.125, 0.0625)
+			}else if(bpx < bx){
+				c.drawRect(x0 - 0.125, y0, 0.125, 0.0625)
+				c.drawRect(x0 - 0.125, y1 - 0.0625, 0.125, 0.0625)
+			}else if(bpy > by){
+				c.drawRect(x0, y1, 0.0625, 0.125)
+				c.drawRect(x1 - 0.0625, y1, 0.0625, 0.125)
+			}else if(bpy < by){
+				c.drawRect(x0, y0 - 0.125, 0.0625, 0.125)
+				c.drawRect(x1 - 0.0625, y0 - 0.125, 0.0625, 0.125)
 			}
 		}
+		c.mask = UNSET
+		for(let i = 0; i < blockShape.length; i += 4){
+			const x0 = blockShape[i], x1 = blockShape[i+2], y0 = blockShape[i+1], y1 = blockShape[i+3]
+			c.drawRect(x0+.0625, y0+.0625, x1-x0-.125, y1-y0-.125)
+		}
+		c.mask = RGBA | IF_SET | UNSET
+		c.shader = null
+		c.drawRect(-0.5, -0.5, 2, 2, vec4(0, 0, 0, .5))
 	}
-}
+})
 let didHit = false
 export function checkBlockPlacing(buf){
 	const hasP = buttons.has(options.click ? LBUTTON : RBUTTON) || buttons.has(options.click ? GAMEPAD.LT : GAMEPAD.RT)
