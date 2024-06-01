@@ -30,6 +30,8 @@ export let mePhysics = {
 	factor: 1, climbable: false
 }
 
+export const EPS = .000002
+
 function solidCheck(x0, y0, x1, y1){
 	const ex = floor(x1), ey = floor(y1), sx = floor(x0), sy = floor(y0)
 	for(let x = sx; x <= ex; x++) for(let y = sy; y <= ey; y++){
@@ -47,15 +49,15 @@ function solidCheck(x0, y0, x1, y1){
 
 function fastCollision(e){
 	const dx = e.dx * dt, dy = e.dy * dt
-	let x0 = floor(e.x - e.width)
-	let y0 = floor(e.y)
+	let x0 = floor(e.x - e.width + EPS)
+	let y0 = floor(e.y + EPS)
 	const CLIMB = (e.impactDy < 0 ? e.stepHeight ?? 0.01 : 0.01)
 	e.impactDx = e.impactDy = 0
-	const xw = e.x + e.width - x0
+	const xw = e.x + e.width - EPS - x0
 	y: if(dy > 0){
-		const ey = ceil(e.y + e.height + dy) - y0
-		for(let y = ceil(e.y + e.height) - y0 - 1; y < ey; y++){
-			let ys = 2, ex0 = e.x - e.width - x0 + 1, ex1 = e.x + e.width - x0 + 1
+		const ey = ceil(e.y + e.height + dy - EPS) - y0
+		for(let y = ceil(e.y + e.height - EPS) - y0 - 1; y < ey; y++){
+			let ys = 2, ex0 = e.x - e.width + EPS - x0 + 1, ex1 = e.x + e.width - x0 - EPS + 1
 			for(let x = 0; x < xw; x++){
 				ex0 -= 1; ex1 -= 1
 				const {solid, blockShape} = getblock(x0 + x, y0 + y)
@@ -67,7 +69,7 @@ function fastCollision(e){
 				}
 			}
 			const ty = ys + y + y0 - e.height
-			if((y === ey - 1 ? ty >= e.y + dy : ys > 1) || ty < e.y) continue
+			if((y === ey - 1 ? ty >= e.y + dy + EPS : ys > 1) || ty < e.y - EPS) continue
 			e.y = ty
 			e.impactDy = e.dy
 			if(e == me && abs(mePhysics.impactDy) < e.dy) mePhysics.impactDy = e.dy
@@ -76,9 +78,9 @@ function fastCollision(e){
 		}
 		e.y += dy
 	}else if(dy < 0){
-		const ey = floor(e.y + dy) - 1 - y0
+		const ey = floor(e.y + dy + EPS) - 1 - y0
 		for(let y = 0; y > ey; y--){
-			let ys = -1, ex0 = e.x - e.width - x0 + 1, ex1 = e.x + e.width - x0 + 1
+			let ys = -1, ex0 = e.x - e.width + EPS - x0 + 1, ex1 = e.x + e.width - x0 - EPS + 1
 			for(let x = 0; x < xw; x++){
 				ex0 -= 1; ex1 -= 1
 				const {solid, blockShape} = getblock(x0 + x, y0 + y)
@@ -90,7 +92,7 @@ function fastCollision(e){
 				}
 			}
 			const ty = ys + y + y0
-			if((y === ey + 1 ? ty <= e.y + dy : ys < 0) || ty > e.y) continue
+			if((y === ey + 1 ? ty <= e.y + dy - EPS : ys < 0) || ty > e.y + EPS) continue
 			e.y = ty
 			e.impactDy = e.dy
 			if(e == me && abs(mePhysics.impactDy) < -e.dy) mePhysics.impactDy = e.dy
@@ -99,13 +101,13 @@ function fastCollision(e){
 		}
 		e.y += dy
 	}
-	y0 = floor(e.y)
+	y0 = floor(e.y + EPS)
 	x: if(dx > 0){
-		const ex = ceil(e.x + e.width + dx) - x0
-		for(let x = ceil(e.x + e.width) - x0 - 1; x < ex; x++){
-			let xs = 2, ey0 = e.y - y0 + 1
+		const ex = ceil(e.x + e.width + dx - EPS) - x0
+		for(let x = ceil(e.x + e.width - EPS) - x0 - 1; x < ex; x++){
+			let xs = 2, ey0 = e.y + EPS - y0 + 1
 			let climb = 0
-			const yh = e.y + e.height - y0
+			const yh = e.y + e.height - EPS - y0
 			for(let y = 0; y < yh; y++){
 				ey0 -= 1
 				const {solid, blockShape} = getblock(x0 + x, y0 + y)
@@ -114,17 +116,17 @@ function fastCollision(e){
 				for(let i = 0; i < blockShape.length; i += 4){
 					const c = blockShape[i+3] - ey0
 					if(c > climb) climb = c-climb>CLIMB?Infinity:c
-					if(c <= 0 || ey0+e.height <= blockShape[i+1]) continue
+					if(c <= 0 || ey0+e.height-EPS-EPS <= blockShape[i+1]) continue
 					if(blockShape[i] <= xs) xs = blockShape[i]
 				}
 			}
-			if(climb > 0 && climb < Infinity && !solidCheck(xs + x + x0 - e.width - e.width, e.y + e.height, x === ex - 1 ? e.x + dx + e.width : x + x0 + 1, e.y + e.height + climb)){
+			if(climb > 0 && climb < Infinity && !solidCheck(xs + x + x0 - e.width - e.width, e.y + e.height, x === ex - 1 ? e.x + dx + e.width + EPS : x + x0 + 1, e.y + e.height + climb)){
 				e.y += climb
-				y0 = floor(e.y)
+				y0 = floor(e.y + EPS)
 				continue
 			}
 			const tx = xs + x + x0 - e.width
-			if((x === ex - 1 ? tx >= e.x + dx : xs > 1) || tx < e.x) continue
+			if((x === ex - 1 ? tx >= e.x + dx + EPS : xs > 1) || tx < e.x - EPS) continue
 			e.x = tx
 			e.impactDx = e.dx
 			if(e == me && abs(mePhysics.impactDx) < e.dx) mePhysics.impactDx = e.dx
@@ -133,11 +135,11 @@ function fastCollision(e){
 		}
 		e.x += dx
 	}else if(dx < 0){
-		const ex = floor(e.x - e.width + dx) - 1 - x0
+		const ex = floor(e.x - e.width + dx + EPS) - 1 - x0
 		for(let x = 0; x > ex; x--){
-			let xs = -1, ey0 = e.y - y0 + 1
+			let xs = -1, ey0 = e.y + EPS - y0 + 1
 			let climb = 0
-			const yh = e.y + e.height - y0
+			const yh = e.y + e.height - EPS - y0
 			for(let y = 0; y < yh; y++){
 				ey0 -= 1
 				const {solid, blockShape} = getblock(x0 + x, y0 + y)
@@ -146,17 +148,17 @@ function fastCollision(e){
 				for(let i = 0; i < blockShape.length; i += 4){
 					const c = blockShape[i+3] - ey0
 					if(c > climb) climb = c-climb>CLIMB?Infinity:c
-					if(c <= 0 || ey0+e.height <= blockShape[i+1]) continue
+					if(c <= 0 || ey0+e.height-EPS-EPS <= blockShape[i+1]) continue
 					if(blockShape[i+2] >= xs) xs = blockShape[i+2]
 				}
 			}
-			if(climb > 0 && climb < Infinity && !solidCheck(x === ex + 1 ? e.x + dx - e.width : x + x0, e.y + e.height, xs + x + x0 + e.width + e.width, e.y + e.height + climb)){
+			if(climb > 0 && climb < Infinity && !solidCheck(x === ex + 1 ? e.x + dx - e.width - EPS : x + x0, e.y + e.height, xs + x + x0 + e.width + e.width, e.y + e.height + climb)){
 				e.y += climb
-				y0 = floor(e.y)
+				y0 = floor(e.y + EPS)
 				continue
 			}
 			const tx = xs + x + x0 + e.width
-			if((x === ex + 1 ? tx <= e.x + dx : xs < 0) || tx > e.x) continue
+			if((x === ex + 1 ? tx <= e.x + dx - EPS : xs < 0) || tx > e.x + EPS) continue
 			e.x = tx
 			e.impactDx = e.dx
 			if(e == me && abs(mePhysics.impactDx) < -e.dx) mePhysics.impactDx = e.dx
@@ -165,11 +167,11 @@ function fastCollision(e){
 		}
 		e.x += dx
 	}
-	x0 = floor(e.x - e.width)
-	y0 = floor(e.y)
+	x0 = floor(e.x - e.width + EPS)
+	y0 = floor(e.y + EPS)
 	let v = 0, c = false
-	a: for(let y = ceil(e.y + e.height) - y0 - 1; y >= 0; y--)
-		b: for(let x = ceil(e.x + e.width) - x0 - 1; x >= 0; x--){
+	a: for(let y = ceil(e.y + e.height - EPS) - y0 - 1; y >= 0; y--)
+		b: for(let x = ceil(e.x + e.width - EPS) - x0 - 1; x >= 0; x--){
 			const b = getblock(x0 + x, y0 + y)
 			const {blockShape, viscosity, climbable} = b
 			let touchingBottom = 1 - (e.y - y - y0)

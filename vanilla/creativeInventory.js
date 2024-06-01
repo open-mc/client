@@ -38,8 +38,8 @@ const categories = [
 		Items.glass, Items.glowstone
 	),
 
-	Category('Lighting', Items.glowstone,
-		Items.glass, Items.glowstone, Items.glowing_obsidian, Items.bucket_of_lava, Items.flint_and_steel
+	Category('Lighting', Items.torch,
+		Items.torch, Items.glass, Items.glowstone, Items.glowing_obsidian, Items.bucket_of_lava, Items.flint_and_steel
 	),
 
 	Category('Shaped blocks', Items.oak_planks_slab,

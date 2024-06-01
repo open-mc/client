@@ -122,6 +122,8 @@ const playerLoadCb = []
 export const onPlayerLoad = cb => playerLoadCb.push(cb)
 const SPEEDOFSOUND = 340
 export function sound(fn, x, y, vol = 1, pitch = 1){
+	if(!Number.isFinite(vol)) vol = 1
+	if(!Number.isFinite(pitch)) pitch = 1
 	if(Array.isArray(fn)) fn = fn[floor(random() * fn.length)]
 	if(!me) return
 	x = ifloat(x - me.x + .5); y = ifloat(y - me.y + me.head + .5)
