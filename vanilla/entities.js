@@ -201,10 +201,6 @@ Entities.player = class extends LivingEntity{
 	static width = 0.3
 	get height(){return this.state & 2 ? 1.5 : 1.8}
 	get head(){return this.state & 2 ? 1.4 : 1.6}
-	update(){
-		super.update()
-		if(this == me && perms<3)this.state&=-2
-	}
 	drawInterface(id, c, drawInv, w, h){
 		if(id != 1) return
 		c.drawRect(-88, 0, 176, meInterface.subHeight, meInterface)
