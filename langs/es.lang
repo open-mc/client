@@ -91,6 +91,7 @@ options.controls.fullscreen.1=Pantalla completa: Sí
 
 options.advanced=Avanzado
 options.advanced.name=Opciones Avanzado
+options.advanced.experts_only=Solo expertos!
 options.advanced.speed=Rapidez: \1x
 options.advanced.speed.paused=Rapidez: Paused
 options.advanced.max_particles=Máx. recuento partículas: \1

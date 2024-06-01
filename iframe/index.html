@@ -197,6 +197,13 @@ T.parentElement.style.overflow='hidden'
 T.replaceWith(T=T.firstChild)
 /** @type WebGL2RenderingContext */
 const gl = T.getContext('webgl2', {preserveDrawingBuffer: false, antialias: false, depth: false, premultipliedAlpha: true, stencil: true})
+function glLost(){
+	_gl?.canvas.remove()
+	document.body = document.createElement('body')
+	document.body.textContent = 'WebGL2 context lost :('
+	document.body.style = 'color:white;background:#000;text-align:center;line-height:90vh;font-size:32px;font-family:monospace;'
+}
+if(!gl) throw glLost(), 'Please reload app'
 gl.pixelStorei(37440,1) // unpack flip-y
 gl.stencilMask(1)
 gl.clearStencil(0)
@@ -951,16 +958,18 @@ const m=await import('./index.js')
 let nextF = 0
 setInterval(function g(j){
 	if(j) m.step?.()
-	if(ctxFramerate<0) return
+	if(ctxFramerate<0||!gl) return
+	if(_gl.isContextLost?.()) return glLost()
 	let now = performance.now()/1000
 	if(now < nextF) return
-	dt = -(globalThis.t-(globalThis.t=now))
+	dt = max(.01/ctxFramerate, -(globalThis.t-(globalThis.t=now)))
 	frameDrawCalls = fdc; frameSprites = fs; frameData = fd*4+fdc*24; fdc = fs = fd = 0
 	ctx.clear(); ctx.reset()
 	try{m.frame?.(dt)}catch(e){Promise.reject(e)}; i&&draw()
 	if((now=performance.now()/1000) >= (nextF+=1/ctxFramerate)) setImmediate(g, 0)
 }, 0, 1)
 requestAnimationFrame(function f(){
+	if(_gl.isContextLost?.()) return glLost()
 	requestAnimationFrame(f)
 	i&&draw()
 	pixelRatio = devicePixelRatio * ctxSupersample
@@ -969,7 +978,7 @@ requestAnimationFrame(function f(){
 	gl.bindFramebuffer(36160,null); ca=ctx.t
 	if(ctxFramerate>=0) return
 	const now = performance.now()/1000
-	dt = Math.min(-(globalThis.t-(globalThis.t=performance.now()/1000)), .5)
+	dt = max(.001, min(-(globalThis.t-(globalThis.t=performance.now()/1000)), .5))
 	frameDrawCalls = fdc; frameSprites = fs; frameData = fd*4+fdc*24; fdc = fs = fd = 0
 	ctx.reset(); try{m.frame?.(dt)}catch(e){Promise.reject(e)}; i&&draw()
 })

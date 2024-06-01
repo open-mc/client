@@ -7,14 +7,6 @@ import {EPS} from './entity.js'
 export const TEX_SIZE = 16
 
 export function _recalcDimensions(camZ){
-	if(_gl.isContextLost?.()){
-		if(!_gl.canvas.parentElement) return
-		_gl.canvas.remove()
-		document.body = document.createElement('body')
-		document.body.textContent = 'WebGL2 context lost :('
-		document.body.style = 'color:white;background:#000;text-align:center;line-height:90vh;font-size:32px;font-family:monospace;'
-		return
-	}
 	const SCALE = camZ * TEX_SIZE * pixelRatio
 	_setDims((ctx.width+1&-2)/ctx.width*.5, (ctx.height+1&-2)/ctx.height*.5, ctx.width / SCALE / 2, ctx.height / SCALE / 2, SCALE)
 	ctxSupersample = 2**(options.supersample*6-3) || 1

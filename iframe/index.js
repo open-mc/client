@@ -157,22 +157,22 @@ const chunkShader = Shader(`void main(){
 	uvec2 a = uGetPixel(arg0, ivec3(pos>>4u,0), 0).xy;
 	uint light = uGetPixel(arg1, ivec3(pos>>4u,0), 0).x;
 	if(a.y>=65535u){
-		if(light>=240u) discard;
+		if(light>=uni1.z) discard;
 		color = vec4(0,0,0,.9-float(light>>4u)*.06);
 		return;
 	}
 	if(a.y>255u){
-		a.x += uint(uni1.x)%((a.y>>8u)+1u);
+		a.x += uni1.x%((a.y>>8u)+1u);
 		a.y &= 255u;
 		if(a.x>65535u){ a.y += a.x>>8u&65280u; a.x &= 65535u; }
 	}
 	ivec3 p = ivec3(int(a.x&255u)<<4|pos.x&15, int(a.x>>8u)<<4|pos.y&15,a.y);
 	p.xy >>= uni1.y;
-	color = getPixel(uni0, p, uni1.y) * getPixel(uni2, ivec3(light, 0, 0), 0);
-	if(color.a < 1.){
+	color = getPixel(uni0, p, int(uni1.y)) * getPixel(uni2, ivec3(light, 0, 0), 0);
+	if(color.a < 1. && light < uni1.z){
 		color += vec4(0,0,0,.9-float(light>>4u)*.06)*(1.-color.a);
 	}
-}`, [UTEXTURE, UTEXTURE], [TEXTURE, IVEC3, TEXTURE], FIXED)
+}`, [UTEXTURE, UTEXTURE], [TEXTURE, UVEC3, TEXTURE], FIXED)
 const chunkLineCol = vec4(0, .4, 1, 1)
 const axisLineCol = vec4(0, 0, 1, 1)
 let visibleChunks = 0
@@ -197,7 +197,7 @@ drawLayer('none', 200, (ctx, w, h) => {
 	}else if(world.id == 'end'){
 		genLightmap(-2, block, day, vec3.zero, 0, endBase)
 	}else genLightmap(1, block, vec3.zero, day, 1)
-	chunkShader.uniforms(blockAtlas, vec3(world.animTick, mipmap, 1), lightTex)
+	chunkShader.uniforms(blockAtlas, vec3(world.animTick, mipmap, world.id == 'overworld' ? 240 : 0), lightTex)
 	const sr = sin(cam.f), cr = cos(cam.f)
 	const limX = (abs(ctx.width*cr)+abs(ctx.height*sr)+(cam.nausea*.333*ctx.height))/2, limY = (abs(ctx.width*sr)+abs(ctx.height*cr)+(cam.nausea*.333*ctx.width))/2
 	const S = 64*SCALE
@@ -398,7 +398,7 @@ onKey(KEYS.F6, () => {
 		bgGain.connect(audioOut)
 		const s = _gl.canvas.captureStream()
 		s.addTrack(audioOut.stream.getTracks()[0])
-		rec = new MediaRecorder(s, {videoBitsPerSecond: buttons.has(KEYS.ALT) ? 75e5 : 25e5})
+		rec = new MediaRecorder(s, {videoBitsPerSecond: buttons.has(KEYS.ALT) ? 100e5 : 40e5})
 		const chunks = []
 		rec.ondataavailable = e => chunks.push(e.data)
 		rec.onstop = (e) => {

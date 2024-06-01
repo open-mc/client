@@ -73,7 +73,7 @@ export function preconnect(ip, cb = Function.prototype, instant = false){
 	let timeout = setTimeout(ws.close.bind(ws), 5000)
 	let authed = 0
 	ws.onmessage = function({data}){
-		if(!authed){ try{
+		if(!authed){
 			authed = 1
 			const packet = new DataReader(data)
 			ws.name = packet.string()
@@ -94,7 +94,7 @@ export function preconnect(ip, cb = Function.prototype, instant = false){
 			if(host != ip.replace(/\w+:\/\//y,'').toLowerCase()) return void ws.close() // mitm attack
 			cb(ws)
 			return
-		}catch(e){console.warn(e);return}}
+		}
 		ws.challenge = null
 		if(authed<2 && typeof data === 'string') return void(data.length ? pendingConnection(data) : authed=2)
 		fwPacket(data)

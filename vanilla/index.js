@@ -82,7 +82,7 @@ drawLayer('none', -100, c => {
 		}
 		c.blend = 0
 	}else if(world.id == 'nether'){
-		c.draw(vec4(0.1, .015, .015, 1))
+		c.clear(.14, .025, .025, 1)
 	}else if(world.id == 'end'){
 		c.draw(endSky.sub(0, 0, w/64, h/64), vec4(.25, .25, .25, 1))
 	}
