@@ -57,7 +57,8 @@ export function renderItem(c, item, tint = vec4.one, respectModel = 0){
 	c = c.sub()
 	if(!item.useTint) tint = vec4.one
 	const model = respectModel && item.model
-	if(model == 1){
+	if(!model) c.translate(-0.5, 0)
+	else if(model == 1){
 		c.translate(-0.7,1.2)
 		c.rotate(PI * 0.75)
 		c.scale(-1.6, 1.6)
@@ -65,7 +66,10 @@ export function renderItem(c, item, tint = vec4.one, respectModel = 0){
 	}else if(model == 2){
 		c.translate(-0.75, -0.25)
 		c.scale(1.5, 1.5)
-	}else c.translate(-0.5, 0)
+	}else if(model == 3){
+		c.translate(-.375, 1.125)
+		c.rotate(PI*.5)
+	}
 	if(item.texture >= 0) c.draw(toTex(item.texture), tint)
 	item.render?.(c, tint)
 }
@@ -99,7 +103,7 @@ export function renderSlot(c, e, i, id=0){
 }
 export function renderTooltip(c, item){
 	if(!item) return
-	const lines = [item.name || item.defaultName]
+	const lines = [item.name || item.defaultName || '~'+item.className]
 	if(renderF3) lines.push(`\\+8${item.className}${item.count?'*'+item.count:''}${(item.savedata?'+NBT':'')} (${item.id})`)
 	renderGenericTooltip(c, lines)
 }

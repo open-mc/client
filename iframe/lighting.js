@@ -51,6 +51,7 @@ export function performLightUpdates(){
 				v = (v2>opacity?v2-opacity:0)<<4|v1
 				if(brightness) _add(ch, i)
 			}
+			light[i] = 0
 			if(i<4032){
 				const l = light[i+64]
 				if(l) if(v1>(l&15)||v>(l|15)) _addDark(ch, i+64)
@@ -63,7 +64,6 @@ export function performLightUpdates(){
 					else _add(c2, i&63)
 				}
 			}
-			light[i] = 0
 			if(i>63){
 				const l = light[i-64]
 				if(l) if(v1>(l&15)||(v>>4)>=(l>>4)) _addDark(ch, i-64)
@@ -78,7 +78,7 @@ export function performLightUpdates(){
 				else _add(ch, i-1)
 			}else{
 				const c2 = ch.left
-				if(c2){ const l = c2.light[i|63]; if(l) if(v1>(l&15)||v>(l|15)) _addDark(c2, i|63); else _add(c2, i|64) }
+				if(c2){ const l = c2.light[i|63]; if(l) if(v1>(l&15)||v>(l|15)) _addDark(c2, i|63); else _add(c2, i|63) }
 			}
 			if((i&63)!=63){
 				const l = light[i+1]

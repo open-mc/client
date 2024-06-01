@@ -681,3 +681,29 @@ Blocks.barrier = class extends Stone{
 		return mode == 1 && me.inv[me.selected]?.constructor == Items.barrier
 	}
 }
+
+const torchTex = BlockTexture(blocksPng, 0, 5)
+Blocks.torch = class extends Wood{
+	static solid = false
+	static opacity = 0
+	static brightness = 14
+	static targettable = true
+	static replaceable = true
+	static tool; static breaktime = 0
+	static blockShape = [7/16, 0, 9/16, 10/16]
+	static texture = torchTex
+}
+Blocks.torch_left = class extends Blocks.torch{
+	static blockShape = [0, 3/16, 5/16, 13/16]
+	static texture = -1
+	render(c, tint){
+		c.drawMat(1, 0, 0.3, 1, -0.4375, 0.1875, toTex(torchTex), tint)
+	}
+}
+Blocks.torch_right = class extends Blocks.torch{
+	static blockShape = [11/16, 3/16, 1, 13/16]
+	static texture = -1
+	render(c, tint){
+		c.drawMat(1, 0, -0.3, 1, 0.4375, 0.1875, toTex(torchTex), tint)
+	}
+}

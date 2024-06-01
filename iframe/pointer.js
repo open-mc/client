@@ -6,7 +6,7 @@ import { Entity, TEX_SIZE } from 'definitions'
 export const CAMERA_DYNAMIC = 0, CAMERA_FOLLOW_SMOOTH = 1, CAMERA_FOLLOW_POINTER = 2,
 	CAMERA_FOLLOW_PLAYER = 3, CAMERA_PAGE = 4
 export let x = 2, y = 0
-export let bx = 0, by = 0, bpx = 0, bpy = 0, bpfx = 0, bpfy = 0
+export let bx = 0, by = 0, bpx = 0, bpy = 0
 export const REACH = 10
 onPlayerLoad(me => reset(me.f))
 export const effectiveReach = () => max(1, min(REACH, min(W2, H2) * 1.5 - 1.5))
@@ -97,36 +97,35 @@ drawLayer('world', 400, c => {
 		}
 	}
 	if(d >= reach){
-		const {targettable, solid, replaceable} = getblock(bpx, bpy)
-		if(targettable && !solid && !replaceable){
+		const {targettable, solid} = getblock(bpx, bpy)
+		if(targettable && !solid){
 			px -= bpx - bx; py -= bpy - by
 			bx = bpx; by = bpy; bpx = bppx; bpy = bppy
 			if(bpx > bx) px = 1
 			else if(bpx < bx) px = 0
 			else if(bpy > by) py = 1
 			else if(bpy < by) py = 0
-			px -= bpx - bx; py -= bpy - by; bpfx = px; bpfy = py
-		}else{x
-			px = (me.x + x) % 1; py = (me.y + me.head + y) % 1
-			px -= bpx - bx; py -= bpy - by; bpfx = px; bpfy = py
+			px -= bpx - bx; py -= bpy - by
+		}else{
+			px = ((me.x + x)%1+1)%1; py = ((me.y + me.head + y)%1+1)%1
 			bx = by = NaN
 		}
-	}else px -= bpx - bx, py -= bpy - by, bpfx = px, bpfy = py
-	if(!getblock(bpx, bpy).replaceable) bpx = bpy = bpfx = bpfy = NaN
-	blockPlacing = perms >= 2 && (!getblock(bx, by).interactible || (me.state&2)) ? item?.places?.(bpfx, bpfy, bpx, bpy, bx, by) : undefined
+	}else px -= bpx - bx, py -= bpy - by
+	if(getblock(bpx, bpy).targettable) bpx = bpy = NaN
+	blockPlacing = perms >= 2 && (!getblock(bx, by).interactible || (me.state&2)) ? item?.places?.(px, py, bpx, bpy, bx, by) : undefined
 	const up = getblock(bpx, bpy + 1), down = getblock(bpx, bpy - 1), left = getblock(bpx - 1, bpy), right = getblock(bpx + 1, bpy)
 	if(interactFluid ?
 		up.flows === false && down.flows === false && left.flows === false && right.flows === false
-		: !(up.targettable??up.solid) && !(down.targettable??down.solid) && !(left.targettable??left.solid) && !(right.targettable??right.solid)
+		: !(up.targettable||up.solid) && !(down.targettable||down.solid) && !(left.targettable||left.solid) && !(right.targettable||right.solid)
 	){
-		bpx = bpy = bpfx = bpfy = NaN
+		bpx = bpy = NaN
 	}else{
 		let x = bpx - 32 >>> 6, y = bpy - 32 >>> 6, x1 = x + 1 & 0x3FFFFFF, y1 = y + 1 & 0x3FFFFFF
 		a: for(const ch of [map.get(x+y*0x4000000), map.get(x1+y*0x4000000), map.get(x+y1*0x4000000), map.get(x1+y1*0x4000000)])
 			if(ch)for(const e of ch.entities)
 				if(e.y < bpy + 1 && e.y + e.height > bpy && e.x - e.width < bpx + 1 && e.x + e.width > bpx){
 					//Don't allow placing because there is an entity in the way
-					if(blockPlacing?.blockShape?.length!==0 && blockPlacing?.solid===true && !interactFluid) blockPlacing = null, bpx = bpy = bpfx = bpfy = NaN
+					if(blockPlacing?.solid===true && !interactFluid) blockPlacing = null, bpx = bpy = NaN
 					break a
 				}
 	}
@@ -137,7 +136,7 @@ drawLayer('world', 201, (c, w, h) => {
 	toBlockExact(c, bx, by)
 	const block = getblock(bx, by)
 	if(renderUI && (block.hover?.(c, item)??true)){
-		const {blockShape = DEFAULT_BLOCKSHAPE} = block
+		let {blockShape = DEFAULT_BLOCKSHAPE} = block
 		c.shader = Shader.NONE
 		c.mask = SET
 		if(blockShape.length == 0) blockShape = DEFAULT_BLOCKSHAPE

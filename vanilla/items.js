@@ -261,3 +261,18 @@ Items.barrier = class extends Item{
 	places(){ return Blocks.barrier }
 	static defaultName = 'Barrier'
 }
+
+Items.torch = class extends Item{
+	static texture = Blocks.torch.texture
+	static defaultName = 'Torch'
+	static useTint = false
+	places(fx, fy, x, y){
+		const sd = getblock(x,y-1).solid, sl = getblock(x-1,y).solid, sr = getblock(x+1,y).solid
+		let b = fx < .2 ? Blocks.torch_left : fx > .8 ? Blocks.torch_right : Blocks.torch
+		if(b == Blocks.torch_left && !sl) b = Blocks.torch
+		if(b == Blocks.torch_right && !sr) b = Blocks.torch
+		if(b == Blocks.torch && !sd) b = sr?sl?fx>=.5?Blocks.torch_right:Blocks.torch_left:Blocks.torch_right:sl?Blocks.torch_left:null
+		return b
+	}
+	static model = 3
+}
