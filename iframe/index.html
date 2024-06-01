@@ -199,7 +199,7 @@ T.replaceWith(T=T.firstChild)
 const gl = T.getContext('webgl2', {preserveDrawingBuffer: false, antialias: false, depth: false, premultipliedAlpha: true, stencil: true})
 function glLost(){
 	postMessage(false, '*')
-	_gl?.canvas.remove()
+	gl?.canvas.remove()
 	document.body = document.createElement('body')
 	document.body.textContent = 'WebGL2 context lost :('
 	document.body.style = 'color:white;background:#000;text-align:center;line-height:90vh;font-size:32px;font-family:monospace;'
