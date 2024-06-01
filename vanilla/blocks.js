@@ -678,7 +678,7 @@ Blocks.barrier = class extends Stone{
 		if(mode == 1 && me.inv[me.selected]?.constructor == Items.barrier) c.draw(toTex(barrierTex))
 	}
 	hover(c, itm){
-		return mode == 1 && me.inv[me.selected]?.constructor == Items.barrier
+		return mode == 1 && itm?.constructor == Items.barrier
 	}
 }
 

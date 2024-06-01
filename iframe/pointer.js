@@ -135,6 +135,7 @@ drawLayer('world', 201, (c, w, h) => {
 	if(bx != bx || by != by) return
 	toBlockExact(c, bx, by)
 	const block = getblock(bx, by)
+	const item = me.inv[me.selected]
 	if(renderUI && (block.hover?.(c, item)??true)){
 		let {blockShape = DEFAULT_BLOCKSHAPE} = block
 		c.shader = Shader.NONE
