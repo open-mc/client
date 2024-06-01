@@ -108,11 +108,11 @@ export const fluidify = (B, type, tex, flowingTex) => {
 			let y1 = 0, y2 = 0
 			{
 				const {solid, fluidLevel=0} = getblock(x+1,y)
-				y2 = fluidLevel ? min(this.fluidLevel, fluidLevel) : this.fluidLevel >> !solid
+				y2 = fluidLevel ? min(this.fluidLevel, fluidLevel) : (this.fluidLevel >> 1) + solid
 			}
 			{
 				const {solid, fluidLevel=0} = getblock(x-1,y)
-				y1 = fluidLevel ? min(this.fluidLevel, fluidLevel) : this.fluidLevel >> !solid
+				y1 = fluidLevel ? min(this.fluidLevel, fluidLevel) : (this.fluidLevel >> 1) + solid
 			}
 			y1 += y2*9
 			c.geometry = fluidGeometry.sub((y1>>1)*6+(y1<<1&2), 4)
