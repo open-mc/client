@@ -32,6 +32,7 @@ function drawGlyph(code){
 	style = style&65535|style<<16
 }
 export function drawText(c, t, x=0, y=0, size=1, alpha = 1){
+	if(!fontAtlas.loaded) return void fontAtlas.load()
 	alphaTint = alpha; style = 271
 	ctx = c.sub()
 	ctx.translate(x, y)

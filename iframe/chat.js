@@ -1,4 +1,4 @@
-import { drawLayer, drawText, calcText, ping } from "api"
+import { drawLayer, drawText, calcText, ping, chatFocused } from "api"
 
 const chat = []
 
@@ -15,7 +15,7 @@ export function onChat(str){
 drawLayer('ui', 999, (ctx, w, h) => {
 	ctx.translate(5, 43)
 	for(const {data, sent, pinged} of chat){
-		const alpha = max(0, min(1, 10-t+sent))
+		const alpha = chatFocused ? 1 : max(0, min(1, 10-t+sent))
 		if(alpha<=0) break
 		ctx.drawRect(-3, -1, 250, 10*data.length, vec4(0, 0, 0, alpha*.25))
 		if(pinged) ctx.drawRect(-3, -1, 2, 10*data.length, vec4(alpha, alpha*75, 0, alpha*.5))

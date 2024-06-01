@@ -1,5 +1,5 @@
-import { DataReader, jsonToType } from '/server/modules/dataproto.js'
-import { options, listen, _cbs, onmousemove, _joypadMoveCbs, onwheel, _optionListeners, codes, paused, _onvoice, voice, _updatePaused, _onPacket, onfocus, onblur } from 'api'
+import { jsonToType } from '/server/modules/dataproto.js'
+import { options, listen, _cbs, onmousemove, _joypadMoveCbs, onwheel, _optionListeners, _setChatFocused, paused, _onvoice, voice, _updatePaused, _onPacket, onfocus, onblur } from 'api'
 import { Blocks, Items, Entities, BlockIDs, ItemIDs, EntityIDs, Block, Item, Entity, Classes } from 'definitions'
 import { me } from 'world'
 import { onChat } from './chat.js'
@@ -46,7 +46,7 @@ const onMsg = ({data,origin}) => {
 			}
 			if(Object.hasOwn(_joypadMoveCbs, id)) for(const cb of _joypadMoveCbs[id]) cb(dx, dy, id)
 			return
-		}else if(data.length == 1) return onwheel.fire(data[0])
+		}else if(data.length == 1) return data[0]===Infinity?_setChatFocused(true):data[0]===-Infinity?_setChatFocused(false):onwheel.fire(data[0])
 		// import scripts
 		const list = data[3].split('\n')
 		for(let i = 0; i < Classes.length; i++){
