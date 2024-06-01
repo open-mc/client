@@ -1,4 +1,4 @@
-import { drawLayer, drawText, calcText, ping, chatFocused } from "api"
+import { drawLayer, drawText, calcText, ping, chatFocused, renderUI } from "api"
 
 const chat = []
 
@@ -13,6 +13,7 @@ export function onChat(str){
 }
 
 drawLayer('ui', 999, (ctx, w, h) => {
+	if(!renderUI) return
 	ctx.translate(5, 43)
 	for(const {data, sent, pinged} of chat){
 		const alpha = chatFocused ? 1 : max(0, min(1, 10-t+sent))

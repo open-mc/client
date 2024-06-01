@@ -210,7 +210,7 @@ Entities.player = class extends LivingEntity{
 		const f = this.f
 		const {x, y} = c2.from(cursor)
 		this.f = atan2(x, y - me.head)
-		this.render(c2, getTint(this.x, this.y))
+		this.render(c2, vec4.one)
 		this.f = f
 		c2.resetTo(c)
 		c2.translate(-72, 2)

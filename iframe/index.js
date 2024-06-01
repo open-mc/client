@@ -3,7 +3,7 @@ import { DataWriter } from '/server/modules/dataproto.js'
 import { mePhysics, stepEntity } from './entity.js'
 import { gridEventMap, getblock, entityMap, map, cam, onPlayerLoad, world, bigintOffset, me, genLightmap, lightTint, lightTex, lightArr, setGamma, getTint, getLightValue, W2, H2, SCALE, toBlockExact } from 'world'
 import * as pointer from './pointer.js'
-import { onKey, drawLayer, options, paused, _renderPhases, renderBoxes, renderF3, send, download, copy, pause, _updatePaused, drawText, calcText, textShadeCol, _networkUsage, networkUsage, listen, _tickPhases } from 'api'
+import { onKey, drawLayer, options, paused, _renderPhases, renderBoxes, renderF3, send, download, copy, pause, _updatePaused, drawText, calcText, textShadeCol, _networkUsage, networkUsage, listen, _tickPhases, renderUI } from 'api'
 import { particles, blockAtlas, _recalcDimensions, prep, BlockIDs } from 'definitions'
 import { VERSION } from '../server/version.js'
 import { loadingChunks } from './incomingPacket.js'
@@ -86,7 +86,8 @@ export function frame(){
 	cam.z = cam.z**.75 * max(cam.minZoom, 2 ** (options.zoom * 8 - 4) * tzoom * 2**cam.baseZ)**.25
 	_recalcDimensions(cam.z)
 	const reach = pointer.effectiveReach()
-	if(options.camera == CAMERA_DYNAMIC){
+	if(!me.linked && !renderUI && !(me.health <= 0)) cam.x = me.ix = me.x, cam.y = me.iy = me.y
+	else if(options.camera == CAMERA_DYNAMIC){
 		const D = me.state & 4 ? 0.7 : 2
 		const dx = ifloat(me.x + pointer.x/D - cam.x + cam.baseX), dy = ifloat(me.y + pointer.y/D + me.head - cam.y + cam.baseY)
 		if(abs(dx) > 64)cam.x += dx
@@ -294,7 +295,7 @@ function renderEntity(ctx, entity, a=1){
 }
 drawLayer('world', 350, (ctx, w, h) => {
 	for(const e of entityMap.values()) renderEntity(ctx.sub(), e)
-	if(!me.linked && !(me.health<=0))
+	if(!me.linked && !(me.health<=0) && renderUI)
 		renderEntity(ctx.sub(), me, .2)
 })
 
