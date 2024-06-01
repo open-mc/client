@@ -63,6 +63,7 @@ in div, in input{
 	overflow: auto;
 	overflow-wrap: break-word;
 	padding: var(--padding);
+	white-space: pre;
 }
 in > div{ z-index: -1 }
 f.__invalid{color: red}
