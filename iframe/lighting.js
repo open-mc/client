@@ -17,22 +17,13 @@ export const _addDark = (ch, i=0) => {
 }
 
 export const newChunks = []
-export function performLightUpdates(){
+export function performLightUpdates(shouldSkylight = true){
 	if(newChunks.length){
-		const shouldSkylight = world.id!='end'&&world.id!='nether'
+		shouldSkylight = world.id!='end'&&world.id!='nether'
 		if(shouldSkylight) for(const ch of newChunks){
 			const {light} = ch
-			if(!ch.up){
-				for(let x = 0; x < 64; x++)
-					light[x&63|4032] = 240, _add(ch, x|4032)
-			}
-			const d = ch.down
-			if(d){
-				for(let x = 0; x < 64; x++)
-					if(d.light[x|4032]>15) _addDark(d, x|4032)
-			}
+			if(!ch.up) for(let x = 0; x < 64; x++) light[x&63|4032] = 240, _add(ch, x|4032)
 		}
-		newChunks.length = 0
 	}
 	if(!(dI.length+lI.length)) return
 	//const a = performance.now()
@@ -136,7 +127,15 @@ export function performLightUpdates(){
 		}
 		a.length = 0
 	}
+	//console.info('Lighting update: %fms\nDark: %d, Light: %d', (performance.now()-a).toFixed(3), dark, light)
 	for(const c of uptChunks) c.lightI = -1, c.changed|=1
 	uptChunks.length = 0
-	//console.info('Lighting update: %fms\nDark: %d, Light: %d', (performance.now()-a).toFixed(3), dark, light)
+	if(newChunks.length){
+		if(shouldSkylight) for(const {down, light} of newChunks){
+			if(down) for(let x = 0; x < 64; x++)
+				if(light[x]<240) _addDark(down, x|4032)
+		}
+		newChunks.length = 0
+		performLightUpdates(shouldSkylight)
+	}
 }
