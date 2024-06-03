@@ -8,14 +8,15 @@ export class Chunk extends Uint16Array{
 		super(4096)
 		this.light = new Uint8Array(4096)
 		this.tileData = new Map
-		const x = (this.x = buf.int()&0x3ffffff)<<6
-		const y = (this.y = buf.int()&0x3ffffff)<<6
+		this.x = buf.int()&0x3ffffff
+		this.y = buf.int()&0x3ffffff
 		this.up = this.left = this.right = this.down = null
 		this.lightI = -2
 		this.ticks = new Map()
 		this.entities = new Set()
 		this.ctx2 = this.ctx = this.writeCtx = null
 		this.lastFrame = 0
+		this.flags = 0
 		const Schema = Chunk.savedatahistory[buf.flint()] || Chunk.savedata
 		const l = buf.short()
 		buf.i += l * 2

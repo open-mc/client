@@ -1,7 +1,7 @@
 import { setblock, getblock, map, cam, me, onPlayerLoad, perms, pointer, W2, H2, toBlockExact, mode } from 'world'
 import './controls.js'
 import { onKey, onmousemove, options, paused, renderUI, drawLayer } from 'api'
-import { Entity, TEX_SIZE } from 'definitions'
+import { Entity, TEX_SIZE, BlockIDs } from 'definitions'
 
 export const CAMERA_DYNAMIC = 0, CAMERA_FOLLOW_SMOOTH = 1, CAMERA_FOLLOW_POINTER = 2,
 	CAMERA_FOLLOW_PLAYER = 3, CAMERA_PAGE = 4
@@ -59,8 +59,16 @@ drawLayer('world', 400, c => {
 	let d = 0, px = me.x - bx, py = me.y + me.head - by
 	const dx = sin(me.f), dy = cos(me.f)
 	const item = me.inv[me.selected], interactFluid = item?.interactFluid ?? false
-	a: while(d < reach){
-		const {solid, blockShape = DEFAULT_BLOCKSHAPE, flows} = getblock(bx, by)
+	let ch = map.get((bx>>>6)+(by>>>6)*0x4000000)
+	a: if(!ch||(ch.flags&1)) bx = by = NaN
+	else while(d < reach){
+		const chx = bx>>>6, chy = by>>>6
+		if(ch.x!=chx||ch.y!=chy){
+			ch = map.get(chx+chy*0x4000000)
+			if(!ch||(ch.flags&1)){ bx=by=bpx=bpy=NaN; break a }
+		}
+		const j = bx&63|by<<6&4032, id = ch[j]
+		const {solid, blockShape = DEFAULT_BLOCKSHAPE, flows} = id==65535?ch.tileData.get(j):BlockIDs[id]
 		if(solid || (interactFluid && flows === false)){
 			for(let i = 0; i < blockShape.length; i += 4){
 				const x0 = blockShape[i], x1 = blockShape[i+2], y0 = blockShape[i+1], y1 = blockShape[i+3]

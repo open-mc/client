@@ -147,7 +147,7 @@ export const music = (theme, ...audios) => {
 }
 
 
-export const world = {
+export const world = globalThis.world = {
 	id: '',
 	tick: 0, animTick: 0,
 	gx: 0, gy: 0,

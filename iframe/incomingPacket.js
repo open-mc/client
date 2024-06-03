@@ -228,6 +228,15 @@ function configPacket(buf){
 	CONFIG.proximitychat = buf.float()
 	for(const f of configLoaded.listeners) try{f(CONFIG)}catch(e){Promise.reject(e)}
 }
+
+function chunkInfoPacket(buf){
+	const ch = map.get((buf.int()&0x3FFFFFF)+(buf.int()&0x3FFFFFF)*0x4000000)
+	if(!ch) return
+	const type = buf.byte()
+	if(type != 0) return
+	ch.flags = buf.byte()
+}
+
 Object.assign(codes, {
 	1: rubberPacket,
 	2: dimensionPacket,
@@ -238,6 +247,7 @@ Object.assign(codes, {
 	19: worldPacket,
 	16: chunkPacket,
 	17: chunkDeletePacket,
+	18: chunkInfoPacket,
 	20: entityPacket,
 	64: setBigintOffset
 })

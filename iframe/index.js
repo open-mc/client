@@ -154,30 +154,34 @@ export function frame(){
 }
 globalThis.cam = cam
 const chunkShader = Shader(`void main(){
-	ivec2 pos = ivec2(pos*1024.);
-	uvec2 a = uGetPixel(arg0, ivec3(pos>>4u,0), 0).xy;
-	uint light = uGetPixel(arg1, ivec3(pos>>4u,0), 0).x;
+	ivec2 ipos = ivec2(pos*1024.);
+	uvec2 a = uGetPixel(arg0, ivec3(ipos>>4u,0), 0).xy;
+	uint light = uGetPixel(arg1, ivec3(ipos>>4u,0), 0).x;
 	if(a.y>=65535u){
-		if(light>=uni1.z) discard;
+		if(light>=uni1.z&&(arg2&1u)==0u) discard;
 		color = vec4(0,0,0,.9-float(light>>4u)*.06);
-		return;
+	}else{
+		if(a.y>255u){
+			a.x += uni1.x%((a.y>>8u)+1u);
+			a.y &= 255u;
+			if(a.x>65535u){ a.y += a.x>>8u&65280u; a.x &= 65535u; }
+		}
+		ivec3 p = ivec3(int(a.x&255u)<<4|ipos.x&15, int(a.x>>8u)<<4|ipos.y&15,a.y);
+		p.xy >>= uni1.y;
+		color = getPixel(uni0, p, int(uni1.y)) * getPixel(uni2, ivec3(light, 0, 0), 0);
+		if(color.a < 1. && light < uni1.z){
+			color += vec4(0,0,0,.9-float(light>>4u)*.06)*(1.-color.a);
+		}
 	}
-	if(a.y>255u){
-		a.x += uni1.x%((a.y>>8u)+1u);
-		a.y &= 255u;
-		if(a.x>65535u){ a.y += a.x>>8u&65280u; a.x &= 65535u; }
+	if((arg2&1u)==1u){
+		float s = float(1024>>uni1.y);
+		float t = float(uni1.w)*.000008, a = max(0., float(uint((pos.y+1.)*s-t)-uint(pos.x*s+t)&7u)*.15-.45);
+		color = color*(1.-a)+vec4(0,a,a,a);
 	}
-	ivec3 p = ivec3(int(a.x&255u)<<4|pos.x&15, int(a.x>>8u)<<4|pos.y&15,a.y);
-	p.xy >>= uni1.y;
-	color = getPixel(uni0, p, int(uni1.y)) * getPixel(uni2, ivec3(light, 0, 0), 0);
-	if(color.a < 1. && light < uni1.z){
-		color += vec4(0,0,0,.9-float(light>>4u)*.06)*(1.-color.a);
-	}
-}`, [UTEXTURE, UTEXTURE], [TEXTURE, UVEC3, TEXTURE], FIXED)
+}`, [UTEXTURE, UTEXTURE, UINT], [TEXTURE, UVEC4, TEXTURE], FIXED)
 const chunkLineCol = vec4(0, .4, 1, 1)
 const axisLineCol = vec4(0, 0, 1, 1)
 let visibleChunks = 0
-
 const day = vec3(.93), night = vec3(.11,.11,.22)
 const block = vec3(2, 1.8, 1.5), netherBase = vec3(.424,.364,.265), endBase = vec3(.185,.243,.21)
 listen('gamma', () => setGamma(.8+options.gamma/10))
@@ -198,7 +202,7 @@ drawLayer('none', 200, (ctx, w, h) => {
 	}else if(world.id == 'end'){
 		genLightmap(-2, block, day, vec3.zero, 0, endBase)
 	}else genLightmap(1, block, vec3.zero, day, 1)
-	chunkShader.uniforms(blockAtlas, vec3(world.animTick, mipmap, world.id == 'overworld' ? 240 : 0), lightTex)
+	chunkShader.uniforms(blockAtlas, vec4(world.animTick, mipmap, world.id == 'overworld' ? 240 : 0, (t%1)*1e6), lightTex)
 	const sr = sin(cam.f), cr = cos(cam.f)
 	const limX = (abs(ctx.width*cr)+abs(ctx.height*sr)+(cam.nausea*.333*ctx.height))/2, limY = (abs(ctx.width*sr)+abs(ctx.height*cr)+(cam.nausea*.333*ctx.width))/2
 	const S = 64*SCALE
@@ -211,7 +215,7 @@ drawLayer('none', 200, (ctx, w, h) => {
 		visibleChunks++
 		if(!chunk.ctx) chunk.draw()
 		if(chunk.changed&1) chunk.changed&=-2, chunk.ctx2.pasteData(chunk.light)
-		ctx.drawRect(x0, y0, S, S, chunk.ctx, chunk.ctx2)
+		ctx.drawRect(x0, y0, S, S, chunk.ctx, chunk.ctx2, chunk.flags)
 	}
 	ctx.shader = null
 	for(const chunk of map.values()){

@@ -668,10 +668,9 @@ Blocks.command_block = class extends Stone{
 
 export const barrierTex = BlockTexture(itemsPng, 5, 0)
 
-Blocks.barrier = class extends Stone{
+Blocks.barrier = class extends Block{
 	static breaktime = Infinity
-	static tool = 'pick'
-	static texture = -1
+	static placeSounds = Stone.placeSounds
 	get particleTexture(){ return mode == 1 ? barrierTex : -1 }
 	static opacity = 0
 	render(c){
