@@ -46,7 +46,7 @@ export const playerControls = () => {
 	if(D ^ buttons.has(KEYS.SHIFT) ^ gamepadToggleCrouch ^ buttons.has(KEYS.CAPSLOCK)) me.state |= 2
 	else me.state &= -3
 	if((me.state | ~0x10003) === -1) me.state &= -2
-	if(D && (me.state & 1)) me.dy = -5
+	if((D||buttons.has(KEYS.S)) && (me.state & 1)) me.dy = -5
 	if(R && !L) me.dx = (me.dx + ((me.state & 3) == 2 ? 1.3 : me.state & 4 ? 8 : 6)) / 2 * mePhysics.factor
 	else if(L && !R) me.dx = (me.dx + ((me.state & 3) == 2 ? -1.3 : me.state & 4 ? -8 : -6)) / 2 * mePhysics.factor
 	if(U){
