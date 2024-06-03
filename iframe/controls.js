@@ -43,7 +43,7 @@ export const playerControls = () => {
 	}
 	if((me.state & 2) || !(L || R)) me.state &= -5
 	if(buttons.has(KEYS.SHIFT)) gamepadToggleCrouch = false
-	if((D^((me.state&1)&&buttons.has(KEYS.S))) ^ buttons.has(KEYS.SHIFT) ^ gamepadToggleCrouch ^ buttons.has(KEYS.CAPSLOCK)) me.state |= 2
+	if((me.state&1?0:D) ^ buttons.has(KEYS.SHIFT) ^ gamepadToggleCrouch ^ buttons.has(KEYS.CAPSLOCK)) me.state |= 2
 	else me.state &= -3
 	if((me.state | ~0x10003) === -1) me.state &= -2
 	if(D && (me.state & 1)) me.dy = -5
