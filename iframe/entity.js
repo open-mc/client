@@ -76,7 +76,7 @@ function fastCollision(e){
 			const ty = yf + y - e.height
 			if((y === ey - 1 ? ty >= e.y + dy + EPS : yf > 1) || ty < e.y - EPS) continue
 			e.y = ty
-			e.impactDy = e.dy
+			if(e==me) mePhysics.impactDy = e.dy
 			e.dy = 0
 			break y
 		}
@@ -102,7 +102,7 @@ function fastCollision(e){
 			const ty = yf + y
 			if((y === ey + 1 ? ty <= e.y + dy - EPS : yf < 0) || ty > e.y + EPS) continue
 			e.y = ty
-			e.impactDy = e.dy
+			if(e==me) mePhysics.impactDy = e.dy
 			e.dy = 0
 			break y
 		}
@@ -162,7 +162,7 @@ function fastCollision(e){
 				continue
 			}
 			e.x = tx
-			e.impactDx = e.dx
+			if(e==me) mePhysics.impactDx = e.dx
 			e.dx = 0
 			break x
 		}
@@ -217,7 +217,7 @@ function fastCollision(e){
 				continue
 			}
 			e.x = tx
-			e.impactDx = e.dx
+			if(e==me) mePhysics.impactDx = e.dx
 			e.dx = 0
 			break x
 		}
@@ -238,10 +238,10 @@ function fastCollision(e){
 		b: for(let y = 0; c1&&y<yh; y++,(j+=64)>=4096&&(j&=63,c1=c1.up)){
 			const id = c1[j], b = id==65535?c1.tileData.get(j):BlockIDs[id]
 			const {blockShape, viscosity, climbable} = b
-			let touchingBottom = 1 - (e.y - y)
+			let touchingBottom = 1 - (e.y - y - ys)
 			if(blockShape){
 				const bx0 = e.x - e.width - x, bx1 = e.x + e.width - x
-				const by0 = e.y - y - ys, by1 = by0 + e.height
+				const by0 = 1-touchingBottom, by1 = by0 + e.height
 				for(let i = 0; i < blockShape.length; i += 4){
 					const y = blockShape[i+3] - by0
 					if(y > touchingBottom) touchingBottom = y
@@ -250,7 +250,7 @@ function fastCollision(e){
 			}
 			if(viscosity > v) v = viscosity
 			if(climbable & !c)
-				c = touchingBottom > (e.impactDx ? 0 : dy > 0 ? .125 : .375) * e.height
+				c = touchingBottom > (dy > 0 ? .125 : .375) * e.height
 			if(!b.touched) continue b
 			if(b.touched(e, x, c1.y<<6|j>>6)) break a
 		}
