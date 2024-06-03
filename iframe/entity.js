@@ -250,14 +250,14 @@ function fastCollision(e){
 			}
 			if(viscosity > v) v = viscosity
 			if(climbable & !c)
-				c = touchingBottom > (dy > 0 ? .125 : .375) * e.height
+				c = touchingBottom > (e==me&&mePhysics.impactDx ? 0 : dy > 0 ? .125 : .375) * e.height
 			if(!b.touched) continue b
 			if(b.touched(e, x, c1.y<<6|j>>6)) break a
 		}
 	}
 	v = 1 - v
 	if(e == me){
-		if(mePhysics.factor != 1 && v == 1 && me.impactDx) me.dy = 7
+		if(mePhysics.factor != 1 && v == 1 && mePhysics.impactDx) me.dy = 7
 		mePhysics.factor = v
 		mePhysics.climbable = c
 	}
