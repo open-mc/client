@@ -934,10 +934,12 @@ globalThis.Wave = src => {
 		return (fire=false) => (fire || (source.onended = null), source.stop())
 	}
 }
-globalThis.frame = null
 globalThis.step = null
 let nextF = 0
 globalThis.timeToFrame = 0
+</script>
+<script type="module">
+import { frame } from './index.js'
 setInterval(function g(j){
 	if(j) step?.()
 	if(ctxFramerate<0||!gl) return
@@ -966,4 +968,3 @@ requestAnimationFrame(function f(){
 	timeToFrame = performance.now()/1000-t
 })
 </script>
-<script type="module" src="./index.js"></script>
