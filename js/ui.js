@@ -32,6 +32,7 @@ const ptrLockOpts = navigator.platform.startsWith('Linux') ? {} : {unadjustedMov
 export const ptrlock = () => new Promise((r, c) => {
 	ptrSuccess = r; ptrFail = c
 	const fs = options.fsc ? document.documentElement.requestFullscreen() : undefined
+	if(!document.body.requestPointerLock) return void r()
 	if(fs instanceof Promise) fs.catch(e=>null).then(() => document.body.requestPointerLock?.(ptrLockOpts)?.catch(e=>null))
 	else document.body.requestPointerLock?.(ptrLockOpts)?.catch(e=>null)
 })
