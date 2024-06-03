@@ -33,8 +33,8 @@ function tick(){
 		buf.double(me.x)
 		buf.double(me.y)
 		buf.short(me.state)
-		buf.float(mePhysics.impactDx); buf.float(mePhysics.impactDy)
-		mePhysics.impactDx = mePhysics.impactDy = 0
+		buf.float(me.impactDx); buf.float(me.impactDy)
+		me.impactDx = me.impactDy = 0
 		pointer.checkBlockPlacing(buf)
 		send(buf)
 	}

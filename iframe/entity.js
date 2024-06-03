@@ -26,7 +26,6 @@ export function moveEntity(e){
 	if(ch != e.chunk)e.chunk&&e.chunk.entities.delete(e), e.chunk = ch, ch&&ch.entities.add(e)
 }
 export let mePhysics = {
-	impactDx: 0, impactDy: 0,
 	factor: 1, climbable: false
 }
 
@@ -76,7 +75,7 @@ function fastCollision(e){
 			const ty = yf + y - e.height
 			if((y === ey - 1 ? ty >= e.y + dy + EPS : yf > 1) || ty < e.y - EPS) continue
 			e.y = ty
-			if(e==me) mePhysics.impactDy = e.dy
+			e.impactDy = e.dy
 			e.dy = 0
 			break y
 		}
@@ -102,7 +101,7 @@ function fastCollision(e){
 			const ty = yf + y
 			if((y === ey + 1 ? ty <= e.y + dy - EPS : yf < 0) || ty > e.y + EPS) continue
 			e.y = ty
-			if(e==me) mePhysics.impactDy = e.dy
+			e.impactDy = e.dy
 			e.dy = 0
 			break y
 		}
@@ -162,7 +161,7 @@ function fastCollision(e){
 				continue
 			}
 			e.x = tx
-			if(e==me) mePhysics.impactDx = e.dx
+			e.impactDx = e.dx
 			e.dx = 0
 			break x
 		}
@@ -217,7 +216,7 @@ function fastCollision(e){
 				continue
 			}
 			e.x = tx
-			if(e==me) mePhysics.impactDx = e.dx
+			e.impactDx = e.dx
 			e.dx = 0
 			break x
 		}
@@ -250,14 +249,14 @@ function fastCollision(e){
 			}
 			if(viscosity > v) v = viscosity
 			if(climbable & !c)
-				c = touchingBottom > (e==me&&mePhysics.impactDx ? 0 : dy > 0 ? .125 : .375) * e.height
+				c = touchingBottom > (e.impactDx ? 0 : dy > 0 ? .125 : .375) * e.height
 			if(!b.touched) continue b
 			if(b.touched(e, x, c1.y<<6|j>>6)) break a
 		}
 	}
 	v = 1 - v
 	if(e == me){
-		if(mePhysics.factor != 1 && v == 1 && mePhysics.impactDx) me.dy = 7
+		if(mePhysics.factor != 1 && v == 1 && me.impactDx) me.dy = 7
 		mePhysics.factor = v
 		mePhysics.climbable = c
 	}
