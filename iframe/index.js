@@ -158,7 +158,7 @@ const chunkShader = Shader(`void main(){
 	uvec2 a = uGetPixel(arg0, ivec3(ipos>>4u,0), 0).xy;
 	uint light = uGetPixel(arg1, ivec3(ipos>>4u,0), 0).x;
 	if(a.y>=65535u){
-		if(light>=uni1.z&&(arg2&1u)==0u) discard;
+		if(light>=uni1.z) discard;
 		color = vec4(0,0,0,.9-float(light>>4u)*.06);
 	}else{
 		if(a.y>255u){
@@ -173,12 +173,14 @@ const chunkShader = Shader(`void main(){
 			color += vec4(0,0,0,.9-float(light>>4u)*.06)*(1.-color.a);
 		}
 	}
-	if((arg2&1u)==1u){
-		float s = float(1024>>uni1.y);
-		float t = float(uni1.w)*.000008, a = max(0., float(uint((pos.y+1.)*s-t)-uint(pos.x*s+t)&7u)*.15-.45);
-		color = color*(1.-a)+vec4(0,a,a,a);
-	}
-}`, [UTEXTURE, UTEXTURE, UINT], [TEXTURE, UVEC4, TEXTURE], FIXED)
+}`, [UTEXTURE, UTEXTURE], [TEXTURE, UVEC4, TEXTURE], FIXED)
+const borderTex = Texture(8, 8, 1, REPEAT)
+let a = new Uint8Array(256)
+for(let i = 0; i < 64; i++){
+	const v = (i-(~i>>3)&7)
+	a[i<<2|1] = a[i<<2|2] = a[i<<2|3] = v>3?v*30-30:0
+}
+borderTex.pasteData(a); a=null
 const chunkLineCol = vec4(0, .4, 1, 1)
 const axisLineCol = vec4(0, 0, 1, 1)
 let visibleChunks = 0
@@ -215,26 +217,28 @@ drawLayer('none', 200, (ctx, w, h) => {
 		visibleChunks++
 		if(!chunk.ctx) chunk.draw()
 		if(chunk.changed&1) chunk.changed&=-2, chunk.ctx2.pasteData(chunk.light)
-		ctx.drawRect(x0, y0, S, S, chunk.ctx, chunk.ctx2, chunk.flags)
+		ctx.drawRect(x0, y0, S, S, chunk.ctx, chunk.ctx2)
 	}
 	ctx.shader = null
+	const b = borderTex.sub(-t,-t,128>>mipmap,128>>mipmap)
 	for(const chunk of map.values()){
 		if(!chunk.ctx) continue
 		const cxs = chunk.x << 6, cys = chunk.y << 6
 		const x0 = ifloat(cxs - cam.x) * SCALE
 		const y0 = ifloat(cys - cam.y) * SCALE
 		const a = ctx.sub()
+		a.box(x0, y0, S, S)
 		const l = a.sub()
 		for(const i of chunk.rerenders){
-			l.box((i&63)*SCALE+x0, (i>>6)*SCALE+y0, SCALE, SCALE)
+			l.box((i&63)*.015625, (i>>6)*.015625, .015625, .015625)
 			const b = chunk[i]
 			const j = chunk.light[i]<<2
 			lightTint.x = lightArr[j]*.003921568627451; lightTint.y = lightArr[j|1]*.003921568627451; lightTint.z = lightArr[j|2]*.003921568627451; lightTint.w = 1
 			void(b==65535?chunk.tileData.get(i):BlockIDs[b]).render(l, lightTint, cxs|(i&63),cys|(i>>6))
 			l.resetTo(a)
 		}
+		if(chunk.flags&1) a.draw(b)
 		if(hitboxes){
-			a.box(x0, y0, S, S)
 			if(hitboxes >= 2){
 				for(let i = .125; i < 1; i += .125)
 					a.drawRect(i - lineWidth*.5, 0, lineWidth, 64, chunkSublineCol)
