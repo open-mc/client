@@ -10,7 +10,7 @@ export let me = null
 export let perms = 2, mode = 0
 export const _setPerms = (p,m) => {perms=p;mode=m}
 export function foundMe(e){
-	if(!me) postMessage(false, '*')
+	if(!me) parent.postMessage(false, '*')
 	me = globalThis.me = e
 	cam.x = me.ix = me.x
 	cam.y = me.iy = me.y

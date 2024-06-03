@@ -43,9 +43,9 @@ export const listen = (...keys) => {
 	}
 }
 export let _paused = false, paused = false
-export function _updatePaused(a){ if(a!==undefined) _paused=a; if(paused^_paused) postMessage(_paused=paused, '*') }
+export function _updatePaused(a){ if(a!==undefined) _paused=a; if(paused^_paused) parent.postMessage(_paused=paused, '*') }
 export const pause = (_paused=true) => paused=_paused
-export const quit = () => postMessage(NaN, '*')
+export const quit = () => parent.postMessage(NaN, '*')
 
 export const onfocus = []
 export const onblur = []
@@ -82,25 +82,25 @@ export const _onPacket = data => {
 		console.warn(packet, packet.i)
 	}
 }
-export const send = buf => void(postMessage(buf = (buf.build ? buf.build().buffer : buf.buffer || buf), '*'), bytes += buf.byteLength)
+export const send = buf => void(parent.postMessage(buf = (buf.build ? buf.build().buffer : buf.buffer || buf), '*'), bytes += buf.byteLength)
 
-export const download = blob => postMessage(blob, '*')
-export const copy = blob => postMessage(globalThis.ClipboardItem ? [blob] : blob, '*')
+export const download = blob => parent.postMessage(blob, '*')
+export const copy = blob => parent.postMessage(globalThis.ClipboardItem ? [blob] : blob, '*')
 
 export let _onvoice = null
 
 export function voice(fn){
-	postMessage(Infinity, '*')
+	parent.postMessage(Infinity, '*')
 	if(typeof fn == 'function') _onvoice = fn
 	voice.active = true
 	return stopVoice
 }
 export function stopVoice(){
 	_onvoice = null
-	postMessage(-Infinity, '*')
+	parent.postMessage(-Infinity, '*')
 	voice.active = false
 }
-export const ping = () => postMessage('', '*')
+export const ping = () => parent.postMessage('', '*')
 voice.sampleRate = 0
 voice.active = false
 

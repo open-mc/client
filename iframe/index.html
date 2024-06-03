@@ -8,36 +8,21 @@
 	"definitions": "./definitions.js"
 }}
 </script>
-<script>
-	"use strict";
-	const flags = location.hash.slice(1)|0
-	if(globalThis.pako) pako = null
-	delete window.localStorage; delete window.sessionStorage
-	onmessage = ({data,origin}) => origin!='null'&&msgQueue.push(data)
-	const postMessage = parent.postMessage.bind(parent)
-	let msgQueue = []
-	parent.postMessage(null, '*')
-	onerror=(_,a,b,c,d)=>postMessage([''+d,a,b,c], '*')
-	onunhandledrejection=({reason})=>postMessage([''+reason,'',0,0], '*')
-	Array.prototype.bind = Array.prototype.push
-	Array.prototype.fire = function(...v){
-		for(const r of this) try{r(...v)}catch(e){Promise.reject(e)}
-	}
-/*function(i, x0, y0, w, h, size = 32){
-	if(h<0)y0+=h,h=-h
-	if(w<0)x0+=w,w=-w
-	i.style.textAlign = this.textAlign
-	i.style.left = x0+'px'
-	i.style.marginBottom = y0+'px'
-	i.style.width = w+'px'
-	i.style.height = h+'px'
-	i.style.transform = `scale(${1/devicePixelRatio}) ${this.getTransform()} scaleY(-1)`
-	i.style.font = this.font
-	i.style.fontSize = size+'px'
-	if(!i.parentElement) document.documentElement.append(i)
-	toRem.add(i)
-	return document.activeElement === i
-}*/
+<script async src="/img/_pako.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<canvas style="position:fixed;inset:0;width:100%;height:100%;background:#000" width="0" height="0"></canvas>
+<script type="module">
+if(globalThis.pako) pako = null
+delete window.localStorage; delete window.sessionStorage
+onmessage = ({data,origin}) => origin!='null'&&_msgQueue.push(data)
+globalThis._msgQueue = []
+parent.postMessage(null, '*')
+onerror=(_,a,b,c,d)=>parent.postMessage([''+d,a,b,c], '*')
+onunhandledrejection=({reason})=>parent.postMessage([''+reason,'',0,0], '*')
+Array.prototype.bind = Array.prototype.push
+Array.prototype.fire = function(...v){
+	for(const r of this) try{r(...v)}catch(e){Promise.reject(e)}
+}
 globalThis.BitField = class BitField extends Array{
 	static parse(a){
 		if(!Array.isArray(a)) return new BitField 
@@ -155,24 +140,23 @@ globalThis.BitField = class BitField extends Array{
 	}
 	clear(){ this.length = 0 }
 }
-let buttons = new BitField(), changed = new BitField()
-let delta = {x: 0, y: 0, jlx: 0, jly: 0, jrx: 0, jry: 0}, cursor = {...delta}
 const _mac = navigator.platform.startsWith('Mac')
-const LBUTTON = 0, RBUTTON = 2, MBUTTON = 1, KEYS = {
-	A: 65, B: 66, C: 67, D: 68, E: 69, F: 70, G: 71, H: 72, I: 73, J: 74, K: 75, L: 76,
-	M: 77, N: 78, O: 79, P: 80, Q: 81, R: 82, S: 83, T: 84, U: 85, V: 86, W: 87, X: 88,
-	Y: 89, Z: 90, NUM_0: 48, NUM_1: 49, NUM_2: 50, NUM_3: 51, NUM_4: 52, NUM_5: 53, NUM_6: 54,
-	NUM_7: 55, NUM_8: 56, NUM_9: 57, SPACE: 32, SYMBOL: _mac ? 192 : 223, TAB: 9, BACK: 8,
-	SHIFT: 16, CTRL: 17, ALT: 18, ESC: 27, META: 91, METARIGHT: 93, CAPSLOCK: 20, UP: 38,
-	RIGHT: 39, DOWN: 40, LEFT: 37, MOD: _mac ? 91 : 17, F1: 112, F2: 113, F3: 114, F4: 115,
-	F5: 116, F6: 117, F7: 118, F8: 119, F9: 120, F10: 121, F11: 122, F12: 123, MINUS: 189,
-	PLUS: 187, OPENBR: 219, CLOSEBR: 221, SEMICOLON: 186, APOS: 222, BACKSLASH: 220, COMMA: 188,
-	DOT: 190, SLASH: 191, ENTER: 13
-}, GAMEPAD = {
-	A: 256, B: 257, X: 258, Y: 259, LB: 260, RB: 261, LT: 262, RT: 263, UP: 268, DOWN: 269, LEFT: 270, RIGHT: 271,
-	MENU: 300
-}
-Object.freeze(KEYS)
+Object.assign(globalThis, {
+	buttons: new BitField, changed: new BitField,
+	delta: globalThis.cursor = {x: 0, y: 0, jlx: 0, jly: 0, jrx: 0, jry: 0},
+	LBUTTON: 0, RBUTTON: 2, MBUTTON: 1, KEYS: Object.freeze({
+		A: 65, B: 66, C: 67, D: 68, E: 69, F: 70, G: 71, H: 72, I: 73, J: 74, K: 75, L: 76,
+		M: 77, N: 78, O: 79, P: 80, Q: 81, R: 82, S: 83, T: 84, U: 85, V: 86, W: 87, X: 88,
+		Y: 89, Z: 90, NUM_0: 48, NUM_1: 49, NUM_2: 50, NUM_3: 51, NUM_4: 52, NUM_5: 53, NUM_6: 54,
+		NUM_7: 55, NUM_8: 56, NUM_9: 57, SPACE: 32, SYMBOL: _mac ? 192 : 223, TAB: 9, BACK: 8,
+		SHIFT: 16, CTRL: 17, ALT: 18, ESC: 27, META: 91, METARIGHT: 93, CAPSLOCK: 20, UP: 38,
+		RIGHT: 39, DOWN: 40, LEFT: 37, MOD: _mac ? 91 : 17, F1: 112, F2: 113, F3: 114, F4: 115,
+		F5: 116, F6: 117, F7: 118, F8: 119, F9: 120, F10: 121, F11: 122, F12: 123, MINUS: 189,
+		PLUS: 187, OPENBR: 219, CLOSEBR: 221, SEMICOLON: 186, APOS: 222, BACKSLASH: 220, COMMA: 188,
+		DOT: 190, SLASH: 191, ENTER: 13
+	}),
+	GAMEPAD: Object.freeze({ A: 256, B: 257, X: 258, Y: 259, LB: 260, RB: 261, LT: 262, RT: 263, UP: 268, DOWN: 269, LEFT: 270, RIGHT: 271, MENU: 300 })
+})
 Uint8Array.fromHex = function(hex){
 	const res = new Uint8Array(hex.length>>>1)
 	let r = 1, i = 0
@@ -188,17 +172,63 @@ Uint8Array.fromHex = function(hex){
 const h = '0123456789abcdef'
 Number.prototype.toHex = function(){return h[this>>>28]+h[this>>24&15]+h[this>>20&15]+h[this>>16&15]+h[this>>12&15]+h[this>>8&15]+h[this>>4&15]+h[this&15]}
 Number.formatData = bytes => bytes < 512 ? bytes.toFixed(0)+'B' : bytes < 524288 ? (bytes/1024).toFixed(1)+'KiB' : bytes < 536870912 ? (bytes/1048576).toFixed(1)+'MiB' : bytes < 549755813888 ? (bytes/1073741824).toFixed(1)+'GiB' : (bytes/1099511627776).toFixed(1)+'TiB'
-</script>
-<script async src="/img/_pako.js"></script>
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-<canvas style="position:fixed;inset:0;width:100%;height:100%;background:#000" width="0" height="0"></canvas><script type="module">
+{let i=0,m=new MessageChannel,c=new Map;m.port1.onmessage=({data:i},j=c.get(i))=>(c.delete(i)&&j());m=m.port2;globalThis.setImmediate=(f,...a)=>(c.set(++i,a.length?f.bind(undefined,...a):f),m.postMessage(i),i);globalThis.clearImmediate=i=>c.delete(i)}
+Math.fclamp = (a, b = 1) => a < 0 ? 0 : (a > b ? b : a)
+Math.ifloat = x => {
+	let f = Math.floor(x)
+	return (f >> 0) + (x - f)
+}
+Math.randint = () => Math.random() * 4294967296 | 0
+Math.ifloor = x => Math.floor(x) | 0
+Math.iceil = x => Math.ceil(x) | 0
+Math.PI2 = Math.PI*2
+Object.defineProperties(globalThis, Object.getOwnPropertyDescriptors(Math))
+Object.defineProperties(Array.prototype, {
+	winner: {enumerable: false, value(pred, best = -Infinity){
+		let winner = undefined
+		const length = this.length
+		for(let i = 0; i < length; i++){
+			const a = this[i], score = pred(a, i, this)
+			if(score >= best){
+				best = score
+				winner = a
+			}
+		}
+		return winner
+	}},
+	remove: {enumerable: false, value(a){
+		let i = 0, j = 0
+		for(; j < this.length; j++){
+			if(j > i)this[i] = this[j]
+			if(this[i] != a)i++
+		}
+		return this.length = i
+	}},
+	mmap: {enumerable: false, value(fn){
+		const len = this.length
+		for(let i = 0; i < len; i++)
+			this[i] = fn(this[i])
+		return this
+	}}
+})
+const nul = new Array(100).fill(null)
+Array.null = len => {
+	if(len <= 100) return nul.slice(0, len)
+	const a = new Array(len)
+	while(len > 0) a[--len] = null
+	return a
+}
+globalThis.ctxSupersample = 1
+globalThis.ctxFramerate = -1
+globalThis.pixelRatio = 1
+globalThis.t = performance.now()/1000; globalThis.dt = 0
 let T=document.body
 T.parentElement.style.overflow='hidden'
 T.replaceWith(T=T.firstChild)
 /** @type WebGL2RenderingContext */
 const gl = T.getContext('webgl2', {preserveDrawingBuffer: false, antialias: false, depth: false, premultipliedAlpha: true, stencil: true})
 function glLost(){
-	postMessage(false, '*')
+	parent.postMessage(false, '*')
 	gl?.canvas.remove()
 	document.body = document.createElement('body')
 	document.body.textContent = 'WebGL2 context lost :('
@@ -904,61 +934,12 @@ globalThis.Wave = src => {
 		return (fire=false) => (fire || (source.onended = null), source.stop())
 	}
 }
-
-{let i=0,m=new MessageChannel,c=new Map;m.port1.onmessage=({data:i},j=c.get(i))=>(c.delete(i)&&j());m=m.port2;globalThis.setImmediate=(f,...a)=>(c.set(++i,a.length?f.bind(undefined,...a):f),m.postMessage(i),i);globalThis.clearImmediate=i=>c.delete(i)}
-Math.fclamp = (a, b = 1) => a < 0 ? 0 : (a > b ? b : a)
-Math.ifloat = x => {
-	let f = Math.floor(x)
-	return (f >> 0) + (x - f)
-}
-Math.randint = () => Math.random() * 4294967296 | 0
-Math.ifloor = x => Math.floor(x) | 0
-Math.iceil = x => Math.ceil(x) | 0
-Math.PI2 = Math.PI*2
-Object.defineProperties(globalThis, Object.getOwnPropertyDescriptors(Math))
-Object.defineProperties(Array.prototype, {
-	winner: {enumerable: false, value(pred, best = -Infinity){
-		let winner = undefined
-		const length = this.length
-		for(let i = 0; i < length; i++){
-			const a = this[i], score = pred(a, i, this)
-			if(score >= best){
-				best = score
-				winner = a
-			}
-		}
-		return winner
-	}},
-	remove: {enumerable: false, value(a){
-		let i = 0, j = 0
-		for(; j < this.length; j++){
-			if(j > i)this[i] = this[j]
-			if(this[i] != a)i++
-		}
-		return this.length = i
-	}},
-	mmap: {enumerable: false, value(fn){
-		const len = this.length
-		for(let i = 0; i < len; i++)
-			this[i] = fn(this[i])
-		return this
-	}}
-})
-const nul = new Array(100).fill(null)
-Array.null = len => {
-	if(len <= 100) return nul.slice(0, len)
-	const a = new Array(len)
-	while(len > 0) a[--len] = null
-	return a
-}
-globalThis.ctxSupersample = 1
-globalThis.ctxFramerate = -1
-globalThis.pixelRatio = 1
-globalThis.t = performance.now()/1000; globalThis.dt = 0
-const m=await import('./index.js')
+globalThis.frame = null
+globalThis.step = null
 let nextF = 0
+globalThis.timeToFrame = 0
 setInterval(function g(j){
-	if(j) m.step?.()
+	if(j) step?.()
 	if(ctxFramerate<0||!gl) return
 	if(_gl.isContextLost?.()) return glLost()
 	let now = performance.now()/1000
@@ -966,8 +947,9 @@ setInterval(function g(j){
 	dt = max(.01/ctxFramerate, -(globalThis.t-(globalThis.t=now)))
 	frameDrawCalls = fdc; frameSprites = fs; frameData = fd*4+fdc*24; fdc = fs = fd = 0
 	ctx.clear(); ctx.reset()
-	try{m.frame?.(dt)}catch(e){Promise.reject(e)}; i&&draw()
+	try{frame?.(dt)}catch(e){Promise.reject(e)}; i&&draw()
 	if((now=performance.now()/1000) >= (nextF+=1/ctxFramerate)) setImmediate(g, 0)
+	timeToFrame = now-t
 }, 0, 1)
 requestAnimationFrame(function f(){
 	if(_gl.isContextLost?.()) return glLost()
@@ -978,9 +960,10 @@ requestAnimationFrame(function f(){
 	gl.viewport(0, 0, ctx.t.w = gl.canvas.width = round(innerWidth*pixelRatio), ctx.t.h = gl.canvas.height = round(innerHeight*pixelRatio))
 	gl.bindFramebuffer(36160,null); ca=ctx.t
 	if(ctxFramerate>=0) return
-	const now = performance.now()/1000
 	dt = max(.001, min(-(globalThis.t-(globalThis.t=performance.now()/1000)), .5))
 	frameDrawCalls = fdc; frameSprites = fs; frameData = fd*4+fdc*24; fdc = fs = fd = 0
-	ctx.reset(); try{m.frame?.(dt)}catch(e){Promise.reject(e)}; i&&draw()
+	ctx.reset(); try{frame?.(dt)}catch(e){Promise.reject(e)}; i&&draw()
+	timeToFrame = performance.now()/1000-t
 })
 </script>
+<script type="module" src="./index.js"></script>

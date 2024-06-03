@@ -10,8 +10,8 @@ import { onChat } from './chat.js'
 import { loadingChunks } from './incomingPacket.js'
 import './frame.js'
 
-let last = performance.now(), timeToFrame = 0
-export function step(){
+let last = performance.now()
+globalThis.step = () => {
 	const now = performance.now()
 	const update = 1000 / world.tps
 	let dt = now - last
@@ -66,7 +66,7 @@ const { CAMERA_DYNAMIC, CAMERA_FOLLOW_SMOOTH, CAMERA_FOLLOW_POINTER,
 let flashbang = 0
 let frames = 0
 globalThis.fps = 0
-export function frame(){
+globalThis.frame = () => {
 	const correctT = t
 	t *= options.speed; dt *= options.speed
 	_networkUsage()
@@ -146,7 +146,7 @@ export function frame(){
 		}catch(e){Promise.reject(e)}
 	}
 	if(flashbang) ctx.reset(), ctx.drawRect(1, 0, -flashbang, flashbang, vec4(flashbang*.667)), flashbang = max(0, flashbang-dt*3)
-	timeToFrame = performance.now()/1000 - (t=correctT)
+	t=correctT
 	changed.clear()
 	delta.x = delta.y = 0
 	delta.jlx = delta.jly = 0
@@ -192,9 +192,9 @@ Object.assign(globalThis, {Blocks, Items, Entities, BlockIDs, ItemIDs, EntityIDs
 Classes[0] = {savedata: null, savedatahistory: []}
 let loading = 1
 const loaded = () => {
-	for(const data of msgQueue) try{ onMsg({data}) }catch(e){Promise.reject(e)}
+	for(const data of _msgQueue) try{ onMsg({data}) }catch(e){Promise.reject(e)}
 	loading = -1
-	msgQueue = null
+	_msgQueue = null
 }
 globalThis.addToQueue = p => p?.then&&(loading++,p.then(()=>--loading||loaded()))
 listen('music', () => bgGain.gain.value = options.music * options.music * 2)
@@ -282,7 +282,7 @@ const onMsg = ({data,origin}) => {
 			}
 		}
 	}else if(data instanceof ArrayBuffer){
-		if(loading>0) return void msgQueue.push(data)
+		if(loading>0) return void _msgQueue.push(data)
 		_onPacket(data)
 	}else if(typeof data == 'string'){
 		onChat(data)
@@ -299,7 +299,7 @@ const onMsg = ({data,origin}) => {
 		}else buttons.pop(~data) && changed.set(~data)
 	}else if(typeof data == 'boolean') _updatePaused(data)
 }
-const m = msgQueue; msgQueue = []
+const m = _msgQueue; _msgQueue = []
 for(const data of m) try{ onMsg({data}) }catch(e){ Promise.reject(e) }
 addEventListener('message', onMsg)
 onmessage = null

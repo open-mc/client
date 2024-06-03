@@ -166,7 +166,7 @@ export async function play(ws){
 	globalThis.ws = ws
 	onfocus()
 	pendingConnection(texts.connection.authenticating())
-	gameIframe(ws.packs, 0)
+	gameIframe(ws.packs)
 }
 const urlServer = location.search.slice(1)
 if(urlServer) preconnect(urlServer, play, true)
