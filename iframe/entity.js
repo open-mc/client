@@ -259,6 +259,8 @@ function fastCollision(e){
 		if(mePhysics.factor != 1 && v == 1 && me.impactDx) me.dy = 7
 		mePhysics.factor = v
 		mePhysics.climbable = c
+		if(abs(e.impactDx)>abs(mePhysics.impactDx)) mePhysics.impactDx = e.impactDx
+		if(abs(e.impactDy)>abs(mePhysics.impactDy)) mePhysics.impactDy = e.impactDy
 	}
 	e.dx *= v ** dt; e.dy *= v ** (dt*60)
 	e.x = ifloat(e.x); e.y = ifloat(e.y)
