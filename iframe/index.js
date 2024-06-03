@@ -3,7 +3,7 @@ import { DataWriter } from '/server/modules/dataproto.js'
 import { mePhysics, stepEntity } from './entity.js'
 import { getblock, entityMap, map, cam, onPlayerLoad, world, me, W2, H2, SCALE } from 'world'
 import * as pointer from './pointer.js'
-import { options, paused, _renderPhases, renderBoxes, send, download, copy, pause, _updatePaused, drawText, calcText, _networkUsage, listen, _tickPhases, renderUI, _cbs, onmousemove, _joypadMoveCbs, onwheel, _optionListeners, _setChatFocused, _onvoice, voice, _onPacket, onfocus, onblur } from 'api'
+import { options, paused, _renderPhases, renderBoxes, send, download, copy, pause, _updatePaused, drawText, calcText, _networkUsage, listen, _tickPhases, renderUI, _cbs, onmousemove, _joypadMoveCbs, onwheel, _optionListeners, _setChatFocused, _onvoice, voice, _onPacket, onfocus, onblur, onKey } from 'api'
 import { _recalcDimensions, Blocks, Items, Entities, BlockIDs, ItemIDs, EntityIDs, Block, Item, Entity, Classes } from 'definitions'
 import { jsonToType } from '/server/modules/dataproto.js'
 import { onChat } from './chat.js'
@@ -66,7 +66,7 @@ const { CAMERA_DYNAMIC, CAMERA_FOLLOW_SMOOTH, CAMERA_FOLLOW_POINTER,
 let flashbang = 0
 let frames = 0
 globalThis.fps = 0
-export const frame = () => {
+globalThis.frame = () => {
 	const correctT = t
 	t *= options.speed; dt *= options.speed
 	_networkUsage()
