@@ -2,7 +2,7 @@ import { uiButtons, audioSet, lava, renderSlot, water, click, renderGenericToolt
 import { sound, cam, world, updateblock, redrawblock, mode } from 'world'
 import { Blocks, Block, Items, BlockTexture, toTex } from 'definitions'
 import { BlockShape, blockShaped, fluidify } from './blockshapes.js'
-import { closeInterface } from './index.js'
+import { closeInterface } from './interfaces.js'
 import { uiButton, drawLayer, drawText } from 'api'
 const src = loader(import.meta)
 

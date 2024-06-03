@@ -5,7 +5,7 @@ import { getblock, gridEvents, sound, entityMap, pointer, cam, world, configLoad
 import { Item, BlockParticle, addParticle, blockBreak, ephemeralInterfaces } from 'definitions'
 import { AshParticle, BlastParticle, explode } from './defs.js'
 import { blocksPng } from './blocks.js'
-import './interfaces.js'
+import { closeInterface } from './interfaces.js'
 import './voice.js'
 
 const src = loader(import.meta)
@@ -295,11 +295,6 @@ onKey(MBUTTON, () => {invAction = 3})
 function openInventory(){
 	const buf = new DataWriter()
 	buf.byte(13)
-	send(buf)
-}
-export function closeInterface(){
-	const buf = new DataWriter()
-	buf.byte(15)
 	send(buf)
 }
 

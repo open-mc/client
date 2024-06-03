@@ -266,7 +266,7 @@ column{
 }
 #serverlist > row > div{
 	height: 52rem;
-	flex-grow: 1;
+	flex: 1;
 }
 #serverlist > row.hover{
 	outline: 1rem #fff8 solid;

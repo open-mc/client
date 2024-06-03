@@ -2,6 +2,12 @@ import { ephemeralInterfaces, EphemeralInterface } from "definitions"
 import { renderSlot } from "./effects.js"
 const src = loader(import.meta)
 
+export function closeInterface(){
+	const buf = new DataWriter()
+	buf.byte(15)
+	send(buf)
+}
+
 const craftingInterface = Img(src`crafting.png`)
 ephemeralInterfaces[1] = class extends EphemeralInterface{
 	slots = [null, null, null, null, null, null, null, null, null]

@@ -35,8 +35,8 @@
 		else start()
 		screen.orientation?.lock?.('landscape')?.catch(e=>{})
 		onerror = (_, s, l, c, e) => {
-			errors.append((s?(s.startsWith(location.origin)?s.slice(location.origin.length):s)+':'+l+':'+c+': ':'')+e+'\n')
-			setTimeout(() => errors.childNodes[0].remove(), 10000)
+			//errors.append((s?(s.startsWith(location.origin)?s.slice(location.origin.length):s)+':'+l+':'+c+': ':'')+e+'\n')
+			//setTimeout(() => errors.childNodes[0].remove(), 10000)
 		}
 		onunhandledrejection=({reason})=>onerror(undefined,'',0,0,reason)
 		orientationdiv.firstElementChild.textContent = texts.misc.landscape_notice()
