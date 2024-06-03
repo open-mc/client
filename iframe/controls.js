@@ -13,7 +13,7 @@ export const playerControls = () => {
 	const r = buttons.has(KEYS.RIGHT) || buttons.has(KEYS.D) || cursor.jlx > 0.4
 	const l = buttons.has(KEYS.LEFT) || buttons.has(KEYS.A) || cursor.jlx < -0.4
 	const u = buttons.has(KEYS.UP) || buttons.has(KEYS.W) || buttons.has(KEYS.SPACE) || buttons.has(GAMEPAD.A) || cursor.jly > 0.4
-	const d = buttons.has(KEYS.DOWN) || cursor.jly < -0.4
+	const d = buttons.has(KEYS.DOWN) || buttons.has(KEYS.S) || cursor.jly < -0.4
 	if(r&&!R){
 		if(lastPressRight > t - .3){
 			me.state ^= 4
@@ -38,15 +38,15 @@ export const playerControls = () => {
 		if(R) me.x += SPEED
 		if(L) me.x -= SPEED
 		if(U) me.y += SPEED
-		if(D||buttons.has(KEYS.S)) me.y -= SPEED
+		if(D) me.y -= SPEED
 		me.dx *= .00001**dt; me.dy *= .00001**dt
 	}
 	if((me.state & 2) || !(L || R)) me.state &= -5
 	if(buttons.has(KEYS.SHIFT)) gamepadToggleCrouch = false
-	if(D ^ buttons.has(KEYS.SHIFT) ^ gamepadToggleCrouch ^ buttons.has(KEYS.CAPSLOCK)) me.state |= 2
+	if((D^((me.state&1)&&buttons.has(KEYS.S))) ^ buttons.has(KEYS.SHIFT) ^ gamepadToggleCrouch ^ buttons.has(KEYS.CAPSLOCK)) me.state |= 2
 	else me.state &= -3
 	if((me.state | ~0x10003) === -1) me.state &= -2
-	if((D||buttons.has(KEYS.S)) && (me.state & 1)) me.dy = -5
+	if(D && (me.state & 1)) me.dy = -5
 	if(R && !L) me.dx = (me.dx + ((me.state & 3) == 2 ? 1.3 : me.state & 4 ? 8 : 6)) / 2 * mePhysics.factor
 	else if(L && !R) me.dx = (me.dx + ((me.state & 3) == 2 ? -1.3 : me.state & 4 ? -8 : -6)) / 2 * mePhysics.factor
 	if(U){
