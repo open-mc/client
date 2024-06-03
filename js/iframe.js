@@ -144,9 +144,10 @@ async function microphone(){
 		a.connect(ctx.destination)
 	}catch(e){console.warn(e)}
 }
+const voiceEl = document.getElementById('voice')
 function voiceOn(){
 	voice = true
-	chat.classList.add('voice')
+	voiceEl.hidden = false
 	if(!m && win) microphone()
 }
 function voiceOff(){
@@ -156,7 +157,7 @@ function voiceOff(){
 	}
 	if(!voice) return
 	voice = false
-	chat.classList.remove('voice')
+	voiceEl.hidden = true
 }
 
 export const clearNotifs = () => {

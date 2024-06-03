@@ -223,12 +223,11 @@ column{
 	0%{opacity: 1;}
 	100%{opacity: 0;}
 }
-#chat.voice:after{
-	content: '';
+#voice{
 	background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACMAAAALCAYAAAD1JjQCAAAAAXNSR0IArs4c6QAAANFJREFUOE+9lFsOwyAMBM2p2yO0pyZa1IlWK5I2QWqUH/BrWGxa2derupZt/P//9qKAgLACpFx34g9h3lX1XFDoVdWvxv8Ekyf1tSuKGt/sUn8W1wjMa5Iyj0//yOZKscYuFVQg/c/sAs+4AUMhgLQmuduUAHglUrEjSA6T101cjof8RnKfIKfVvsNkgTPFZjB+CxzYoUbP5BXhQACN6Kr4nk9gKpa9QWNPe4ZELp9T50TMpgQ1lQt/95vZ5Zv7p8rceStWnsp9tJ3SE159K1ZgNm64fhq/G7yuAAAAAElFTkSuQmCC) 0/cover;
 	height: 11rem; width: 35rem;
 	position: absolute;
-	bottom: -25rem; left: 1rem;
+	bottom: 5rem; left: 5rem;
 	filter: drop-shadow(0 0 3px black)
 }
 #chatbox{
