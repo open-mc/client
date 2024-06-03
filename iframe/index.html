@@ -691,9 +691,9 @@ const shapeSub = function sub(s=0,l=this.l-s, type=this.type){
 }
 let gtArr = null, maxLen=0, boundUsed = 0, shp = Geometry(TRIANGLE_STRIP, [0, 0, 0, 1, 1, 0, 1, 1]), shuniBind = 0
 const defaultShape = shp
-let k1, k2
+let g
 const treeIf = (s=0, e=maxTex,o=0) => {
-	if(e<=s+1) return k1+s+k2
+	if(e<=s+1) return g(s)
 	const m = s+(1<<31-Math.clz32(e-s-1))
 	return `if(u<${m+o}){${treeIf(s,m,o)}}else{${treeIf(m,e,o)}}`
 }
@@ -783,19 +783,18 @@ globalThis.Shader = (src, inputs, uniforms, output=4, defaults, uDefaults, frat=
 	if(fCount+iCount>16) throw 'Shaders cannot use more than 16 textures/colors'
 	fCount = fCount?iCount?fCount+Math.round(frat * (maxTex-fCount-iCount)):maxTex:0
 	iCount = iCount && maxTex - fCount
-	k1='return texture(GL_';k2=',p);'; T=null
+	g=i=>'return texture(GL_f['+i+'],p);'; T=null
 	shaderHead2[1] =
-		(o&20?'uniform '+(o&2?'highp':'lowp')+' sampler2DArray '+Array.from({length:fCount},(_,i)=>'GL_'+i)+';':'')
-		+(o&8?'uniform highp usampler2DArray '+Array.from({length:iCount},(_,i)=>'GL_'+(fCount+i))+';':'')
+		(o&20?'uniform '+(o&2?'highp':'lowp')+' sampler2DArray GL_f['+fCount+'];':'')
+		+(o&8?'uniform highp usampler2DArray GL_i['+iCount+'];':'')
 		+(o&4?`lowp vec4 getCol(int u,vec3 p){${T=treeIf(0,fCount)}}`:'')
 		+(o&16?`highp vec4 fGetCol(int u,vec3 p){${T||treeIf(0,fCount)}}`:'')
-		+(o&8?`uvec4 uGetCol(int u,vec3 p){${treeIf(fCount,maxTex,maxTex-fCount)}}`:'')
-	k1='return texelFetch(GL_',k2=',p,l);'; T=null
+		+(o&8?`uvec4 uGetCol(int u,vec3 p){${g=i=>'return texture(GL_i['+i+'],p);',treeIf(0,maxTex-fCount,maxTex)}}`:'')
 	shaderHead2[1] +=
-		(o&4?`lowp vec4 getPixel(int u,ivec3 p,int l){${T=treeIf(0,fCount)}}`:'')
+		(o&4?`lowp vec4 getPixel(int u,ivec3 p,int l){${g=i=>'return texelFetch(GL_f['+i+'],p,l);',T=treeIf(0,fCount)}}`:'')
 		+(o&16?`highp vec4 fGetPixel(int u,ivec3 p,int l){${T||treeIf(0,fCount)}}`:'')
-		+(o&8?`uvec4 uGetPixel(int u,ivec3 p,int l){${treeIf(fCount,maxTex,maxTex-fCount)}}`:'')
-		+(o&28?`ivec3 getSize(int u,int l){${k1='return textureSize(GL_',k2=',l);',T=treeIf(0,maxTex)}}`:'')
+		+(o&8?`uvec4 uGetPixel(int u,ivec3 p,int l){${g=i=>'return texelFetch(GL_i['+i+'],p,l);',treeIf(0,maxTex-fCount,maxTex)}}`:'')
+		+(o&28?`ivec3 getSize(int u,int l){${g=i=>'return textureSize(GL_'+(i<fCount?'f['+i:'i['+(i-fCount))+'],l);',T=treeIf(0,maxTex)}}`:'')
 	fnBody[0] = '}){if(sh!=s){i&&draw(0);shfCount=fCount;gl.useProgram((sh=s).program);gl.bindVertexArray(s.vao);bindUniTex()}if(shp!=this.s){i&&draw();shp=this.s}if(s.geometry!=this.s.b){gl.bindBuffer(34962,s.geometry=this.s.b);gl.vertexAttribPointer(0,2,5126,0,0,0);gl.bindBuffer(34962,buf)}const b=boundUsed^shuniBind;'+texCheck.join(';')+';const j=i;if((i=j+'+j+')>arr.length)'+(ArrayBuffer.prototype.transfer?'(arr=gtArr||new Float32Array(arr.buffer.transfer(i*8))),iarr=new Int32Array(arr.buffer)':'{const oa=arr;(arr=gtArr||new Float32Array(i*2)).set(oa,0);iarr=new Int32Array(arr.buffer)}')
 	fnBody.push('return j})')
 	const s = eval(fnParams.join('')+fnBody.join(';')), p = s.program = gl.createProgram()
@@ -817,7 +816,7 @@ globalThis.Shader = (src, inputs, uniforms, output=4, defaults, uDefaults, frat=
 	gl.useProgram(p)
 	while(j3--) uniLocs.push(gl.getUniformLocation(p, 'uni'+uniLocs.length))
 	for(let i = 0; i < maxTex; i++)
-		gl.uniform1i(gl.getUniformLocation(p, 'GL_'+i), i>=fCount?maxTex+i-fCount:i)
+		gl.uniform1i(gl.getUniformLocation(p, i<fCount?'GL_f['+i+']':'GL_i['+(i-fCount)+']'), i>=fCount?maxTex+i-fCount:i)
 	s.count = j
 	gl.bindVertexArray(s.vao = gl.createVertexArray())
 	let i1 = 1, i2 = 0
