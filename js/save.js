@@ -34,7 +34,7 @@ const defaults = {
 	camera: 0,
 	fsc: 0,
 	speed: 1,
-	click: true,
+	click: false,
 	ffx: 1,
 	autof3: 1,
 	notifs: 1,

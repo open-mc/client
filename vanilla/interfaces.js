@@ -1,4 +1,5 @@
 import { ephemeralInterfaces, EphemeralInterface } from "definitions"
+import { send } from 'api'
 import { renderSlot } from "./effects.js"
 const src = loader(import.meta)
 

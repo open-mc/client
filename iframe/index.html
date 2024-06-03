@@ -143,7 +143,7 @@ globalThis.BitField = class BitField extends Array{
 const _mac = navigator.platform.startsWith('Mac')
 Object.assign(globalThis, {
 	buttons: new BitField, changed: new BitField,
-	delta: globalThis.cursor = {x: 0, y: 0, jlx: 0, jly: 0, jrx: 0, jry: 0},
+	delta: {...(globalThis.cursor = {x: 0, y: 0, jlx: 0, jly: 0, jrx: 0, jry: 0})},
 	LBUTTON: 0, RBUTTON: 2, MBUTTON: 1, KEYS: Object.freeze({
 		A: 65, B: 66, C: 67, D: 68, E: 69, F: 70, G: 71, H: 72, I: 73, J: 74, K: 75, L: 76,
 		M: 77, N: 78, O: 79, P: 80, Q: 81, R: 82, S: 83, T: 84, U: 85, V: 86, W: 87, X: 88,

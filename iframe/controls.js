@@ -13,7 +13,7 @@ export const playerControls = () => {
 	const r = buttons.has(KEYS.RIGHT) || buttons.has(KEYS.D) || cursor.jlx > 0.4
 	const l = buttons.has(KEYS.LEFT) || buttons.has(KEYS.A) || cursor.jlx < -0.4
 	const u = buttons.has(KEYS.UP) || buttons.has(KEYS.W) || buttons.has(KEYS.SPACE) || buttons.has(GAMEPAD.A) || cursor.jly > 0.4
-	const d = buttons.has(KEYS.DOWN) || buttons.has(KEYS.S) || cursor.jly < -0.4
+	const d = buttons.has(KEYS.DOWN) || cursor.jly < -0.4
 	if(r&&!R){
 		if(lastPressRight > t - .3){
 			me.state ^= 4
@@ -38,7 +38,7 @@ export const playerControls = () => {
 		if(R) me.x += SPEED
 		if(L) me.x -= SPEED
 		if(U) me.y += SPEED
-		if(D) me.y -= SPEED
+		if(D||buttons.has(KEYS.S)) me.y -= SPEED
 		me.dx *= .00001**dt; me.dy *= .00001**dt
 	}
 	if((me.state & 2) || !(L || R)) me.state &= -5
