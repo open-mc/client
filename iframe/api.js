@@ -1,7 +1,7 @@
 export const _cbs = []
-export const _joypadMoveCbs = {}
 export const _renderPhases = [], _tickPhases = []
 export const _optionListeners = {}
+export const ongesture = [], onpress = []
 const coords = {__proto__: null, none: 0, ui: 1, world: 2}
 
 export function tickPhase(prio=0, fn){
@@ -24,9 +24,8 @@ export function drawLayer(coord, prio=0, fn){
 
 export const onwheel = []
 export const onmousemove = []
-export const onjoypad = (i, cb) => (_joypadMoveCbs[i]??=[]).push(cb)
 
-export const onKey = (...keys) => {
+export const onkey = (...keys) => {
 	const cb = keys.pop()
 	for(const key of keys)
 		(_cbs[key] || (_cbs[key] = [])).push(cb)
@@ -53,8 +52,8 @@ export const onblur = []
 
 export let renderF3 = 0, renderBoxes = 0, renderUI = true
 listen('autof3', () => {renderF3 = min(options.autof3,2); renderBoxes = (options.autof3 > 2)*2})
-onKey(KEYS.F1, () => {renderUI = !renderUI})
-onKey(KEYS.F3, GAMEPAD.UP, () => {
+onkey(KEYS.F1, () => {renderUI = !renderUI})
+onkey(KEYS.F3, GAMEPAD.UP, () => {
 	if(buttons.has(GAMEPAD.UP)){
 		++renderF3>=3&&(renderF3=0,renderBoxes=(renderBoxes+1)%3)
 	}else if(buttons.has(KEYS.ALT) | buttons.has(KEYS.SHIFT) | buttons.has(KEYS.MOD)) renderBoxes = (renderBoxes+1)%3

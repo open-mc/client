@@ -1,6 +1,6 @@
-import { keyMsg, win } from './iframe.js'
+import { ifrMsg, win } from './iframe.js'
 import { pause } from '../uis/pauseui.js'
-import { ui, NONE, ptrFail, ptrSuccess } from './ui.js'
+import { ui, NONE, ptrFail, ptrSuccess, ptrLockOpts } from './ui.js'
 
 onkeydown = e => {
 	if(document.activeElement != document.body && e.key != 'Escape') return
@@ -8,7 +8,7 @@ onkeydown = e => {
 	if(e.repeat) return
 	if(cbs[e.key]){for(const f of cbs[e.key])f(); return}
 	if(e.key == 'Escape') return
-	if(win) keyMsg(e.keyCode)
+	ifrMsg(e.keyCode)
 }
 onkeyup = e => {
 	if(document.activeElement != document.body && e.key != 'Escape') return
@@ -18,35 +18,32 @@ onkeyup = e => {
 		return
 	}
 	if(cbs[e.key]) return
-	if(win) keyMsg(~e.keyCode)
+	ifrMsg(~e.keyCode)
 	e.preventDefault()
 }
-/*document.ontouchstart = e => {
-	if(!win) return
-	const clientX = e.touches[0].clientX, clientY = e.touches[0].clientY
-	if(ui === NONE){
-		win.postMessage([clientX, clientY], '*')
-		keyMsg(0)
-	}else if(ui) return
-	win.postMessage([clientX, clientY], '*')
+document.ontouchstart = document.ontouchmove = e => {
+	for(let i = 0; i < e.changedTouches.length; i++){
+		const t = e.changedTouches[i]
+		ifrMsg([t.identifier, t.clientX / innerWidth, 1 - t.clientY / innerHeight], '*')
+	}
 }
-document.ontouchmove = e => {
-	if(!win) return
-	const clientX = e.touches[0].clientX, clientY = e.touches[0].clientY
-	win.postMessage([clientX, clientY], '*')
+document.ontouchend = e => {
+	for(let i = 0; i < e.changedTouches.length; i++)
+		ifrMsg([null, e.changedTouches[i].identifier], '*')
 }
-document.ontouchend = e => void(win && keyMsg(~0))*/
 
-document.onmousedown = e => void(win && (!ui || (ui instanceof Comment)) && keyMsg(e.button))
-document.onmouseup = e => void(win && keyMsg(~e.button))
+document.onmousedown = e => ifrMsg(e.button)
+document.onmouseup = e => ifrMsg(~e.button)
 
-let mtarget = null, lastMovementX = 0, lastMovementY = 0
+let mtarget = null, lastMx = 0, lastMy = 0
 document.onmousemove = ({movementX, movementY, clientX, clientY, target}) => {
-	if (Math.abs(movementX - lastMovementX) > 150 ||  Math.abs(movementY - lastMovementY) > 150) return
 	if(mtarget) mtarget.classList.remove('hover')
 	while(target && target.nodeName!='BTN' && target.nodeName!='INPUT' && !target.classList.contains('selectable')) target=target.parentElement
 	;(mtarget=target)?.classList.add('hover')
 	if(!win) return
+	const movementScale = !ui && ptrLockOpts.unadjustedMovement ? 1 : globalThis.netscape ? devicePixelRatio : /Opera|OPR\//.test(navigator.userAgent) ? 1/devicePixelRatio : 1
+	const mx = movementX * movementScale, my = -movementY * movementScale
+	if(Math.hypot(lastMx - (lastMx=mx), lastMy - (lastMy=my)) > 150) return
 	if(ui === NONE){
 		const v = ui.rowI!=undefined&&ui.rows[ui.rowI]
 		if(v){
@@ -55,38 +52,34 @@ document.onmousemove = ({movementX, movementY, clientX, clientY, target}) => {
 			const n = v.columnI!=undefined&&v.columns[v.columnI]
 			if(n) n.classList.remove('hover'), v.columnI = undefined
 		}
-		win.postMessage([clientX, clientY], '*')
-		return
 	}else if(ui) return
-	const movementScale = globalThis.netscape ? devicePixelRatio : /Opera|OPR\//.test(navigator.userAgent) ? 1/devicePixelRatio : 1
-	win.postMessage([movementX * movementScale, -movementY * movementScale], '*')
-	lastMovementX = movementX, lastMovementY = movementY
+	ifrMsg([clientX / innerWidth, 1 - clientY / innerHeight, mx, my])
 }
 
 document.onwheel = ({deltaY}) => {
 	if(!win) return
 	const movementScale = devicePixelRatio ** (globalThis.netscape ? 1 : /Opera|OPR\//.test(navigator.userAgent) ? -1 : 0)
-	win.postMessage([deltaY * movementScale], '*')
+	ifrMsg([deltaY * movementScale])
 }
 
 let gamepadButtons = new Set, odxs = [0,0], odys = [0,0], dxs = [0,0], dys = [0,0]
 let wasShowingUI = true
-requestAnimationFrame(function checkInputs(){
+if(navigator.getGamepads) requestAnimationFrame(function checkInputs(){
 	requestAnimationFrame(checkInputs)
 	dxs.fill(0), dys.fill(0)
-	if (navigator.getGamepads) for(const d of navigator.getGamepads()){
+	for(const d of navigator.getGamepads()){
 		if(!d) continue
 		if(d.mapping != 'standard'){
 			let i = 320
 			for(const b of d.buttons){
 				if(b.pressed || b == 1){
 					if(!gamepadButtons.has(i)){
-						gamepadButtons.add(i); keyMsg(i)
+						gamepadButtons.add(i); ifrMsg(i)
 						if(i===320 && ui && ui.esc) ui.esc()
 						else if(i===320) document.exitPointerLock()
 					}
 				}else if(gamepadButtons.has(i))
-					gamepadButtons.delete(i), keyMsg(~i)
+					gamepadButtons.delete(i), ifrMsg(~i)
 				i++
 			}
 			continue
@@ -95,7 +88,7 @@ requestAnimationFrame(function checkInputs(){
 		for(const b of d.buttons){
 			if(b.pressed || b == 1){
 				if(!gamepadButtons.has(i)){
-					gamepadButtons.add(i), keyMsg(i)
+					gamepadButtons.add(i), ifrMsg(i)
 					a: if(i===256){
 						if(!ui || ui.rowI==undefined) break a
 						const v = ui.rows[ui.rowI]
@@ -106,7 +99,7 @@ requestAnimationFrame(function checkInputs(){
 					}else if(i === 257 && ui && ui.esc && ui !== NONE) ui.esc()
 				}
 			}else if(gamepadButtons.has(i))
-				gamepadButtons.delete(i), keyMsg(~i)
+				gamepadButtons.delete(i), ifrMsg(~i)
 			i++
 		}
 		dxs[0] += d.axes[0], dys[0] -= d.axes[1], dxs[1] += d.axes[2], dys[1] -= d.axes[3]
@@ -116,11 +109,12 @@ requestAnimationFrame(function checkInputs(){
 	for(let i = 0; i < 2; i++){
 		let d = dxs[i]*dxs[i]+dys[i]*dys[i]
 		if(d > 1) d = Math.sqrt(d), dxs[i] /= d, dys[i] /= d
+		const id = (i-.5)/0
 		if(!wasShowingUI){
-			if(showingUI) keyMsg([i, 0, 0])
+			if(showingUI) ifrMsg([id, 0, 0])
 			else if(dxs[i] != odxs[i] || dys[i] != odys[i])
-				keyMsg([i, dxs[i], dys[i]])
-		}else if(!showingUI) keyMsg([i, dxs[i], dys[i]])
+				ifrMsg([i, dxs[i], dys[i]])
+		}else if(!showingUI) ifrMsg([id, dxs[i], dys[i]])
 	}
 	wasShowingUI = showingUI
 	a: if(showingUI){
@@ -184,7 +178,7 @@ document.onpointerlockerror = document.onpointerlockchange = function(e){
 	if(e.type == 'error' || e.type == 'pointerlockerror') ptrFail()
 	else if(e.type == 'pointerlockchange' && document.pointerLockElement){
 		ptrSuccess()
-		keyMsg(false)
+		win?.postMessage(false, '*')
 	}else{
 		wasFullscreen = !!(!ui && document.fullscreenElement)
 		if(wasFullscreen)document.exitFullscreen ? document.exitFullscreen().catch(Function.prototype) : document.webkitExitFullscreen()

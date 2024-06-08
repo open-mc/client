@@ -34,7 +34,7 @@ for(let i = 0; i < 64; i++){
 }
 borderTex.pasteData(a); a=null
 const chunkLineCol = vec4(0, .4, 1, 1)
-const axisLineCol = vec4(0, 0, 1, 1)
+const axisLineCol = vec4(.5, 0, 1, 1)
 let visibleChunks = 0
 const day = vec3(.93), night = vec3(.11,.11,.22)
 const block = vec3(2, 1.8, 1.5), netherBase = vec3(.424,.364,.265), endBase = vec3(.185,.243,.21)
@@ -112,9 +112,9 @@ drawLayer('none', 200, (ctx, w, h) => {
 		if(abs(cam.y) <= H2 + lineWidth2*.5)
 			ctx.drawRect(-W2,(-cam.y-lineWidth2*.5),W2*2,lineWidth2, axisLineCol)
 		if(abs(ifloat(cam.x + 2147483648)) <= W2 + lineWidth2*.5)
-			ctx.drawRect(ifloat(W2-cam.x+2147483648-lineWidth2*.5),0,lineWidth2,-H2*2, axisLineCol)
+			ctx.drawRect(ifloat(-cam.x+2147483648-lineWidth2*.5),-H2,lineWidth2,H2*2, axisLineCol)
 		if(abs(ifloat(cam.y + 2147483648)) <= H2 + lineWidth2*.5)
-			ctx.drawRect(0,ifloat(cam.y+2147483648-H2-lineWidth2*.5),W2*2,lineWidth2, axisLineCol)
+			ctx.drawRect(-W2,ifloat(-cam.y+2147483648-lineWidth2*.5),W2*2,lineWidth2, axisLineCol)
 	}
 })
 drawLayer('none', 300, ctx => {
@@ -137,7 +137,7 @@ function renderEntity(ctx, entity, a=1){
 	entity.render(ctx.sub(), tint)
 	if(hitboxes){
 		if(entity.head && hitboxes >= 2){
-			const L = entity == me ? sqrt(pointer.x * pointer.x + pointer.y * pointer.y) : 0.8
+			const L = entity == me ? hypot(pointer.x, pointer.y) : 0.8
 			const ct2 = ctx.sub()
 			ct2.translate(0, entity.head)
 			ct2.rotate(entity.f)

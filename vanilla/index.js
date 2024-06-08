@@ -1,6 +1,6 @@
 import { uiButtons, icons, renderItem, renderItemCount, click, renderSlot, renderTooltip, resetSlot, slotI, audioSet } from './effects.js'
 import './entities.js'
-import { onKey, drawLayer, pause, renderUI, quit, onpacket, send, voice, drawText, calcText, tickPhase } from 'api'
+import { onkey, drawLayer, pause, renderUI, quit, onpacket, send, voice, drawText, calcText, tickPhase } from 'api'
 import { getblock, gridEvents, sound, entityMap, pointer, cam, world, configLoaded, me, W2, H2, exposureMap, mode } from 'world'
 import { Item, BlockParticle, addParticle, blockBreak, ephemeralInterfaces } from 'definitions'
 import { AshParticle, BlastParticle, explode } from './defs.js'
@@ -48,16 +48,15 @@ drawLayer('none', -100, c => {
 	const w = c.width/pixelRatio, h = c.height/pixelRatio
 	if(world.id == 'overworld'){
 		const rainyness = min(world.weather&&(1-world.weatherFade/40), 1, (world.weather&0x0FFFFFFF)/40)
-		const reach = pointer.effectiveReach()
 		const time = world.tick % 24000
 		const light = time < 1800 ? time / 1800 : time < 13800 ? 1 : time < 15600 ? (15600 - time) / 1800 : 0
 		const orangeness = 1 - abs(time < 1800 ? time - 900 : time >= 13800 && time < 15600 ? time - 14700 : 900)/900
-		const wspan = w + 128 + reach/2
+		const wspan = w + 128 + pointer.REACH/2
 		const effx = ifloat(cam.x-me.x)*cam.z/4*pixelRatio, effy = ifloat(cam.y-me.y)*cam.z/4*pixelRatio
 		if(light < 1 && rainyness < 1){
 			c.draw(nightGradient)
 			const fac = ((time + 12600) % 24000 / 8400 - .5)
-			const xo = wspan * fac - 50 - reach/4 - effx
+			const xo = wspan * fac - 50 - pointer.REACH/4 - effx
 			const yo = h/2 - 30 - h/3 * sin(fac * PI) + effy
 			c.draw(stars.crop(-xo/2, -yo/2, w/2, h/2), vec4(1-rainyness))
 		}
@@ -75,10 +74,10 @@ drawLayer('none', -100, c => {
 		c.scale(1/w, 1/h)
 		if(time < 15600){
 			const progress = time / 15600
-			c.drawRect(wspan * progress - 128 - reach/4 - effx, h/2 - 32 + h/3 * sin(progress * PI) - effy, 128, 128, sun, vec4(1-rainyness))
+			c.drawRect(wspan * progress - 128 - pointer.REACH/4 - effx, h/2 - 32 + h/3 * sin(progress * PI) - effy, 128, 128, sun, vec4(1-rainyness))
 		}else{
 			const progress = (time - 15600) / 8400
-			c.drawRect(wspan * progress - 128 - reach/4 - effx, h/2 - 32 + h/3 * sin(progress * PI) - effy, 128, 128, moons[world.tick / 24000 & 7], vec4(1-rainyness))
+			c.drawRect(wspan * progress - 128 - pointer.REACH/4 - effx, h/2 - 32 + h/3 * sin(progress * PI) - effy, 128, 128, moons[world.tick / 24000 & 7], vec4(1-rainyness))
 		}
 		c.blend = 0
 	}else if(world.id == 'nether'){
@@ -288,9 +287,9 @@ drawLayer('ui', 1000, (c, w, h) => {
 
 let invInterface = null, interfaceId = 0
 let invAction = 0
-onKey(LBUTTON, () => {invAction = 1})
-onKey(RBUTTON, () => {invAction = 2})
-onKey(MBUTTON, () => {invAction = 3})
+onkey(LBUTTON, () => {invAction = 1})
+onkey(RBUTTON, () => {invAction = 2})
+onkey(MBUTTON, () => {invAction = 3})
 
 function openInventory(){
 	const buf = new DataWriter()
@@ -332,12 +331,12 @@ onpacket(32, buf => {
 	}
 })
 
-onKey(KEYS.E, GAMEPAD.X, () => {
+onkey(KEYS.E, GAMEPAD.X, () => {
 	if(invInterface) return closeInterface()
 	openInventory()
 })
 
-onKey(KEYS.Q, GAMEPAD.Y, GAMEPAD.DOWN, () => {
+onkey(KEYS.Q, GAMEPAD.Y, GAMEPAD.DOWN, () => {
 	const buf = new DataWriter()
 	buf.byte(34)
 	send(buf)

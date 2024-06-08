@@ -1,6 +1,6 @@
-import { setblock, getblock, map, cam, me, onPlayerLoad, perms, pointer, W2, H2, toBlockExact, mode } from 'world'
+import { setblock, getblock, map, cam, me, onPlayerLoad, perms, pointer, W2, H2, toBlockExact, mode, SCALE } from 'world'
 import './controls.js'
-import { onKey, onmousemove, options, paused, renderUI, drawLayer } from 'api'
+import { onkey, onmousemove, options, paused, renderUI, drawLayer, onpress } from 'api'
 import { Entity, TEX_SIZE, BlockIDs } from 'definitions'
 
 export const CAMERA_DYNAMIC = 0, CAMERA_FOLLOW_SMOOTH = 1, CAMERA_FOLLOW_POINTER = 2,
@@ -9,7 +9,6 @@ export let x = 2, y = 0
 export let bx = 0, by = 0, bpx = 0, bpy = 0
 export const REACH = 10
 onPlayerLoad(me => reset(me.f))
-export const effectiveReach = () => max(1, min(REACH, min(W2, H2) * 1.5 - 1.5))
 let lastPlace = 0
 let jrx = 0, jry = 0
 drawLayer('none', -1000, () => {
@@ -17,19 +16,19 @@ drawLayer('none', -1000, () => {
 		if(cursor.jrx || cursor.jry){
 			const sens = 9 ** (options.controllerSensitivity-options.sensitivity)
 			pointerMoved(cursor.jrx * 100 * sens, cursor.jry * 100 * sens)
+			pointerOpacity = 0.5
 		}
 	}else if(options.joy == 1){
-		const reach = effectiveReach()
 		if(cursor.jrx || cursor.jry){
 			void({jrx, jry} = cursor)
-			const ns = sqrt(jrx * jrx + jry * jry)*reach
+			const ns = hypot(jrx, jry)*REACH
 			if(ns < 1) jrx/=ns, jry/=ns
 		}else{
-			const ns = sqrt(jrx * jrx + jry * jry)*reach
+			const ns = hypot(jrx, jry)*REACH
 			if(ns) jrx/=ns, jry/=ns
 			else break a
 		}
-		x += (jrx * reach - x) / 3; y += (jry * reach - y) / 3
+		x += (jrx * REACH - x) / 3; y += (jry * REACH - y) / 3
 	}
 	if(options.camera == CAMERA_DYNAMIC){
 		if(cam.staticX != cam.staticX) cam.x += (x - oldx) / 3
@@ -42,9 +41,12 @@ export const DEFAULT_BLOCKSHAPE = [0, 0, 1, 1]
 let blockPlacing = null
 const invertBlend = Blend(ONE_MINUS_DST, ADD, ONE_MINUS_SRC)
 drawLayer('world', 400, c => {
+	if(paused) return
+	if(cursor.mx||cursor.my) pointerMoved(cursor.mx, cursor.my), pointerOpacity = 1
+	if(gesture.dx||gesture.dy) pointerMoved(gesture.dx*W2, gesture.dy*H2, 4), pointerOpacity = 0
 	if(renderUI && me.health){
 		c.blend = invertBlend
-		const v = me.linked ? 1 : 0.2
+		const v = me.linked ? pointerOpacity : 0.2
 		const pX = ifloat(x + me.x - cam.x), pY = ifloat(y + me.head + me.y - cam.y)
 		c.drawRect(pX - .3, pY - .03125, .6, .0625, vec4(v,v,v,0))
 		c.drawRect(pX - .03125, pY - .3, .0625, .26875, vec4(v,v,v,0))
@@ -55,7 +57,7 @@ drawLayer('world', 400, c => {
 	by = floor(me.y + me.head)
 	bpx = NaN, bpy = NaN
 	let bppx = NaN, bppy = NaN
-	const reach = sqrt(x * x + y * y)
+	const reach = hypot(x, y)
 	let d = 0, px = me.x - bx, py = me.y + me.head - by
 	const dx = sin(me.f), dy = cos(me.f)
 	const item = me.inv[me.selected], interactFluid = item?.interactFluid ?? false
@@ -179,7 +181,8 @@ drawLayer('world', 201, (c, w, h) => {
 })
 let didHit = false
 export function checkBlockPlacing(buf){
-	const hasP = buttons.has(options.click ? LBUTTON : RBUTTON) || buttons.has(options.click ? GAMEPAD.LT : GAMEPAD.RT)
+	const hasP = buttons.has(options.click ? LBUTTON : RBUTTON) || buttons.has(options.click ? GAMEPAD.LT : GAMEPAD.RT) || touchPlace
+	touchPlace = false
 	const hasB = buttons.has(options.click ? RBUTTON : LBUTTON) || buttons.has(options.click ? GAMEPAD.RT : GAMEPAD.LT)
 	if(hasP && ((mode == 1 && buttons.has(KEYS.ALT)) || t > lastPlace + .12) && !paused && bpx == bpx){
 		if(blockPlacing) setblock(bpx, bpy, blockPlacing)
@@ -213,27 +216,33 @@ export function checkBlockPlacing(buf){
 	}
 }
 export let blockbreakx = NaN, blockbreaky = NaN
-onKey(LBUTTON, RBUTTON, GAMEPAD.LT, GAMEPAD.RT, () => {lastPlace = 0})
+onkey(LBUTTON, RBUTTON, GAMEPAD.LT, GAMEPAD.RT, () => {lastPlace = 0})
 let oldx = 0, oldy = 0
-export function pointerMoved(dx, dy){
+let pointerOpacity = 1
+export function pointerMoved(dx, dy, sens = 9 ** options.sensitivity / 3 / cam.z / TEX_SIZE / 2){
+	pointerOpacity = 1
 	const _dx = dx, sr = sin(cam.f), cr = cos(cam.f)
 	dx = dx*cr-dy*sr; dy = _dx*sr+dy*cr
 	jrx = jry = 0
-	const reach = effectiveReach()
-	const s = min(reach, sqrt(x * x + y * y))
-	const sens = 9 ** options.sensitivity / 3 / cam.z / TEX_SIZE / 2
+	const s = min(REACH, hypot(x, y))
 	x += dx * sens; y += dy * sens
-	const ns = sqrt(x * x + y * y)
+	const ns = hypot(x, y)
 	if(!ns) return x = y = 0
 	if(ns > s){
 		x /= ns
 		y /= ns
-		const vec = s + (min(ns, reach) - s) * (1 - (s / reach) ** 4)
+		const vec = s + (min(ns, REACH) - s) * (1 - (s / REACH) ** 4)
 		x *= vec
 		y *= vec
 	}
 }
-onmousemove.bind(pointerMoved)
+let touchPlace = false
+onpress.bind((tx, ty) => {
+	tx = tx*W2*2-W2+cam.x-me.x
+	ty = ty*H2*2-H2+cam.y-me.y-me.head
+	if(tx*tx+ty*ty>REACH*REACH) return
+	x = tx; y = ty; touchPlace = true
+})
 export const reset = (f) => {
 	let r = min(4, REACH)
 	x = oldx = sin(f) * r
@@ -243,4 +252,5 @@ export const set = (_x, _y) => {
 	x = _x; y = _y
 }
 import * as p from './pointer.js'
+import { ongesture } from './api.js'
 pointer(p)

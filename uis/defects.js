@@ -28,7 +28,10 @@ const defects = {
 // Fuck you, safari!
 if(!('filter' in CanvasRenderingContext2D.prototype)) defects.safari = true
 
-if(matchMedia("not (pointer: fine)").matches)
+// OffscreenCanvas doesn't support webgl until iOS 17.0
+if(defects.safari && !('popover' in HTMLElement.prototype)) OffscreenCanvas = null
+
+if(matchMedia("not (hover: hover)").matches)
 	defects.mobile = true, defects.safari = false
 
 export function start(){

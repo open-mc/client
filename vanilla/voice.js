@@ -1,4 +1,4 @@
-import { send, onpacket, voice, stopVoice, drawLayer, onKey } from 'api'
+import { send, onpacket, voice, stopVoice, drawLayer, onkey } from 'api'
 import { entityMap, CONFIG, me } from 'world'
 
 onpacket(96, buf => {
@@ -37,7 +37,7 @@ function queuePlay(e, sampleRate, data){
 function setVol(e, obj){
 	const dx = e.x-me.x, dy = e.y-me.y
 	// TODO
-	obj.gain.gain.value = 1-sqrt(dx*dx+dy*dy)/CONFIG.proximitychat
+	obj.gain.gain.value = 1-hypot(dx, dy)/CONFIG.proximitychat
 	obj.pan.pan.value = tanh(dx/sqrt(CONFIG.proximitychat)/4)
 }
 
@@ -50,7 +50,7 @@ drawLayer('none', -10000, () => {
 	else if(!voice.active && (buttons.has(KEYS.ENTER)^voiceToggle) && CONFIG.proximitychat) voice(sendVoice), me.state |= 0x100
 })
 let voiceToggle = false
-onKey(KEYS.P, () => voiceToggle = !voiceToggle)
+onkey(KEYS.P, () => voiceToggle = !voiceToggle)
 function sendVoice(f32){
 	if(!pako) return
 	const arr = new Uint8ClampedArray(f32.length)

@@ -1,5 +1,5 @@
 import { key } from '../js/events.js'
-import { keyMsg } from '../js/iframe.js'
+import { win } from '../js/iframe.js'
 import { hideUI, Input, showUI, ui, UI } from '../js/ui.js'
 let input
 const chatui = UI('noshade',
@@ -8,20 +8,20 @@ const chatui = UI('noshade',
 key('t', () => {
 	if(ui) return
 	showUI(chatui)
-	keyMsg([Infinity])
+	win?.postMessage([Infinity], '*')
 	input.focus()
 	input.value = ''
 })
 key('/', () => {
 	if(ui) return
 	showUI(chatui)
-	keyMsg([Infinity])
+	win?.postMessage([Infinity], '*')
 	input.focus()
 	input.value = '/'
 })
 chatui.finish = () => {
 	input.blur()
-	keyMsg([-Infinity])
+	win?.postMessage([-Infinity], '*')
 }
 
 chatui.esc = hideUI

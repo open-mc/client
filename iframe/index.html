@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Safari, fuck you! -->
+<!-- Good luck understanding this file, warning: very graphical -->
 <script async src="./_shim.js"></script>
 <script type="importmap">
 {"imports": {
@@ -22,6 +22,11 @@ onunhandledrejection=({reason})=>parent.postMessage([''+reason,'',0,0], '*')
 Array.prototype.bind = Array.prototype.push
 Array.prototype.fire = function(...v){
 	for(const r of this) try{r(...v)}catch(e){Promise.reject(e)}
+}
+Array.prototype.mapFire = function(...v){
+	const res = new Array(this.length)
+	for(const r of this) try{res.push(r(...v))}catch(e){Promise.reject(e);res.push(undefined)}
+	return res
 }
 globalThis.BitField = class BitField extends Array{
 	static parse(a){
@@ -142,8 +147,8 @@ globalThis.BitField = class BitField extends Array{
 }
 const _mac = navigator.platform.startsWith('Mac')
 Object.assign(globalThis, {
-	buttons: new BitField, changed: new BitField,
-	delta: {...(globalThis.cursor = {x: 0, y: 0, jlx: 0, jly: 0, jrx: 0, jry: 0})},
+	buttons: new BitField, changed: new BitField, touches: new Map, gesture: {dx: 0, dy: 0, scale: 1, rot: 0},
+	cursor: {x: 0, y: 0, dx: 0, dy: 0, mx: 0, my: 0, jlx: 0, jly: 0, jrx: 0, jry: 0},
 	LBUTTON: 0, RBUTTON: 2, MBUTTON: 1, KEYS: Object.freeze({
 		A: 65, B: 66, C: 67, D: 68, E: 69, F: 70, G: 71, H: 72, I: 73, J: 74, K: 75, L: 76,
 		M: 77, N: 78, O: 79, P: 80, Q: 81, R: 82, S: 83, T: 84, U: 85, V: 86, W: 87, X: 88,
@@ -157,6 +162,7 @@ Object.assign(globalThis, {
 	}),
 	GAMEPAD: Object.freeze({ A: 256, B: 257, X: 258, Y: 259, LB: 260, RB: 261, LT: 262, RT: 263, UP: 268, DOWN: 269, LEFT: 270, RIGHT: 271, MENU: 300 })
 })
+touches[Symbol.iterator] = touches.values
 Uint8Array.fromHex = function(hex){
 	const res = new Uint8Array(hex.length>>>1)
 	let r = 1, i = 0
@@ -586,14 +592,20 @@ class can{
 	new(a=1,b=0,c=0,d=1,e=0,f=0){return new can(this.t,a,b,c,d,e,f,this.#m,this.#shader,this.s)}
 	reset(a=1,b=0,c=0,d=1,e=0,f=0){this.#a=a;this.#b=b;this.#c=c;this.#d=d;this.#e=e;this.#f=f;this.#m=290787599;this.#shader=Shader.DEFAULT;this.s=defaultShape}
 	box(x=0,y=0,w=1,h=w){ this.#e+=x*this.#a+y*this.#c; this.#f+=x*this.#b+y*this.#d; this.#a*=w; this.#b*=w; this.#c*=h; this.#d*=h }
-	to(x=0, y=0){if(typeof x=='object')({x,y}=x);return {x:this.#a*x+this.#c*y+this.#e,y:this.#b*x+this.#d*y+this.#f}}
+	to(x=0, y=0){if(typeof x=='object')({x,y}=x);return{x:this.#a*x+this.#c*y+this.#e,y:this.#b*x+this.#d*y+this.#f}}
 	from(x=0, y=0){
 		if(typeof x=='object')({x,y}=x)
-		const a=this.#a,b=this.#b,c=this.#c,d=this.#d, det = a*d - b*c
+		const a=this.#a,b=this.#b,c=this.#c,d=this.#d, det = a*d-b*c
 		return {
 			x: (x*d - x*c + c*this.#f - d*this.#e)/det,
 			y: (y*a - y*b + b*this.#e - a*this.#f)/det
 		}
+	}
+	toRel(dx=0, dy=0){if(typeof dx=='object')({dx,dy}=dx);return{dx:this.#a*dx+this.#c*dy,dy:this.#b*dx+this.#d*dy}}
+	fromRel(dx=0, dy=0){
+		if(typeof dx=='object')({dx,dy}=dx)
+		const a=this.#a,b=this.#b,c=this.#c,d=this.#d, det = a*d-b*c
+		return { dx: (dx*d-dx*c)/det, dy: (dy*a-dy*b)/det }
 	}
 	sub(){ return new can(this.t,this.#a,this.#b,this.#c,this.#d,this.#e,this.#f,this.#m,this.#shader,this.s) }
 	resetTo(m){ this.#a=m.#a;this.#b=m.#b;this.#c=m.#c;this.#d=m.#d;this.#e=m.#e;this.#f=m.#f;this.#m=m.#m;this.#shader=m.#shader;this.s=m.s }
@@ -650,7 +662,7 @@ Object.assign(T, {
 	MIN: 2232593, MAX: 3346705,
 	BEHIND: 1118583
 })
-globalThis.PI ??= Math.PI; globalThis.PI2 ??= globalThis.PI*2
+globalThis.PI2 = PI*2
 function setv(t,m){
 	const s = t.stencil
 	let d = pmask^m

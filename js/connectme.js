@@ -1,8 +1,8 @@
 import { DataReader, decoder } from '/server/modules/dataproto.js'
 import "../uis/chat.js"
 import { pendingConnection, msg } from '../uis/dirtscreen.js'
-import { Btn, click, Div, hideUI, Img, Label, Row } from './ui.js'
-import { servers, saveServers, storage, options } from './save.js'
+import { Btn, click, Div, Img, Label, Row } from './ui.js'
+import { servers, saveServers, storage } from './save.js'
 import { clearNotifs, destroyIframe, fwPacket, gameIframe } from './iframe.js'
 import { PROTOCOL_VERSION } from '../server/version.js'
 import texts from './lang.js'
@@ -20,8 +20,6 @@ async function makeSign(challenge){
 }
 
 const unencrypted = /^(localhost|127.0.0.1|0.0.0.0|\[::1\])$/i
-
-const pingRegex = new RegExp('@' + storage.name + '(?!\\w)', 'i')
 
 const TLD_MAP = {
 	anarchy: 'pp.ua',
@@ -88,7 +86,7 @@ export function preconnect(ip, cb = Function.prototype, instant = false){
 				if(banner) node.attr('style', 'background: linear-gradient(75deg, #000a 80rem, #0001 100%), url("'+CSS.escape(banner)+'") center/cover')
 			}
 			ws.packs = pako.inflate(packet.uint8array(), {to: 'string'}).split('\0')
-			for(let i = 0; i < ws.packs.length; i++) if(ws.packs[i][0]=='~') ws.packs[i] = 'http' + ip.slice(2) + ws.packs[i].slice(1)
+			for(let i = 4; i < ws.packs.length; i++) if(ws.packs[i][0]=='~') ws.packs[i] = 'http' + ip.slice(2) + ws.packs[i].slice(1)
 			ws.challenge = packet.uint8array()
 			const host = decoder.decode(ws.challenge.subarray(0, ws.challenge.indexOf(0))).toLowerCase()
 			if(host != ip.replace(/\w+:\/\//y,'').toLowerCase()) return void ws.close() // mitm attack

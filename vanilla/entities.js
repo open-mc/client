@@ -52,7 +52,7 @@ export class LivingEntity extends Entity{
 		if(this.hitTimer < 0) this.hitTimer = 0
 		if((this.state&0x8000) && !this.hitTimer) return true
 		const xs = this.f >= 0 ? 1 : -1, ys = this.name == 'Dinnerbone' || this.name == 'Grumm' ? -1 : 1
-		if(this.name && ((renderF3&&renderUI) || this != me)){
+		if(this.name && ((renderF3>1&&renderUI) || this != me)){
 			const c2 = c.sub()
 			c2.translate(0, this.height+0.15)
 			c2.scale(0.25)

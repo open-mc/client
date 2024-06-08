@@ -28,7 +28,7 @@ NONE.esc = hideUI
 document.body.append(NONE)
 
 export let ptrSuccess = Function.prototype, ptrFail = Function.prototype
-const ptrLockOpts = navigator.platform.startsWith('Linux') ? {} : {unadjustedMovement: true}
+export const ptrLockOpts = !navigator.platform.startsWith('Linux') && Intl.v8BreakIterator ? {unadjustedMovement: true} : {}
 export const ptrlock = () => new Promise((r, c) => {
 	ptrSuccess = r; ptrFail = c
 	const fs = options.fsc ? document.documentElement.requestFullscreen() : undefined

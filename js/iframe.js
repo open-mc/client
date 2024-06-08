@@ -1,5 +1,5 @@
 import { listen, options, storage } from './save.js'
-import { hideUI, ping, showUI } from './ui.js'
+import { hideUI, ping, showUI, ui } from './ui.js'
 import { pause } from '../uis/pauseui.js'
 import { serverlist } from '../uis/serverlist.js'
 import texts from './lang.js'
@@ -30,6 +30,7 @@ if(location.protocol == 'tauri:'){
 const queue = []; let files = null
 export function gameIframe(f){
 	if(storage.mods) f.push.apply(f, storage.mods.split('\n'))
+	while(f.length<=4) f.push('')
 	files = f
 	destroyIframe()
 	iframe.src = src
@@ -51,9 +52,9 @@ onfocus = () => {
 	blurred = false
 	notifs = 0
 	document.title = ws ? texts.misc.title.playing(ws.name) : texts.misc.title.menu()
-	win && keyMsg(Infinity)
+	win?.postMessage(Infinity, '*')
 }
-onblur = () => { blurred = true; win && keyMsg(Infinity) }
+onblur = () => { blurred = true; win?.postMessage(Infinity, '*') }
 
 onmessage = ({data, source}) => {
 	if(source != iframe.contentWindow || !iframe.contentWindow) return
@@ -94,22 +95,15 @@ export function destroyIframe(){
 	win = null; queue.length = 0
 }
 
-export const fwOption = (a, b) => {
-	if(!win) return
-	win.postMessage([a, b], '*')
-}
-listen(fwOption)
+listen((a,b) => win?.postMessage([a, b], '*'))
 
 export function fwPacket(a){
 	if(!win) return void queue.push(fwPacket, a)
-	if(a.buffer)win.postMessage(a.buffer, '*', [a.buffer])
+	if(a.buffer) win.postMessage(a.buffer, '*', [a.buffer])
 	else win.postMessage(a, '*')
 }
 
-export function keyMsg(a){
-	if(!win) return void queue.push(keyMsg, a)
-	win.postMessage(a, '*')
-}
+export const ifrMsg = (a,c=!(ui instanceof Element)) => c&&win?.postMessage(a, '*')
 
 
 const TARGET_SAMPLE_RATE = 22050
@@ -133,12 +127,12 @@ async function microphone(){
 			const {resampler} = await import('/img/_resampler.js')
 			r = resampler(sampleRate, TARGET_SAMPLE_RATE, 1, bufferSize)
 		}
-		win.postMessage(sampleRate + 5e9, '*')
+		win?.postMessage(sampleRate + 5e9, '*')
 		const a = ctx.createScriptProcessor(4096, 1, 1) // Blink/webkit bug, node requires output
 		a.onaudioprocess = ({inputBuffer}) => {
 			if(!voice) return
 			const f32 = r?r(inputBuffer.getChannelData(0)):inputBuffer.getChannelData(0)
-			win.postMessage(f32, '*')
+			win?.postMessage(f32, '*')
 		}
 		m.source=node;m.source.connect(a)
 		a.connect(ctx.destination)

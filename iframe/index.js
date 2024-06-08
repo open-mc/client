@@ -3,7 +3,7 @@ import { DataWriter } from '/server/modules/dataproto.js'
 import { mePhysics, stepEntity } from './entity.js'
 import { getblock, entityMap, map, cam, onPlayerLoad, world, me, W2, H2, SCALE } from 'world'
 import * as pointer from './pointer.js'
-import { options, paused, _renderPhases, renderBoxes, send, download, copy, pause, _updatePaused, drawText, calcText, _networkUsage, listen, _tickPhases, renderUI, _cbs, onmousemove, _joypadMoveCbs, onwheel, _optionListeners, _setChatFocused, _onvoice, voice, _onPacket, onfocus, onblur, onKey } from 'api'
+import { options, paused, _renderPhases, renderBoxes, send, download, copy, pause, _updatePaused, drawText, calcText, _networkUsage, listen, _tickPhases, renderUI, _cbs, onmousemove, onwheel, _optionListeners, _setChatFocused, _onvoice, voice, _onPacket, onfocus, onblur, onkey, ongesture, onpress } from 'api'
 import { _recalcDimensions, Blocks, Items, Entities, BlockIDs, ItemIDs, EntityIDs, Block, Item, Entity, Classes } from 'definitions'
 import { jsonToType } from '/server/modules/dataproto.js'
 import { onChat } from './chat.js'
@@ -86,22 +86,21 @@ globalThis.frame = () => {
 	cam.minZoom = max(innerWidth,innerHeight)/(ceil(sqrt(map.size))-1.375)/(2048>>!renderBoxes)
 	cam.z = cam.z**.75 * max(cam.minZoom, 2 ** (options.zoom * 8 - 4) * tzoom * 2**cam.baseZ)**.25
 	_recalcDimensions(cam.z)
-	const reach = pointer.effectiveReach()
 	if(!me.linked && !renderUI && !(me.health <= 0)) cam.x = me.ix = me.x, cam.y = me.iy = me.y
 	else if(options.camera == CAMERA_DYNAMIC){
 		const D = me.state & 4 ? 0.7 : 2
 		const dx = ifloat(me.x + pointer.x/D - cam.x + cam.baseX), dy = ifloat(me.y + pointer.y/D + me.head - cam.y + cam.baseY)
 		if(abs(dx) > 64)cam.x += dx
 		else{
-			if(!camMovingX && abs(dx) > reach / 2)camMovingX = true
-			else if(camMovingX && abs(dx) < reach / 4)camMovingX = false
-			if(camMovingX)cam.x = ifloat(cam.x + (dx - sign(dx)*(reach/4+0.25)) * dt * 4)
+			if(!camMovingX && abs(dx) > pointer.REACH / 2)camMovingX = true
+			else if(camMovingX && abs(dx) < pointer.REACH / 4)camMovingX = false
+			if(camMovingX)cam.x = ifloat(cam.x + (dx - sign(dx)*(pointer.REACH/4+0.25)) * dt * 4)
 		}
 		if(abs(dy) > 64)cam.y += dy
 		else{
-			if(!camMovingY && abs(dy) > reach / 2)camMovingY = true
-			else if(camMovingY && abs(dy) < reach / 4)camMovingY = false
-			if(camMovingY)cam.y = ifloat(cam.y + (dy - sign(dy)*(reach/4+0.25)) * dt * 7)
+			if(!camMovingY && abs(dy) > pointer.REACH / 2)camMovingY = true
+			else if(camMovingY && abs(dy) < pointer.REACH / 4)camMovingY = false
+			if(camMovingY)cam.y = ifloat(cam.y + (dy - sign(dy)*(pointer.REACH/4+0.25)) * dt * 7)
 		}
 	}else if(options.camera == CAMERA_FOLLOW_SMOOTH){
 		const dx = ifloat(me.x + pointer.x - cam.x + cam.baseX), dy = ifloat(me.y + pointer.y + me.head - cam.y + cam.baseY)
@@ -148,15 +147,21 @@ globalThis.frame = () => {
 	if(flashbang) ctx.reset(), ctx.drawRect(1, 0, -flashbang, flashbang, vec4(flashbang*.667)), flashbang = max(0, flashbang-dt*3)
 	t=correctT
 	changed.clear()
-	delta.x = delta.y = 0
-	delta.jlx = delta.jly = 0
-	delta.jrx = delta.jry = 0
+	for(const t of touches.values()){
+		t.dx = t.dy = 0
+		if((t.d<16&&t.age<.5)&((t.age+=dt)>=.5)){
+			// long press
+		}
+	}
+	cursor.dx = cursor.dy = cursor.mx = cursor.my = 0
+	gesture.dx = gesture.dy = gesture.rot = 0
+	gesture.scale = 1
 	_updatePaused()
 }
 globalThis.cam = cam
 
 
-onKey(KEYS.F2, () => requestAnimationFrame(() => _gl.canvas.toBlob(blob => {
+onkey(KEYS.F2, () => requestAnimationFrame(() => _gl.canvas.toBlob(blob => {
 	const f = new File([blob], 'screenshot-'+timestamp(), blob)
 	if(buttons.has(KEYS.ALT)) copy(f), flashbang = 1
 	else download(f)
@@ -164,7 +169,7 @@ onKey(KEYS.F2, () => requestAnimationFrame(() => _gl.canvas.toBlob(blob => {
 let rec = null
 const timestamp = (d = new Date()) => `${d.getYear()+1900}-${('0'+d.getMonth()).slice(-2)}-${('0'+d.getDate()).slice(-2)}-at-${('0'+d.getHours()).slice(-2)}-${('0'+d.getMinutes()).slice(-2)}-${('0'+d.getSeconds()).slice(-2)}`
 _gl.canvas.style.outlineOffset = '-1px'
-onKey(KEYS.F6, () => {
+onkey(KEYS.F6, () => {
 	if(!rec){
 		audioOut = _actx.createMediaStreamDestination()
 		bgGain.connect(audioOut)
@@ -200,6 +205,7 @@ globalThis.addToQueue = p => p?.then&&(loading++,p.then(()=>--loading||loaded())
 listen('music', () => bgGain.gain.value = options.music * options.music * 2)
 listen('sound', () => masterVolume = options.sound*2)
 listen('fps', () => ctxFramerate = options.fps ? options.fps < 1 ? options.fps*250 : Infinity : -1)
+let aid = NaN, bid = NaN
 const onMsg = ({data,origin}) => {
 	if(origin=='null') return
 	if(Array.isArray(data)){
@@ -208,28 +214,51 @@ const onMsg = ({data,origin}) => {
 			if(typeof a == 'string'){
 				options[a] = b
 				if(_optionListeners[a]) for(const f of _optionListeners[a]) f(b)
-			}else if(me){
-				if(paused){
-					delta.x = -(cursor.x - (cursor.x = a / innerWidth))
-					delta.y = -(cursor.y - (cursor.y = 1 - b / innerHeight))
-				}else{
-					delta.x = a; delta.y = b
-					onmousemove.fire(a, b)
+			}else if(a===null){
+				const v = touches.get(b); touches.delete(b)
+				if(v.d < 16){
+					if(v.age < .5) onpress.fire(v.x, v.y)
 				}
+				b==bid?bid=NaN:b==aid?(aid=bid,bid=NaN):0
 			}
 			return
 		}else if(data.length == 3){
-			const [id, dx, dy] = data
-			if(id == 0){
-				delta.jlx = -(cursor.jlx - (cursor.jlx = dx))
-				delta.jly = -(cursor.jly - (cursor.jly = dy))
-			}else if(id == 1){
-				delta.jrx = -(cursor.jrx - (cursor.jrx = dx))
-				delta.jry = -(cursor.jry - (cursor.jry = dy))
+			const {0:id, 1:x, 2:y} = data
+			if(id == -Infinity) cursor.jlx = x, cursor.jly = y
+			else if(id == Infinity) cursor.jrx = x, cursor.jry = y
+			else{
+				let v = touches.get(id)
+				if(!v) return void touches.set(id, v = {x: x, y: y, dx: 0, dy: 0, age: 0, d: 0})
+				const ox = v.x, oy = v.y, dx = (v.x=x)-ox, dy = (v.y=y)-oy
+				v.dx += dx; v.dy += dy
+				if((v.d += hypot(dx*innerWidth,dy*innerHeight)) < 16) return
+				if(aid!=aid) aid=id
+				else if(aid!=id&&bid!=bid) bid=id
+				if(bid==bid){
+					const other = aid==id?touches.get(aid):bid==id?touches.get(bid):null
+					if(!other) return
+					const px = dx/2, py = dy/2
+					const x1 = (x-other.x)*innerWidth, y1 = (y-other.y)*innerHeight
+					const x2 = (ox-other.x)*innerWidth, y2 = (oy-other.y)*innerHeight
+					const s = sqrt((x1*x1+y1*y1)/(x2*x2+y2*y2))
+					const r = atan2(x1*y2-y1*x2, x1*x2+y1*y2)
+					gesture.dx += px; gesture.dy += py
+					gesture.scale *= s; gesture.rot += r
+					ongesture.fire(px, py, s, r)
+				}else if(aid==id){
+					gesture.dx += dx; gesture.dy += dy
+					ongesture.fire(dx, dy, 1, 0)
+				}
 			}
-			if(Object.hasOwn(_joypadMoveCbs, id)) for(const cb of _joypadMoveCbs[id]) cb(dx, dy, id)
 			return
 		}else if(data.length == 1) return data[0]===Infinity?_setChatFocused(true):data[0]===-Infinity?_setChatFocused(false):onwheel.fire(data[0])
+		else if(data.length == 4){
+			cursor.dx -= cursor.x - (cursor.x=data[0])
+			cursor.dy -= cursor.y - (cursor.y=data[1])
+			cursor.mx += data[2]; cursor.my += data[3]
+			onmousemove.fire(data[2], data[3])
+			return
+		}
 		// import scripts
 		const list = data[3].split('\n')
 		for(let i = 0; i < Classes.length; i++){
