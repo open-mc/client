@@ -31,11 +31,12 @@ serverlist.skin.successful=Vale
 serverlist.welcome=Bienvenido,\s
 serverlist.select_skin=Seleccionar aspecto
 serverlist.logout=Cerrar sesión
-serverlist.select=Seleccionar servidor
+serverlist.select=Jugar un mundo
 serverlist.hosting_info=Alojar servidor
 serverlist.refresh=Actualizar
 serverlist.add_server=Añadir servidor
 serverlist.add_server.placeholder=ip del servidor
+serverlist.new_world=Nuevo mundo
 
 pause.name=Menú del juego
 pause.resume=Volver al juego

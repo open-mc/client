@@ -5,7 +5,7 @@ import texts from '../js/lang.js'
 
 let label, reconnectBtn
 const message = UI('dirtbg',
-	label = Label('').attr('style','overflow:visible'),
+	label = Label('').css({overflow: 'visible'}),
 	Div('spacing'),
 	reconnectBtn = Row(Btn(texts.misc.menu_back(), serverlist), Btn(texts.connection.reconnect(), reconnect)),
 	Div('spacing')

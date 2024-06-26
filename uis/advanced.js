@@ -28,7 +28,7 @@ function gammaChange(a = options.gamma){
 let af3Node
 const ui = UI('menu',
 	Label(texts.name()),
-	Label(texts.experts_only()).attr('style', 'color:red;margin-top:-8rem'),
+	Label(texts.experts_only()).css({color: 'red', marginTop: '-8rem'}),
 	Scale(speedChange),
 	Row(ScaleSmall(supersampleChange), ScaleSmall(gammaChange)),
 	Scale(maxParticlesChange),

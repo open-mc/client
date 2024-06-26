@@ -1,4 +1,6 @@
-self.addEventListener('install', self.skipWaiting)
+
+
+//self.addEventListener('install', self.skipWaiting)
 
 // The activate handler takes care of cleaning up old caches.
 self.addEventListener('activate', e => e.waitUntil(activated()))

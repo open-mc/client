@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Document</title>
+</head>
+<body>
+	
+</body>
+<script>
+	if('serviceWorker' in navigator && false && !/\.?localhost$|^(127.0.0.1|0.0.0.0)$/.test(location.host)){
+		pr = navigator.serviceWorker.ready
+		navigator.serviceWorker.register('./sw.js', {type: 'module', updateViaCache: 'all'})
+	}
+</script>
+</html>

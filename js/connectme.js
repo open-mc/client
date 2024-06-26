@@ -54,7 +54,28 @@ function hashv8(domain){
 	return '['+hex4(a>>>16)+':'+hex4(a&0xffff)+':'+hex4(b>>>16)+':'+hex4(b&0xffff)+':'+hex4(c>>>16)+':'+hex4(c&0xffff)+':'+hex4(d>>>16)+':'+hex4(d&0xffff)+']'
 }
 let rctimeout = -1
-export function preconnect(ip, cb = Function.prototype, instant = false){
+class LocalSocket extends Worker{
+	readyState = 0
+	onopen = null
+	onclose = null
+	constructor(ip = ''){
+		console.log(ip)
+		if(ip[0] != '@') super('data:').terminate(), Promise.resolve().then(()=>this.close())
+		else super('data:application/javascript,import(location.hash.slice(1))#' + location.href + 'localserver/index.js')
+		this.addEventListener('message', e => {
+			e.stopImmediatePropagation()
+
+		}, {once: true})
+	}
+	send(message){ this.postMessage(message) }
+	close(code, reason){
+		if(this.readyState > 1) return
+		this.postMessage(undefined)
+		this.readyState = 3
+		this.onclose({code, reason})
+	}
+}
+export function preconnect(ip, cb = Function.prototype){
 	const displayIp = ip
 	if(!/:\d+$/.test(ip))ip += ':27277'
 	if(ip.startsWith('localhost:')) ip = 'wss://local.blobk.at' + ip.slice(9)
@@ -62,9 +83,10 @@ export function preconnect(ip, cb = Function.prototype, instant = false){
 	ip = ip.replace(/((?:[^./:;\\|{}[\]()@?#&^<>\s~`"']+\.)*[^./:;\\|{}[\]()@?#&^<>\s~`"']+)\.(\w+(?=:))/, (_,d,a)=>a == 'hash' | a == 'hash4' ? hashv4(d) : a == 'hash6' ? hashv6(d) : a == 'hash8' ? hashv8(d) : (a in TLD_MAP) ? d+'-mc.'+TLD_MAP[a] : d+'.'+a)
 	let ws
 	try{
+		if(ip[0]=='@')throw 1
 		ws = new WebSocket(`${ip}/${storage.name}/${encodeURIComponent(storage.pubKey)}/${encodeURIComponent(storage.authSig)}`)
-		ws.ip = ip
-	}catch(e){ws = {close(){this.onclose&&this.onclose({code:0,reason:''})},ip,onclose:null}}
+	}catch(e){ws = new LocalSocket(displayIp)}
+	ws.ip = ip
 	ws.challenge = null
 	ws.displayIp = displayIp
 	ws.binaryType = 'arraybuffer'
@@ -79,11 +101,11 @@ export function preconnect(ip, cb = Function.prototype, instant = false){
 			const src = packet.string()
 			// this was a bad idea
 			const banner = packet.string()
-			if(!instant){
+			if(cb != play){
 				name.textContent = ws.name
 				motd.textContent = motdString
 				icon.src = src || 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEAAAAALAAAAAABAAEAAAIBAAA'
-				if(banner) node.attr('style', 'background: linear-gradient(75deg, #000a 80rem, #0001 100%), url("'+CSS.escape(banner)+'") center/cover')
+				if(banner) node.css({background: 'linear-gradient(75deg, #000a 80rem, #0001 100%), url("'+CSS.escape(banner)+'") center/cover'})
 			}
 			ws.packs = pako.inflate(packet.uint8array(), {to: 'string'}).split('\0')
 			for(let i = 4; i < ws.packs.length; i++) if(ws.packs[i][0]=='~') ws.packs[i] = 'http' + ip.slice(2) + ws.packs[i].slice(1)
@@ -98,24 +120,24 @@ export function preconnect(ip, cb = Function.prototype, instant = false){
 		fwPacket(data)
 	}
 	ws.onclose = ({reason, code}) => {
-		if(ws === globalThis.ws || instant){
+		if(ws === globalThis.ws || cb == play){
 			reason = reason || (ws instanceof WebSocket ? timeout >= 0 ? texts.connection.refused() : texts.connection.lost() : texts.connection.invalid_ip())
 			finished()
 			if(code >= 3000 && code < 4000){
 				pendingConnection(reason)
 				if(rctimeout >= 0) clearTimeout(rctimeout), rctimeout = -1
-				rctimeout = setTimeout(() => preconnect(displayIp, play, true), (code-3000)*10)
+				rctimeout = setTimeout(() => preconnect(displayIp, play), (code-3000)*10)
 			}else msg(reason, false)
 			return
 		}
 		icon.src = './img/pack.png'
-		node.attr('style', '')
+		node.attr('style')
 		motd.textContent = ws instanceof WebSocket ? texts.connection.refused() : texts.connection.invalid_ip()
 		motd.style.color = '#d22'
 		name.textContent = displayIp
 	}
 	ws.onopen = () => (clearTimeout(timeout), timeout = -1)
-	if(instant) return void ws.onclose({code: 0, reason: ''})
+	if(cb == play) return
 	let name, motd, icon
 	const node = Row(
 		icon = Img('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAJCAYAAADgkQYQAAAAAXNSR0IArs4c6QAAACZJREFUKFNjZCACMBKhhoEGijo6Ov5XVFQwotMg59DAOny+JMo6AMVLDArhBOpkAAAAAElFTkSuQmCC'),
@@ -124,7 +146,7 @@ export function preconnect(ip, cb = Function.prototype, instant = false){
 				name = Label(displayIp),
 				Btn('...', () => {
 					window.open(ip.replace('ws', 'http'), '_blank','width=1024,height=768,left='+screenX+',top='+screenY)
-				},'tiny').attr('style','line-height:16rem'),
+				},'tiny').css({lineHeight:'16rem'}),
 				Btn('^', () => {
 					const i = node.parentElement.children.indexOf(node)
 					if(!i) return
@@ -133,14 +155,14 @@ export function preconnect(ip, cb = Function.prototype, instant = false){
 					servers[i-1] = s
 					node.parentElement.insertBefore(node, node.parentElement.children[i-1])
 					saveServers()
-				},'tiny').attr('style','line-height:24rem'),
+				},'tiny').css({lineHeight:'24rem'}),
 				Btn('x', () => {
 					servers.splice(node.parentElement.children.indexOf(node), 1)
 					node.remove()
 					saveServers()
 				},'tiny')
 			),
-			motd = Label(texts.connection.connecting()).attr('style', 'opacity: 0.5')
+			motd = Label(texts.connection.connecting()).css({opacity: .5})
 		)
 	)
 	node.classList.add('selectable')
@@ -166,11 +188,9 @@ export async function play(ws){
 	pendingConnection(texts.connection.authenticating())
 	gameIframe(ws.packs)
 }
-const urlServer = location.search.slice(1)
-if(urlServer) preconnect(urlServer, play, true)
 export function reconnect(){
 	if(!lastIp) return
-	preconnect(lastIp, play, true)
+	preconnect(lastIp, play)
 }
 export function finished(){
 	if(rctimeout >= 0) clearTimeout(rctimeout), rctimeout = -1

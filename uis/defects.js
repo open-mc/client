@@ -1,6 +1,7 @@
 import { storage } from '../js/save.js'
 import { Btn, Label, Row, showUI, Spacer, UI } from '../js/ui.js'
 import { serverlist } from './serverlist.js'
+import { login } from './login.js'
 import texts from '../js/lang.js'
 
 // Web technologies are a mess * ** [citation needed]
@@ -36,14 +37,16 @@ if(matchMedia("not (hover: hover)").matches)
 
 export function start(){
 	document.getElementById('loading')?.remove()
-	if(ws) return
 	if(!storage.shownDefects && (defects.firefox || defects.safari)){
 		showUI(UI('dirtbg',
-			Label('Notice about your current environment').attr('style', 'font-size: 12rem; max-width: calc(100% - 20px); white-space: pre-wrap; height: auto'),
+			Label('Notice about your current environment').css({fontSize: '12rem', maxWidth: 'calc(100% - 20px)', whiteSpace: 'pre-wrap', height: 'auto'}),
 			Spacer(25),
-			Label(((defects.safari ? '\n'+texts.defects.safari() : '') + (defects.mobile ? '\n'+texts.defects.mobile() : '')).slice(1)).attr('style', 'max-width: calc(100% - 20px); opacity: 0.7; height: auto; white-space: pre-wrap'),
+			Label(((defects.safari ? '\n'+texts.defects.safari() : '') + (defects.mobile ? '\n'+texts.defects.mobile() : '')).slice(1)).css({maxWidth: 'calc(100% - 20px)', opacity: '0.7', height: 'auto', whiteSpace: 'pre-wrap'}),
 			Spacer(25),
-			Row(Btn('Don\'t warn again', () => (storage.shownDefects = true, serverlist())), Btn('Ok, proceed', serverlist))
+			Row(Btn('Don\'t warn again', () => (storage.shownDefects = true, start())), Btn('Ok, proceed', start))
 		))
-	}else serverlist()
+		return
+	}
+	if(!storage.name) login()
+	else serverlist()
 }

@@ -45,6 +45,7 @@ input, textarea{
 	color: transparent;
 }
 in{
+	display: block;
 	background: #000;
 	border: 1rem #a0a0a0 solid;
 	position: relative;
@@ -267,7 +268,13 @@ column{
 	height: 52rem;
 	flex: 1;
 }
-#serverlist > row.hover{
+#serverlist > row:last-child{ height: 30rem; }
+#serverlist > row:last-child > div{
+	text-align: center;
+	height: 30rem;
+	line-height: 30rem;
+}
+#serverlist > row.hover, #serverlist > row > .hover{
 	outline: 1rem #fff8 solid;
 	outline-offset: -1rem;
 	cursor: pointer;

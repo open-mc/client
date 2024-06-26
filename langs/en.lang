@@ -31,11 +31,12 @@ serverlist.skin.successful=Done!
 serverlist.welcome=Welcome,\s
 serverlist.select_skin=Select skin
 serverlist.logout=Log out
-serverlist.select=Connect to a server:
+serverlist.select=Play a world:
 serverlist.hosting_info=Hosting a server
 serverlist.refresh=Refresh
 serverlist.add_server=Add server
 serverlist.add_server.placeholder=server ip
+serverlist.new_world=New world
 
 pause.name=Game menu
 pause.resume=Back to Game

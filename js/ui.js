@@ -19,7 +19,10 @@ const Sound = src => {
 export const click = Sound('./img/click.mp3')
 export const ping = Sound('./img/ping.mp3')
 
-HTMLElement.prototype.attr = function(a, b){this.setAttribute(a, b); return this}
+HTMLElement.prototype.attr = function(a, b=''){this.setAttribute(a, b); return this}
+HTMLElement.prototype.css = function(b){Object.assign(this.style, b); return this}
+HTMLElement.prototype.on = function(a, b, c){this.addEventListener(a, b, c); return this}
+Object.defineProperty(Node.prototype, 'text', Object.getOwnPropertyDescriptor(Node.prototype, 'textContent'))
 
 for(const n of [HTMLCollection, NodeList])Object.setPrototypeOf(n.prototype, Array.prototype)
 
@@ -86,6 +89,7 @@ const {prototype: InputPrototype} = class extends HTMLElement{
 	set value(a){this.t.value = a;this.t.onselchange()}
 	focus(){this.t.focus()}
 	blur(){this.t.blur()}
+	on(a,b,c){this.t.addEventListener(a,b,c);return this}
 	clear(){this.t.value='',this.t.os = this.t.oe = 0;this.v.innerHTML = '<f class="__cursor">_</f>'}
 	set disabled(a){this.t.disabled = a}
 	get disabled(){return this.t.disabled}
@@ -196,7 +200,7 @@ export const Row = (...a) => {
 	row.append(...a)
 	return row
 }
-export const Label = (txt) => {
+export const Label = (txt='') => {
 	let label = document.createElement('span')
 	label.append(txt)
 	return label

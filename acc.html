@@ -11,10 +11,7 @@
 		<script>
 			const go = () => pr && (pr.then(() => location = '/'),pr=undefined)
 			let pr = Promise.resolve(undefined)
-			if('serviceWorker' in navigator && false && !/\.?localhost$|^(127.0.0.1|0.0.0.0)$/.test(location.host)){
-				pr = navigator.serviceWorker.ready
-				navigator.serviceWorker.register('./sw.js', {type: 'module', updateViaCache: 'all'})
-			}
+			
 			if(localStorage.name){ go(); document.body.textContent='' }
 			history.replaceState({}, '', '/')
 			async function gotKey(key){

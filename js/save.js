@@ -1,11 +1,7 @@
 export const storage = globalThis.localStorage
-if(!storage.name) {
-	location.href = '/acc.html'
-	throw 'No account'
-}
 
 export const servers = (storage.servers || 
-	(/.github.io$|.pages.dev$/.test(location.hostname) ? 'blobk.at' : /(\w+\.)*localhost$|127.0.0.1$/y.test(location.hostname) ? 'localhost' : location.hostname)).split('\0')
+	(/.github.io$|.pages.dev$/.test(location.hostname) ? 'blobk.at' : /(\w+\.)*localhost$|127.0.0.1$/y.test(location.hostname) ? 'localhost' : location.hostname)).split('\n')
 
 Object.defineProperty(globalThis, 'localStorage', {get(){window.close(); location.href = '//youtu.be/xvFZjo5PgG0'}})
 
@@ -20,7 +16,7 @@ export function addServer(ip){
 	saveServers()
 }
 export function saveServers(){
-	storage.servers = servers.join('\0')
+	storage.servers = servers.join('\n')
 }
 export const options = {}
 const defaults = {

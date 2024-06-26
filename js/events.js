@@ -32,18 +32,18 @@ document.ontouchend = e => {
 		ifrMsg([null, e.changedTouches[i].identifier], '*')
 }
 
-document.onmousedown = e => ifrMsg(e.button)
-document.onmouseup = e => ifrMsg(~e.button)
+document.onmousedown = e => void ifrMsg(e.button)
+document.onmouseup = e => void ifrMsg(~e.button)
 
 let mtarget = null, lastMx = 0, lastMy = 0
+let mouse = [0, 0, 0, 0]
 document.onmousemove = ({movementX, movementY, clientX, clientY, target}) => {
-	if(mtarget) mtarget.classList.remove('hover')
 	while(target && target.nodeName!='BTN' && target.nodeName!='INPUT' && !target.classList.contains('selectable')) target=target.parentElement
-	;(mtarget=target)?.classList.add('hover')
+	if(target != mtarget) mtarget?.classList.remove('hover'),(mtarget=target)?.classList.add('hover')
 	if(!win) return
 	const movementScale = !ui && ptrLockOpts.unadjustedMovement ? 1 : globalThis.netscape ? devicePixelRatio : /Opera|OPR\//.test(navigator.userAgent) ? 1/devicePixelRatio : 1
-	const mx = movementX * movementScale, my = -movementY * movementScale
-	if(Math.hypot(lastMx - (lastMx=mx), lastMy - (lastMy=my)) > 150) return
+	const dx = movementX * movementScale, dy = -movementY * movementScale
+	if(Math.hypot(lastMx - (lastMx=dx), lastMy - (lastMy=dy)) > 150) return
 	if(ui === NONE){
 		const v = ui.rowI!=undefined&&ui.rows[ui.rowI]
 		if(v){
@@ -53,7 +53,7 @@ document.onmousemove = ({movementX, movementY, clientX, clientY, target}) => {
 			if(n) n.classList.remove('hover'), v.columnI = undefined
 		}
 	}else if(ui) return
-	ifrMsg([clientX / innerWidth, 1 - clientY / innerHeight, mx, my])
+	mouse[0] = clientX / innerWidth; mouse[1] = clientY / innerWidth; mouse[2] += dx; mouse[3] += dy;
 }
 
 document.onwheel = ({deltaY}) => {
@@ -66,6 +66,7 @@ let gamepadButtons = new Set, odxs = [0,0], odys = [0,0], dxs = [0,0], dys = [0,
 let wasShowingUI = true
 if(navigator.getGamepads) requestAnimationFrame(function checkInputs(){
 	requestAnimationFrame(checkInputs)
+	ifrMsg(mouse); mouse[2] = mouse[3] = 0
 	dxs.fill(0), dys.fill(0)
 	for(const d of navigator.getGamepads()){
 		if(!d) continue
