@@ -1,5 +1,4 @@
-let iR, iC
-self.addEventListener('install', e => e.waitUntil({then:(a,b)=>iR?a(iR):iC?b(iC):(iR=a,iC=b)}))
+self.addEventListener('install', e => e.waitUntil(ready ? ready.then(() => upt) : upt))
 // Change this if you feed data from a different repo
 const REPO = 'open-mc/client', BRANCH = 'main'
 self.addEventListener('fetch', e => {
@@ -8,19 +7,19 @@ self.addEventListener('fetch', e => {
 	if(req.slice(j-8,j) == '.sandbox') req = req.slice(j)
 	else if(req.slice(i,j) != location.host) return
 	req = ready == '' ? '/index.html' : req[req.length-1]=='/'?req+'main.html':req
-	e.respondWith(iR ? cache.match(req) : {then:(a,b)=>iR?a(cache.match(req)):iC?b(iC):(iR=a,iC=b)})
+	e.respondWith(ready ? ready.then(() => cache.match(req)) : cache.match(req))
 })
-let cache
+let cache, upt = null
 let ready = (async () => {
 	let latest = fetch('https://api.github.com/repos/'+REPO+'/commits/'+BRANCH, {headers: {accept: 'application/vnd.github.VERSION.sha'}}).then(a => a.text(),err=>'{"error":"network"}')
 	cache = await caches.open('')
 	const ver = await cache.match('https://.git')
 	latest = await latest
-	if(latest[0] != '{' && (ver?ver.headers.get('commit'):'') != latest) ready='', update(latest, ver)
+	if(latest[0] != '{' && (ver?ver.headers.get('commit'):'') != latest) ready='', upt = update(latest, ver)
 	else{
-		if(iC){ iC(); iR=iC=null; for(const l of areListening)l.postMessage(-1) }
-		else{ iR(1); for(const l of areListening)l.postMessage(1) }
-		areListening.length=0
+		ready = null
+		if(!ver) upt = Promise.reject('Install failed')
+		for(const l of areListening)l.postMessage(ver?1:-1);areListening.length=0
 	}
 })()
 const areListening = []
@@ -70,7 +69,7 @@ async function update(latest, ver){
 			await caches.delete('updates')
 			progress(-1)
 			areListening.length = 0
-			return iC?(iC('Install failed'),iR=iC=null):iC='Install failed'
+			return upt = Promise.reject('Install failed')
 		}
 		if(hashes.size){
 			let e = null
@@ -97,6 +96,5 @@ async function update(latest, ver){
 	progress(1)
 	areListening.length = 0
 	console.info('Update complete!')
-	ready = null
-	iR?(iR(1),iR=iC=null):iR=1
+	ready = upt = null
 }

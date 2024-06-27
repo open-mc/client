@@ -38,6 +38,7 @@ input, textarea{
 	font: inherit;
 	border: unset;
 	-webkit-appearance: none;
+	appearance: none;
 	outline: none;
 	border-radius: unset;
 	resize: none;
