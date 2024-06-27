@@ -56,11 +56,8 @@ async function update(latest, ver){
 					if(hashes.get(p) == sha){hashes.delete(p)&&(total-=1.25); continue}
 					hashes.delete(p)||(total+=1.25)
 					todo++
-					if(type == 'blob'){
-						let reds = 10
-						const addToCache = res => res.type == 'opaqueredirect' ? reds-- ? fetch(res.headers.get('location'), {redirect: 'manual'}).then(addToCache) : Promise.reject() : u.put(p, res)
-						k.push(p), fetch(p, {redirect: 'manual'}).then(addToCache).then(() => progress(++done/total), () => r(1))
-					}else if(type == 'commit') fetch(api.slice(0, -10) + 'contents/' + path).then(a => a.json()).then(({git_url}) => git_url?traverse(sha, git_url.slice(0,-40), p+'/'):r(1))
+					if(type == 'blob') k.push(p), fetch(p).then(res => u.put(p, res.redirected ? new Response(res.body,res) : res)).then(() => progress(++done/total), () => r(1))
+					else if(type == 'commit') fetch(api.slice(0, -10) + 'contents/' + path).then(a => a.json()).then(({git_url}) => git_url?traverse(sha, git_url.slice(0,-40), p+'/'):r(1))
 					else --todo||r(0)
 				}
 				--todo||r(0)
