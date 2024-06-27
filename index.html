@@ -37,7 +37,7 @@
 </body>
 <script>
 	const sw = navigator.serviceWorker
-	if(sw){// && !/(\.|^)localhost$|^127.0.0.1$/.test(location.hostname)){
+	if(sw && !/(\.|^)localhost$|^127.0.0.1$/.test(location.hostname)){
 		if(sw.controller) sw.controller.postMessage(null)
 		else sw.register('./sw.js', {type: 'module', updateViaCache: 'all'}).then(r => (r.active??r.installing).postMessage(null))
 		sw.onmessage = ({data}) => {
