@@ -53,13 +53,14 @@ in{
 	--padding: 3rem;
 	width: 200rem;
 	height: 20rem;
+	overflow: hidden;
 }
 in.tall{
 	height: 5em;
 }
 in div, in input{
 	position: absolute;
-	top: 0; height: 100%;
+	top: 0; height: calc(100% + 1rem);
 	left: 0; width: 100%;
 	overflow: auto;
 	overflow-wrap: break-word;
