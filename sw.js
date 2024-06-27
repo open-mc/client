@@ -75,10 +75,10 @@ async function update(latest, ver){
 			return upt = Promise.reject('Install failed')
 		}
 		if(hashes.size){
-			let e = null
+			let e = []
+			todo = hashes.size
 			for(const file of hashes.keys()){
-				todo++
-				const req = new Request(file,{method:'DELETE'})
+				const req = 'https://.git' + file
 				k.push(req)
 				u.put(req,e||(e=new Response())).then(() => progress(++done/total))
 			}
@@ -91,7 +91,8 @@ async function update(latest, ver){
 	console.info('Committing update...')
 	const total = (todo = k.length)*5
 	for(const req of k){
-		if(typeof req=='object'&&req.mode=='DELETE') cache.delete(req).then(()=>progress(1-todo/total))
+		const url = typeof req=='object'?req.url:req
+		if(url.startsWith('https://.git/') && url.length > 13) cache.delete(url.slice(12)).then(()=>progress(1-todo/total))
 		else u.match(req).then(a => cache.put(req, a)).then(()=>progress(1-todo/total))
 	}
 	await({then:a=>r=a})
