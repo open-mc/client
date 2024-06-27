@@ -37,9 +37,9 @@
 </body>
 <script>
 	const sw = navigator.serviceWorker
-	if(sw && !/(\.|^)localhost$|^127.0.0.1$/.test(location.hostname)){
+	if(sw){// && !/(\.|^)localhost$|^127.0.0.1$/.test(location.hostname)){
 		if(sw.controller) sw.controller.postMessage(null)
-		else sw.register('./sw.js', {type: 'module', updateViaCache: 'all'}).then(r => r.installing.postMessage(null))
+		else sw.register('./sw.js', {type: 'module', updateViaCache: 'all'}).then(r => (r.active??r.installing).postMessage(null))
 		sw.onmessage = ({data}) => {
 			if(data<0) return void(b.textContent = sw.controller?'Update failed':'Install failed', document.body.onpointerdown=()=>location='')
 			a.style.setProperty('--p', data*100+'%')
