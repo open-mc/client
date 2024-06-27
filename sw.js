@@ -42,7 +42,7 @@ async function update(latest, ver){
 	fetch: {
 		if(k.length){
 			if(k[k.length-1].url == 'https://.git') break fetch
-			else await caches.delete('updates'),u=await caches.open('updates')
+			else await caches.delete('updates'),u=await caches.open('updates'),k.length=0
 		}
 		console.info('Downloading update...')
 		let res = []
@@ -75,7 +75,7 @@ async function update(latest, ver){
 			let e = null
 			for(const file of hashes.keys()){
 				todo++
-				const req = new Request(url+file,{method:'DELETE'})
+				const req = new Request(file,{method:'DELETE'})
 				k.push(req)
 				u.put(req,e||(e=new Response())).then(() => progress(++done/total))
 			}
