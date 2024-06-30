@@ -54,27 +54,33 @@ function hashv8(domain){
 	return '['+hex4(a>>>16)+':'+hex4(a&0xffff)+':'+hex4(b>>>16)+':'+hex4(b&0xffff)+':'+hex4(c>>>16)+':'+hex4(c&0xffff)+':'+hex4(d>>>16)+':'+hex4(d&0xffff)+']'
 }
 let rctimeout = -1
-class LocalSocket extends Worker{
-	readyState = 0
-	onopen = null
-	onclose = null
+class LocalSocket extends MessageChannel{
 	constructor(ip = ''){
-		console.log(ip)
-		if(ip[0] != '@') super('data:').terminate(), Promise.resolve().then(()=>this.close())
-		else super('data:application/javascript,import(location.hash.slice(1))#' + location.href + 'localserver/index.js')
-		this.addEventListener('message', e => {
-			e.stopImmediatePropagation()
-
-		}, {once: true})
+		super()
+		const port = Object.setPrototypeOf(this.port1, LocalSocket.proto)
+		port.readyState = 0; port.onopen = port.onclose = null
+		if(!navigator.serviceWorker.controller) return Promise.resolve().then(()=>port.close(0, texts.connection.singleplayer_offline())), port
+		if(ip[0] != '@') return Promise.resolve().then(()=>port.close()), port
+		const ifr = port.ifr = document.createElement('iframe')
+		ifr.src = 'https://' + ip.slice(1) + '.sandbox/localserver/index.html'
+		ifr.style.display = 'none'
+		document.body.append(ifr)
+		ifr.contentWindow.postMessage(this.port2, '*', [this.port2])
+		port.start()
+		return port
 	}
-	send(message){ this.postMessage(message) }
-	close(code, reason){
-		if(this.readyState > 1) return
-		this.postMessage(undefined)
-		this.readyState = 3
-		this.onclose({code, reason})
-	}
+	static proto = Object.create(MessagePort.prototype, {
+		send: {enumerable:false,value:  MessagePort.prototype.postMessage},
+		close: {enumerable:false,value(code, reason){
+			if(this.readyState > 1) return
+			this.postMessage(undefined)
+			this.readyState = 3
+			this.onclose({code, reason})
+			setTimeout(() => this.ifr.remove(), 10e3)
+		}}
+	})
 }
+
 export function preconnect(ip, cb = Function.prototype){
 	const displayIp = ip
 	if(!/:\d+$/.test(ip))ip += ':27277'
@@ -132,7 +138,7 @@ export function preconnect(ip, cb = Function.prototype){
 		}
 		icon.src = './img/pack.png'
 		node.attr('style')
-		motd.textContent = ws instanceof WebSocket ? texts.connection.refused() : texts.connection.invalid_ip()
+		motd.textContent = reason || (ws instanceof WebSocket ? texts.connection.refused() : texts.connection.invalid_ip())
 		motd.style.color = '#d22'
 		name.textContent = displayIp
 	}

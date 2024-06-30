@@ -19,6 +19,7 @@ connection.authenticating=Autenticando con el servidor...
 connection.connecting=Conectando con el servidor...
 connection.disconnect=Desconectar
 connection.reconnect=Reconectar
+connection.singleplayer_offline=Un solo jugador solo funciona con el juego descargado sin conexión
 
 # Warning about certain environment caveats
 defects.safari=Parece que estás utilizando Safari, que ha demostrado varias veces ser un navegador incompetente para los desarrolladores, que no admite tecnologías estándar y que ofrece calidad y eficiencia mediocres para aplicaciones gráficas.\nPor favor, si es posible, cambie a otro navegador.

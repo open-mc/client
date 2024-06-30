@@ -1,7 +1,5 @@
 // Change this if you feed data from a different repo
 const REPO = 'open-mc/client', BRANCH = 'main'
-
-self.addEventListener('install', e => e.waitUntil(ready ? ready.then(() => upt) : upt))
 self.addEventListener('fetch', e => {
 	let req = e.request.url
 	const i = req.indexOf('/')+2, j = req.indexOf('/', i)
@@ -10,9 +8,11 @@ self.addEventListener('fetch', e => {
 	req = ready == '' ? '/index.html' : req[req.length-1]=='/'?req+'main.html':req
 	e.respondWith(ready ? ready.then(() => cache.match(req)) : cache.match(req))
 })
+self.addEventListener('install', e => e.waitUntil(ready ? ready.then(() => upt) : upt))
 let cache, upt = null
-let ready = (async () => {
-	let latest = fetch('https://api.github.com/repos/'+REPO+'/commits/'+BRANCH, {headers: {accept: 'application/vnd.github.VERSION.sha'}}).then(a => a.text(),err=>'{"error":"network"}')
+let ready = /(\.|^)localhost$|^127.0.0.1$|^\[::1\]$/.test(location.hostname) ? ((cache = globalThis).match = fetch,null)
+: (async () => {
+	let latest = fetch('https://api.github.com/repos/'+REPO+'/commits/'+BRANCH, {headers: {accept: 'application/vnd.github.VERSION.sha'}}).then(a => a.text(),()=>'{"error":"network"}')
 	cache = await caches.open('')
 	const ver = await cache.match('https://.git/')
 	latest = await latest
@@ -26,7 +26,7 @@ let ready = (async () => {
 })()
 const areListening = []
 self.addEventListener('message', e => {
-	if(ready=='') e.source.postMessage(1)
+	if(ready==null) e.source.postMessage(1)
 	else areListening.push(e.source)
 })
 async function update(latest, ver, old){
