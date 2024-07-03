@@ -5,36 +5,21 @@ import { serverlist } from '../uis/serverlist.js'
 import texts from './lang.js'
 
 export let iframe = document.createElement('iframe'), win = null
-// Security druggie
-iframe.sandbox = 'allow-scripts'
-iframe.allow = 'cross-origin-isolated; autoplay'
-iframe.credentialless = true
-let src = ''
-if(location.protocol == 'tauri:'){
-	// tauri prod
-	// ABSOLUTELY FUCKING RETARDED TAURI PROTOCOL SHITSHOW
-	// HOW THE FUCK DOES THIS WORK
-	// DO NOT **UNDER ANY CIRCUMSTANCES** REMOVE THE DOT AFTER THE DOMAIN NAME
-	src = 'tauri://localhost./iframe/index.html'
 
-	// We allow it, but, being on a different domain, it still can't access parent iframe or credentials
-	// This is to actually allow it to load stuff from its own domain
-	iframe.sandbox += ' allow-same-origin'
-}else if(globalThis.__TAURI__){
-	// tauri development environment
-	// Fairly simple. Load localhost but by IP instead of domain
-	src = 'http://127.0.0.1/iframe/index.html'
-	
-}else src = 'iframe/index.html'
+iframe.allow = 'cross-origin-isolated; autoplay'
+iframe.src = 'https://sandbox-41i.pages.dev/'
+document.body.append(iframe)
+export let iReady = false
+
 
 const queue = []; let files = null
 export function gameIframe(f){
+	if(!iReady) return false
 	if(storage.mods) f.push.apply(f, storage.mods.split('\n'))
 	while(f.length<=4) f.push('')
 	files = f
-	destroyIframe()
-	iframe.src = src
-	document.body.append(iframe)
+	iframe.src = 'https://sandbox-41i.pages.dev/iframe/index.html'
+	return true
 }
 
 const empty = new Comment()
@@ -56,8 +41,15 @@ onfocus = () => {
 }
 onblur = () => { blurred = true; win?.postMessage(Infinity, '*') }
 
+let c = caches.open(''); c.then(a=>c=a)
+function onfetch({data: url}){
+	if(url[url.length-1]=='/') url+='main.html'
+	;(c.then?c.then(c=>c.match(url)):c.match(url)).then(res => res?this.postMessage({url, body: res.body, ct: res.headers.get('content-type')}, [res.body]):fetch(url).then(res=>this.postMessage({url, body: res.body, ct: res.headers.get('content-type')}, [res.body])))
+}
+
 onmessage = ({data, source}) => {
-	if(source != iframe.contentWindow || !iframe.contentWindow) return
+	if((source??0) !== iframe.contentWindow) return
+	if(!iReady){iReady = true; if(data) data.onmessage = onfetch; else iframe.src+='' }
 	if(typeof data != 'object'){
 		if(data === true) showUI(null)
 		else if(data === false) hideUI()
@@ -73,7 +65,10 @@ onmessage = ({data, source}) => {
 		if(!m && voice) microphone()
 		for(const k in options) win.postMessage([k, options[k]], '*')
 		win.postMessage(files, '*')
-		for(let i = 0; i < queue.length; i += 2)queue[i](queue[i+1])
+		for(const a of queue){
+			if(a.buffer) win.postMessage(a.buffer, '*', [a.buffer])
+			else win.postMessage(a, '*')
+		}
 		queue.length = 0
 	}else if(data instanceof ArrayBuffer && globalThis.ws) ws.send(data)
 	else if(data instanceof Blob){
@@ -89,16 +84,18 @@ onmessage = ({data, source}) => {
 }
 
 export function destroyIframe(){
-	if(win)win.close(), win = null
+	iframe.src = 'https://sandbox-41i.pages.dev/'
 	iframe.remove()
+	document.body.append(iframe)
 	voiceOff(); if(m && typeof m == 'object') m.source.disconnect(), m = null
 	win = null; queue.length = 0
+	iReady = false
 }
 
 listen((a,b) => win?.postMessage([a, b], '*'))
 
 export function fwPacket(a){
-	if(!win) return void queue.push(fwPacket, a)
+	if(!win) return void queue.push(a)
 	if(a.buffer) win.postMessage(a.buffer, '*', [a.buffer])
 	else win.postMessage(a, '*')
 }

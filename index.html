@@ -28,6 +28,7 @@
 			font: 20px Consolas, Menlo, monospace;
 			height: 30px; line-height: 30px;
 		}
+		#c{display:none}
 	</style>
 </head>
 <body onpointerdown="return!1">
@@ -35,16 +36,21 @@
 	<div id="a"></div>
 	<span id="b"></span>
 </body>
+<iframe id="c"></iframe>
 <script>
 	const sw = navigator.serviceWorker
+	navigator.wakeLock.request('screen').catch(e => null)
 	if(sw){
+		let L = 2
+		onmessage=e=>--L||(location='')
+		c.src = 'https://sandbox-41i.pages.dev/'
 		if(sw.controller) sw.controller.postMessage(null)
 		else sw.register('./sw.js', {type: 'module', updateViaCache: 'all'}).then(r => (r.active??r.installing).postMessage(null))
 		sw.onmessage = ({data}) => {
-			if(data<0) return void(b.textContent = sw.controller?'Update failed':'Install failed', document.body.onpointerdown=()=>location='')
+			if(data<0) return void(b.textContent = sw.controller?'Update failed':'Please reload/reinstall app', document.body.onpointerdown=()=>location='')
 			a.style.setProperty('--p', data*100+'%')
-			if(data==1) location+=''
+			if(data==1) --L||(location+='')
 		}
-	}else location = '/main.html'
+	}else onmessage=()=>location='/main.html'
 </script>
 </html>

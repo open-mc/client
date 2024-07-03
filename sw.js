@@ -3,8 +3,7 @@ const REPO = 'open-mc/client', BRANCH = 'main'
 self.addEventListener('fetch', e => {
 	let req = e.request.url
 	const i = req.indexOf('/')+2, j = req.indexOf('/', i)
-	if(req.slice(j-8,j) == '.sandbox') req = req.slice(j)
-	else if(req.slice(i,j) != location.host) return
+	if(req.slice(i,j) != location.host) return
 	req = ready == '' ? '/index.html' : req[req.length-1]=='/'?req+'main.html':req
 	e.respondWith(ready ? ready.then(() => cache.match(req)) : cache.match(req))
 })
@@ -61,7 +60,11 @@ async function update(latest, ver, old){
 				res.push(p+' '+sha)
 				if(hashes.get(p) == sha){hashes.delete(p);total-=1.25;continue}
 				hashes.delete(p)||(total+=1.25); todo++; k.push(p)
-				fetch(p).then(res => u.put(p, res.redirected ? new Response(res.body,res) : res)).then(() => progress(++done/total), () => r(1))
+				fetch(p).then(res => {
+					if(res.redirected) res = new Response(res.body,res)
+					res.headers.set('Cross-Origin-Opener-Policy', 'same-origin')
+					return u.put(p, res)
+				}).then(() => progress(++done/total), () => r(1))
 			}
 			--todo||r(0)
 		})

@@ -61,8 +61,9 @@ class LocalSocket extends MessageChannel{
 		port.readyState = 0; port.onopen = port.onclose = null
 		if(!navigator.serviceWorker.controller) return Promise.resolve().then(()=>port.close(0, texts.connection.singleplayer_offline())), port
 		if(ip[0] != '@') return Promise.resolve().then(()=>port.close()), port
+		return
 		const ifr = port.ifr = document.createElement('iframe')
-		ifr.src = 'https://' + ip.slice(1) + '.sandbox/localserver/index.html'
+		ifr.src = 'https://sandbox-41i.pages.dev/localserver/index.html'
 		ifr.style.display = 'none'
 		document.body.append(ifr)
 		ifr.contentWindow.postMessage(this.port2, '*', [this.port2])
@@ -181,7 +182,7 @@ export function preconnect(ip, cb = Function.prototype){
 export async function play(ws){
 	if(ws.readyState>=2) return preconnect(ws.displayIp, play)
 	lastIp = ws.ip
-	if(!ws.challenge) return
+	if(!ws.challenge || !gameIframe(ws.packs)) return
 	const signature = await makeSign(ws.challenge)
 	const packet = new Uint8Array(signature.length + skin.length + 2)
 	packet[0] = PROTOCOL_VERSION >> 8
@@ -192,7 +193,6 @@ export async function play(ws){
 	globalThis.ws = ws
 	onfocus()
 	pendingConnection(texts.connection.authenticating())
-	gameIframe(ws.packs)
 }
 export function reconnect(){
 	if(!lastIp) return

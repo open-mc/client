@@ -71,7 +71,7 @@ globalThis.frame = () => {
 	t *= options.speed; dt *= options.speed
 	_networkUsage()
 	const p = 0.5**(dt*2)
-	fps = round((frames = frames*p+1) * (1-p)/dt)
+	if(dt>1e-9) fps = round((frames = frames*p+1) * (1-p)/dt)
 	if(loadingChunks){
 		const s = options.guiScale * pixelRatio * 2, w = ctx.width/s, h = ctx.height/s
 		ctx.reset(s/ctx.width, 0, 0, s/ctx.height, (w>>1)/w, (h>>2)/h)
@@ -196,10 +196,11 @@ Object.assign(globalThis, {Blocks, Items, Entities, BlockIDs, ItemIDs, EntityIDs
 
 Classes[0] = {savedata: null, savedatahistory: []}
 let loading = 1
+let msgQueue = []
 const loaded = () => {
-	for(const data of _msgQueue) try{ onMsg({data}) }catch(e){Promise.reject(e)}
+	for(const data of msgQueue) try{ onMsg({data}) }catch(e){Promise.reject(e)}
 	loading = -1
-	_msgQueue = null
+	msgQueue = null
 }
 globalThis.addToQueue = p => p?.then&&(loading++,p.then(()=>--loading||loaded()))
 listen('music', () => bgGain.gain.value = options.music * options.music * 2)
@@ -311,7 +312,7 @@ const onMsg = ({data,origin}) => {
 			}
 		}
 	}else if(data instanceof ArrayBuffer){
-		if(loading>0) return void _msgQueue.push(data)
+		if(loading>0) return void msgQueue.push(data)
 		_onPacket(data)
 	}else if(typeof data == 'string'){
 		onChat(data)
@@ -328,9 +329,7 @@ const onMsg = ({data,origin}) => {
 		}else buttons.pop(~data) && changed.set(~data)
 	}else if(typeof data == 'boolean') _updatePaused(data)
 }
-const m = _msgQueue; _msgQueue = []
-for(const data of m) try{ onMsg({data}) }catch(e){ Promise.reject(e) }
 addEventListener('message', onMsg)
-onmessage = null
+parent.postMessage(null, '*')
 
 await new Promise(onPlayerLoad)

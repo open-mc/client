@@ -8,15 +8,10 @@
 	"definitions": "./definitions.js"
 }}
 </script>
-<script async src="/img/_pako.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <canvas style="position:fixed;inset:0;width:100%;height:100%;background:#000" width="0" height="0"></canvas>
 <script type="module">
-if(globalThis.pako) pako = null
-delete window.localStorage; delete window.sessionStorage
-onmessage = ({data,origin}) => origin!='null'&&_msgQueue.push(data)
-globalThis._msgQueue = []
-parent.postMessage(null, '*')
+localStorage.clear();caches.keys().then(a=>a.forEach(c=>caches.delete(c)));indexedDB.databases().then(k=>k.forEach(k=>indexedDB.deleteDatabase(k.name)))
 onerror=(_,a,b,c,d)=>parent.postMessage([''+d,a,b,c], '*')
 onunhandledrejection=({reason})=>parent.postMessage([''+reason,'',0,0], '*')
 Array.prototype.bind = Array.prototype.push
@@ -975,5 +970,5 @@ requestAnimationFrame(function f(){
 	ctx.reset(); try{frame?.(dt)}catch(e){Promise.reject(e)}; i&&draw()
 	timeToFrame = performance.now()/1000-t
 })
+import('./index.js')
 </script>
-<script type="module" src="./index.js"></script>
