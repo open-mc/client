@@ -62,7 +62,6 @@ async function update(latest, ver, old){
 				hashes.delete(p)||(total+=1.25); todo++; k.push(p)
 				fetch(p).then(res => {
 					if(res.redirected) res = new Response(res.body,res)
-					res.headers.set('Cross-Origin-Opener-Policy', 'same-origin')
 					return u.put(p, res)
 				}).then(() => progress(++done/total), () => r(1))
 			}
