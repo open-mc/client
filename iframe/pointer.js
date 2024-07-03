@@ -1,6 +1,6 @@
-import { setblock, getblock, map, cam, me, onPlayerLoad, perms, pointer, W2, H2, toBlockExact, mode, SCALE } from 'world'
+import { setblock, getblock, map, cam, me, onPlayerLoad, perms, pointer, W2, H2, toBlockExact, mode } from 'world'
 import './controls.js'
-import { onkey, onmousemove, options, paused, renderUI, drawLayer, onpress } from 'api'
+import { onkey, options, paused, renderUI, drawLayer, onpress } from 'api'
 import { Entity, TEX_SIZE, BlockIDs } from 'definitions'
 
 export const CAMERA_DYNAMIC = 0, CAMERA_FOLLOW_SMOOTH = 1, CAMERA_FOLLOW_POINTER = 2,

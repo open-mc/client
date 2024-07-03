@@ -41,9 +41,11 @@ export const listen = (...keys) => {
 		if(key in options) cb(options[key])
 	}
 }
-export let _paused = false, paused = false
-export function _updatePaused(a){ if(a!==undefined) _paused=a; if(paused^_paused) parent.postMessage(_paused=paused, '*') }
-export const pause = (_paused=true) => paused=_paused
+// paused = local_paused || top_paused
+// pause(a) = defer{local_paused=a}
+export let _paused = 0, paused = false
+export function _updatePaused(a){ if(a!==undefined) _paused=_paused&1|a<<1; if((_paused^_paused>>2)&1) parent.postMessage((_paused=_paused&3|_paused<<2&4)>3, '*'); paused=_paused!=0 }
+export const pause = (p=true) => {_paused=_paused&-2|p&1}
 export const quit = () => parent.postMessage(NaN, '*')
 
 export const onfocus = []

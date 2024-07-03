@@ -53,7 +53,7 @@ document.onmousemove = ({movementX, movementY, clientX, clientY, target}) => {
 			if(n) n.classList.remove('hover'), v.columnI = undefined
 		}
 	}else if(ui) return
-	mouse[0] = clientX / innerWidth; mouse[1] = clientY / innerWidth; mouse[2] += dx; mouse[3] += dy;
+	mouse[0] = clientX / innerWidth; mouse[1] = 1 - clientY / innerHeight; mouse[2] += dx; mouse[3] += dy;
 }
 
 document.onwheel = ({deltaY}) => {
@@ -169,9 +169,7 @@ export function key(key, handler){
 }
 
 // Don't prompt if live server or local server
-window.onbeforeunload = () => (location.host != '127.0.0.1' && location.host != 'localhost' && ws &&
-	![].find.call(document.body.childNodes, a =>
-		a instanceof Comment && a.data.trim() == 'Code injected by live-server')) || undefined
+window.onbeforeunload = () => !(/(\.|^)localhost$|^127.0.0.1$|^\[::1\]$/.test(location.hostname) || !ws)
 HTMLElement.prototype.requestFullscreen = HTMLElement.prototype.requestFullscreen || Function.prototype //Safari fullscreen is broken
 let wasFullscreen = false
 let ignoreEsc = false
@@ -183,6 +181,6 @@ document.onpointerlockerror = document.onpointerlockchange = function(e){
 	}else{
 		wasFullscreen = !!(!ui && document.fullscreenElement)
 		if(wasFullscreen)document.exitFullscreen ? document.exitFullscreen().catch(Function.prototype) : document.webkitExitFullscreen()
-		if(!ui) pause(), ignoreEsc = true
+		if(!ui) pause(), win?.postMessage(true, '*'), ignoreEsc = true
 	}
 }
