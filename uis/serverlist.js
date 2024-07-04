@@ -89,7 +89,7 @@ const serverList = UI('dirtbg serverlist',
 		Spacer.grow(1),
 		Btn(texts.serverlist.hosting_info(), () => window.open('https://github.com/open-mc/server','_blank')),
 		Btn(texts.serverlist.refresh(), serverlist)
-	).css({alignSelf: 'stretch', justifyContent: 'space-between', marginLeft: '7rem', flexWrap: 'wrap'}),
+	).css({alignSelf: 'stretch', justifyContent: 'space-between', paddingLeft: '11rem', flexWrap: 'wrap'}),
 	list = Div('serverlist', addRow = Row(
 		Div('', Img('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA0AAAANCAYAAABy6+R8AAAAAXNSR0IArs4c6QAAAElJREFUKFNj/P///38GNMDIyMgIE8IqDxJEV0SQT19NJPsJ2cPIfkE3CNkbeEMJlwvgmvCZjKEZm2J8fgTJYdhEKAoGgSZCfgIA/uxv+rFAzjUAAAAASUVORK5CYIIA').css({minWidth: '13rem', height: '13rem', verticalAlign: '-45%'}), texts.serverlist.add_server()), Div('', Img('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA0AAAANAQMAAABIJXY/AAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAGUExURUdwTP///5+UokMAAAABdFJOUwBA5thmAAAAKElEQVQI12NgUGAAon8/GBoUGPqAiIFhvgIItSgwtC9g2L8AJP7/AQC3kws6EzM38QAAAABJRU5ErkJggg').css({minWidth: '13rem', height: '13rem', verticalAlign: '-33%'}), texts.serverlist.new_world())
 	))
@@ -110,7 +110,7 @@ logoutBtn.onclick = () => {
 }
 
 serverList.finish = () => {
-	for(let i = list.childElementCount-2; i >= 0; i--) list.children[i].end()
+	for(let i = list.childElementCount-2; i >= 0; i--) list.children[i].remove()
 }
 
 onServer(ip => {
