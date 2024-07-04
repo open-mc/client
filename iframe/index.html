@@ -14,8 +14,8 @@
 delete Navigator.prototype.serviceWorker
 delete Navigator.prototype.storage
 delete Navigator.prototype.storageBuckets
-delete window.sharedStorage
-delete localStorage; delete indexedDB; delete caches;
+delete window.sharedStorage; delete window.caches;
+delete window.localStorage; delete window.indexedDB;
 onerror=(_,a,b,c,d)=>parent.postMessage([''+d,a,b,c], '*')
 onunhandledrejection=({reason})=>parent.postMessage([''+reason,'',0,0], '*')
 Array.prototype.bind = Array.prototype.push
