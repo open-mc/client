@@ -4,8 +4,8 @@ self.addEventListener('fetch', e => {
 	let req = e.request.url
 	const i = req.indexOf('/')+2, j = req.indexOf('/', i)
 	if(req.slice(i,j) != location.host) return
-	req = ready == '' ? '/index.html' : req[req.length-1]=='/'?req+'main.html':req
-	e.respondWith(ready ? ready.then(() => cache.match(ready == '' ? '/index.html' : req)) : cache.match(req))
+	if(req[req.length-1]=='/') req += 'main.html'
+	e.respondWith(ready ? ready.then(() => cache.match(ready == '' ? '/index.html' : req)) : cache.match(ready == '' ? '/index.html' : req))
 })
 self.addEventListener('install', e => e.waitUntil(ready ? ready.then(() => upt) : upt))
 let cache, upt = null
