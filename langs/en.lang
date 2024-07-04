@@ -19,7 +19,6 @@ connection.authenticating=Authenticating...
 connection.connecting=Connecting...
 connection.disconnect=Disconnect
 connection.reconnect=Reconnect
-connection.singleplayer_offline=Singleplayer only works with the game downloaded offline
 
 # Warning about certain environment caveats
 defects.safari=You seem to be using safari, which has proven multiple times to be an incompetent browser for developers, not supporting technologies that are standard almost anywhere else and offering mediocre quality and performance for graphical applications\nWe urge you, please, to switch to a different browser.

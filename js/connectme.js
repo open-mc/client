@@ -59,7 +59,7 @@ class LocalSocket extends MessageChannel{
 		super()
 		const port = Object.setPrototypeOf(this.port1, LocalSocket.proto)
 		port.readyState = 0; port.onopen = port.onclose = null
-		if(!navigator.serviceWorker.controller) return Promise.resolve().then(()=>port.close(0, texts.connection.singleplayer_offline())), port
+		if(!navigator.serviceWorker.controller) return Promise.resolve().then(()=>''), port
 		if(ip[0] != '@') return Promise.resolve().then(()=>port.close()), port
 		return
 		const ifr = port.ifr = document.createElement('iframe')
