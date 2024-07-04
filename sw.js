@@ -48,7 +48,6 @@ async function update(latest, ver, old){
 		console.info('Downloading diffs for %s', latest.slice(0,7))
 		let res = []
 		let total = hashes.size*1.25+1.25, done = 0
-		const FETCH_BASE = 'https://' + latest + '.openmc.pages.dev'
 		const traverse = (hash, api, url) => fetch(api+hash+'?recursive=true').then(a => a.json()).then(async a => {
 			if(a.truncated || !a.tree) return void r(1)
 			for(const {path='', type='', sha=''} of a.tree){
@@ -61,7 +60,7 @@ async function update(latest, ver, old){
 				res.push(p+' '+sha)
 				if(hashes.get(p) == sha){hashes.delete(p);total-=1.25;continue}
 				hashes.delete(p)||(total+=1.25); todo++; k.push(p)
-				fetch(FETCH_BASE+p).then(res => {
+				fetch(p).then(res => {
 					if(res.redirected) res = new Response(res.body,res)
 					return u.put(p, res)
 				}).then(() => progress(++done/total), () => r(1))
