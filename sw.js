@@ -1,5 +1,5 @@
 // Change this if you feed data from a different repo
-const REPO = 'open-mc/client', BRANCH = 'main'
+const REPO = 'open-mc/client'
 self.addEventListener('fetch', e => {
 	let req = e.request.url
 	const i = req.indexOf('/')+2, j = req.indexOf('/', i)
@@ -11,7 +11,7 @@ self.addEventListener('install', e => e.waitUntil(ready ? ready.then(() => upt) 
 let cache, upt = null
 let ready = /(\.|^)localhost$|^127.0.0.1$|^\[::1\]$/.test(location.hostname) ? ((cache = globalThis).match = fetch,null)
 : (async () => {
-	let latest = fetch('https://api.github.com/repos/'+REPO+'/commits/'+BRANCH, {headers: {accept: 'application/vnd.github.VERSION.sha'}}).then(a => a.text(),()=>'{"error":"network"}')
+	let latest = fetch('/.git').then(a => a.text(),()=>'{"error":"network"}')
 	cache = await caches.open('')
 	const ver = await cache.match('https://.git/')
 	latest = await latest
@@ -48,6 +48,7 @@ async function update(latest, ver, old){
 		console.info('Downloading diffs for %s', latest.slice(0,7))
 		let res = []
 		let total = hashes.size*1.25+1.25, done = 0
+		const FETCH_BASE = 'https://' + latest + '.openmc.pages.dev'
 		const traverse = (hash, api, url) => fetch(api+hash+'?recursive=true').then(a => a.json()).then(async a => {
 			if(a.truncated || !a.tree) return void r(1)
 			for(const {path='', type='', sha=''} of a.tree){
@@ -60,7 +61,7 @@ async function update(latest, ver, old){
 				res.push(p+' '+sha)
 				if(hashes.get(p) == sha){hashes.delete(p);total-=1.25;continue}
 				hashes.delete(p)||(total+=1.25); todo++; k.push(p)
-				fetch(p).then(res => {
+				fetch(FETCH_BASE+p).then(res => {
 					if(res.redirected) res = new Response(res.body,res)
 					return u.put(p, res)
 				}).then(() => progress(++done/total), () => r(1))
