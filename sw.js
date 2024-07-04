@@ -11,7 +11,7 @@ self.addEventListener('install', e => e.waitUntil(ready ? ready.then(() => upt) 
 let cache, upt = null
 let ready = /(\.|^)localhost$|^127.0.0.1$|^\[::1\]$/.test(location.hostname) ? ((cache = globalThis).match = fetch,null)
 : (async () => {
-	let latest = fetch('/.git').then(a => a.text(),()=>'{"error":"network"}')
+	let latest = fetch('/.gitversion').then(a => a.text(),()=>'{"error":"network"}')
 	cache = await caches.open('')
 	const ver = await cache.match('https://.git/')
 	latest = await latest
