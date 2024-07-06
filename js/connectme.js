@@ -1,11 +1,13 @@
 import { DataWriter, DataReader, encoder } from '/server/modules/dataproto.js'
 import "../uis/chat.js"
 import { pendingConnection, msg } from '../uis/dirtscreen.js'
-import { Btn, click, Div, Img, Label, Row } from './ui.js'
-import { servers, saveServers, storage } from './save.js'
-import { clearNotifs, destroyIframe, fwPacket, gameIframe } from './iframe.js'
+import { Btn, click, Div, Img, Label, Row, ping } from './ui.js'
+import { storage } from './save.js'
+import { LocalSocket, destroyIframe, fwPacket, gameIframe, iReady, win } from './iframe.js'
 import { PROTOCOL_VERSION } from '../server/version.js'
 import texts from './lang.js'
+import { worldoptions } from '../uis/worldoptions.js'
+import { rmServer, servers, swapServers } from '../uis/serverlist.js'
 let lastN = null
 globalThis.ws = null
 
@@ -52,36 +54,11 @@ function hashv8(domain){
 	return '['+hex4(a>>>16)+':'+hex4(a&0xffff)+':'+hex4(b>>>16)+':'+hex4(b&0xffff)+':'+hex4(c>>>16)+':'+hex4(c&0xffff)+':'+hex4(d>>>16)+':'+hex4(d&0xffff)+']'
 }
 let rctimeout = -1
-class LocalSocket extends MessageChannel{
-	constructor(ip = ''){
-		super()
-		const port = Object.setPrototypeOf(this.port1, LocalSocket.proto)
-		port.readyState = 0; port.onopen = port.onclose = null
-		if(!navigator.serviceWorker.controller) return Promise.resolve().then(()=>''), port
-		if(ip[0] != '@') return Promise.resolve().then(()=>port.close()), port
-		return
-		const ifr = port.ifr = document.createElement('iframe')
-		ifr.src = 'https://sandbox-41i.pages.dev/localserver/index.html'
-		ifr.style.display = 'none'
-		document.body.append(ifr)
-		ifr.contentWindow.postMessage(this.port2, '*', [this.port2])
-		port.start()
-		return port
-	}
-	static proto = Object.create(MessagePort.prototype, {
-		send: {enumerable:false,value:  MessagePort.prototype.postMessage},
-		close: {enumerable:false,value(code, reason){
-			if(this.readyState > 1) return
-			this.postMessage(undefined)
-			this.readyState = 3
-			this.onclose({code, reason})
-			setTimeout(() => this.ifr.remove(), 10e3)
-		}}
-	})
-}
 
 export function preconnect(ip, cb = Function.prototype){
-	const displayIp = ip; let n=null,u=''; try{
+	let displayIp = ip; let n=null,u=''
+	if(ip[0] == '@') u = ip
+	else try{
 		try{u = new URL(ip)}catch(e){u=new URL('wss://'+ip)}
 		u.port || (u.port = 27277)
 		if(/(\.|^)localhost$|^127.0.0.1$|^\[::1\]$/.test(u.hostname)) u.hostname = 'local.blobk.at'
@@ -89,7 +66,15 @@ export function preconnect(ip, cb = Function.prototype){
 		ip = ip.replace(/((?:[^./:;\\|{}[\]()@?#&^<>\s~`"']+\.)*[^./:;\\|{}[\]()@?#&^<>\s~`"']+)\.(\w+(?=:))/, (_,d,a)=>a == 'hash' | a == 'hash4' ? hashv4(d) : a == 'hash6' ? hashv6(d) : a == 'hash8' ? hashv8(d) : (a in TLD_MAP) ? d+'-mc.'+TLD_MAP[a] : d+'.'+a)
 		ip=u+''; u.protocol=u.protocol=='wss:'?'https:':'http:'
 	}catch(e){}
-	(u?fetch(u+'preview').then(a=>a.arrayBuffer()):Promise.reject()).then(dat => {
+	(u?typeof u=='string'?LocalSocket.getOptions(u).then(obj => {
+		if(cb != play){
+			name.textContent = obj.name
+			motd.textContent = obj.motd[Math.floor(Math.random()*obj.motd.length)]
+			icon.src = obj.icon || 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEAAAAALAAAAAABAAEAAAIBAAA'
+			if(obj.banner) node.css({background: 'linear-gradient(75deg, #000a 80rem, #0001 100%), url("'+CSS.escape(obj.banner)+'") center/cover'})
+		}
+		cb(n={ip:u+'', timeOff:0, displayIp, name: obj.name, host: ''})
+	}):fetch(u+'preview').then(a=>a.arrayBuffer()).then(dat => {
 		const packet = new DataReader(dat)
 		const nameString = packet.string()
 		const src = packet.string()
@@ -102,10 +87,8 @@ export function preconnect(ip, cb = Function.prototype){
 			icon.src = src || 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEAAAAALAAAAAABAAEAAAIBAAA'
 			if(banner) node.css({background: 'linear-gradient(75deg, #000a 80rem, #0001 100%), url("'+CSS.escape(banner)+'") center/cover'})
 		}
-		const packs = pako.inflate(packet.uint8array(), {to: 'string'}).split('\0')
-		for(let i = 4; i < packs.length; i++) if(packs[i][0]=='~') packs[i] = 'http' + ip.slice(2) + packs[i].slice(1)
-		cb(n={ip, timeOff, displayIp, name: nameString, host: u.host, packs})
-	}, err => {
+		cb(n={ip, timeOff, displayIp, name: nameString, host: u.host})
+	}):Promise.reject()).catch(err => {
 		if(cb != play){
 			icon.src = './img/pack.png'
 			node.attr('style')
@@ -123,21 +106,17 @@ export function preconnect(ip, cb = Function.prototype){
 			Row(
 				name = Label(displayIp),
 				Btn('...', () => {
-					window.open(ip.replace('ws', 'http'), '_blank','width=1024,height=768,left='+screenX+',top='+screenY)
+					if(typeof u == 'string') worldoptions(displayIp)
+					else window.open(ip.replace('ws', 'http'), '_blank','width=1024,height=768,left='+screenX+',top='+screenY)
 				},'tiny').css({lineHeight:'16rem'}),
 				Btn('^', () => {
 					const i = node.parentElement.children.indexOf(node)
 					if(!i) return
-					const s = servers[i]
-					servers[i] = servers[i-1]
-					servers[i-1] = s
-					node.parentElement.insertBefore(node, node.parentElement.children[i-1])
-					saveServers()
+					swapServers(servers[i-1], displayIp)
 				},'tiny').css({lineHeight:'24rem'}),
-				Btn('x', () => {
-					servers.splice(node.parentElement.children.indexOf(node), 1)
-					node.remove()
-					saveServers()
+				Btn('x', async () => {
+					if(!node.parentElement) return
+					rmServer(displayIp)
 				},'tiny')
 			),
 			motd = Label(texts.connection.connecting()).css({opacity: .5})
@@ -147,28 +126,51 @@ export function preconnect(ip, cb = Function.prototype){
 	node.onclick = () => {click(); play(n)}
 	return node
 }
+
+let blurred = false, notifs = 0
+
+globalThis.notif = () => {
+	if(!blurred || !ws) return
+	document.title = texts.misc.title.notification(lastN.name, ++notifs)
+	ping()
+}
+
+onfocus = () => {
+	blurred = false
+	notifs = 0
+	document.title = ws ? texts.misc.title.playing(lastN.name) : texts.misc.title.menu()
+	win?.postMessage(Infinity, '*')
+}
+onblur = () => { blurred = true; win?.postMessage(Infinity, '*') }
+export const clearNotifs = () => {
+	notifs = 0
+	document.title = ws ? texts.misc.title.playing(lastN.name) : texts.misc.title.menu()
+}
+
 export async function play(n){
-	if(!n || !gameIframe(n.packs)) return
+	if(!n || !iReady) return
 	lastN = n
-	const t = Date.now()+n.timeOff+15e3
-	const signature = await makeSign(encoder.encode(n.host+'/'+t))
-	const packet = new DataWriter()
-	packet.short(PROTOCOL_VERSION)
-	packet.string(storage.name)
-	packet.string(storage.pubKey)
-	packet.uint8array(Uint8Array.from(atob(storage.authSig), c => c.charCodeAt()))
-	packet.double(t)
-	packet.uint8array(signature)
-	packet.uint8array(skin, 1008)
-	const p = packet.build()
-	globalThis.ws = new WebSocket(n.ip)
-	let timeout = setTimeout(ws.close.bind(ws), 5000)
-	let authed = 0
-	ws.onopen = () => (clearTimeout(timeout),ws.send(p),timeout = -1)
-	ws.onmessage = function({data}){
-		if(!authed && typeof data === 'string') return void(data.length ? pendingConnection(data) : authed=1)
-		fwPacket(data)
+	let timeout = -1
+	if(!n.host){
+		globalThis.ws = new LocalSocket(n.ip)
+		gameIframe()
+	}else{
+		const t = Date.now()+n.timeOff+15e3
+		const signature = await makeSign(encoder.encode(n.host+'/'+t))
+		const packet = new DataWriter()
+		packet.short(PROTOCOL_VERSION)
+		packet.string(storage.name)
+		packet.string(storage.pubKey)
+		packet.uint8array(Uint8Array.from(atob(storage.authSig), c => c.charCodeAt()))
+		packet.double(t)
+		packet.uint8array(signature)
+		packet.uint8array(skin, 1008)
+		const p = packet.build()
+		globalThis.ws = new WebSocket(n.ip)
+		timeout = setTimeout(ws.close.bind(ws), 5000)
+		ws.onopen = () => (clearTimeout(timeout),ws.send(p),gameIframe(),timeout = -1)
 	}
+	ws.onmessage = fwPacket
 	ws.onclose = ({reason, code}) => {
 		reason = reason || (ws instanceof WebSocket ? timeout >= 0 ? texts.connection.refused() : texts.connection.lost() : texts.connection.invalid_ip())
 		finished()

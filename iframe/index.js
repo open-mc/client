@@ -9,6 +9,7 @@ import { jsonToType } from '/server/modules/dataproto.js'
 import { onChat } from './chat.js'
 import { loadingChunks } from './incomingPacket.js'
 import './frame.js'
+import '/img/_pako.js'
 
 let last = performance.now()
 globalThis.step = () => {
@@ -72,10 +73,10 @@ globalThis.frame = () => {
 	_networkUsage()
 	const p = 0.5**(dt*2)
 	if(dt>1e-9) fps = round((frames = frames*p+1) * (1-p)/dt)
-	if(loadingChunks){
+	if(loadingChunks || !me){
 		const s = options.guiScale * pixelRatio * 2, w = ctx.width/s, h = ctx.height/s
 		ctx.reset(s/ctx.width, 0, 0, s/ctx.height, (w>>1)/w, (h>>2)/h)
-		const arr = calcText('Loading chunks...', _, 271 | 16)
+		const arr = calcText(connMsg||'Loading chunks...', _, 271 | 16)
 		drawText(ctx, arr, -arr.width*8, 0, 16)
 		return
 	}
@@ -207,6 +208,62 @@ listen('music', () => bgGain.gain.value = options.music * options.music * 2)
 listen('sound', () => masterVolume = options.sound*2)
 listen('fps', () => ctxFramerate = options.fps ? options.fps < 1 ? options.fps*250 : Infinity : -1)
 let aid = NaN, bid = NaN
+let gotDefs = data => {
+	const packs = pako.inflate(data, {to: 'string'}).split('\0')
+	for(let i = 4; i < packs.length; i++) if(packs[i][0]=='~') packs[i] = 'http' + ip.slice(2) + packs[i].slice(1)
+	// import scripts
+	const list = packs[3].split('\n')
+	for(let i = 0; i < Classes.length; i++){
+		const h = (list[i]||'{}').split(' ')
+		Classes[i].savedata = jsonToType(h.pop())
+		Classes[i].savedatahistory = h.mmap(jsonToType)
+	}
+	Promise.all(packs.slice(4).map(a => import(a))).then(() => {
+		// done importing
+		let i
+		i = 0; for(const b of packs[0].split('\n'))funcify(b, i++, Blocks)
+		i = 0; for(const b of packs[1].split('\n'))funcify(b, i++, Items)
+		i = 0; for(const b of packs[2].split('\n'))funcify(b, i++, Entities)
+		if(!--loading)loaded()
+	})
+	function funcify(a, i, Dict){
+		const Constructor = Dict == Items ? Item : Dict == Entities ? Entity : Block
+		const List = Dict == Items ? ItemIDs : Dict == Entities ? EntityIDs : BlockIDs
+		a = a.split(' ')
+		const name = a.shift()
+		let Thing = Dict[name] || class extends Constructor{static _ = console.warn((Dict == Blocks ? 'Blocks.' : Dict == Items ? 'Items.' : 'Entities.') + name + ' missing!')}
+		if(!Object.hasOwn(Thing, 'prototype')) Thing = class extends Thing.__constructor{}
+		if(!(Thing.prototype instanceof Constructor)){
+			console.warn('Class ' + name + ' does not extend ' + Constructor.name)
+			let T = Thing
+			for(let i = T; i.prototype; i = Object.getPrototypeOf(i)) T = i;
+			Object.setPrototypeOf(T, Constructor)
+			Object.setPrototypeOf(T.prototype, Constructor.prototype)
+		}
+		Thing.id = i
+		Thing.className = name
+		Thing[Symbol.toStringTag] = (Dict == Blocks ? 'Blocks.' : Dict == Items ? 'Items.' : 'Entities.') + name
+		Thing.savedata = a.length ? jsonToType(a.pop()) : null
+		Thing.savedatahistory = a.map(jsonToType)
+		List[Thing.id] = Thing
+		if(Thing.init) Thing.init()
+
+		// Copy static props to prototype
+		// This will also copy .prototype, which we want
+		let proto = Thing
+		do{
+			const desc = Object.getOwnPropertyDescriptors(proto), desc2 = Object.getOwnPropertyDescriptors(proto.prototype)
+			delete desc.length; delete desc.name
+			Object.defineProperties(proto.prototype, desc)
+			Object.defineProperties(proto, desc2)
+			proto = Object.getPrototypeOf(proto)
+		}while(proto.prototype && !Object.hasOwn(proto.prototype, 'prototype'))
+		if(Dict == Blocks && !Thing.savedata){
+			if(!Thing.savedata) Object.defineProperties(Thing.constructor, Object.getOwnPropertyDescriptors(new Thing))
+		}
+	}
+}
+let connMsg = ''
 const onMsg = ({data,origin}) => {
 	if(origin=='null') return
 	if(Array.isArray(data)){
@@ -260,58 +317,8 @@ const onMsg = ({data,origin}) => {
 			onmousemove.fire(data[2], data[3])
 			return
 		}
-		// import scripts
-		const list = data[3].split('\n')
-		for(let i = 0; i < Classes.length; i++){
-			const h = (list[i]||'{}').split(' ')
-			Classes[i].savedata = jsonToType(h.pop())
-			Classes[i].savedatahistory = h.mmap(jsonToType)
-		}
-		Promise.all(data.slice(4).map(a => import(a))).then(() => {
-			// done importing
-			let i
-			i = 0; for(const b of data[0].split('\n'))funcify(b, i++, Blocks)
-			i = 0; for(const b of data[1].split('\n'))funcify(b, i++, Items)
-			i = 0; for(const b of data[2].split('\n'))funcify(b, i++, Entities)
-			if(!--loading)loaded()
-		})
-		function funcify(a, i, Dict){
-			const Constructor = Dict == Items ? Item : Dict == Entities ? Entity : Block
-			const List = Dict == Items ? ItemIDs : Dict == Entities ? EntityIDs : BlockIDs
-			a = a.split(' ')
-			const name = a.shift()
-			let Thing = Dict[name] || class extends Constructor{static _ = console.warn((Dict == Blocks ? 'Blocks.' : Dict == Items ? 'Items.' : 'Entities.') + name + ' missing!')}
-			if(!Object.hasOwn(Thing, 'prototype')) Thing = class extends Thing.__constructor{}
-			if(!(Thing.prototype instanceof Constructor)){
-				console.warn('Class ' + name + ' does not extend ' + Constructor.name)
-				let T = Thing
-				for(let i = T; i.prototype; i = Object.getPrototypeOf(i)) T = i;
-				Object.setPrototypeOf(T, Constructor)
-				Object.setPrototypeOf(T.prototype, Constructor.prototype)
-			}
-			Thing.id = i
-			Thing.className = name
-			Thing[Symbol.toStringTag] = (Dict == Blocks ? 'Blocks.' : Dict == Items ? 'Items.' : 'Entities.') + name
-			Thing.savedata = a.length ? jsonToType(a.pop()) : null
-			Thing.savedatahistory = a.map(jsonToType)
-			List[Thing.id] = Thing
-			if(Thing.init) Thing.init()
-
-			// Copy static props to prototype
-			// This will also copy .prototype, which we want
-			let proto = Thing
-			do{
-				const desc = Object.getOwnPropertyDescriptors(proto), desc2 = Object.getOwnPropertyDescriptors(proto.prototype)
-				delete desc.length; delete desc.name
-				Object.defineProperties(proto.prototype, desc)
-				Object.defineProperties(proto, desc2)
-				proto = Object.getPrototypeOf(proto)
-			}while(proto.prototype && !Object.hasOwn(proto.prototype, 'prototype'))
-			if(Dict == Blocks && !Thing.savedata){
-				if(!Thing.savedata) Object.defineProperties(Thing.constructor, Object.getOwnPropertyDescriptors(new Thing))
-			}
-		}
 	}else if(data instanceof ArrayBuffer){
+		if(gotDefs) return void(typeof data == 'string'?connMsg=data:(gotDefs(data),connMsg='',gotDefs=null))
 		if(loading>0) return void msgQueue.push(data)
 		_onPacket(data)
 	}else if(typeof data == 'string'){

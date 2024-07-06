@@ -16,7 +16,12 @@ Todo: End terrain generation
 
 Todo: Passive mobs
 
+</details>
+
 ## Beta 1.0
+
+- Offline support
+- Internal refactors
 
 Todo: More blocks and items
 
@@ -25,8 +30,6 @@ Todo: Singleplayer
 Todo: Terrain generation overhaul
 
 Todo: Creating accounts (deprecating account keys)
-
-</details>
 
 ## Alpha 10 (current version)
 

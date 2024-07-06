@@ -1,5 +1,5 @@
 import { listen, options, storage } from './save.js'
-import { hideUI, ping, showUI, ui } from './ui.js'
+import { hideUI, showUI, ui } from './ui.js'
 import { pause } from '../uis/pauseui.js'
 import { serverlist } from '../uis/serverlist.js'
 import texts from './lang.js'
@@ -11,13 +11,9 @@ iframe.src = 'https://sandbox-41i.pages.dev/'
 document.body.append(iframe)
 export let iReady = false
 
-
-const queue = []; let files = null
+const queue = []
 export function gameIframe(f){
 	if(!iReady) return false
-	if(storage.mods) f.push.apply(f, storage.mods.split('\n'))
-	while(f.length<=4) f.push('')
-	files = f
 	iframe.src = 'https://sandbox-41i.pages.dev/iframe/index.html'
 	return true
 }
@@ -25,31 +21,119 @@ export function gameIframe(f){
 const empty = new Comment()
 empty.esc = pause
 
-let blurred = false, notifs = 0
-
-function notif(){
-	if(!blurred || !ws) return
-	document.title = texts.misc.title.notification(ws.name, ++notifs)
-	ping()
-}
-
-onfocus = () => {
-	blurred = false
-	notifs = 0
-	document.title = ws ? texts.misc.title.playing(ws.name) : texts.misc.title.menu()
-	win?.postMessage(Infinity, '*')
-}
-onblur = () => { blurred = true; win?.postMessage(Infinity, '*') }
-
 let c = caches.open(''); c.then(a=>c=a)
 function onfetch({data: url}){
 	if(url[url.length-1]=='/') url+='main.html'
 	;(c.then?c.then(c=>c.match(url)):c.match(url)).then(res => res?this.postMessage({url, body: res.body, ct: res.headers.get('content-type')}, [res.body]):fetch(url).then(res=>this.postMessage({url, body: res.body, ct: res.headers.get('content-type')}, [res.body])))
 }
 
+export class LocalSocket extends MessageChannel{
+	static getOptions = ip => new Promise((r,f) => {
+		const db = indexedDB.open(ip,1)
+		db.onupgradeneeded = () => (db.result.createObjectStore('db'),db.result.createObjectStore('meta'))
+		db.onsuccess = () => {
+			const t = db.result.transaction(['meta'], 'readonly')
+			const req = t.objectStore('meta').get('config')
+			req.onerror = f; req.onsuccess = () => r(req.result)
+			t.commit()
+		}
+		db.onerror = f
+	})
+	static setOptions = (ip, o) => new Promise((r,f) => {
+		const db = indexedDB.open(ip,1)
+		db.onupgradeneeded = () => (db.result.createObjectStore('db'),db.result.createObjectStore('meta'))
+		db.onsuccess = () => {
+			const req = db.result.transaction(['meta'], 'readwrite').objectStore('meta').put(o, 'config')
+			req.onerror = f; req.onsuccess = r
+		}
+		db.onerror = f
+	})
+	static deleteWorld = ip => new Promise((r,f) => {
+		const db = indexedDB.deleteDatabase(ip)
+		db.onsuccess = () => r(null); db.onerror = f
+	})
+	constructor(ip = ''){
+		super()
+		const port = Object.setPrototypeOf(this.port1, LocalSocket.proto)
+		port.readyState = 0; port.onopen = port.onclose = null
+		if(ip[0] != '@') return Promise.resolve().then(()=>port.close()), port
+		const ifr = port.ifr = document.createElement('iframe')
+		ifr.src = 'https://sandbox-41i.pages.dev/localserver/index.html'
+		ifr.style.display = 'none'
+		const {port1, port2} = new MessageChannel()
+		const dat = {port: this.port2, dbport: port2, config: null}
+		let P = 2
+		ifr.onload = () => --P||ifr.contentWindow.postMessage(dat, '*', [dat.port,dat.dbport])
+		let r = indexedDB.open(ip,1)
+		r.onupgradeneeded = () => (r.result.createObjectStore('db'),r.result.createObjectStore('meta'))
+		const dbQueue = []; let dbI = 0
+		let dbO
+		r.onsuccess = () => {
+			const t = (r=r.result).transaction(['meta'], 'readonly').objectStore('meta').get('config')
+			t.onsuccess = () => {dat.config=t.result;--P||ifr.contentWindow.postMessage(dat, '*', [dat.port,dat.dbport])}
+		}
+		const tra = []
+		function processResults(e){
+			if(e) try{ for(;dbI<dbQueue.length;dbI++){
+				const tr = dbQueue[dbI]
+				if(Array.isArray(tr)){
+					const res = []
+					for(const {result} of tr){
+						if(result instanceof ArrayBuffer) res.push(result), tra.push(result)
+						else res.push(undefined)
+					}
+					port1.postMessage(res, tra)
+					tra.length = 0
+				}else{
+					const {result} = tr
+					result instanceof ArrayBuffer ? (port1.postMessage(result, (tra[0]=result,tra)),tra.length=0) : port1.postMessage(undefined)
+				}
+			} }catch(e){}finally{ if(dbI>(dbQueue.length>>1)) dbQueue.splice(0,dbI), dbI=0 }
+			for(const data of newReqs){
+				let req
+				if(typeof data == 'string'){
+					req = dbO.get(data)
+					req.onsuccess = processResults
+				}else if(!Array.isArray(data)){
+					req = data.v!==null?dbO.put(data.v, data.k):dbO.delete(data.k)
+					req.onsuccess = processResults
+				}else{ req = []; for(const d of data){
+					const r = typeof d == 'string' ? dbO.get(d) : d.v!==null?dbO.put(d.v, d.k):db.delete(d.k)
+					r.onsuccess = processResults
+					req.push(r)
+				} }
+				dbQueue.push(req)
+			}
+			newReqs.length = 0
+		}
+		const newReqs = []
+		port1.onmessage = ({data}) => {
+			if(dbI>=dbQueue.length){
+				const t = r.transaction(['db'], 'readwrite')
+				dbO = t.objectStore('db')
+				newReqs[0] = data
+				processResults(null)
+			}else newReqs.push(data)
+		}
+		document.body.append(ifr)
+		port.start()
+		return port
+	}
+	static proto = Object.create(MessagePort.prototype, {
+		send: {enumerable:false, value: MessagePort.prototype.postMessage},
+		close: {enumerable:false,value(code, reason){
+			if(this.readyState > 1) return
+			this.postMessage(undefined)
+			this.readyState = 3
+			this.onclose({code, reason})
+			setTimeout(() => this.ifr.remove(), 10e3)
+		}}
+	})
+}
+let mport
 onmessage = ({data, source}) => {
 	if((source??0) !== iframe.contentWindow) return
-	if(!iReady){iReady = true; if(data) data.onmessage = onfetch; else iframe.src+='' }
+	if(!iReady){iReady = true; if(data) (mport=data).onmessage = onfetch; else iframe.src+='' }
 	if(typeof data != 'object'){
 		if(data === true) showUI(null)
 		else if(data === false) hideUI()
@@ -64,7 +148,6 @@ onmessage = ({data, source}) => {
 		if(!win) return
 		if(!m && voice) microphone()
 		for(const k in options) win.postMessage([k, options[k]], '*')
-		win.postMessage(files, '*')
 		for(const a of queue){
 			if(a.buffer) win.postMessage(a.buffer, '*', [a.buffer])
 			else win.postMessage(a, '*')
@@ -89,12 +172,13 @@ export function destroyIframe(){
 	document.body.append(iframe)
 	voiceOff(); if(m && typeof m == 'object') m.source.disconnect(), m = null
 	win = null; queue.length = 0
+	mport?.close()
 	iReady = false
 }
 
 listen((a,b) => win?.postMessage([a, b], '*'))
 
-export function fwPacket(a){
+export function fwPacket({data:a}){
 	if(!win) return void queue.push(a)
 	if(a.buffer) win.postMessage(a.buffer, '*', [a.buffer])
 	else win.postMessage(a, '*')
@@ -149,9 +233,4 @@ function voiceOff(){
 	if(!voice) return
 	voice = false
 	voiceEl.hidden = true
-}
-
-export const clearNotifs = () => {
-	notifs = 0
-	document.title = ws ? texts.misc.title.playing(ws.name) : texts.misc.title.menu()
 }

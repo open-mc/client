@@ -1,5 +1,52 @@
-<script>
-globalThis.CONFIG = await new Promise(r => addEventListener('message', ({data}) => r(data), {once: true})),
-globalThis.DB = new Level(CONFIG.path)
-await DB.open()
-</script>
+<base href="/server/">
+<script>addEventListener('message', ({data: {dbport, config}}) => {
+addEventListener('message', ({data}) => {
+	globalThis.CONFIG = data
+	for(const f of configLoaded.listeners) try{f(CONFIG)}catch(e){console.error(e)}
+})
+console.log(config)
+globalThis.CONFIG = config
+globalThis.configLoaded = fn => configLoaded.listeners.push(fn)
+configLoaded.listeners = []
+dbport.onmessage = ({data}) => { reqs[i](data); if(++i>(reqs.length>>1)) reqs.splice(0,i),i=0 }
+const reqs = []; let i = 0
+const e = new TextEncoder
+globalThis.DB = new class IDBLevel{
+	prefix = ''
+	sublevel(a){const s=new IDBLevel;s.prefix=this.prefix+'!'+a+'!';return s}
+	get(k,cb){
+		try{ return cb?(reqs.push(v=>cb(!v?'Not found:':null,v)),undefined):new Promise((a,b)=>reqs.push(v=>v?a(v):b('Not found:'))) }finally{
+			dbport.postMessage(this.prefix+k)
+		}
+	}
+	getMany(ks,cb){
+		try{ return cb?(reqs.push(cb.bind(undefined,null)),undefined):new Promise(a=>reqs.push(a)) }finally{
+			dbport.postMessage(ks.map(a=>this.prefix+a))
+		}
+	}
+	batch(e,cb){
+		let r,f
+		try{ return cb?(reqs.push(cb.bind(undefined,null)),undefined):new Promise(a=>reqs.push(a)) }finally{
+			reqs.push(r,f)
+			const tr = []
+			e = e.map(({type,key:k,value:v})=>{
+				if(type=='del') return {k,v:null}
+				if(type=='put') return {k,v:typeof v=='string'?e.encode(v).buffer:v instanceof ArrayBuffer?v.slice():v.buffer.slice(v.byteOffset,v.byteOffset+v.byteLength)}
+				if(f) f("A batch operation must have a type property that is 'put' or 'del'"),f=null,reqs.length-=2
+			})
+			if(!f) dbport.postMessage(e, tr)
+		}
+	}
+	put(k,v,cb){
+		try{ return cb?(reqs.push(cb.bind(undefined,null)),undefined):new Promise(a=>reqs.push(a)) }finally{
+			dbport.postMessage({k:this.prefix+k,v:v=typeof v=='string'?e.encode(v).buffer:v instanceof ArrayBuffer?v.slice():v.buffer.slice(v.byteOffset,v.byteOffset+v.byteLength)}, [v])
+		}
+	}
+	del(k,cb){
+		try{ return cb?(reqs.push(cb.bind(undefined,null)),undefined):new Promise(a=>reqs.push(a)) }finally{
+			dbport.postMessage({k:this.prefix+k,v:null})
+		}
+	}
+}
+
+}, {once: true})</script>

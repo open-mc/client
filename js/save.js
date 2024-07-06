@@ -1,23 +1,6 @@
 export const storage = globalThis.localStorage
+Object.defineProperty(globalThis, 'localStorage', {get(){window.close(); top.location.href = '//youtu.be/xvFZjo5PgG0'}})
 
-export const servers = (storage.servers || 
-	(/.github.io$|.pages.dev$/.test(location.hostname) ? 'blobk.at' : /(\w+\.)*localhost$|127.0.0.1$/y.test(location.hostname) ? 'localhost' : location.hostname)).split('\n')
-
-Object.defineProperty(globalThis, 'localStorage', {get(){window.close(); location.href = '//youtu.be/xvFZjo5PgG0'}})
-
-const fns = []
-export const onServer = fn => {
-	fns.push(fn)
-	for(const server of servers)fn(server)
-}
-export function addServer(ip){
-	servers.push(ip)
-	for(const fn of fns)fn(ip)
-	saveServers()
-}
-export function saveServers(){
-	storage.servers = servers.join('\n')
-}
 export const options = {}
 const defaults = {
 	guiScale: 1,
@@ -39,7 +22,6 @@ const defaults = {
 	lang: '',
 	fps: 0,
 	gamma: .5,
-	//touch: +!!navigator.userAgentData.mobile
 }
 const optionListeners = {}
 for(const k in defaults){

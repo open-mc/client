@@ -1,11 +1,52 @@
 import { finished, preconnect, skin } from '../js/connectme.js'
-import { addServer, onServer, servers, storage } from '../js/save.js'
+import { storage } from '../js/save.js'
 import { Btn, Div, Input, Label, Row, showUI, Spacer, ui, UI, Img, click } from '../js/ui.js'
 import texts from '../js/lang.js'
 import { worldoptions } from './worldoptions.js'
 import { login } from './login.js'
+import { LocalSocket } from '../js/iframe.js'
 
 if(!storage.skin)storage.skin = Math.random() > .5 ? "缀\x7f罿缀\x7f孛缀\x7f罿缀\x7f罿缀\x7f罿缀\x7f罿⠰ひ爨Ωせ爨⠰ひ爨Ωせ爨\0\0\0\0\0\0\0\0\0\0\0\0缀\x7f桨栀h罿栀h桨栀h罿缀\x7f桨栀h罿⠰♲嬡Ωせ爨⠰ひ爨Ωせ爨\0\0\0\0\0\0\0\0\0\0\0\0栀h桨栀h罿缀\x7f桨栀h罿缀\x7f桨栀h罿⠰♲嬡⠰ひ爨⠰ひ爨Ωせ爨\0\0\0\0\0\0\0\0\0\0\0\0嬀[桨栀h孛缀\x7f桨栀h罿缀\x7f桨栀h罿⠰♲嬡⠰ひ爨⠰ひ爨Ωせ爨\0\0\0\0\0\0\0\0\0\0\0\0栀h孛嬀[孛徖陁䅟徖蝁㭕徖陁䅟徖蝁㭕⠰♲嬡⠰ひ爨⠰♲嬡⠰ひ爨ᬨ⠊ਛᨦ✊ଛᰩ㈌ဣ\u202dⴐဠ嬀[孛嬀[桨徖陁䅟徖蝁㭕徖陁䅟喇阻䅟⠰♲嬡⠰ひ爨⠰♲嬡Ωせ爨ᬨ⠊ਛᨦ☊ਚḬ⤎జḫ㌍ᄤ栀h孛嬀[桨喇阻䅟徖蝁㭕徖陁䅟喇阻䅟⠰♲嬡⠰ひ爨⠰ひ爨Ωせ爨Ḭ☎ଘᨦ⤊జḫ⠎ଛᠤ⤊జ缀\x7f桨栀h罿喇阻䅟徖陁䅟喇阻䅟喇阻䅟⠰ひ爨⠰ひ爨⠰ひ爨Ωせ爨ᬨ⠊ചᴭⰎพᬨ✊ଛḬ⼎ᄢ缀\x7f桨栀h罿喇阻䅟喇阻䅟喇阻䅟徖陁䅟⠰ひ爨⠰ひ爨⠰ひ爨⠰ひ爨ᬨ⠊ਛᬨ☊చᜣ蜉㩘掜㩅ᐨ缀\x7f桨缀\x7f罿徖陁䅟喇阻䅟徖陁䅟徖陁䅟㼿㼿㼿⠰ひ爨㼿㼿㼿⠰ひ爨ᬨ⠊ਛᨨ☍ଘḬ萑ㅒ徖衁㥚⠰♲嬡⠰♲嬡徖陁䅟喇阻䅟徖蝁㭕徖蝁㭕㼿㼿㼿㼿㼿㼿㼿㼿㼿㼿㼿㼿Ḭ⠎ਛᴭ戎⽃檝驏䑣历甴⽇⠰♲嬡⠰ひ爨徖陁䅟徖陁䅟徖陁䅟徖蝁㭕㼿㼿㼿㼿㼿㼿㼿㼿㼿㼿㼿㼿历蘴㑓掚虄㑓果陈䅟妊琻⽈" : "띻筸碷띻筸碱녻筸碷녻筸碱녻筸碷녻䖚녻筸碷띻筸碱䍨搬⠿䍨搬⠿\0\0\0\0\0\0\0\0\0\0\0\0띻筸碷녻筸碱녻筸碱녻筸碷녻筸碱녻䮟㽤笨碱녻桸ⱃ㽤栨ⱃ㽤栨ⱃ\0\0\0\0\0\0\0\0\0\0\0\0녻筸碷녻筸碱녻筸碷띻筸碷녻筸碷띻筸碷㽤栨ⱃ㽤栨ⱃ㽤栨ⱃ㽤栨ⱃ\0\0\0\0\0\0\0\0\0\0\0\0녻筸碷녻筸碱莁衚把誈腢媃莁衚把誈腢媃㽤搨⠿㽤栨ⱃ㽤搨⠿㽤栨ⱃ\0\0\0\0\0\0\0\0\0\0\0\0녻筸碷띻筸碷쫥꧊쫥꧊쫥꧊쫥꧊㽤搨⠿㽤搨⠿㽤搨⠿㽤搨⠿髦㶎鿩䖚鿩䮟鿩㶎녻筸碷녻筸碷쫥꧊퓬뗔쫥꧊퓬뗔㠸㠸㠸㠸搸⠿㠸㠸㠸㠸搸⠿軦䖚髦㶎髦㶎軦䖚녻筸碷녻筸碷쫥뗔퓬뗔쫥뗔퓬뗔䝇䝇䝇䝇㡇㠸䝇䝇䝇䝇㡇㠸鿩䮟軦䖚軦䖚鿩䖚띻筸碷띻筸碷헭뗔헭뗔헭뗔헭뿚䝇䝇䝇䝇䝇䝇䝇䝇䝇䝇䝇䝇髦\udd45㦔髦䖚鿩\udd4b㦔铝䖚㔑ጎሽ㔑ጎሽ헭뫕헭뫕헭뫕헭뫕䝇䝇䝇㠸䜸䝇䝇䝇䝇㠸䜸䝇铝䖚髦䖚铝뗔퓬\uddb5㦔띻筸碱띻筸碱헭뫕\udbef샛헭뫕\udbef뫕䱌䱌䱌兑㡑㠸䱌䱌䱌兑㡑㠸铝㶎鿩\udd4b㦔퓬쏞\udbf2볛띻筸碱띻筸碱\udbef샛헭샛\udbef뫕\udbef뫕䱌䱌䱌兑屑屜䱌䱌䱌兑屑屜軦䖚鿩䖚퓬볛\udef2쏞녻筸碷띻筸碱헭뿚헭샛\udbef뗔헭뫕㴽㴽㴽㴽尽屜㴽㴽㴽㴽尽屜髦㶎髦뗔퓬쏞\udbf2볛"
+
+export const servers = (storage.servers || 
+	(/.github.io$|.pages.dev$/.test(location.hostname) ? 'blobk.at' : /(.|^)localhost$|^127.0.0.1$|^[::1]$/.test(location.hostname) ? 'localhost' : location.hostname)).split('\n')
+
+indexedDB.databases().then(arr => {for(const s of arr)if(s.name[0]=='@'&&!servers.includes(s.name))addServer(s.name)})
+
+const bc = globalThis.BroadcastChannel ? new BroadcastChannel('servers') : null
+bc && (bc.onmessage = ({data}) => {
+	const i = data.indexOf('\n')
+	if(i==0) rmServer(data.slice(1), 0)
+	else if(i==-1) addServer(data, 0)
+	else swapServers(data.slice(0,i),data.slice(i+1),0)
+})
+export function rmServer(ip, s=1){
+	const i = servers.indexOf(ip)
+	if(i < 0) return
+	servers.splice(i, 1)
+	if(ip[0] == '@') LocalSocket.deleteWorld(ip)
+	if(ui == serverList) list.children[i].remove()
+	if(s) storage.servers = servers.join('\n'), bc?.postMessage('\n'+ip)
+}
+export function addServer(ip, s=1){
+	if(servers.includes(ip)) return
+	servers.push(ip)
+	if(ui == serverList) list.insertBefore(preconnect(ip), list.lastChild)
+	if(s) storage.servers = servers.join('\n'), bc?.postMessage(ip)
+}
+export function swapServers(ip1, ip2, s=1){
+	let a = servers.indexOf(ip1), b = servers.indexOf(ip2)
+	if(a<0||b<0) return
+	if(a>b){const t=a;a=b;b=t}
+	if(ui == serverList){
+		const n = list.children[b].nextElementSibling
+		const na = list.children[a]
+		na.replaceWith(list.children[b])
+		list.insertBefore(na, n)
+	}
+	const n = servers[a]; servers[a] = servers[b]; servers[b] = n
+	if(s) storage.servers = servers.join('\n'), bc?.postMessage(ip1+'\n'+ip2)
+}
 
 const i = document.createElement('input')
 i.type = 'file'
@@ -72,7 +113,11 @@ function drawSkin(){
 }
 drawSkin()
 let list, selectSkinBtn, logoutBtn, addRow, nameLabel, input = Input('text', texts.serverlist.add_server.placeholder())
-input.on('keypress', e => e.keyCode == 13 && (addServer(input.value), input.value='', input.blur())).on('blur', () => {input.replaceWith(addRow)}).css({margin: '9rem auto'})
+input.on('keypress', e => {
+	if(e.keyCode != 13) return
+	addServer(input.value)
+	input.value='', input.blur()
+}).on('blur', () => {input.replaceWith(addRow)}).css({margin: '9rem auto'})
 
 const serverList = UI('dirtbg serverlist',
 	Spacer.grow(1),
@@ -113,9 +158,6 @@ serverList.finish = () => {
 	for(let i = list.childElementCount-2; i >= 0; i--) list.children[i].remove()
 }
 
-onServer(ip => {
-	if(ui == serverList) list.insertBefore(preconnect(ip), list.lastChild)
-})
 export function serverlist(){
 	finished()
 	showUI(null)
