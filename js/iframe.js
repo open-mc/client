@@ -63,7 +63,7 @@ export class LocalSocket extends MessageChannel{
 		const {port1, port2} = new MessageChannel()
 		const dat = {port: this.port2, dbport: port2, config: null}
 		let P = 2
-		ifr.onload = () => --P||ifr.contentWindow.postMessage(dat, '*', [dat.port,dat.dbport])
+		ifr.onload = () => P?--P||ifr.contentWindow.postMessage(dat, '*', [dat.port,dat.dbport]):(ifr.remove(),this.onclose({code, reason}),port.readyState=3)
 		let r = indexedDB.open(ip,1)
 		r.onupgradeneeded = () => (r.result.createObjectStore('db'),r.result.createObjectStore('meta'))
 		const dbQueue = []; let dbI = 0
@@ -124,9 +124,8 @@ export class LocalSocket extends MessageChannel{
 		close: {enumerable:false,value(code, reason){
 			if(this.readyState > 1) return
 			this.postMessage(undefined)
-			this.readyState = 3
-			this.onclose({code, reason})
-			setTimeout(() => this.ifr.remove(), 10e3)
+			this.readyState = 2
+			setTimeout(() => (this.ifr.remove(),this.onclose({code, reason}),this.readyState=3), 10e3)
 		}}
 	})
 }

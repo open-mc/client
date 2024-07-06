@@ -189,17 +189,14 @@ Math.iceil = x => Math.ceil(x) | 0
 Math.PI2 = Math.PI*2
 Object.defineProperties(globalThis, Object.getOwnPropertyDescriptors(Math))
 Object.defineProperties(Array.prototype, {
-	winner: {enumerable: false, value(pred, best = -Infinity){
-		let winner = undefined
+	best: {enumerable: false, value(pred, best = -Infinity){
+		let el = undefined
 		const length = this.length
 		for(let i = 0; i < length; i++){
 			const a = this[i], score = pred(a, i, this)
-			if(score >= best){
-				best = score
-				winner = a
-			}
+			if(score >= best) best = score, el = a
 		}
-		return winner
+		return el
 	}},
 	remove: {enumerable: false, value(a){
 		let i = 0, j = 0

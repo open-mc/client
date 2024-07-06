@@ -1,10 +1,163 @@
 <base href="/server/">
-<script>addEventListener('message', ({data: {dbport, config}}) => {
-addEventListener('message', ({data}) => {
+<script src="/img/_pako.js"></script>
+<script>
+
+globalThis.loadFile = (i, f) => (i=decodeURI(i.url).replace(/[^\/]*$/,"").replace(/file:\/\/\/?(\w+:\/)?/y,'/'), f ? fetch(i + f).then(a=>a.arrayBuffer()).then(a=>new Uint8Array(a)) : f => fetch(i + f).then(a=>a.arrayBuffer()).then(a=>new Uint8Array(a)))
+globalThis.AsyncFunction = (async()=>{}).constructor
+
+Object.defineProperties(Array.prototype, {
+	best: {enumerable: false, value(pred, best = -Infinity){
+		let el = undefined
+		const length = this.length
+		for(let i = 0; i < length; i++){
+			const a = this[i], score = pred(a, i, this)
+			if(score >= best) best = score, el = a
+		}
+		return el
+	}},
+	remove: {enumerable: false, value(a){
+		let i = 0, j = 0
+		for(; j < this.length; j++){
+			if(j > i)this[i] = this[j]
+			if(this[i] != a)i++
+		}
+		return this.length = i
+	}},
+	mutmap: {enumerable: false, value(fn){
+		const len = this.length
+		for(let i = 0; i < len; i++)
+			this[i] = fn(this[i])
+		return this
+	}}
+})
+
+Math.ifloat = x => {
+	const f = Math.floor(x)
+	return (f | 0) + (x - f)
+}
+Math.randint = () => Math.random() * 4294967296 | 0
+Math.ifloor = x => Math.floor(x) | 0
+Math.iceil = x => Math.ceil(x) | 0
+
+// Blazingly fast!!
+const nul = new Array(100).fill(null)
+Array.null = len => {
+	if(len <= 100) return nul.slice(0, len)
+	let a = new Array(len)
+	while(len > 0) a[--len] = null
+	return a
+}
+
+Date.formatTime = function(t){
+	t /= 1000
+	if(t < 3600){
+		if(t >= 60) return floor(t/60)+'m '+floor(t%60)+'s'
+		else if(t >= 1) return floor(t)+'s'
+		else return t*1000+'ms'
+	}else{
+		if(t < 86400) return floor(t/3600)+'h '+floor(t%3600/60)+'m'
+		else if(t < 8640000) return floor(t/86400)+'d '+floor(t%86400/3600)+'h'
+		else return floor(t/86400)+'d'
+	}
+}
+
+Object.defineProperties(globalThis, Object.getOwnPropertyDescriptors(Math))
+globalThis.PI2 = PI*2
+Function.optimizeImmediately = Function.prototype
+
+globalThis.Worker = class Worker extends MessageChannel{
+	static _workers = new WeakMap
+	constructor(src){
+		let {port1, port2} = super()
+		port1.ifr = document.createElement('iframe')
+		ifr.src = '/localserver/index.html#' + encodeURIComponent(src)
+		ifr.onload = () => port2 ? (ifr.postMessage(port2, [port2]), port2=null) : (_workers.delete(ifr.contentWindow),ifr.remove(),port1.close())
+		document.body.append(ifr)
+		_workers.set(ifr.contentWindow, port1)
+		return Object.setPrototypeOf(port1, Worker.proto)
+	}
+	static proto = Object.create(MessagePort.prototype, {
+		terminate: {enumerable:false,value(){
+			_workers.delete(this.ifr.contentWindow)
+			this.ifr.remove(); this.close()
+		}}
+	})
+}
+delete globalThis.SharedWorker
+globalThis.perf = null
+
+let total = 0, loaded = 0
+let startServer = () => {
+
+}
+const _started = Date.now()
+const print = desc => console.log(`%c[${Date.formatTime(Date.now() - _started)}] ${desc}`, 'color:green')
+globalThis.task = function(desc = ''){
+	total++
+	let called = false
+	return (d = desc) => {
+		if(called) return
+		called = true
+		loaded++
+		print(d)
+		if(total == loaded && startServer) startServer(), startServer = null
+	}
+}
+task.done = desc => {
+	total++; loaded++
+	print(desc)
+}
+
+globalThis.started = 0
+globalThis.host = ''
+
+const c = document.createElement('canvas'), ctx = c.getContext('2d')
+globalThis.PNG = {
+	from: (m, src) => {
+		const i = new Image
+		i.onload = () => {
+			c.width = i.width; c.height = i.height
+			c.drawImage(i, 0, 0)
+			r(new Uint8Array(c.getImageData(0, 0, c.width, c.height).data.buffer))
+		}
+		let r, pr = new Promise((_r,_c)=>(r=_r,i.onerror=_c))
+		i.src = decodeURI(m.url).replace(/[^\/]*$/,"").replace(/file:\/\/\/?(\w+:\/)?/y,'/') + src
+		return pr
+	},
+	read: buf => createImageBitmap(new Blob([buf])).then(i => {
+		c.width = i.width; c.height = i.height
+		c.drawImage(i, 0, 0)
+		return new Uint8Array(c.getImageData(0, 0, c.width, c.height).data.buffer)
+	}),
+	write: (data, w, h) => new Promise(r => {
+		c.width = w; c.height = h
+		c.putImageData(new ImageData(data instanceof ArrayBuffer ? new Uint8ClampedArray(data) : new Uint8ClampedArray(data.buffer, data.byteOffset, data.byteLength), w, h), 0, 0)
+		c.toBlob(blob => blob.arrayBuffer().then(buf => r(new Uint8Array(buf))), 'image/png')
+	})
+}
+
+globalThis.deflate = str => {
+	const b = deflateSync(typeof str == 'string' ? Buffer.from(str) : str)
+	return new Uint8Array(b.buffer, b.byteOffset, b.byteLength)
+}
+globalThis.inflate = str => {
+	const b = inflateSync(typeof str == 'string' ? Buffer.from(str) : str)
+	return new Uint8Array(b.buffer, b.byteOffset, b.byteLength)
+}
+
+if(location.hash) addEventListener('message', ({data}) => {
+	addEventListener('message', ({data, source}) => void Worker._workers.get(source)?.dispatchEvent(new ErrorEvent('error', {data,source})))
+	globalThis.parentPort = data
+	globalThis.close = () => location = 'about:blank'
+	import(decodeURIComponent(location.hash))
+}, {once:true});else globalThis.parentPort = null,
+addEventListener('message', ({data: {dbport, config}}) => {
+addEventListener('message', ({data, source}) => {
+	const s = Worker._workers.get(source)
+	if(s) return void s.dispatchEvent(new ErrorEvent('error', {data,source}))
 	globalThis.CONFIG = data
 	for(const f of configLoaded.listeners) try{f(CONFIG)}catch(e){console.error(e)}
 })
-console.log(config)
 globalThis.CONFIG = config
 globalThis.configLoaded = fn => configLoaded.listeners.push(fn)
 configLoaded.listeners = []
@@ -48,5 +201,5 @@ globalThis.DB = new class IDBLevel{
 		}
 	}
 }
-
+import('/localserver/server.js')
 }, {once: true})</script>
