@@ -91,17 +91,17 @@ globalThis.frame = () => {
 	else if(options.camera == CAMERA_DYNAMIC){
 		const D = me.state & 4 ? 0.7 : 2
 		const dx = ifloat(me.x + pointer.x/D - cam.x + cam.baseX), dy = ifloat(me.y + pointer.y/D + me.head - cam.y + cam.baseY)
-		if(abs(dx) > 64)cam.x += dx
+		if(abs(dx) > 64) cam.x += dx
 		else{
-			if(!camMovingX && abs(dx) > pointer.REACH / 2)camMovingX = true
-			else if(camMovingX && abs(dx) < pointer.REACH / 4)camMovingX = false
-			if(camMovingX)cam.x = ifloat(cam.x + (dx - sign(dx)*(pointer.REACH/4+0.25)) * dt * 4)
+			if(!camMovingX && abs(dx) > pointer.REACH / 2) camMovingX = true
+			else if(camMovingX && abs(dx) < pointer.REACH / 4) camMovingX = false
+			if(camMovingX) cam.x = ifloat(cam.x + (dx - sign(dx)*(pointer.REACH/4+0.25)) * dt * 4)
 		}
-		if(abs(dy) > 64)cam.y += dy
+		if(abs(dy) > 64) cam.y += dy
 		else{
-			if(!camMovingY && abs(dy) > pointer.REACH / 2)camMovingY = true
-			else if(camMovingY && abs(dy) < pointer.REACH / 4)camMovingY = false
-			if(camMovingY)cam.y = ifloat(cam.y + (dy - sign(dy)*(pointer.REACH/4+0.25)) * dt * 7)
+			if(!camMovingY && abs(dy) > pointer.REACH / 2) camMovingY = true
+			else if(camMovingY && abs(dy) < pointer.REACH / 4) camMovingY = false
+			if(camMovingY) cam.y = ifloat(cam.y + (dy - sign(dy)*(pointer.REACH/4+0.25)) * dt * 7)
 		}
 	}else if(options.camera == CAMERA_FOLLOW_SMOOTH){
 		const dx = ifloat(me.x + pointer.x - cam.x + cam.baseX), dy = ifloat(me.y + pointer.y + me.head - cam.y + cam.baseY)
@@ -118,11 +118,11 @@ globalThis.frame = () => {
 	}else if(options.camera == CAMERA_PAGE){
 		const dx = ifloat(me.x - cam.x + cam.baseX), dy = ifloat(me.y + me.head/2 - cam.y + cam.baseY)
 		if(abs(dx) > W2 * 2 - 2) cam.x += dx
-		else if(dx > W2 - 1)cam.x += W2*2 - 4
-		else if(dx < 1 - W2)cam.x -= W2*2 - 4
+		else if(dx > W2 - 1) cam.x += W2*2 - 4
+		else if(dx < 1 - W2) cam.x -= W2*2 - 4
 		if(abs(dy) > H2 * 2 - 2) cam.y += dy
-		else if(dy > H2 - 1)cam.y += H2*2 - 4
-		else if(dy < 1 - H2)cam.y -= H2*2 - 4
+		else if(dy > H2 - 1) cam.y += H2*2 - 4
+		else if(dy < 1 - H2) cam.y -= H2*2 - 4
 	}
 	if(cam.staticX === cam.staticX) cam.x = cam.staticX
 	if(cam.staticY === cam.staticY) cam.y = cam.staticY
@@ -221,10 +221,10 @@ let gotDefs = data => {
 	Promise.all(packs.slice(4).map(a => import(a))).then(() => {
 		// done importing
 		let i
-		i = 0; for(const b of packs[0].split('\n'))funcify(b, i++, Blocks)
-		i = 0; for(const b of packs[1].split('\n'))funcify(b, i++, Items)
-		i = 0; for(const b of packs[2].split('\n'))funcify(b, i++, Entities)
-		if(!--loading)loaded()
+		i = 0; for(const b of packs[0].split('\n')) funcify(b, i++, Blocks)
+		i = 0; for(const b of packs[1].split('\n')) funcify(b, i++, Items)
+		i = 0; for(const b of packs[2].split('\n')) funcify(b, i++, Entities)
+		if(!--loading) loaded()
 	})
 	function funcify(a, i, Dict){
 		const Constructor = Dict == Items ? Item : Dict == Entities ? Entity : Block
@@ -332,7 +332,7 @@ const onMsg = ({data,origin}) => {
 		else if(data >= 0){
 			buttons.set(data)
 			changed.set(data)
-			if(_cbs[data])for(const f of _cbs[data])f()
+			if(_cbs[data]) for(const f of _cbs[data]) f()
 		}else buttons.pop(~data) && changed.set(~data)
 	}else if(typeof data == 'boolean') _updatePaused(data)
 }

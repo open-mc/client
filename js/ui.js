@@ -11,7 +11,7 @@ const Sound = src => {
 		a.volume = Math.min(1, options.sound*2)
 		a.onended = () => {
 			a.onended = null
-			if(arr.length<3)arr.push(a)
+			if(arr.length<3) arr.push(a)
 		}
 		a.play().catch(a.onended)
 	}
@@ -24,7 +24,7 @@ HTMLElement.prototype.css = function(b){Object.assign(this.style, b); return thi
 HTMLElement.prototype.on = function(a, b, c){this.addEventListener(a, b, c); return this}
 Object.defineProperty(Node.prototype, 'text', Object.getOwnPropertyDescriptor(Node.prototype, 'textContent'))
 
-for(const n of [HTMLCollection, NodeList])Object.setPrototypeOf(n.prototype, Array.prototype)
+for(const n of [HTMLCollection, NodeList]) Object.setPrototypeOf(n.prototype, Array.prototype)
 
 export const NONE = new Comment()
 NONE.esc = hideUI
@@ -48,7 +48,7 @@ export async function hideUI(){
 		ui.replaceWith(NONE)
 		void (ui.finish||Function.prototype)()	
 		ui = null	
-	}catch(e){ defaultUI() }	
+	}catch{ defaultUI() }	
 }
 
 export function showUI(a = null){
@@ -61,7 +61,7 @@ export function showUI(a = null){
 const selchange = new Set
 document.onselectionchange = () => {
 	for(const c of selchange){
-		if(!c.parentElement)selchange.delete(c)
+		if(!c.parentElement) selchange.delete(c)
 		else c.onselchange()
 	}
 }
@@ -95,14 +95,14 @@ const {prototype: InputPrototype} = class extends HTMLElement{
 	get disabled(){return this.t.disabled}
 }
 const {prototype: BtnPrototype} = class extends HTMLElement{
-	set disabled(a){if(a)this.classList.add('disabled');else this.classList.remove('disabled')}
+	set disabled(a){if(a) this.classList.add('disabled');else this.classList.remove('disabled')}
 	get disabled(){return this.classList.contains('disabled')}
 	get text(){return super.textContent}
 	set text(a){super.textContent = a}
 }
 export const Input = (type, placeholder, tokenizers = {txt:/[^]*/y}) => {
 	const el = document.createElement('in')
-	for(const k in tokenizers)if(tokenizers[k].flags!='y')tokenizers[k] = new RegExp(tokenizers[k].source, 'y')
+	for(const k in tokenizers) if(tokenizers[k].flags!='y') tokenizers[k] = new RegExp(tokenizers[k].source, 'y')
 	const t = document.createElement(type == 'long' ? 'textarea' : 'input'), v = document.createElement('div')
 	newnode(v, '__cursor', '_')
 	t.autocomplete = 'off'; t.name = '\0'
@@ -115,7 +115,7 @@ export const Input = (type, placeholder, tokenizers = {txt:/[^]*/y}) => {
 	el.append(t, v)
 	Object.setPrototypeOf(el, InputPrototype)
 	t.onscroll = () => v.scrollTo(t.scrollLeft, t.scrollTop)
-	t.onkeydown = e=>{if(el.key)el.key(e.key,e.shiftKey)}
+	t.onkeydown = e=>{if(el.key) el.key(e.key,e.shiftKey)}
 	t.onselchange = t.oninput = () => {
 		let s = t.selectionStart, e = t.selectionEnd
 		if(s == t.os && e == t.oe) return
@@ -130,17 +130,17 @@ export const Input = (type, placeholder, tokenizers = {txt:/[^]*/y}) => {
 				const reg = tokenizers[k]
 				reg.lastIndex = i
 				;[{length}] = value.match(reg) || earr
-				if(length)break
+				if(length) break
 			}
-			if(!length)length = 1, k = '__invalid'
+			if(!length) length = 1, k = '__invalid'
 			if(cur >= i && cur < i + length){
-				if(i != cur)newnode(v, k, value.slice(i, cur))
+				if(i != cur) newnode(v, k, value.slice(i, cur))
 				newnode(v, '__cursor', '_')
 				newnode(v, k, value.slice(cur, i += length))
 			}else newnode(v, k, value.slice(i, i += length))
 		}
-		if(i == cur)newnode(v, '__cursor', '_')
-		let c; while(c = v.children[v.i])c.remove()
+		if(i == cur) newnode(v, '__cursor', '_')
+		let c; while(c = v.children[v.i]) c.remove()
 	}
 	selchange.add(t)
 	return el
@@ -156,7 +156,7 @@ function pointermove(e){
 }
 addEventListener('pointermove', pointermove)
 addEventListener('pointerup', () => {
-	if(curtrack)curtrack.lastChild.classList.remove('highlighted')
+	if(curtrack) curtrack.lastChild.classList.remove('highlighted')
 	curtrack = null
 	thumbx = -1
 })
@@ -184,7 +184,7 @@ export const Scale = _scale.bind(undefined, 'disabled scale')
 
 export const Btn = (text, onclick, classes = '') => {
 	let btn = document.createElement('btn')
-	if(classes)btn.className = classes
+	if(classes) btn.className = classes
 	btn.append(text)
 	btn.onclick = e => {
 		if(btn.disabled) return
@@ -210,7 +210,7 @@ export const UI = (cl, ...els) => {
 	let ui = document.createElement('div')
 	ui.id = 'ui'
 	ui.className = cl
-	for(const el of els)ui.append(el)
+	for(const el of els) ui.append(el)
 	ui.show = showUI.bind(undefined, ui)
 	return ui
 }
@@ -229,7 +229,7 @@ Spacer.grow = (a=1) => {
 export const Div = (id, ...a) => {
 	const div = document.createElement('div')
 	div.id = id
-	for(const el of a)div.append(el)
+	for(const el of a) div.append(el)
 	return div
 }
 
@@ -241,7 +241,7 @@ export const Img = (src) => {
 
 export const Column = (...a) => {
 	const el = document.createElement('column')
-	for(const c of a)el.append(c)
+	for(const c of a) el.append(c)
 	return el
 }
 

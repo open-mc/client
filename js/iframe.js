@@ -10,6 +10,7 @@ iframe.allow = 'cross-origin-isolated; autoplay'
 iframe.src = 'https://sandbox-41i.pages.dev/'
 document.body.append(iframe)
 export let iReady = false
+export const skin = new Uint8Array(1008)
 
 const queue = []
 export function gameIframe(f){
@@ -61,9 +62,9 @@ export class LocalSocket extends MessageChannel{
 		ifr.src = 'https://sandbox-41i.pages.dev/localserver/index.html'
 		ifr.style.display = 'none'
 		const {port1, port2} = new MessageChannel()
-		const dat = {port: this.port2, dbport: port2, config: null}
+		const dat = {name: storage.name, skin: skin.buffer, port: this.port2, dbport: port2, config: null}
 		let P = 2
-		ifr.onload = () => P?--P||ifr.contentWindow.postMessage(dat, '*', [dat.port,dat.dbport]):(ifr.remove(),this.onclose({code, reason}),port.readyState=3)
+		ifr.onload = () => P?--P||ifr.contentWindow.postMessage(dat, '*', [dat.port,dat.dbport]):(ifr.remove(),this.onclose(),port.readyState=3)
 		let r = indexedDB.open(ip,1)
 		r.onupgradeneeded = () => (r.result.createObjectStore('db'),r.result.createObjectStore('meta'))
 		const dbQueue = []; let dbI = 0
@@ -88,7 +89,7 @@ export class LocalSocket extends MessageChannel{
 					const {result} = tr
 					result instanceof ArrayBuffer ? (port1.postMessage(result, (tra[0]=result,tra)),tra.length=0) : port1.postMessage(undefined)
 				}
-			} }catch(e){}finally{ if(dbI>(dbQueue.length>>1)) dbQueue.splice(0,dbI), dbI=0 }
+			} }catch{}finally{ if(dbI>(dbQueue.length>>1)) dbQueue.splice(0,dbI), dbI=0 }
 			for(const data of newReqs){
 				let req
 				if(typeof data == 'string'){
@@ -120,7 +121,7 @@ export class LocalSocket extends MessageChannel{
 		return port
 	}
 	static proto = Object.create(MessagePort.prototype, {
-		send: {enumerable:false, value: MessagePort.prototype.postMessage},
+		send: {enumerable:false, value(a){typeof a=='string'?this.postMessage(a):this.postMessage(tra[0]=a instanceof ArrayBuffer?a.slice():a.buffer.slice(a.byteOffset,a.byteOffset+a.byteLength),tra)}},
 		close: {enumerable:false,value(code, reason){
 			if(this.readyState > 1) return
 			this.postMessage(undefined)
@@ -129,6 +130,7 @@ export class LocalSocket extends MessageChannel{
 		}}
 	})
 }
+const tra=[null]
 let mport
 onmessage = ({data, source}) => {
 	if((source??0) !== iframe.contentWindow) return
@@ -179,8 +181,7 @@ listen((a,b) => win?.postMessage([a, b], '*'))
 
 export function fwPacket({data:a}){
 	if(!win) return void queue.push(a)
-	if(a.buffer) win.postMessage(a.buffer, '*', [a.buffer])
-	else win.postMessage(a, '*')
+	win.postMessage(a, '*')
 }
 
 export const ifrMsg = (a,c=!(ui instanceof Element)) => c&&win?.postMessage(a, '*')
@@ -199,7 +200,7 @@ async function microphone(){
 			ctx = new AudioContext({sampleRate})
 			node = ctx.createMediaStreamSource(m)
 			break
-		}catch(e){}
+		}catch{}
 		if(!node) throw alert(texts.warning.unsupported_microphone_api), 'browser does not support processing microphone input'
 		let bufferSize = 2048, r = null
 		if(sampleRate !== TARGET_SAMPLE_RATE){

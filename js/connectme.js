@@ -3,7 +3,7 @@ import "../uis/chat.js"
 import { pendingConnection, msg } from '../uis/dirtscreen.js'
 import { Btn, click, Div, Img, Label, Row, ping } from './ui.js'
 import { storage } from './save.js'
-import { LocalSocket, destroyIframe, fwPacket, gameIframe, iReady, win } from './iframe.js'
+import { LocalSocket, destroyIframe, fwPacket, gameIframe, iReady, skin, win } from './iframe.js'
 import { PROTOCOL_VERSION } from '../server/version.js'
 import texts from './lang.js'
 import { worldoptions } from '../uis/worldoptions.js'
@@ -11,12 +11,10 @@ import { rmServer, servers, swapServers } from '../uis/serverlist.js'
 let lastN = null
 globalThis.ws = null
 
-export const skin = new Uint8Array(1008)
-
 async function makeSign(challenge){
 	const a = atob(storage.privKey)
 	const b = new Uint8Array(a.length)
-	for(let i = 0; i < a.length; i++)b[i] = a.charCodeAt(i)
+	for(let i = 0; i < a.length; i++) b[i] = a.charCodeAt(i)
 	const k = await crypto.subtle.importKey('pkcs8', b.buffer, {name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256'}, false, ['sign'])
 	return new Uint8Array(await crypto.subtle.sign(k.algorithm.name, k, challenge))
 }
@@ -59,13 +57,13 @@ export function preconnect(ip, cb = Function.prototype){
 	let displayIp = ip; let n=null,u=''
 	if(ip[0] == '@') u = ip
 	else try{
-		try{u = new URL(ip)}catch(e){u=new URL('wss://'+ip)}
+		try{u = new URL(ip)}catch{u=new URL('wss://'+ip)}
 		u.port || (u.port = 27277)
 		if(/(\.|^)localhost$|^127.0.0.1$|^\[::1\]$/.test(u.hostname)) u.hostname = 'local.blobk.at'
 		else u.protocol = 'wss:'
 		ip = ip.replace(/((?:[^./:;\\|{}[\]()@?#&^<>\s~`"']+\.)*[^./:;\\|{}[\]()@?#&^<>\s~`"']+)\.(\w+(?=:))/, (_,d,a)=>a == 'hash' | a == 'hash4' ? hashv4(d) : a == 'hash6' ? hashv6(d) : a == 'hash8' ? hashv8(d) : (a in TLD_MAP) ? d+'-mc.'+TLD_MAP[a] : d+'.'+a)
 		ip=u+''; u.protocol=u.protocol=='wss:'?'https:':'http:'
-	}catch(e){}
+	}catch{}
 	(u?typeof u=='string'?LocalSocket.getOptions(u).then(obj => {
 		if(cb != play){
 			name.textContent = obj.name

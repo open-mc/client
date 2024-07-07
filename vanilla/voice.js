@@ -3,7 +3,7 @@ import { entityMap, CONFIG, me } from 'world'
 
 onpacket(96, buf => {
 	if(!pako) return
-	const e = CONFIG.proximitychat == Infinity ? buf.uint32() + buf.uint16()*4294967296 : entityMap.get(buf.uint32() + buf.uint16()*4294967296)
+	const e = CONFIG.proximity_chat == Infinity ? buf.uint32() + buf.uint16()*4294967296 : entityMap.get(buf.uint32() + buf.uint16()*4294967296)
 	const sampleRate = buf.uint32()
 	const arr = pako.inflateRaw(new Uint8Array(buf.buffer, buf.byteOffset + buf.i, buf.left))
 	queuePlay(e, sampleRate, arr)
@@ -37,8 +37,8 @@ function queuePlay(e, sampleRate, data){
 function setVol(e, obj){
 	const dx = e.x-me.x, dy = e.y-me.y
 	// TODO
-	obj.gain.gain.value = 1-hypot(dx, dy)/CONFIG.proximitychat
-	obj.pan.pan.value = tanh(dx/sqrt(CONFIG.proximitychat)/4)
+	obj.gain.gain.value = 1-hypot(dx, dy)/CONFIG.proximity_chat
+	obj.pan.pan.value = tanh(dx/sqrt(CONFIG.proximity_chat)/4)
 }
 
 drawLayer('none', -10000, () => {
@@ -47,7 +47,7 @@ drawLayer('none', -10000, () => {
 		if(typeof e === 'object') setVol(e, obj)
 	}
 	if(voice.active && (!buttons.has(KEYS.ENTER)^voiceToggle)) stopVoice(), me.state &= ~0x100
-	else if(!voice.active && (buttons.has(KEYS.ENTER)^voiceToggle) && CONFIG.proximitychat) voice(sendVoice), me.state |= 0x100
+	else if(!voice.active && (buttons.has(KEYS.ENTER)^voiceToggle) && CONFIG.proximity_chat) voice(sendVoice), me.state |= 0x100
 })
 let voiceToggle = false
 onkey(KEYS.P, () => voiceToggle = !voiceToggle)

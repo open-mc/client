@@ -10,7 +10,7 @@ export function stepEntity(e){
 	e.state = (e.state & 0xfffeffff) | (e.impactDy<0)<<16
 	fastCollision(e)
 	if(!e.shouldSimulate()) return
-	if(e.state & 1)e.dy = 0
+	if(e.state & 1) e.dy = 0
 	else{
 		e.dy += dt * world.gy * e.gy
 		e.dy = e.dy * yDrag ** dt
@@ -23,7 +23,7 @@ export function stepEntity(e){
 }
 export function moveEntity(e){
 	const ch = map.get((floor(e.x) >>> 6) + (floor(e.y) >>> 6) * 0x4000000) || null
-	if(ch != e.chunk)e.chunk&&e.chunk.entities.delete(e), e.chunk = ch, ch&&ch.entities.add(e)
+	if(ch != e.chunk) e.chunk&&e.chunk.entities.delete(e), e.chunk = ch, ch&&ch.entities.add(e)
 }
 export let mePhysics = {
 	factor: 1, climbable: false
@@ -124,7 +124,7 @@ function fastCollision(e){
 				ey0 -= 1; ey1 -= 1
 				const id = c1[j], {solid, blockShape} = id==65535?c1.tileData.get(j):BlockIDs[id]
 				if(!solid) continue
-				if(!blockShape){ xf = 0; if(1-ey0>climb)climb=1-ey0-climb>CLIMB?Infinity:1-ey0; continue }
+				if(!blockShape){ xf = 0; if(1-ey0>climb) climb=1-ey0-climb>CLIMB?Infinity:1-ey0; continue }
 				for(let i = 0; i < blockShape.length; i += 4){
 					const c = blockShape[i+3] - ey0
 					if(c > climb) climb = c-climb>CLIMB?Infinity:c
@@ -179,7 +179,7 @@ function fastCollision(e){
 				ey0 -= 1; ey1 -= 1
 				const id = c1[j], {solid, blockShape} = id==65535?c1.tileData.get(j):BlockIDs[id]
 				if(!solid) continue
-				if(!blockShape){ xf = 1; if(1-ey0>climb)climb=1-ey0-climb>CLIMB?Infinity:1-ey0; continue }
+				if(!blockShape){ xf = 1; if(1-ey0>climb) climb=1-ey0-climb>CLIMB?Infinity:1-ey0; continue }
 				for(let i = 0; i < blockShape.length; i += 4){
 					const c = blockShape[i+3] - ey0
 					if(c > climb) climb = c-climb>CLIMB?Infinity:c

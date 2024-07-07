@@ -26,12 +26,12 @@ const defaults = {
 const optionListeners = {}
 for(const k in defaults){
 	let v = defaults[k], sto = storage[k]
-	if(typeof v == 'string' && sto !== undefined)v = sto
-	else if(typeof v == 'number' && sto !== undefined)v = +sto
-	else if(typeof v == 'boolean' && sto !== undefined)v = sto == 'true'
+	if(typeof v == 'string' && sto !== undefined) v = sto
+	else if(typeof v == 'number' && sto !== undefined) v = +sto
+	else if(typeof v == 'boolean' && sto !== undefined) v = sto == 'true'
 	Object.defineProperty(options, k, {enumerable:true, get: () => v, set(a){
 		storage[k] = v = a
-		if(optionListeners[k])for(const f of optionListeners[k])f(k,a)
+		if(optionListeners[k]) for(const f of optionListeners[k]) f(k,a)
 	}})
 }
 

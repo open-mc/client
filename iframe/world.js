@@ -25,7 +25,7 @@ export const server = {
 	tps: 20, r: 0
 }
 export const CONFIG = {
-	proximitychat: 0
+	proximity_chat: 0
 }
 export const configLoaded = fn => configLoaded.listeners.push(fn)
 configLoaded.listeners = []

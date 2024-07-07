@@ -127,7 +127,7 @@ const entityHitboxCol = vec4(1), entityHitboxHeadCol = vec4(.8,0,0,1), entityHit
 function renderEntity(ctx, entity, a=1){
 	if(!entity.render) return
 	const hitboxes = buttons.has(KEYS.SYMBOL) + renderBoxes
-	if(entity == me || dt > 1/30)entity.ix = entity.x, entity.iy = entity.y
+	if(entity == me || dt > 1/30) entity.ix = entity.x, entity.iy = entity.y
 	else{
 		entity.ix += ifloat(entity.x - entity.ix) * dt * 20
 		entity.iy += ifloat(entity.y - entity.iy) * dt * 20

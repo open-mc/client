@@ -124,7 +124,7 @@ function blockSetPacket(buf){
 		if(type > 0){
 			const x = buf.int(), y = buf.int()
 			const bl = getblock(x, y)
-			if(type in bl)bl[type](buf, x, y)
+			if(type in bl) bl[type](buf, x, y)
 		}else{
 			const x = buf.int(), y = buf.int()
 			const id = buf.short()
@@ -140,7 +140,7 @@ function entityPacket(buf){
 		let mv = buf.byte()
 		const id = buf.uint32() + buf.uint16() * 4294967296
 		let e = entityMap.get(id)
-		if(!mv){if(e)e.remove(),recentlyDeleted.set(id, e); continue}
+		if(!mv){ if(e) e.remove(),recentlyDeleted.set(id, e); continue }
 		if(!e){
 			if(mv & 64){
 				mv |= 256
@@ -150,12 +150,12 @@ function entityPacket(buf){
 				buf.read(e.savedata, e)
 			}else if(Entity.meid === id) e = me
 			else throw 'Update on unrecognised entity '+id
-		}else if(mv & 64)Object.setPrototypeOf(e, EntityIDs[buf.short()].prototype), e.age = buf.double(), buf.read(e.savedata, e)
-		if(mv & 1)if(abs(e.x - (e.x = buf.double()||0)) > 16 || e == me)e.ix = e.x
-		if(mv & 2)if(abs(e.y - (e.y = buf.double()||0)) > 16 || e == me)e.iy = e.y
-		if(mv & 4)e.dx = buf.float(), e.dy = buf.float()
-		if(mv & 8)e.f = buf.float(), e.state = buf.int()
-		if(mv & 16)e.name = buf.string()
+		}else if(mv & 64) Object.setPrototypeOf(e, EntityIDs[buf.short()].prototype), e.age = buf.double(), buf.read(e.savedata, e)
+		if(mv & 1) if(abs(e.x - (e.x = buf.double()||0)) > 16 || e == me) e.ix = e.x
+		if(mv & 2) if(abs(e.y - (e.y = buf.double()||0)) > 16 || e == me) e.iy = e.y
+		if(mv & 4) e.dx = buf.float(), e.dy = buf.float()
+		if(mv & 8) e.f = buf.float(), e.state = buf.int()
+		if(mv & 16) e.name = buf.string()
 		if(mv & 32){
 			let id
 			while(id = buf.byte())
@@ -225,7 +225,7 @@ function setBigintOffset(buf){
 }
 
 function configPacket(buf){
-	CONFIG.proximitychat = buf.float()
+	CONFIG.proximity_chat = buf.float()
 	for(const f of configLoaded.listeners) try{f(CONFIG)}catch(e){Promise.reject(e)}
 }
 

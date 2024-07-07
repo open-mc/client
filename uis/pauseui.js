@@ -1,6 +1,5 @@
 import { Btn, Div, hideUI, Label, Row, setDefaultUI, showUI, UI } from '../js/ui.js'
 import { controlsScreen } from './controlsScreen.js'
-import { feedback } from './feedbackui.js'
 import { optionsScreen } from './options.js'
 import { serverlist } from './serverlist.js'
 import texts from '../js/lang.js'

@@ -49,7 +49,7 @@ globalThis.BitField = class BitField extends Array{
 	}
 	unset(pos){
 		let i = this.length
-		if((pos >> 5) >= i)return
+		if((pos >> 5) >= i) return
 		this[pos >> 5] &= ~(1 << (pos & 31))
 		while(i && !this[--i]) super.pop()
 	}
@@ -60,11 +60,11 @@ globalThis.BitField = class BitField extends Array{
 		while(i && !this[--i]) super.pop()
 	}
 	has(pos){
-		if((pos >> 5) >= this.length)return false
+		if((pos >> 5) >= this.length) return false
 		return !!(this[pos >> 5] & (1 << (pos & 31)))
 	}
 	pop(pos){
-		if((pos >> 5) >= this.length)return false
+		if((pos >> 5) >= this.length) return false
 		let i = pos >> 5
 		const a = !!(this[i] ^ (this[i] &= ~(1 << (pos & 31))))
 		if(i == this.length - 1) while(i >= 0 && !this[i--]) super.pop()
@@ -201,8 +201,8 @@ Object.defineProperties(Array.prototype, {
 	remove: {enumerable: false, value(a){
 		let i = 0, j = 0
 		for(; j < this.length; j++){
-			if(j > i)this[i] = this[j]
-			if(this[i] != a)i++
+			if(j > i) this[i] = this[j]
+			if(this[i] != a) i++
 		}
 		return this.length = i
 	}},
@@ -261,10 +261,10 @@ class img{
 		this.w = w; this.h = h; this.l = l
 	}
 	get src(){return this.t.src}
-	set src(a){if(this.t.src===null)return;this.t.src=a?typeof a=='string'?[a]:a:[];if(this.t.tex)this.delete()}
+	set src(a){ if(this.t.src===null) return; this.t.src=a?typeof a=='string'?[a]:a:[];if(this.t.tex) this.delete() }
 	get loaded(){return this.t.d!=0}
 	get then(){return this.t.d==0?this.#then:null}
-	load(){if(!this.t.tex)img.load(this.t)}
+	load(){if(!this.t.tex) img.load(this.t)}
 	sub(x=0, y=0, w=1, h=1, l=this.l){
 		return new img(this.t, this.x+x*this.w, this.y+y*this.h, this.w*w, this.h*h, l)
 	}
@@ -325,12 +325,12 @@ class img{
 				gl.texParameterf(35866, 10242, o&8?10497:o&16?33648:33071)
 				gl.texParameterf(35866, 10243, o&32?10497:o&64?33648:33071)
 				gl.texStorage3D(35866, t.m||1, t.f[0], t.w=w, t.h=h, t.d=imgs.length)
-				if(!pma)gl.pixelStorei(37440,1),gl.pixelStorei(37441,pma=1)
+				if(!pma) gl.pixelStorei(37440,1),gl.pixelStorei(37441,pma=1)
 				for(let l = 0; l < imgs.length; l++)
 					gl.texSubImage3D(35866, 0, 0, 0, l, w, h, 1, t.f[1], t.f[2], imgs[l])
 				if(t.m) gl.generateMipmap(35866)
 				if(t.i<0) gl.bindTexture(35866, null)
-				if(t.cbs)for(let i = 0; i < t.cbs.length; i+=3) t.cbs[i](t.cbs[i+2])
+				if(t.cbs) for(let i = 0; i < t.cbs.length; i+=3) t.cbs[i](t.cbs[i+2])
 				t.cbs = null
 			}
 			i.crossOrigin = 'anonymous'
@@ -345,7 +345,7 @@ class img{
 			i.onerror = () => rj('Failed to load image from src '+i.src)
 			i.onload = () => {
 				img.fakeBind(t)
-				if(!pma)gl.pixelStorei(37440,1),gl.pixelStorei(37441,pma=1)
+				if(!pma) gl.pixelStorei(37440,1),gl.pixelStorei(37441,pma=1)
 				gl.texSubImage3D(35866, 0, x, y, l, i.naturalWidth, i.naturalHeight, 1, t.f[1], t.f[2], i)
 				if(t.i<0) gl.bindTexture(35866, null)
 				cb?.(this)
@@ -375,7 +375,7 @@ class img{
 	pasteData(data, x=0, y=0, l=0, w=0, h=0, d=0){
 		const {t}=this; w = w||t.w; h = h||t.h; d = d||t.d
 		img.fakeBind(t)
-		if(pma)gl.pixelStorei(37440,0),gl.pixelStorei(37441,pma=0)
+		if(pma) gl.pixelStorei(37440,0),gl.pixelStorei(37441,pma=0)
 		gl.texSubImage3D(35866, 0, x, y, l, w, h, d, t.f[1], t.f[2], data)
 		fd += data.byteLength*.25
 		if(t.i<0) gl.bindTexture(35866, null)
@@ -413,7 +413,7 @@ class img{
 		if(j>=maxTex) return -1
 		boundUsed |= -2147483648>>>j
 		i = i?maxTex+j-shfCount:j
-		const o = bound[i]; if(o)o.i=-1
+		const o = bound[i]; if(o) o.i=-1
 		gl.activeTexture(33984 + i)
 		gl.bindTexture(35866, (bound[i]=t).tex)
 		return t.i = i
@@ -630,7 +630,7 @@ class can{
 		arr[i+3] = tb*a+td*b; arr[i+4] = tb*c+td*d; arr[i+5] = tb*e+td*f+tf
 	}
 	clear(r = 0, g = 0, b = 0, a = 0){
-		if(i)draw()
+		if(i) draw()
 		setv(this.t, this.#m)
 		gl.clearColor(r, g, b, a)
 		const q = this.t.stencil=this.t.stencil+1&7
@@ -638,10 +638,10 @@ class can{
 		gl.disable(2960); pmask &= -241
 	}
 	clearStencil(){
-		if(i)draw()
+		if(i) draw()
 		setv(this.t, this.#m)
 		const q = this.t.stencil=this.t.stencil+1&7
-		if(!q)gl.stencilMask(255), gl.clear(1024)
+		if(!q) gl.stencilMask(255), gl.clear(1024)
 		gl.disable(2960); pmask &= -241
 	}
 }
@@ -931,7 +931,7 @@ globalThis.Wave = src => {
 		}
 		if(source.loop = !ends){
 			source.loopStart = start
-			if(end == end)source.loopEnd = end
+			if(end == end) source.loopEnd = end
 			source.start(0, start)
 		}else{
 			source.start(0, start, end == end ? end - start : buf.duration)

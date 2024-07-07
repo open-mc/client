@@ -29,11 +29,11 @@ chatui.esc = hideUI
 let history = [], hi = 0, tg = ''
 input.key = (key) => {
 	a: if(key == 'ArrowUp'){
-		if(!hi)break a
-		if(hi == history.length)tg = input.value
+		if(!hi) break a
+		if(hi == history.length) tg = input.value
 		input.value = history[--hi]
 	}else if(key == 'ArrowDown'){
-		if(hi >= history.length)break a
+		if(hi >= history.length) break a
 		input.value = history[++hi] || tg
 	}else if(key == 'Enter'){
 		let v = input.value.trimEnd()

@@ -28,7 +28,7 @@ export const playerControls = () => {
 	}
 	if(u&&!U){
 		if(lastPressUp > t - .3){
-			if(mode>=1)me.state ^= 1
+			if(mode>=1) me.state ^= 1
 			lastPressUp = 0
 		}else lastPressUp = t
 	}
@@ -52,7 +52,7 @@ export const playerControls = () => {
 	if(U){
 		if(mePhysics.climbable) me.dy = (me.dy + 4*mePhysics.factor) / 2
 		else if((me.state & 1)) me.dy = 5
-		else if(me.impactDy < 0)me.dy = 9*mePhysics.factor
+		else if(me.impactDy < 0) me.dy = 9*mePhysics.factor
 	}
 	if((me.impactDy < 0) && (me.state & 2)){
 		const x = me.x + (me.dx > 0 ? -me.width + .0001 : me.width - .0001)

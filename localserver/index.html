@@ -1,7 +1,6 @@
 <base href="/server/">
 <script src="/img/_pako.js"></script>
 <script>
-
 globalThis.loadFile = (i, f) => (i=decodeURI(i.url).replace(/[^\/]*$/,"").replace(/file:\/\/\/?(\w+:\/)?/y,'/'), f ? fetch(i + f).then(a=>a.arrayBuffer()).then(a=>new Uint8Array(a)) : f => fetch(i + f).then(a=>a.arrayBuffer()).then(a=>new Uint8Array(a)))
 globalThis.AsyncFunction = (async()=>{}).constructor
 
@@ -18,8 +17,8 @@ Object.defineProperties(Array.prototype, {
 	remove: {enumerable: false, value(a){
 		let i = 0, j = 0
 		for(; j < this.length; j++){
-			if(j > i)this[i] = this[j]
-			if(this[i] != a)i++
+			if(j > i) this[i] = this[j]
+			if(this[i] != a) i++
 		}
 		return this.length = i
 	}},
@@ -69,17 +68,27 @@ globalThis.Worker = class Worker extends MessageChannel{
 	static _workers = new WeakMap
 	constructor(src){
 		let {port1, port2} = super()
-		port1.ifr = document.createElement('iframe')
+		port1._oncl = null
+		const ifr = port1.ifr = document.createElement('iframe')
 		ifr.src = '/localserver/index.html#' + encodeURIComponent(src)
-		ifr.onload = () => port2 ? (ifr.postMessage(port2, [port2]), port2=null) : (_workers.delete(ifr.contentWindow),ifr.remove(),port1.close())
+		ifr.onload = () =>{
+			if(port2) return void(ifr.contentWindow.postMessage(port2, '*', [port2]), port2=null)
+			Worker._workers.delete(ifr.contentWindow)
+			ifr.remove(),port1.close()
+		}
 		document.body.append(ifr)
-		_workers.set(ifr.contentWindow, port1)
+		Worker._workers.set(ifr.contentWindow, port1)
 		return Object.setPrototypeOf(port1, Worker.proto)
 	}
 	static proto = Object.create(MessagePort.prototype, {
 		terminate: {enumerable:false,value(){
-			_workers.delete(this.ifr.contentWindow)
+			Worker._workers.delete(this.ifr.contentWindow)
 			this.ifr.remove(); this.close()
+		}},
+		close(){MessagePort.prototype.close.call(this);this.dispatchEvent(new CloseEvent('close'))},
+		onclose: {get(){return this._oncl}, set(fn){
+			if(this._oncl) this.removeEventListener('close', this._oncl)
+			if(this._oncl=fn) this.addEventListener('close', fn)
 		}}
 	})
 }
@@ -87,13 +96,11 @@ delete globalThis.SharedWorker
 globalThis.perf = null
 
 let total = 0, loaded = 0
-let startServer = () => {
-
-}
 const _started = Date.now()
-const print = desc => console.log(`%c[${Date.formatTime(Date.now() - _started)}] ${desc}`, 'color:green')
+const print = desc => console.log(`\x1b[32m[${Date.formatTime(Date.now() - _started)}] ${desc}`)
+let startServer; globalThis.ready = new Promise(r=>startServer=r)
 globalThis.task = function(desc = ''){
-	total++
+	if(loaded == total++) globalThis.ready = new Promise(r=>startServer=r)
 	let called = false
 	return (d = desc) => {
 		if(called) return
@@ -117,8 +124,8 @@ globalThis.PNG = {
 		const i = new Image
 		i.onload = () => {
 			c.width = i.width; c.height = i.height
-			c.drawImage(i, 0, 0)
-			r(new Uint8Array(c.getImageData(0, 0, c.width, c.height).data.buffer))
+			ctx.drawImage(i, 0, 0)
+			r(new Uint8Array(ctx.getImageData(0, 0, c.width, c.height).data.buffer))
 		}
 		let r, pr = new Promise((_r,_c)=>(r=_r,i.onerror=_c))
 		i.src = decodeURI(m.url).replace(/[^\/]*$/,"").replace(/file:\/\/\/?(\w+:\/)?/y,'/') + src
@@ -126,32 +133,39 @@ globalThis.PNG = {
 	},
 	read: buf => createImageBitmap(new Blob([buf])).then(i => {
 		c.width = i.width; c.height = i.height
-		c.drawImage(i, 0, 0)
-		return new Uint8Array(c.getImageData(0, 0, c.width, c.height).data.buffer)
+		ctx.drawImage(i, 0, 0)
+		return new Uint8Array(ctx.getImageData(0, 0, c.width, c.height).data.buffer)
 	}),
 	write: (data, w, h) => new Promise(r => {
 		c.width = w; c.height = h
-		c.putImageData(new ImageData(data instanceof ArrayBuffer ? new Uint8ClampedArray(data) : new Uint8ClampedArray(data.buffer, data.byteOffset, data.byteLength), w, h), 0, 0)
+		ctx.putImageData(new ImageData(data instanceof ArrayBuffer ? new Uint8ClampedArray(data) : new Uint8ClampedArray(data.buffer, data.byteOffset, data.byteLength), w, h), 0, 0)
 		c.toBlob(blob => blob.arrayBuffer().then(buf => r(new Uint8Array(buf))), 'image/png')
 	})
 }
 
-globalThis.deflate = str => {
-	const b = deflateSync(typeof str == 'string' ? Buffer.from(str) : str)
-	return new Uint8Array(b.buffer, b.byteOffset, b.byteLength)
-}
-globalThis.inflate = str => {
-	const b = inflateSync(typeof str == 'string' ? Buffer.from(str) : str)
-	return new Uint8Array(b.buffer, b.byteOffset, b.byteLength)
-}
+globalThis.deflate = pako.deflate
+globalThis.inflate = pako.inflate
 
 if(location.hash) addEventListener('message', ({data}) => {
 	addEventListener('message', ({data, source}) => void Worker._workers.get(source)?.dispatchEvent(new ErrorEvent('error', {data,source})))
-	globalThis.parentPort = data
+	;(globalThis.parentPort = data).start()
 	globalThis.close = () => location = 'about:blank'
-	import(decodeURIComponent(location.hash))
+	import(decodeURIComponent(location.hash.slice(1)))
 }, {once:true});else globalThis.parentPort = null,
-addEventListener('message', ({data: {dbport, config}}) => {
+addEventListener('message', ({data: {name, skin, port, dbport, config}}) => {
+const tra = [null]
+globalThis.hostSocket = Object.setPrototypeOf(port, Object.create(MessagePort.prototype, {
+	send: {enumerable:false, value(a){typeof a=='string'?this.postMessage(a):this.postMessage(tra[0]=a instanceof ArrayBuffer?a.slice():a.buffer.slice(a.byteOffset,a.byteOffset+a.byteLength),tra)}},
+	end: {enumerable:false, value(code, reason){
+		// Simulate close
+		this.dispatchEvent(new MessageEvent('message', {data:undefined}))
+	}}
+}))
+hostSocket.username = name
+hostSocket.state = 0
+hostSocket.skin = new Uint8Array(skin)
+hostSocket.pingTime = 0
+hostSocket.entity = null
 addEventListener('message', ({data, source}) => {
 	const s = Worker._workers.get(source)
 	if(s) return void s.dispatchEvent(new ErrorEvent('error', {data,source}))
@@ -168,12 +182,12 @@ globalThis.DB = new class IDBLevel{
 	prefix = ''
 	sublevel(a){const s=new IDBLevel;s.prefix=this.prefix+'!'+a+'!';return s}
 	get(k,cb){
-		try{ return cb?(reqs.push(v=>cb(!v?'Not found:':null,v)),undefined):new Promise((a,b)=>reqs.push(v=>v?a(v):b('Not found:'))) }finally{
+		try{ return cb?(reqs.push(v=>cb(!v?'Not found:':null,new Uint8Array(v))),undefined):new Promise((a,b)=>reqs.push(v=>v?a(new Uint8Array(v)):b('Not found:'))) }finally{
 			dbport.postMessage(this.prefix+k)
 		}
 	}
 	getMany(ks,cb){
-		try{ return cb?(reqs.push(cb.bind(undefined,null)),undefined):new Promise(a=>reqs.push(a)) }finally{
+		try{ return cb?(reqs.push(a=>{for(let i=a.length;--i>=0;)a[i]=new Uint8Array(a[i]);cb(a)}),undefined):new Promise(r=>reqs.push(a=>{for(let i=a.length;--i>=0;)a[i]=new Uint8Array(a[i]);r(a)})) }finally{
 			dbport.postMessage(ks.map(a=>this.prefix+a))
 		}
 	}
@@ -184,7 +198,7 @@ globalThis.DB = new class IDBLevel{
 			const tr = []
 			e = e.map(({type,key:k,value:v})=>{
 				if(type=='del') return {k,v:null}
-				if(type=='put') return {k,v:typeof v=='string'?e.encode(v).buffer:v instanceof ArrayBuffer?v.slice():v.buffer.slice(v.byteOffset,v.byteOffset+v.byteLength)}
+				if(type=='put') return {k,v:(tr.push(v=typeof v=='string'?e.encode(v).buffer:v instanceof ArrayBuffer?v.slice():v.buffer.slice(v.byteOffset,v.byteOffset+v.byteLength)),v)}
 				if(f) f("A batch operation must have a type property that is 'put' or 'del'"),f=null,reqs.length-=2
 			})
 			if(!f) dbport.postMessage(e, tr)

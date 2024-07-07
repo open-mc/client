@@ -4,6 +4,7 @@ import texts from '../js/lang.js'
 import { pause } from './pauseui.js'
 import { play, preconnect } from '../js/connectme.js'
 import { LocalSocket } from '../js/iframe.js'
+import { defaultConfig } from '../js/worldconfig.js'
 
 const list = Div('serverlist')
 let row, btn2
@@ -32,8 +33,5 @@ export function worldoptions(_id = ''){
 	if(id=_id) btn2.remove()
 	else row.append(btn2)
 	if(id) LocalSocket.getOptions(id).catch(e=>null).then(showConfig)
-	else showConfig({
-		name: 'New world', icon: '/img/end_portal.png',
-		motd: ['Singleplayer world'], banner: ''
-	})
+	else showConfig(defaultConfig())
 }

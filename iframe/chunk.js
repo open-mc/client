@@ -40,7 +40,7 @@ export class Chunk extends Uint16Array{
 		let palette = []
 		if(palettelen) for(let i = 0;i<palettelen;i++) palette.push(buf.short())
 		if(palettelen == 1){
-			for(let j=0;j<4096;j++)this[j] = palette[0]
+			for(let j=0;j<4096;j++) this[j] = palette[0]
 		}else if(palettelen == 2){
 			const u8 = buf.uint8array(512)
 			for(let j=0;j<4096;j+=8){
@@ -79,7 +79,7 @@ export class Chunk extends Uint16Array{
 			if(this[j] == 65535) this[j] = buf.short()
 			const block = BlockIDs[this[j]]
 			if(block.brightness) _add(this, j)
-			if(!block.savedata)continue
+			if(!block.savedata) continue
 			this[j] = 65535
 			const b = buf.read(block.savedatahistory[buf.flint()] || block.savedata, new block)
 			const v = b.parsed?.()

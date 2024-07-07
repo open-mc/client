@@ -15,6 +15,6 @@ function next(){
 	if(Math.random() > 0.75){
 		current = () => clearTimeout.bind(undefined, setTimeout(next, 60e3*(Math.random()+1)))
 		
-	}else if(current == (current = choose(currentTheme)))current = choose(currentTheme)
+	}else if(current == (current = choose(currentTheme))) current = choose(currentTheme)
 	if(current) currentStop = current(1, 1, 0, 0, undefined, next, true)
 }

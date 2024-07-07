@@ -34,10 +34,10 @@ async function submit(){
 	try{
 		//wait a some time, then throw an error 😈
 		let timeToWait = 200
-		while(Math.random() < 0.7)timeToWait += 200
+		while(Math.random() < 0.7) timeToWait += 200
 		await new Promise(r => setTimeout(r,timeToWait))
 		throw 1
-	}catch(e){
+	}catch{
 		send.disabled = false
 		popup('Failed to send feedback', pause)
 		return
@@ -53,8 +53,8 @@ feedbackui.finish = () => {
 input.oninput = () => {
 	if(input.value){
 		send.disabled = false
-		if(/(trash|rubbish|dumb|stupid|useless) (game|app|clone)|knockoff/i.test(input.value))input.value = 'no it isn\'t'
-		if(/(\W|^)(sh[i1]t|fu?ck\w*|crappy|bullshi|asshol)(?!\w)/i.test(input.value))input.value = 'don\'t f' + String.fromCharCode(117) + 'cking swear'
+		if(/(trash|rubbish|dumb|stupid|useless) (game|app|clone)|knockoff/i.test(input.value)) input.value = 'no it isn\'t'
+		if(/(\W|^)(sh[i1]t|fu?ck\w*|crappy|bullshi|asshol)(?!\w)/i.test(input.value)) input.value = 'don\'t f' + String.fromCharCode(117) + 'cking swear'
 	}else send.disabled = true
 }
 

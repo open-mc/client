@@ -125,12 +125,12 @@ export class Item{
 		return target
 	}
 	static encode(buf, v){
-		if(buf.i > buf.cur.byteLength - 3)buf.allocnew();
+		if(buf.i > buf.cur.byteLength - 3) buf.allocnew();
 		if(!v || !v.count){buf.cur.setUint8(buf.i++, 0); return}
 		buf.flint2(v.count)
 		buf.cur.setUint16(buf.i, v.id); buf.i += 2
 		buf.string(v.name)
-		if(v.savedata)buf.write(v.savedatahistory[buf.flint()] || v.savedata, v)
+		if(v.savedata) buf.write(v.savedatahistory[buf.flint()] || v.savedata, v)
 	}
 }
 registerTypes({Item})

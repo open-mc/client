@@ -142,7 +142,7 @@ const btnW = uiButtons.large.width*uiButtons.large.w
 let respawnClicked = false
 let hotbarTooltipAlpha = 0, lastSelected = -1
 let proximityChatTooltip = 0
-configLoaded(CONFIG => proximityChatTooltip = CONFIG.proximitychat ? 10 : 0)
+configLoaded(CONFIG => proximityChatTooltip = CONFIG.proximity_chat ? 10 : 0)
 drawLayer('ui', 1000, (c, w, h) => {
 	const c2 = c.sub()
 	if(renderUI){

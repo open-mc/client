@@ -5,7 +5,7 @@ import allTexts from '../js/lang.js'
 const texts = allTexts.options.advanced
 
 function speedChange(a = options.speed/4){
-	if(a > 0.24 && a < 0.26)a = 0.25
+	if(a > 0.24 && a < 0.26) a = 0.25
 	options.speed = a*4
 	return [a > 0.01 ? texts.speed((Math.round(a*400)/100).toFixed(2)) : texts.speed.paused(), a]
 }

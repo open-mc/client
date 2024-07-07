@@ -20,7 +20,8 @@ let ready = /(\.|^)localhost$|^127.0.0.1$|^\[::1\]$/.test(location.hostname) ? (
 	else{
 		ready = null
 		if(!ver) upt = Promise.reject('Install failed')
-		for(const l of areListening)l.postMessage(ver?1:-1);areListening.length=0
+		for(const l of areListening) l.postMessage(ver?1:-1)
+		areListening.length=0
 	}
 })()
 const areListening = []

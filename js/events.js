@@ -6,7 +6,7 @@ onkeydown = e => {
 	if(document.activeElement != document.body && e.key != 'Escape') return
 	e.preventDefault()
 	if(e.repeat) return
-	if(cbs[e.key]){for(const f of cbs[e.key])f(); return}
+	if(cbs[e.key]){for(const f of cbs[e.key]) f(); return}
 	if(e.key == 'Escape') return
 	ifrMsg(e.keyCode)
 }
@@ -164,7 +164,7 @@ if(navigator.getGamepads) requestAnimationFrame(function checkInputs(){
 const cbs = {}
 export function key(key, handler){
 	const keyname = key.toLowerCase()
-	if(!cbs[keyname])cbs[keyname] = [handler]
+	if(!cbs[keyname]) cbs[keyname] = [handler]
 	cbs[keyname].push(handler)
 }
 
@@ -180,7 +180,7 @@ document.onpointerlockerror = document.onpointerlockchange = function(e){
 		win?.postMessage(false, '*')
 	}else{
 		wasFullscreen = !!(!ui && document.fullscreenElement)
-		if(wasFullscreen)document.exitFullscreen ? document.exitFullscreen().catch(Function.prototype) : document.webkitExitFullscreen()
+		if(wasFullscreen) document.exitFullscreen ? document.exitFullscreen().catch(Function.prototype) : document.webkitExitFullscreen()
 		if(!ui) pause(), win?.postMessage(true, '*'), ignoreEsc = true
 	}
 }

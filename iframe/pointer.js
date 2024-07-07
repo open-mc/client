@@ -35,7 +35,7 @@ drawLayer('none', -1000, () => {
 		if(cam.staticY != cam.staticY) cam.y += (y - oldy) / 3
 	}
 	oldx = x; oldy = y
-	if(x||y)me.f = atan2(x, y)
+	if(x||y) me.f = atan2(x, y)
 })
 export const DEFAULT_BLOCKSHAPE = [0, 0, 1, 1]
 let blockPlacing = null
@@ -132,7 +132,7 @@ drawLayer('world', 400, c => {
 	}else{
 		let x = bpx - 32 >>> 6, y = bpy - 32 >>> 6, x1 = x + 1 & 0x3FFFFFF, y1 = y + 1 & 0x3FFFFFF
 		a: for(const ch of [map.get(x+y*0x4000000), map.get(x1+y*0x4000000), map.get(x+y1*0x4000000), map.get(x1+y1*0x4000000)])
-			if(ch)for(const e of ch.entities)
+			if(ch) for(const e of ch.entities)
 				if(e.y < bpy + 1 && e.y + e.height > bpy && e.x - e.width < bpx + 1 && e.x + e.width > bpx){
 					//Don't allow placing because there is an entity in the way
 					if(blockPlacing?.solid===true && !interactFluid) blockPlacing = null, bpx = bpy = NaN
@@ -202,7 +202,7 @@ export function checkBlockPlacing(buf){
 		if(hitBtnDown && !didHit){
 			const xp = me.x + x, yp = me.y + me.head + y
 			const xa = xp - 32 >>> 6, ya = yp - 32 >>> 6, x1 = xa + 1 & 0x3FFFFFF, y1 = ya + 1 & 0x3FFFFFF
-			a: for(const ch of [map.get(xa+ya*0x4000000), map.get(x1+ya*0x4000000), map.get(xa+y1*0x4000000), map.get(x1+y1*0x4000000)]) if(ch)for(const e of ch.entities)
+			a: for(const ch of [map.get(xa+ya*0x4000000), map.get(x1+ya*0x4000000), map.get(xa+y1*0x4000000), map.get(x1+y1*0x4000000)]) if(ch) for(const e of ch.entities)
 				if(e.y < yp && e.y + e.height > yp && e.x - e.width < xp && e.x + e.width > xp){
 					// Found entity
 					id = e.netId
