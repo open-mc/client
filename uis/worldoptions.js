@@ -8,7 +8,7 @@ import { defaultConfig, fallback } from '../js/worldconfig.js'
 
 const wtexts = texts.worldoptions
 
-let delTimeout = -1
+let delTimer = -1
 const inputs = {
 	name: Input('', '').on('change', () => {config.name = inputs.name.value}),
 	seed: Input('', '32 bit').on('change', () => {
@@ -26,13 +26,17 @@ const inputs = {
 		return [wtexts.loading_range(v<<6), (v-1)/31]
 	}),
 	delete: Btn(wtexts.delete(), () => {
-		if(delTimeout >= 0) return clearTimeout(delTimeout), inputs.delete.css({color:'red'}).text = wtexts.delete()
-		inputs.delete.css({color:'white'}).text = wtexts.delete_undo()
+		if(delTimer >= 0) return clearTimeout(delTimer), inputs.delete.css({color:'red'}).text = wtexts.delete(), delTimer = -1
+		inputs.delete.css({color:'white'}).text = wtexts.delete_undo(3)
 		const delId = id
-		delTimeout = setTimeout(() => {
-			rmServer(delId)
-			serverlist()
-		}, 3000)
+		let timer = 3
+		delTimer = setInterval(() => {
+			inputs.delete.text = wtexts.delete_undo(--timer)
+			if(!timer){
+				rmServer(delId)
+				serverlist()
+			}
+		}, 1000)
 	}).css({color:'red'})
 }
 
@@ -75,8 +79,8 @@ function showConfig(config){
 }
 
 wO.finish = () => {
-	if(delTimeout > -1){
-		clearTimeout(delTimeout); delTimeout = -1
+	if(delTimer > -1){
+		clearInterval(delTimer); delTimer = -1
 		inputs.delete.css({color:'red'}).text = wtexts.delete()
 	}
 }

@@ -114,7 +114,7 @@ export function preconnect(ip, cb = Function.prototype){
 					if(!i) return
 					swapServers(servers[i-1], displayIp)
 				},'tiny').css({lineHeight:'24rem'}),
-				Btn(typeof u == 'string' ? 'e' : 'x', async () => {
+				Btn(typeof u == 'string' ? 'E' : 'x', async () => {
 					if(typeof u == 'string') exportWorld(u, n?.name)
 					else if(node.parentElement) rmServer(displayIp)
 				},'tiny')

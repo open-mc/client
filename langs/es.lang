@@ -46,7 +46,7 @@ worldoptions.world_name=Nombre del mundo:
 worldoptions.world_seed=Semilla para generar el mundo:
 worldoptions.loading_range=Rango de carga: \1
 worldoptions.delete=ELIMINAR MUNDO
-worldoptions.delete_undo=Deshacer (3s)
+worldoptions.delete_undo=Cancelar (\1s)
 
 pause.name=Menú del juego
 pause.resume=Volver al juego

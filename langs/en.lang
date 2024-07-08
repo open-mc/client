@@ -46,7 +46,7 @@ worldoptions.world_name=World name:
 worldoptions.world_seed=World seed:
 worldoptions.loading_range=Loading range: \1
 worldoptions.delete=DELETE WORLD
-worldoptions.delete_undo=Undo (3s)
+worldoptions.delete_undo=Undo (\1s)
 
 pause.name=Game menu
 pause.resume=Back to Game
