@@ -1,6 +1,8 @@
 <base href="/server/">
 <script src="/img/_pako.js"></script>
 <script>
+// nice try
+if(location.origin != 'https://sandbox-41i.pages.dev') throw 1
 globalThis.loadFile = (i, f) => (i=decodeURI(i.url).replace(/[^\/]*$/,"").replace(/file:\/\/\/?(\w+:\/)?/y,'/'), f ? fetch(i + f).then(a=>a.arrayBuffer()).then(a=>new Uint8Array(a)) : f => fetch(i + f).then(a=>a.arrayBuffer()).then(a=>new Uint8Array(a)))
 globalThis.AsyncFunction = (async()=>{}).constructor
 
@@ -70,7 +72,7 @@ globalThis.Worker = class Worker extends MessageChannel{
 		let {port1, port2} = super()
 		port1._oncl = null
 		const ifr = port1.ifr = document.createElement('iframe')
-		ifr.src = '/localserver/index.html#' + encodeURIComponent(src)
+		ifr.src = 'https://sandbox-41i.pages.dev/localserver/index.html#' + encodeURIComponent(src)
 		ifr.onload = () =>{
 			if(port2) return void(ifr.contentWindow.postMessage(port2, '*', [port2]), port2=null)
 			Worker._workers.delete(ifr.contentWindow)

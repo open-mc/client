@@ -231,7 +231,10 @@ selectSkinBtn.onclick = btn => getSkin().then(a => {
 logoutBtn.classList.add('selectable')
 logoutBtn.onclick = () => {
 	click()
-	storage.name = storage.privKey = storage.pubKey = storage.authSig = ''
+	delete storage.name
+	delete storage.privKey
+	delete storage.pubKey
+	delete storage.authSig
 	login()
 }
 
