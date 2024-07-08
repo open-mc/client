@@ -5,6 +5,8 @@ warning.unsupported_microphone_api=Please switch to chrome or safari, your brows
 # App name when installed as a PWA
 misc.app_name=Paper MC
 misc.app_name_short=Paper MC
+misc.add_to_home_screen=Add to home screen
+misc.continue_in_browser=Continue in-browser instead
 misc.save_app=Save app to Desktop?
 misc.title.menu=Paper MC
 misc.title.playing=\1 | pMC

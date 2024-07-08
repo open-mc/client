@@ -3,8 +3,10 @@
 <head>
 	<meta id="t" name="theme-color" content="#000">
 	<meta charset="UTF-8">
+	<meta property="og:title" content="Paper MC" />
+	<meta property="og:image" content="https://openmc.pages.dev/img/icon.png" />
+	<meta property="og:description" content="Not a commercial project" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Paper MC</title>
 	<style>
 		html{height:100%}
 		body{
@@ -40,14 +42,24 @@
 <script>
 	const sw = navigator.serviceWorker
 	if(!sw) b.textContent = 'Unsupported device',a.remove()
-	else if(matchMedia('(display-mode: browser) or (display-mode: fullscreen)').matches
+	else if(!sw.controller&&matchMedia('(display-mode: browser) or (display-mode: fullscreen)').matches
 	&& navigator.vendor.startsWith('Apple')){
+		fetch('langs/'+navigator.language.split('-',1)[0]+'.lang').then(a => a.status == 200 ? a.text().then(a => a[0]=='<'?fetch('langs/en.lang').then(a=>a.text()):a) : fetch('langs/en.lang').then(a => a.text())).then(str => {
+			let lang={}
+			for(let line of str.split('\n')){
+				let j = line.indexOf('#')
+				if(j >= 0) line = line.slice(0, j)
+				const {0:k,1:v} = line.split('=', 2)
+				if(v!=null) lang[k.trim()] = v.trim()
+			}
+			(d=>{d.display="fullscreen";d.icons=[{src:(d.start_url=location.origin,d.scope=location.origin)+"/img/icon.png",type:"image/png",sizes:"512x512"}];document.head.insertAdjacentHTML('beforeEnd', `<link rel="manifest" href="data:application/json;base64,${btoa(JSON.stringify(d))}"><meta name="apple-mobile-web-app-title" content="${d.short_name}"><link rel="shortcut icon" href="/img/icon.png">`);document.title=d.name;document.documentElement.style.backgroundColor=d.background_color})({name:lang['misc.app_name'],short_name:lang['misc.app_name_short'],theme_color:'#000',background_color:'#000'})
+			b2.children[2].prepend(lang['misc.add_to_home_screen'])
+			d.textContent = lang['misc.continue_in_browser']
+		})
 		const {body} = document, b2 = body.cloneNode()
 		body.replaceWith(b2)
 		b2.style.background = t.content = '#eee'
 		b2.innerHTML='<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAMAAABlApw1AAAACXBIWXMAAA7DAAAOwwHHb6hkAAAAeFBMVEX///8Ae//6+vr+/v709PTt7e3x8fH39/fv7+/8/Pz4+Pjr6+vy8vL19fX7+/sCff9Fn/+73P/4+/8ylf/i8f8QhP8gjf/p9P8Wh/8IgP+hzv9Lov9Rpv+v1v9lsP+Kw/+Avv9aq/+Zyv9yt//Y6/8pkf/I4//x+P/76c4WAAAD5UlEQVR4nO2ciXKiQBCGYWcv98jIKSCgKMf7v+EiMwjBIC6Uadr6PyuVSoZQ/TE3NDGEwftDHsByAebwF9gI3p8XEGAOf4Evb29vnL9eQIA5EKCGv8Av5vAX+MEcCFDDX+Avc/gLfGUOBKjhL/CHOfwFvjMHAtTwF/jJHP4C35gDAWogQA1/gd/M4S8AAAAAAAAAAAAAAAB4NYSbhl7qUocxH3crTVPud9RxzKVy6vhrA8emjmQe+dZUyD3LVlRtpXk14FcHwnXMDumw6wdud/1ZtiL7ffy1wZZVK3L3g/iZ1UE1vP7KoKKO61F2Rdts/Mu3Quuw6cmuHv/Dc94IOPWCglMr0vOvKdPKVQK7KpV8enI7/oeZbbQCRpXpOtiuvg6qWOr2U1/sq4Bhn7VBtvI6EKXsBdoJGLYWk6WgjvE+URNnmDZDZk/AsFVPlgltfJPkoeq/zQ99AWPX9GQvp4zuAexjEAaxnrLeCdTdoy46rrwP1GFakdUG+V7AsHtFPBgI8AMC1EDg0xDdvwjp//oDgfao4aGU2HlyTOOt5lx2JTcCwsr0Yfs4PST5GhxEmRVhfwPmd3PtjYAV9LdoYZHSK4gkGG7fD9fCG4FseKxvERvYB88cII/X0kmBem10op2bo5v46wXztfRGILrd7Aeky9Pd9fabDD0vuFCcukZx24nPRXNQ4Hlh+5dbwpsV4qi3X9khShKrpizdXqO+HUZFXpaX46wkObV7N8IqsNVlDKyRMf3uRCZ0+5MOXT+21P3/w2akfGImtlUFSro9jgrAG23EU0uJXNVg9JzoHqDZJMp4tAlMCYhiMO5+NllzAY/zBZp+LM/PiW4aEasuMF+guQIyperFWuA0XyBtqpDsZtdiAUMJxFQCGy0wesCDAmSPAO39UoGzWkywFRAQWAYExHEVAuNLGQg8GQjoHR25wPy10EpqYL7AgXsNQGAZry+wa9I+4tFN/+oFROSbsrBGT7B6AcPOo+jOHfT1C1yeyNwrZCBwFwgsBAIvILDyxdwUq1+NTgGBhUCAWmDDXiBeKkB8Z05AYCUC88+QQmAR+iHj+N3pyROsQ2D8MetjJ6B7Rqbzl87zBVTCSkaW7TGVajCFcGif1OtkD392C3DDhZ1oKYlcNBHoDVkvR+2zqVS6jF/OqgNbJ2H6dAlPeiY1vfSUqJSzx0lOqUoYvJOq8Hx2vjIwQ++/abP+HMo3FMXpmnw4Fy8hTX2tjh+89vk/hMSJr/VIsqgOPPq3smwrHmZPP4r0s1W8Flflp8y55OJekAPCjqbrqsRdv8bJopzXO00AAAAAAAAAAAAAAAAAAACg4R/OdzCCiUc3HgAAAABJRU5ErkJggg" style="border:4px #aaa solid;border-radius:48px;height:96px"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAoBAMAAABtB+WqAAAACXBIWXMAAA7DAAAOwwHHb6hkAAAAGFBMVEUAAABqampsbGxra2tsbGz///+EhIReXl6D06B7AAAACHRSTlMA/pnKHwEGB9vsuw8AAACnSURBVHic7ZBNCgIxDEaDFGad6QUURLcWPUBxhlmLeoABLyDq/TFfYmZaEE9g6CK8PvJHZNEPVEVI7akCZ+ZcgQvz8g9+gNsXsPX8Nczg2uPeMTvQXModHHSoJECwgpCYd7RgKApEEKMRHEcACO1I9IACAAGt8BGfkkO4YxAoe32f4aBYmGCKhk/fpFogOhpYT7uGlQp53h4j8KY4B5RS0G1LAYq3eAMVeyXLz+u6qgAAAABJRU5ErkJggg" style="margin:-15px 0;height:20px"><div style="color:black;margin-bottom:2em;display:flex;width:85%;padding:.5em .8em;background:#fff;justify-content:space-between;border-radius:.5em;align-items:center"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADwAAAA8BAMAAADI0sRBAAAACXBIWXMAAA7DAAAOwwHHb6hkAAAAMFBMVEX///8AAAAICAimpqacnJyEhIT39/d5eXmQkJBDQ0MYGBguLi7s7Oy7u7va2tpiYmI6q57bAAABiklEQVR4nO3Vvy8DYRgH8KfVHNde8W2J9ur3YDA1IUyEMBhrM/oTsIhBwmhTi8GiIrG2CzEIBokFFbvUiAWxSjzv9ej7Xt83VhLfpL2376d97+3d+z5H5OX6bnhaztg91XKxhbq4H1/6WI8i+1WN9OkZhx7Peu1Ev5zq+POsDdw4GqdArja4u8iNKHASRJEbIOWNndEp0Tpcfi9gQM8tQJaagZyeLeCFmoAzPVMeuzyEa1CaRCvZSJv4Ft0UQ4eJz9HFfztl4hCSFEab1PN8EGDxqqWAcu2D+KXKykX45x/5clkE2BaH1SA76l7IBTiibpBigOMqbwbP/SZrpqKdufUrr9of4AmVwwq/esXKT3ULyjs0PkIqR9FOhoR4f8fQY+IHZttU1kTx6KRGJEy8iF5RUssGLvGSs/yFVR9efguiuCX1zLW4IiaQyOrUKXkVzwbSmrM7S+Cqx8cCPwpO56aG5MyscC/WxPeeDI8Sv1w6eb26/pTiWne/77w1urOn7tDB4/eK4WLJ+QRi6GZGgbORSQAAAABJRU5ErkJggg==" style="height:30px"></div><div id="d" style="color:#25e;font-size:15px;text-decoration:underline;position:absolute;bottom:2em"></div>'
-		b2.children[2].prepend('Add to home screen')
-		d.textContent = 'Continue in-browser instead'
 		d.onclick = () => {
 			b2.replaceWith(body)
 			t.content = '#000'

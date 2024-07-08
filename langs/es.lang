@@ -5,6 +5,8 @@ warning.unsupported_microphone_api=Cambia a chrome o safari, su navegador no es 
 # App name when installed as a PWA
 misc.app_name=MC Papel
 misc.app_name_short=MC Papel
+misc.add_to_home_screen=Añadir a pantalla de inicio
+misc.continue_in_browser=Continuar en navegador
 misc.save_app=Guardar app. en el escritorio?
 misc.title.menu=MC Papel
 misc.title.playing=\1 | pMC

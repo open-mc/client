@@ -76,4 +76,4 @@ export const setLang = lang => {
 }
 await setLang(options.lang)
 
-export const availableLanguages = ['en']
+export const availableLanguages = ['en', 'es']
