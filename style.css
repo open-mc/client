@@ -259,7 +259,7 @@ column{
 	flex-grow: 10;
 	min-height: 200px;
 	overflow-y: auto;
-	padding: var(--padding) calc(var(--padding) + env(safe-area-inset-right)) var(--padding) calc(var(--padding) + env(safe-area-inset-left));
+	padding: var(--padding) calc(var(--padding) + env(safe-area-inset-right)) calc(var(--padding) + env(safe-area-inset-bottom)) calc(var(--padding) + env(safe-area-inset-left));
 	display: flex; flex-direction: column;
 	gap: 4rem;
 	align-items: center;

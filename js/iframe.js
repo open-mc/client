@@ -4,6 +4,7 @@ import { pause } from '../uis/pauseui.js'
 import { serverlist } from '../uis/serverlist.js'
 import texts from './lang.js'
 import { defaultConfig, fallback } from './worldconfig.js'
+import { safari } from '../uis/defects.js'
 
 export let iframe = document.createElement('iframe'), win = null
 
@@ -26,7 +27,8 @@ empty.esc = pause
 let c = caches.open(''); c.then(a=>c=a)
 function onfetch({data: url}){
 	if(url[url.length-1]=='/') url+='main.html'
-	;(c.then?c.then(c=>c.match(url)):c.match(url)).then(res => res?this.postMessage({url, body: res.body, ct: res.headers.get('content-type')}, [res.body]):fetch(url).then(res=>this.postMessage({url, body: res.body, ct: res.headers.get('content-type')}, [res.body])))
+	const done = safari ? res => res?res.arrayBuffer().then(a=>this.postMessage({url, body: a, ct: res.headers.get('content-type')}, [a])):fetch(url).then(done) : res => res?this.postMessage({url, body: res.body, ct: res.headers.get('content-type')}, [res.body]):fetch(url).then(done)
+	;(c.then?c.then(c=>c.match(url)):c.match(url)).then(done)
 }
 
 export class LocalSocket extends MessageChannel{
