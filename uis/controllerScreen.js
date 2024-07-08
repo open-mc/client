@@ -10,7 +10,7 @@ function joyChange(){
 	options.joy = (options.joy + 1) % 2
 	renderJoy()
 }
-function sensitivityChange(a = options.controllerSensitivity){
+function sensitivityChange(a){
 	options.controllerSensitivity = a
 	return [texts.sensitivity(a > 0.005 ? a < 0.995 ? Math.floor(9 ** a * 10 / 3) / 10 : allTexts.options.common.sensitivity.fast() : allTexts.options.common.sensitivity.slow()), a]
 }
@@ -19,7 +19,7 @@ let joyNode
 const controllersui = UI('menu',
 	Label(texts.name()),
 	joyNode = Btn('', joyChange),
-	Scale(sensitivityChange),
+	Scale(sensitivityChange).set(options.controllerSensitivity),
 	Spacer(20),
 	Row(Btn(allTexts.misc.menu_back(), controlsScreen), Btn('', undefined, 'disabled'))
 )

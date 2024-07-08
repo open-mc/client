@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" onwheel="return!1">
 <head>
+	<meta name="theme-color" content="#000">
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Paper MC</title>
@@ -17,11 +18,11 @@
 			gap: 32px;
 			cursor: pointer;
 		}
-		img{width:128px;image-rendering:pixelated}
+		img{width:96px;image-rendering:pixelated}
 		*{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;}
 		#a{
 			--p: 0; background: linear-gradient(90deg, #69f var(--p), #666 var(--p));
-			width: 256px; height: 4px;
+			width: 256px; height: 6px;
 		}
 		#b{
 			color: red;
@@ -32,7 +33,7 @@
 	</style>
 </head>
 <body onpointerdown="return!1">
-	<img src="/img/icon.png">
+	<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAB1UExURVk9KV+fNXa2TGenPWxsbIeHh2ysQpZsSnlVOrmFXGGhN3OzSXS0Sm2tQ2mpP2amPGqqQJC/YH6+VJfGZ5LBYpPCY1CQJleXLWCgNmurQX+/VXW1S2KiOI28XW+vRWioPnCwRoq5WpzLbIGwUXGxR4OyU2SkOhLx+hcAAACHSURBVBgZBcGFYQMADMAwF+0Ux8z0/4mTOCz35/PbYnu1vFiddndHnref37+8vyxuL/e77eqRV77+TnxweLq55v4BWMMPsOBIEOZgAeskQhMoqmGoTc00k8k0oyVaimVGWhFKQVUziTbTyEy6CUsn1xoGYTpV1QxZpDE0ijERFaXYaBu1NP4B+BkIIFSGC6sAAAAASUVORK5CYII">
 	<div id="a"></div>
 	<span id="b"></span>
 </body>
@@ -42,14 +43,14 @@
 	navigator.wakeLock.request('screen').catch(e => null)
 	if(sw){
 		let L = 2
-		onmessage=e=>--L||(location='')
+		onmessage=e=>--L||(location='/')
 		c.src = 'https://sandbox-41i.pages.dev/'
 		if(sw.controller) sw.controller.postMessage(null)
 		else sw.register('./sw.js', {type: 'module', updateViaCache: 'all'}).then(r => (r.active??r.installing).postMessage(null))
 		sw.onmessage = ({data}) => {
 			if(data<0) return void(b.textContent = sw.controller?'Update failed':'Please reload/reinstall app', document.body.onpointerdown=()=>location='')
 			a.style.setProperty('--p', data*100+'%')
-			if(data==1) --L||(location+='')
+			if(data==1) --L||(location='/')
 		}
 	}else onmessage=()=>location='/main.html'
 </script>

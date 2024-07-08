@@ -1,5 +1,5 @@
 import { open as socketOpen, close as sockClose } from "/server/misc/sock.js"
-import { players, DEFAULT_TPS, saveAll, saving } from '/server/world/index.js'
+import { DEFAULT_TPS, saveAll, saving } from '/server/world/index.js'
 import { setTPS } from "/server/world/tick.js"
 import { codes, onstring } from '/server/misc/incomingPacket.js'
 import { DataReader } from '/server/modules/dataproto.js'

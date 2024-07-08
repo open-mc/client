@@ -146,10 +146,10 @@ globalThis.PNG = {
 globalThis.deflate = pako.deflate
 globalThis.inflate = pako.inflate
 
+globalThis.close = () => location = 'about:blank'
 if(location.hash) addEventListener('message', ({data}) => {
 	addEventListener('message', ({data, source}) => void Worker._workers.get(source)?.dispatchEvent(new ErrorEvent('error', {data,source})))
 	;(globalThis.parentPort = data).start()
-	globalThis.close = () => location = 'about:blank'
 	import(decodeURIComponent(location.hash.slice(1)))
 }, {once:true});else globalThis.parentPort = null,
 addEventListener('message', ({data: {name, skin, port, dbport, config}}) => {

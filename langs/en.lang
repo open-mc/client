@@ -11,6 +11,8 @@ misc.title.notification=(🔴 \2) \1 | pMC
 misc.ok=Ok
 misc.menu_back=Back
 misc.landscape_notice=Switch to Landscape
+misc.discard=Discard
+misc.save=Save
 
 connection.refused=Connection refused
 connection.lost=Connection lost
@@ -37,6 +39,14 @@ serverlist.refresh=Refresh
 serverlist.add_server=Add server
 serverlist.add_server.placeholder=server ip
 serverlist.new_world=New world
+serverlist.import=Import .map
+
+worldoptions=World options
+worldoptions.world_name=World name:
+worldoptions.world_seed=World seed:
+worldoptions.loading_range=Loading range: \1
+worldoptions.delete=DELETE WORLD
+worldoptions.delete_undo=Undo (3s)
 
 pause.name=Game menu
 pause.resume=Back to Game

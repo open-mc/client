@@ -3,6 +3,7 @@ import { hideUI, showUI, ui } from './ui.js'
 import { pause } from '../uis/pauseui.js'
 import { serverlist } from '../uis/serverlist.js'
 import texts from './lang.js'
+import { defaultConfig, fallback } from './worldconfig.js'
 
 export let iframe = document.createElement('iframe'), win = null
 
@@ -36,14 +37,14 @@ export class LocalSocket extends MessageChannel{
 			const t = db.result.transaction(['meta'], 'readonly')
 			const req = t.objectStore('meta').get('config')
 			req.onerror = f; req.onsuccess = () => r(req.result)
-			t.commit()
 		}
 		db.onerror = f
 	})
-	static setOptions = (ip, o) => new Promise((r,f) => {
+	static setOptions = (ip, o, cb) => new Promise((r,f) => {
 		const db = indexedDB.open(ip,1)
 		db.onupgradeneeded = () => (db.result.createObjectStore('db'),db.result.createObjectStore('meta'))
 		db.onsuccess = () => {
+			cb?.(db.result)
 			const req = db.result.transaction(['meta'], 'readwrite').objectStore('meta').put(o, 'config')
 			req.onerror = f; req.onsuccess = r
 		}
@@ -57,6 +58,7 @@ export class LocalSocket extends MessageChannel{
 		super()
 		const port = Object.setPrototypeOf(this.port1, LocalSocket.proto)
 		port.readyState = 0; port.onopen = port.onclose = null
+		port.url = ip; port.opts = null; port._db = null
 		if(ip[0] != '@') return Promise.resolve().then(()=>port.close()), port
 		const ifr = port.ifr = document.createElement('iframe')
 		ifr.src = 'https://sandbox-41i.pages.dev/localserver/index.html'
@@ -64,14 +66,18 @@ export class LocalSocket extends MessageChannel{
 		const {port1, port2} = new MessageChannel()
 		const dat = {name: storage.name, skin: skin.buffer, port: this.port2, dbport: port2, config: null}
 		let P = 2
-		ifr.onload = () => P?--P||ifr.contentWindow.postMessage(dat, '*', [dat.port,dat.dbport]):(ifr.remove(),this.onclose(),port.readyState=3)
+		ifr.onload = () => P?--P||ifr.contentWindow.postMessage(dat, '*', [dat.port,dat.dbport]):port._finish()
 		let r = indexedDB.open(ip,1)
 		r.onupgradeneeded = () => (r.result.createObjectStore('db'),r.result.createObjectStore('meta'))
 		const dbQueue = []; let dbI = 0
 		let dbO
 		r.onsuccess = () => {
 			const t = (r=r.result).transaction(['meta'], 'readonly').objectStore('meta').get('config')
-			t.onsuccess = () => {dat.config=t.result;--P||ifr.contentWindow.postMessage(dat, '*', [dat.port,dat.dbport])}
+			port._db = r
+			t.onsuccess = () => {
+				dat.config=port.opts=fallback(t.result,defaultConfig)
+				--P||ifr.contentWindow.postMessage(dat, '*', [dat.port,dat.dbport])
+			}
 		}
 		const tra = []
 		function processResults(e){
@@ -126,8 +132,16 @@ export class LocalSocket extends MessageChannel{
 			if(this.readyState > 1) return
 			this.postMessage(undefined)
 			this.readyState = 2
-			setTimeout(() => (this.ifr.remove(),this.onclose({code, reason}),this.readyState=3), 10e3)
-		}}
+			setTimeout(() => this._finish(code, reason), 30e3)
+		}},
+		_finish: {enumerable:false,value(code, reason){
+			this.ifr.remove()
+			this.readyState = 3
+			this.onclose?.({code, reason})
+			this.opts.motd[0] = 'Last played: '+new Date().toLocaleString()
+			this._db.transaction(['meta'], 'readwrite').objectStore('meta').put(this.opts, 'config')
+		}},
+		setOptions: {enumerable:false,value(o){ this.ifr.contentWindow.postMessage(this.opts = o, '*') }}
 	})
 }
 const tra=[null]
@@ -154,17 +168,20 @@ onmessage = ({data, source}) => {
 			else win.postMessage(a, '*')
 		}
 		queue.length = 0
+		hideUI()
 	}else if(data instanceof ArrayBuffer && globalThis.ws) ws.send(data)
-	else if(data instanceof Blob){
-		const a = document.createElement("a")
-		a.href = URL.createObjectURL(data)
-		a.download = data.name ?? data.type.split('/',1)[0]
-		a.click()
-		URL.revokeObjectURL(a.href)
-	}else if(Array.isArray(data)){
+	else if(data instanceof Blob) download(data)
+	else if(Array.isArray(data)){
 		if(data.length == 1 && data[0] instanceof Blob) navigator.clipboard.write([new ClipboardItem({[data[0].type]: data[0]})])
 		else onerror(undefined,''+data[1],+data[2],+data[3],data[0])
 	}
+}
+const a = document.createElement('a')
+export const download = file => {
+	a.href = URL.createObjectURL(file)
+	a.download = file.name ?? (file.type[0]=='@' ? 'file' : file.type.split('/',1)[0])
+	a.click()
+	URL.revokeObjectURL(a.href)
 }
 
 export function destroyIframe(){

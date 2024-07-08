@@ -11,6 +11,8 @@ misc.title.notification=(🔴 \2) \1 | pMC
 misc.ok=OK
 misc.menu_back=Volver
 misc.landscape_notice=Cambia al modo horizontal
+misc.discard=Desechar
+misc.save=Guardar
 
 connection.refused=Conexión denegada
 connection.lost=Connexión perdida
@@ -37,6 +39,14 @@ serverlist.refresh=Actualizar
 serverlist.add_server=Añadir servidor
 serverlist.add_server.placeholder=ip del servidor
 serverlist.new_world=Nuevo mundo
+serverlist.import=Importar .map
+
+worldoptions=Opciones del mundo
+worldoptions.world_name=Nombre del mundo:
+worldoptions.world_seed=Semilla para generar el mundo:
+worldoptions.loading_range=Rango de carga: \1
+worldoptions.delete=ELIMINAR MUNDO
+worldoptions.delete_undo=Deshacer (3s)
 
 pause.name=Menú del juego
 pause.resume=Volver al juego

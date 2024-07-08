@@ -3,16 +3,20 @@ import { controlsScreen } from './controlsScreen.js'
 import { optionsScreen } from './options.js'
 import { serverlist } from './serverlist.js'
 import texts from '../js/lang.js'
+import { LocalSocket } from '../js/iframe.js'
+import { worldoptions } from './worldoptions.js'
 
 const keybindsBtn = Btn(texts.keybinds())
 keybindsBtn.disabled = true
+const spage = Btn(texts.pause.server_page(), () => {
+	if(ws.opts) return worldoptions(ws)
+	const { protocol, host } = new URL(ws.url)
+	open(protocol.replace('ws','http')+'//'+host,'_blank')
+})
 const pauseui = UI('menu',
 	Label(texts.pause.name()),
 	Btn(texts.pause.resume(), hideUI),
-	Row(Btn(texts.options.general(), optionsScreen), Btn(texts.pause.server_page(), () => {
-		const { protocol, host } = new URL(ws.url)
-		open(protocol.replace('ws','http')+'//'+host,'_blank')
-	})),
+	Row(Btn(texts.options.general(), optionsScreen), spage),
 	Row(Btn(texts.options.controls(), controlsScreen), keybindsBtn),
 	Btn(texts.connection.disconnect(), serverlist),
 	Div('',
@@ -24,6 +28,7 @@ const pauseui = UI('menu',
 pauseui.esc = hideUI
 
 export function pause(){
+	spage.text = ws.opts ? texts.worldoptions() : texts.pause.server_page()
 	showUI(pauseui)
 }
 setDefaultUI(pause)

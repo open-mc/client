@@ -21,7 +21,7 @@ function ffxChange(){
 	renderFfx()
 }
 
-function sensitivityChange(a = options.sensitivity){
+function sensitivityChange(a){
 	options.sensitivity = a
 	return [texts.sensitivity(a > 0.005 ? a < 0.995 ? Math.floor(9 ** a * 10 / 3) / 10 : allTexts.options.common.sensitivity.fast() : allTexts.options.common.sensitivity.slow()), a]
 }
@@ -47,7 +47,7 @@ const controlssui = UI('menu',
 	Label(texts.name()),
 	camNode = Btn('', camChange),
 	Row(clickNode = Btn('', clickChange), ffxNode = Btn('', ffxChange)),
-	Scale(sensitivityChange),
+	Scale(sensitivityChange).set(options.sensitivity),
 	fscNode = Btn('', fscChange),
 	Spacer(20),
 	Row(Btn(allTexts.misc.menu_back(), pause), Btn(allTexts.options.controller(), controllerScreen))

@@ -154,9 +154,7 @@ if(navigator.getGamepads) requestAnimationFrame(function checkInputs(){
 		if(n.parentElement?.nodeName != 'BTN') break a
 		const track = n.parentElement
 		track.value = Math.max(0, Math.min(1, track.value + dx/50))
-		const {0:t,1:v} = track.change(track.value)
-		n.style.setProperty('--value', v)
-		track.firstChild.textContent = t
+		track.set(track.value)
 	}
 	void([odxs, odys, dxs, dys] = [dxs, dys, odxs, odys])
 })

@@ -8,6 +8,8 @@ import { PROTOCOL_VERSION } from '../server/version.js'
 import texts from './lang.js'
 import { worldoptions } from '../uis/worldoptions.js'
 import { rmServer, servers, swapServers } from '../uis/serverlist.js'
+import { exportWorld } from './worldconfig.js'
+
 let lastN = null
 globalThis.ws = null
 
@@ -104,7 +106,7 @@ export function preconnect(ip, cb = Function.prototype){
 			Row(
 				name = Label(displayIp),
 				Btn('...', () => {
-					if(typeof u == 'string') worldoptions(displayIp)
+					if(typeof u == 'string') worldoptions(u)
 					else window.open(ip.replace('ws', 'http'), '_blank','width=1024,height=768,left='+screenX+',top='+screenY)
 				},'tiny').css({lineHeight:'16rem'}),
 				Btn('^', () => {
@@ -112,9 +114,9 @@ export function preconnect(ip, cb = Function.prototype){
 					if(!i) return
 					swapServers(servers[i-1], displayIp)
 				},'tiny').css({lineHeight:'24rem'}),
-				Btn('x', async () => {
-					if(!node.parentElement) return
-					rmServer(displayIp)
+				Btn(typeof u == 'string' ? 'e' : 'x', async () => {
+					if(typeof u == 'string') exportWorld(u, n?.name)
+					else if(node.parentElement) rmServer(displayIp)
 				},'tiny')
 			),
 			motd = Label(texts.connection.connecting()).css({opacity: .5})
@@ -189,7 +191,7 @@ export function reconnect(){
 export function finished(){
 	if(rctimeout >= 0) clearTimeout(rctimeout), rctimeout = -1
 	if(!ws) return
-	ws.onclose = Function.prototype
+	ws.onclose = null
 	ws.close()
 	ws = null
 	clearNotifs()

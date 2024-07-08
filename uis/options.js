@@ -16,23 +16,23 @@ function guiChange(){
 	if(options.guiScale == 4) options.guiScale = 0.5
 	renderScale()
 }
-function zoomChange(a = options.zoom){
+function zoomChange(a){
 	a = Math.round(a * 16)
 	const z = 2 ** ((options.zoom = a / 16) * 8 - 5)
 	return [texts.zoom(z<8?z:texts.zoom.super()), options.zoom]
 }
 
 const textsCommon = allTexts.options.common
-function soundChange(a = options.sound){
+function soundChange(a){
 	options.sound = a
 	return [texts.sound(a >= 0.005 ? a < 0.995 ? textsCommon.percentage(Math.round(a*200)) : textsCommon.volume.loud() : textsCommon.volume.quiet()), a]
 }
-function musicChange(a = options.music){
+function musicChange(a){
 	options.music = a
 	return [texts.music(a >= 0.005 ? a < 0.995 ? textsCommon.percentage(Math.round(a*200)) : textsCommon.volume.loud() : textsCommon.volume.quiet()), a]
 }
 
-function fpsChange(a = options.fps){
+function fpsChange(a){
 	a = Math.round(a*25)*10
 	return [a ? a < 250 ? texts.max_fps(a) : texts.max_fps.unlimited() : texts.max_fps.auto(), options.fps = a/250]
 }
@@ -49,9 +49,9 @@ function renderChat(){
 let guiNode, chatNode
 const optionsui = UI('menu',
 	Label(texts.name()),
-	Row(ScaleSmall(zoomChange), guiNode = Btn('', guiChange)),
-	Row(ScaleSmall(soundChange), ScaleSmall(musicChange)),
-	Scale(fpsChange),
+	Row(ScaleSmall(zoomChange).set(options.zoom), guiNode = Btn('', guiChange)),
+	Row(ScaleSmall(soundChange).set(options.sound), ScaleSmall(musicChange).set(options.music)),
+	Scale(fpsChange).set(options.fps),
 	chatNode = Btn('', notifChange),
 	Spacer(20),
 	Row(Btn(allTexts.misc.menu_back(), pause), Btn(allTexts.options.advanced(), advancedOptionsScreen))

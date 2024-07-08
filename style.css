@@ -188,7 +188,7 @@ hr{
 ::placeholder{ color: #8888 }
 
 #ui{
-	padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+	padding: 0 env(safe-area-inset-right) 0 env(safe-area-inset-left);
 	display: flex;
 	position: absolute;
 	flex-direction: column;
@@ -247,7 +247,7 @@ column{
 
 [hidden]{display: none !important}
 
-#serverlist{
+#serverlist, #optionlist{
 	box-shadow: inset 0 0 10rem black;
 	background: #0004;
 	--padding: 7rem;
@@ -256,15 +256,21 @@ column{
 	min-height: 200px;
 	overflow-y: auto;
 	padding: var(--padding) calc(var(--padding) + env(safe-area-inset-right)) var(--padding) calc(var(--padding) + env(safe-area-inset-left));
+	display: flex; flex-direction: column;
+	gap: 4rem;
+	align-items: center;
 }
 #serverlist > row{
 	padding: 1rem;
-	margin-bottom: 4rem;
 	height: 54rem;
 }
-#serverlist span{
+#optionlist{gap: 16rem;}
+#serverlist span, #optionlist > row > span{
 	flex-grow: 1;
 	text-align: left;
+}
+#optionlist > row{
+	padding: 0 10rem;
 }
 #serverlist > row > div{
 	height: 52rem;

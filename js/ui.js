@@ -85,6 +85,8 @@ function clear(){
 	this.lastChild.innerHTML = '<f class="__cursor">_</f>'
 }
 const {prototype: InputPrototype} = class extends HTMLElement{
+	get placeholder(){return this.t.placeholder}
+	set placeholder(a){this.t.placeholder = a}
 	get value(){return this.t.value}
 	set value(a){this.t.value = a;this.t.onselchange()}
 	focus(){this.t.focus()}
@@ -149,9 +151,7 @@ let thumbx = -1, curtrack = null
 function pointermove(e){
 	if(curtrack){
 		curtrack.value = Math.max(0, Math.min(1, (e.clientX - curtrack.offsetLeft - thumbx) / (curtrack.offsetWidth - curtrack.lastChild.offsetWidth)))
-		const {0:t,1:v} = curtrack.change(curtrack.value)
-		curtrack.lastChild.style.setProperty('--value', v)
-		curtrack.firstChild.textContent = t
+		curtrack.set(curtrack.value)
 	}
 }
 addEventListener('pointermove', pointermove)
@@ -170,11 +170,13 @@ function _scale(c, change){
 	thumb.className = 'thumb'
 	el.append(txt)
 	el.append(thumb)
-	el.change = change
-	let [t, value] = change()
-	txt.textContent = t
-	el.value = value
-	thumb.style.setProperty('--value', value)
+	el.set = v => {
+		let [t, value] = change(v)
+		txt.textContent = t
+		el.value = value
+		thumb.style.setProperty('--value', value)
+		return el
+	}
 	el.onpointerdown = e => (curtrack = el, thumb.classList.add('highlighted'), pointermove(e))
 	el.style.position = 'relative'
 	return el
