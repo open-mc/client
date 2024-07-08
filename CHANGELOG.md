@@ -22,10 +22,10 @@ Todo: Passive mobs
 
 - Offline support
 - Internal refactors
+- Singleplayer
+- World export/import
 
 Todo: More blocks and items
-
-Todo: Singleplayer
 
 Todo: Terrain generation overhaul
 

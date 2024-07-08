@@ -7,7 +7,7 @@ let label, reconnectBtn
 const message = UI('dirtbg',
 	label = Label('').css({overflow: 'visible'}),
 	Div('spacing'),
-	reconnectBtn = Row(Btn(texts.misc.menu_back(), serverlist), Btn(texts.connection.reconnect(), reconnect)),
+	reconnectBtn = Row(Btn(texts.misc.menu_back(), serverlist, 'small'), Btn(texts.connection.reconnect(), reconnect, 'small')),
 	Div('spacing')
 )
 export function msg(txt, allowReconnect = true){

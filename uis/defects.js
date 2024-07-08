@@ -31,7 +31,7 @@ export function start(){
 		Spacer(25),
 		Label(texts.warnings.safari()).css({maxWidth: 'calc(100% - 20px)', opacity: '0.7', height: 'auto', whiteSpace: 'pre-wrap'}),
 		Spacer(25),
-		Row(Btn('Don\'t warn again', () => (storage.shownDefects = '', start())), Btn('Ok, proceed', start))
+		Row(Btn('Don\'t warn again', () => (storage.shownDefects = '', start()), 'small'), Btn('Ok, proceed', start, 'small'))
 	))
 	if(!storage.name) login()
 	else serverlist()

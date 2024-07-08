@@ -49,12 +49,12 @@ function renderChat(){
 let guiNode, chatNode
 const optionsui = UI('menu',
 	Label(texts.name()),
-	Row(ScaleSmall(zoomChange).set(options.zoom), guiNode = Btn('', guiChange)),
+	Row(ScaleSmall(zoomChange).set(options.zoom), guiNode = Btn('', guiChange, 'small')),
 	Row(ScaleSmall(soundChange).set(options.sound), ScaleSmall(musicChange).set(options.music)),
 	Scale(fpsChange).set(options.fps),
 	chatNode = Btn('', notifChange),
 	Spacer(20),
-	Row(Btn(allTexts.misc.menu_back(), pause), Btn(allTexts.options.advanced(), advancedOptionsScreen))
+	Row(Btn(allTexts.misc.menu_back(), pause, 'small'), Btn(allTexts.options.advanced(), advancedOptionsScreen, 'small'))
 )
 optionsui.esc = pause
 

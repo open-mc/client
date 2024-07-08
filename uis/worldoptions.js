@@ -20,7 +20,7 @@ const inputs = {
 			for(let i=0;i<s.length;i++) h=h*31+s.charCodeAt(i)|0
 			config.world.seed = h
 		}
-	}),
+	}).css({width: '100rem'}),
 	clr: Scale(v => {
 		config.world.chunk_loading_range = (v=Math.round(v*31)+1)
 		return [wtexts.loading_range(v<<6), (v-1)/31]
@@ -43,22 +43,22 @@ const inputs = {
 const list = Div('optionlist',
 	Row(Label(wtexts.world_name()), inputs.name),
 	Row(Label(wtexts.world_seed()), inputs.seed),
-	inputs.clr,
+	Row(Label(''), inputs.clr),
 	inputs.delete
 )
-let row1 = Row(Btn(texts.misc.menu_back(), ()=>(config = null, id='',serverlist())), Btn(texts.serverlist.new_world(), () => {
+let row1 = Row(Btn(texts.misc.menu_back(), ()=>(config = null, id='',serverlist()), 'small'), Btn(texts.serverlist.new_world(), () => {
 	id = '@' + Date.now()+Math.floor(Math.random()*1e16).toString(10).padStart(16,'0')
 	LocalSocket.setOptions(id, config)
 	addServer(id)
 	preconnect(id, play)
 	config = null, id=''
-}))
-let row2 = Row(Btn(texts.misc.discard(), () => (config = null, id='',ws ? pause() : serverlist())).css({color:'#f88'}), Btn(texts.misc.save(), () => {
+}, 'small'))
+let row2 = Row(Btn(texts.misc.discard(), () => (config = null, id='',ws ? pause() : serverlist()), 'small').css({color:'#f88'}), Btn(texts.misc.save(), () => {
 	if(typeof id == 'object') id.setOptions(config)
 	else LocalSocket.setOptions(id, config)
 	config = null, id=''
 	ws ? pause() : serverlist()
-}))
+}, 'small'))
 const wO = UI('dirtbg',
 	Spacer.grow(1),
 	Label(wtexts()),

@@ -134,8 +134,8 @@ const serverList = UI('dirtbg serverlist',
 	Row(
 		Label(texts.serverlist.select()),
 		Spacer.grow(1),
-		Btn(texts.serverlist.hosting_info(), () => window.open('https://github.com/open-mc/server','_blank')),
-		Btn(texts.serverlist.refresh(), serverlist)
+		Btn(texts.serverlist.hosting_info(), () => window.open('https://github.com/open-mc/server','_blank'), 'small'),
+		Btn(texts.serverlist.refresh(), serverlist, 'small')
 	).css({alignSelf: 'stretch', justifyContent: 'space-between', paddingLeft: '11rem', flexWrap: 'wrap'}),
 	list = Div('serverlist', addRow = Row(
 		Div('', Img('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA0AAAANCAYAAABy6+R8AAAAAXNSR0IArs4c6QAAAElJREFUKFNj/P///38GNMDIyMgIE8IqDxJEV0SQT19NJPsJ2cPIfkE3CNkbeEMJlwvgmvCZjKEZm2J8fgTJYdhEKAoGgSZCfgIA/uxv+rFAzjUAAAAASUVORK5CYIIA').css({minWidth: '13rem', height: '13rem', verticalAlign: '-45%'}), texts.serverlist.add_server()),

@@ -46,11 +46,11 @@ let clickNode, ffxNode, camNode, fscNode
 const controlssui = UI('menu',
 	Label(texts.name()),
 	camNode = Btn('', camChange),
-	Row(clickNode = Btn('', clickChange), ffxNode = Btn('', ffxChange)),
+	Row(clickNode = Btn('', clickChange, 'small'), ffxNode = Btn('', ffxChange, 'small')),
 	Scale(sensitivityChange).set(options.sensitivity),
 	fscNode = Btn('', fscChange),
 	Spacer(20),
-	Row(Btn(allTexts.misc.menu_back(), pause), Btn(allTexts.options.controller(), controllerScreen))
+	Row(Btn(allTexts.misc.menu_back(), pause, 'small'), Btn(allTexts.options.controller(), controllerScreen, 'small'))
 )
 controlssui.esc = pause
 

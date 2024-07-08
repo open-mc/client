@@ -37,7 +37,7 @@ const ui = UI('menu',
 		af3Node.text = texts.default_debug[options.autof3]()
 	}),
 	Spacer(20),
-	Btn(allTexts.misc.menu_back(), optionsScreen)
+	Btn(allTexts.misc.menu_back(), optionsScreen, 'small')
 )
 ui.esc = optionsScreen
 export function advancedOptionsScreen(){

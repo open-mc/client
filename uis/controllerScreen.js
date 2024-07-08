@@ -21,7 +21,7 @@ const controllersui = UI('menu',
 	joyNode = Btn('', joyChange),
 	Scale(sensitivityChange).set(options.controllerSensitivity),
 	Spacer(20),
-	Row(Btn(allTexts.misc.menu_back(), controlsScreen), Btn('', undefined, 'disabled'))
+	Row(Btn(allTexts.misc.menu_back(), controlsScreen, 'small'), Btn('', undefined, 'small disabled'))
 )
 controllersui.esc = controlsScreen
 
