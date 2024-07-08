@@ -150,7 +150,7 @@ const tra=[null]
 let mport
 onmessage = ({data, source}) => {
 	if((source??0) !== iframe.contentWindow) return
-	if(!iReady){iReady = true; if(data) (mport=data).onmessage = onfetch; else iframe.src+='' }
+	if(!iReady){ if(data) (mport=data).onmessage = onfetch, iReady = true; else iframe.src+=''; return }
 	if(typeof data != 'object'){
 		if(data === true) showUI(null)
 		else if(data === false) hideUI()

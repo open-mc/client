@@ -28,7 +28,7 @@ const pauseui = UI('menu',
 pauseui.esc = hideUI
 
 export function pause(){
-	spage.text = ws.opts ? texts.worldoptions() : texts.pause.server_page()
+	spage.text = ws?.opts ? texts.worldoptions() : texts.pause.server_page()
 	showUI(pauseui)
 }
 setDefaultUI(pause)
