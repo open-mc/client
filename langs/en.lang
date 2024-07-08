@@ -5,6 +5,7 @@ warning.unsupported_microphone_api=Please switch to chrome or safari, your brows
 # App name when installed as a PWA
 misc.app_name=Paper MC
 misc.app_name_short=Paper MC
+misc.save_app=Save app to Desktop?
 misc.title.menu=Paper MC
 misc.title.playing=\1 | pMC
 misc.title.notification=(🔴 \2) \1 | pMC
@@ -23,9 +24,8 @@ connection.disconnect=Disconnect
 connection.reconnect=Reconnect
 
 # Warning about certain environment caveats
-defects.safari=You seem to be using safari, which has proven multiple times to be an incompetent browser for developers, not supporting technologies that are standard almost anywhere else and offering mediocre quality and performance for graphical applications\nWe urge you, please, to switch to a different browser.
+warnings.safari=You seem to be using safari, which has proven multiple times to be an incompetent browser for developers, not supporting technologies that are standard almost anywhere else and offering mediocre quality and performance for graphical applications\nWe urge you, please, to switch to a different browser.
 # Soon
-defects.mobile=We currently provide no touch control support\nCome back on a desktop device.
 
 serverlist.skin.not_an_image=Not an image!
 serverlist.skin.wrong_size=Wrong size!

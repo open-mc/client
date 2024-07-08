@@ -5,6 +5,7 @@ warning.unsupported_microphone_api=Cambia a chrome o safari, su navegador no es 
 # App name when installed as a PWA
 misc.app_name=MC Papel
 misc.app_name_short=MC Papel
+misc.save_app=Guardar app. en el escritorio?
 misc.title.menu=MC Papel
 misc.title.playing=\1 | pMC
 misc.title.notification=(🔴 \2) \1 | pMC
@@ -23,9 +24,7 @@ connection.disconnect=Desconectar
 connection.reconnect=Reconectar
 
 # Warning about certain environment caveats
-defects.safari=Parece que estás utilizando Safari, que ha demostrado varias veces ser un navegador incompetente para los desarrolladores, que no admite tecnologías estándar y que ofrece calidad y eficiencia mediocres para aplicaciones gráficas.\nPor favor, si es posible, cambie a otro navegador.
-# Soon
-defects.mobile=Actualmente no ofrecemos soporte de control táctil\nVuelve a un dispositivo de escritorio.
+warnings.safari=Parece que estás utilizando Safari, que ha demostrado varias veces ser un navegador incompetente para los desarrolladores, que no admite tecnologías estándar y que ofrece calidad y eficiencia mediocres para aplicaciones gráficas.\nPor favor, si es posible, cambie a otro navegador.
 
 serverlist.skin.not_an_image=¡No es una imagen!
 serverlist.skin.wrong_size=¡Tamaño equivocado!

@@ -29,17 +29,28 @@
 	</div>
 	<script type="module">
 		import { start } from './uis/defects.js'
+		import { storage } from './js/save.js'
 		import texts from '../js/lang.js'
 		if(document.readyState != 'complete') onload = start
 		else start()
 		screen.orientation?.lock?.('landscape')?.catch(e=>{})
 		onerror = (_, s, l, c, e) => {
-			//errors.append((s?(s.startsWith(location.origin)?s.slice(location.origin.length):s)+':'+l+':'+c+': ':'')+e+'\n')
-			//setTimeout(() => errors.childNodes[0].remove(), 10000)
+			errors.append((s?(s.startsWith(location.origin)?s.slice(location.origin.length):s)+':'+l+':'+c+': ':'')+e+'\n')
+			setTimeout(() => errors.childNodes[0].remove(), 10000)
 		}
 		onunhandledrejection=({reason})=>onerror(undefined,'',0,0,reason)
 		orientationdiv.firstElementChild.textContent = texts.misc.landscape_notice()
 		document.generateManifest({name:texts.misc.app_name(),short_name:texts.misc.app_name_short(),theme_color:"#000",background_color:"#000"})
+		window.onbeforeinstallprompt=e=>{
+			e.preventDefault()
+			if(+storage.noiuntil>Date.now()) return
+			const d = document.createElement('prompt')
+			d.innerHTML = '<div style="flex-grow:1"></div><span class="s4"></span><div style="flex-grow:1"></div><span>x </span>'
+			d.children[3].onclick = e => (d.remove(),storage.noiuntil=Date.now()+432e5,e.stopPropagation())
+			d.children[1].textContent = texts.misc.save_app()
+			document.body.append(d)
+			d.onclick = () => (e.prompt(),storage.noiuntil=Date.now()+432e5,d.remove())
+		}
 	</script>
 	
 </html>

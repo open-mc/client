@@ -173,7 +173,7 @@ onmessage = ({data, source}) => {
 	else if(data instanceof Blob) download(data)
 	else if(Array.isArray(data)){
 		if(data.length == 1 && data[0] instanceof Blob) navigator.clipboard.write([new ClipboardItem({[data[0].type]: data[0]})])
-		else onerror(undefined,''+data[1],+data[2],+data[3],data[0])
+		else; //onerror(undefined,''+data[1],+data[2],+data[3],data[0])
 	}
 }
 const a = document.createElement('a')
