@@ -44,7 +44,7 @@
 	if(!sw) b.textContent = 'Unsupported device',a.remove()
 	else if(!sw.controller&&matchMedia('(display-mode: browser) or (display-mode: fullscreen)').matches
 	&& navigator.vendor.startsWith('Apple')){
-		fetch('langs/'+navigator.language.split('-',1)[0]+'.lang').then(a => a.status == 200 ? a.text().then(a => a[0]=='<'?fetch('langs/en.lang').then(a=>a.text()):a) : fetch('langs/en.lang').then(a => a.text())).then(str => {
+		fetch('langs/'+navigator.language.split('-',1)[0]+'.lang').then(a => a.status == 200 && a.headers.get('content-type').startsWith('text/html') ? fetch('langs/en.lang').then(a=>a.text()) : a.text(), e => fetch('langs/en.lang').then(a => a.text())).then(str => {
 			let lang={}
 			for(let line of str.split('\n')){
 				let j = line.indexOf('#')

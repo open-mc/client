@@ -27,7 +27,7 @@ export const setLang = lang => {
 	lang = lang || navigator.language.split('-',1)[0]
 	nf = Intl.NumberFormat(lang)
 	df = Intl.DateTimeFormat(lang)
-	return fetch('langs/'+lang+'.lang').then(a => a.status == 200 ? a.text().then(a => a[0]=='<'?fetch('langs/en.lang').then(a=>a.text()):a) : fetch('langs/en.lang').then(a => a.text())).then(str => {
+	return fetch('langs/'+lang+'.lang').then(a => a.status == 200 && a.headers.get('content-type').startsWith('text/html') ? fetch('langs/en.lang').then(a=>a.text()) : a.text(), e => fetch('langs/en.lang').then(a => a.text())).then(str => {
 		langObj = new Map
 		if(!str) return
 		for(let line of str.split('\n')){
