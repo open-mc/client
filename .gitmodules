@@ -1,3 +1,4 @@
 [submodule "server"]
 	path = server
 	url = https://github.com/open-mc/server.git
+	branch = a10-infinity
