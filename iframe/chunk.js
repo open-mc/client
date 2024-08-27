@@ -8,8 +8,8 @@ export class Chunk extends Uint16Array{
 		super(4096)
 		this.light = new Uint8Array(4096)
 		this.tileData = new Map
-		this.x = buf.int()&0x3ffffff
-		this.y = buf.int()&0x3ffffff
+		this.x = buf.bigint()
+		this.y = buf.bigint()
 		this.up = this.left = this.right = this.down = null
 		this.lightI = -2
 		this.ticks = new Map()
@@ -25,8 +25,8 @@ export class Chunk extends Uint16Array{
 		let id
 		while((id = buf.short()) != 65535){
 			const e = new EntityIDs[id]()
-			e.x = buf.short() / 1024 + (this.x << 6)
-			e.y = buf.short() / 1024 + (this.y << 6)
+			e.x = buf.short() / 1024 + Number(this.x)*64
+			e.y = buf.short() / 1024 + Number(this.y)*64
 			e.netId = buf.uint32() + buf.uint16() * 4294967296
 			e.name = buf.string(); e.state = buf.short()
 			e.dx = buf.float(); e.dy = buf.float()
@@ -120,16 +120,16 @@ export class Chunk extends Uint16Array{
 	}
 	updateDrawn(i, b, ob){
 		if(b.solid){if(!ob.solid){
-			const y = this.y<<6|i>>6
-			if((this.exposure[i&63]-y)|0<=0) this.exposure[i&63] = y+1|0
+			const y = this.y<<6n|BigInt(i>>6)
+			if(this.exposure[i&63]<=y) this.exposure[i&63] = y+1n
 		}}else if(ob.solid){
-			let y = (this.y<<6|i>>6)+1|0
+			let y = (this.y<<6n|BigInt(i>>6))+1n
 			let i2 = i, ch = this
 			if(this.exposure[i&63]==y){
 				while(true){
-					if(i2<64){ const c = ch.down; if(!c){ i2=ch.y<<6; break }; ch=c; i2 += 4096 }
+					if(i2<64){ const c = ch.down; if(!c){ i2=ch.y<<6n; break }; ch=c; i2 += 4096 }
 					const b = ch[i2-=64], {solid} = b==65535?ch.tileData.get(i2):BlockIDs[b]
-					if(solid){ i2 = (ch.y<<6|i2>>6)+1|0; break }
+					if(solid){ i2 = (ch.y<<6n|BigInt(i2>>6))+1n; break }
 				}
 				this.exposure[i&63] = i2
 			}
@@ -154,16 +154,16 @@ export class Chunk extends Uint16Array{
 		_addDark(this, i)
 		_add(this, i)
 		if(b.solid){
-			const y = this.y<<6|i>>6
-			if((this.exposure[i&63]-y)|0<=0) this.exposure[i&63] = y+1|0
+			const y = this.y<<6n|BigInt(i>>6)
+			if(this.exposure[i&63]<=y) this.exposure[i&63] = y+1n
 		}else{
-			let y = (this.y<<6|i>>6)+1|0
+			let y = (this.y<<6n|BigInt(i>>6))+1n
 			let i2 = i, ch = this
 			if(this.exposure[i&63]==y){
 				while(true){
-					if(i2<64){ const c = ch.down; if(!c){ i2=ch.y<<6; break }; ch=c; i2 += 4096 }
+					if(i2<64){ const c = ch.down; if(!c){ i2=ch.y<<6n; break }; ch=c; i2 += 4096 }
 					const b = ch[i2-=64], {solid} = b==65535?ch.tileData.get(i2):BlockIDs[b]
-					if(solid){ i2 = (ch.y<<6|i2>>6)+1|0; break }
+					if(solid){ i2 = (ch.y<<6n|BigInt(i2>>6))+1n; break }
 				}
 				this.exposure[i&63] = i2
 			}

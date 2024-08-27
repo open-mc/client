@@ -15,7 +15,7 @@ export function foundMe(e){
 	cam.y = me.iy = me.y
 	for(const cb of playerLoadCb) try{cb(e)}catch(e){Promise.reject(e)}
 }
-export const map = globalThis.map = new Map
+export const map = globalThis.map = new Map2
 export const entityMap = globalThis.entityMap = new Map()
 export const server = {
 	title: '',
@@ -42,8 +42,8 @@ export const cam = {
 
 export function toBlockExact(c, bx, by){
 	cam.transform(c)
-	const x0 = ifloat(bx - cam.x) * SCALE
-	const y0 = ifloat(by - cam.y) * SCALE
+	const x0 = (Number(bx) - cam.x) * SCALE
+	const y0 = (Number(by) - cam.y) * SCALE
 	const xa0 = round(x0), ya0 = round(y0)
 	c.box(xa0, ya0, round(x0+SCALE)-xa0, round(y0+SCALE)-ya0)
 }
@@ -63,16 +63,14 @@ function variant(ch, i, x, y){
 }
 
 export function updateblock(x, y, a=0){
-	const k = (x>>>6)+(y>>>6)*0x4000000
-	const ch = map.get(k)
+	const ch = map.get(BigInt(x)>>6n, BigInt(y)>>6n)
 	if(!ch) return
 	const i = (x & 63) | (y & 63) << 6
 	ch.ticks.set(i, a)
 }
 
 export function redrawblock(x, y, b=null){
-	const k = (x>>>6)+(y>>>6)*0x4000000
-	const ch = map.get(k)
+	const ch = map.get(BigInt(x)>>6n, BigInt(y)>>6n)
 	if(!ch) return
 	const i = (x & 63) | (y & 63) << 6
 	if(!b){ const id = ch[i]; b = id==65535?ch.tileData.get(i):BlockIDs[id] }
@@ -81,10 +79,9 @@ export function redrawblock(x, y, b=null){
 
 export function setblock(x, y, b){
 	b = b.savedata&&b===b.constructor?new b:b
-	const k = (x>>>6)+(y>>>6)*0x4000000
-	const ch = map.get(k)
+	const ch = map.get(BigInt(x)>>6n, BigInt(y)>>6n)
 	if(!ch) return b
-	const i = (x & 63) | (y & 63) << 6
+	const i = typeof x == 'bigint' ? Number(x & 63n) + (Number(y & 63n) << 6) : (x & 63) + ((y & 63) << 6)
 	const id = ch[i], old = id==65535?ch.tileData.get(i):BlockIDs[id]
 	if(b.savedata){
 		ch[i] = 65535
@@ -99,20 +96,19 @@ export function setblock(x, y, b){
 		}else{ ch[i] = b.id; if(old.savedata) ch.tileData.delete(i) }
 	}
 	ch.updateDrawn(i, b, old)
-	if((i&63) == 63) variant(map.get((x+1>>>6)+(y>>>6)*0x4000000), i&0b111111000000, x+1, y)
-	else variant(ch, i+1, x+1, y)
-	if((i&63) == 0) variant(map.get((x-1>>>6)+(y>>>6)*0x4000000), i|0b000000111111, x-1, y)
-	else variant(ch, i-1, x-1, y)
-	if((i>>6) == 63) variant(map.get((x>>>6)+(y+1>>>6)*0x4000000), i&0b000000111111, x, y+1)
-	else variant(ch, i+64, x, y+1)
-	if((i>>6) == 0) variant(map.get((x>>>6)+(y-1>>>6)*0x4000000), i|0b111111000000, x, y-1)
-	else variant(ch, i-64, x, y-1)
+	if((i&63) == 63) variant(map.get(BigInt(x+1n)>>6n, BigInt(y)>>6n), i&0b111111000000, x+1n, y)
+	else variant(ch, i+1, x+1n, y)
+	if((i&63) == 0) variant(map.get(BigInt(x-1n)>>6n, BigInt(y)>>6n), i|0b000000111111, x-1n, y)
+	else variant(ch, i-1, x-1n, y)
+	if((i>>6) == 63) variant(map.get(BigInt(x)>>6n, BigInt(y+1n)>>6n), i&0b000000111111, x, y+1n)
+	else variant(ch, i+64, x, y+1n)
+	if((i>>6) == 0) variant(map.get(BigInt(x)>>6n, BigInt(y-1n)>>6n), i|0b111111000000, x, y-1n)
+	else variant(ch, i-64, x, y-1n)
 	return b
 }
 export function getblock(x, y){
-	const k = (x>>>6)+(y>>>6)*0x4000000
-	const ch = map.get(k)
-	const i = (x & 63) + ((y & 63) << 6)
+	const ch = map.get(BigInt(x)>>6n, BigInt(y)>>6n)
+	const i = typeof x == 'bigint' ? Number(x & 63n) + (Number(y & 63n) << 6) : (x & 63) + ((y & 63) << 6)
 	const b = ch?ch[i]:0
 	return b==65535?ch.tileData.get(i):BlockIDs[b]
 }
@@ -125,7 +121,7 @@ export function sound(fn, x, y, vol = 1, pitch = 1){
 	if(!Number.isFinite(pitch)) pitch = 1
 	if(Array.isArray(fn)) fn = fn[floor(random() * fn.length)]
 	if(!me) return
-	x = ifloat(x - me.x + .5); y = ifloat(y - me.y + me.head + .5)
+	x = Number(x) - me.x + .5; y = Number(y) - me.y + me.head + .5
 	const dist = hypot(x, y)
 	// Let's see if I can get the physics right from the top of my head
 	// The speed of sound is 340m/s. This means a sound approaching at a speed of
@@ -161,13 +157,13 @@ export let worldEvents = e => worldEvents = e
 
 
 export function getLightValue(x, y){
-	const ch = map.get(((x=floor(x))>>>6)+((y=floor(y))>>>6)*0x4000000)
+	const ch = map.get(BigInt(x=floor(x))>>6n, BigInt(y=floor(y))>>6n)
 	return ch ? ch.light[(x & 63) + ((y & 63) << 6)] : 255
 }
 
 export function getTint(x, y, a = 1){
 	lightTint.w = a
-	const ch = map.get(((x=floor(x))>>>6)+((y=floor(y))>>>6)*0x4000000)
+	const ch = map.get(BigInt(x=floor(x))>>6n, BigInt(y=floor(y))>>6n)
 	if(!ch){
 		lightTint.x = lightTint.y = lightTint.z = a
 		return lightTint

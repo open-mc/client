@@ -1,7 +1,7 @@
 import { setblock, getblock, map, cam, me, onPlayerLoad, perms, pointer, W2, H2, toBlockExact, mode } from 'world'
 import './controls.js'
 import { onkey, options, paused, renderUI, drawLayer, onpress } from 'api'
-import { Entity, TEX_SIZE, BlockIDs } from 'definitions'
+import { Entity, TEX_SIZE, BlockIDs, Blocks } from 'definitions'
 
 export const CAMERA_DYNAMIC = 0, CAMERA_FOLLOW_SMOOTH = 1, CAMERA_FOLLOW_POINTER = 2,
 	CAMERA_FOLLOW_PLAYER = 3, CAMERA_PAGE = 4
@@ -47,29 +47,29 @@ drawLayer('world', 400, c => {
 	if(renderUI && me.health){
 		c.blend = invertBlend
 		const v = me.linked ? pointerOpacity : 0.2
-		const pX = ifloat(x + me.x - cam.x), pY = ifloat(y + me.head + me.y - cam.y)
+		const pX = x + me.x - cam.x, pY = y + me.head + me.y - cam.y
 		c.drawRect(pX - .3, pY - .03125, .6, .0625, vec4(v,v,v,0))
 		c.drawRect(pX - .03125, pY - .3, .0625, .26875, vec4(v,v,v,0))
 		c.drawRect(pX - .03125, pY + .03125, .0625, .26875, vec4(v,v,v,0))
 		c.blend = null
 	}
-	bx = floor(me.x)
-	by = floor(me.y + me.head)
+	bx = BigInt(floor(me.x))
+	by = BigInt(floor(me.y + me.head))
 	bpx = NaN, bpy = NaN
 	let bppx = NaN, bppy = NaN
 	const reach = hypot(x, y)
-	let d = 0, px = me.x - bx, py = me.y + me.head - by
+	let d = 0, px = me.x - Number(bx), py = me.y + me.head - Number(by)
 	const dx = sin(me.f), dy = cos(me.f)
 	const item = me.inv[me.selected], interactFluid = item?.interactFluid ?? false
-	let ch = map.get((bx>>>6)+(by>>>6)*0x4000000)
+	let ch = map.get(bx>>6n,by>>6n)
 	a: if(!ch||(ch.flags&1)) bx = by = NaN
 	else while(d < reach){
-		const chx = bx>>>6, chy = by>>>6
+		const chx = bx>>6n, chy = by>>6n
 		if(ch.x!=chx||ch.y!=chy){
-			ch = map.get(chx+chy*0x4000000)
+			ch = map.get(chx, chy)
 			if(!ch||(ch.flags&1)){ bx=by=bpx=bpy=NaN; break a }
 		}
-		const j = bx&63|by<<6&4032, id = ch[j]
+		const j = Number(bx&63n)|Number(by&63n)<<6, id = ch[j]
 		const {solid, blockShape = DEFAULT_BLOCKSHAPE, flows} = id==65535?ch.tileData.get(j):BlockIDs[id]
 		if(solid || (interactFluid && flows === false)){
 			for(let i = 0; i < blockShape.length; i += 4){
@@ -109,31 +109,32 @@ drawLayer('world', 400, c => {
 	if(d >= reach){
 		const {targettable, solid} = getblock(bpx, bpy)
 		if(targettable && !solid){
-			px -= bpx - bx; py -= bpy - by
+			px -= Number(bpx - bx); py -= Number(bpy - by)
 			bx = bpx; by = bpy; bpx = bppx; bpy = bppy
 			if(bpx > bx) px = 1
 			else if(bpx < bx) px = 0
 			else if(bpy > by) py = 1
 			else if(bpy < by) py = 0
-			px -= bpx - bx; py -= bpy - by
+			px -= Number(bpx - bx); py -= Number(bpy - by)
 		}else{
 			px = ((me.x + x)%1+1)%1; py = ((me.y + me.head + y)%1+1)%1
 			bx = by = NaN
 		}
-	}else px -= bpx - bx, py -= bpy - by
-	if(getblock(bpx, bpy).targettable) bpx = bpy = NaN
-	blockPlacing = perms >= 2 && (!getblock(bx, by).interactible || (me.state&2)) ? item?.places?.(px, py, bpx, bpy, bx, by) : undefined
-	const up = getblock(bpx, bpy + 1), down = getblock(bpx, bpy - 1), left = getblock(bpx - 1, bpy), right = getblock(bpx + 1, bpy)
+	}else if(bpx==bpx) px -= Number(bpx - bx), py -= Number(bpy - by)
+	if(bpx == bpx && getblock(bpx, bpy).targettable) bpx = bpy = NaN
+	blockPlacing = perms >= 2 && (bx != bx || !getblock(bx, by).interactible || (me.state&2)) ? item?.places?.(px, py, bpx, bpy, bx, by) : undefined
+	let up,down,left,right;up=down=left=right=Blocks.air
+	if(bpx==bpx) up = getblock(bpx, bpy + 1n), down = getblock(bpx, bpy - 1n), left = getblock(bpx - 1n, bpy), right = getblock(bpx + 1n, bpy)
 	if(interactFluid ?
 		up.flows === false && down.flows === false && left.flows === false && right.flows === false
 		: !(up.targettable||up.solid) && !(down.targettable||down.solid) && !(left.targettable||left.solid) && !(right.targettable||right.solid)
 	){
 		bpx = bpy = NaN
 	}else{
-		let x = bpx - 32 >>> 6, y = bpy - 32 >>> 6, x1 = x + 1 & 0x3FFFFFF, y1 = y + 1 & 0x3FFFFFF
-		a: for(const ch of [map.get(x+y*0x4000000), map.get(x1+y*0x4000000), map.get(x+y1*0x4000000), map.get(x1+y1*0x4000000)])
+		let x = (bpx - 32n) >> 6n, y = (bpy - 32n) >> 6n, npx = Number(bpy), npy = Number(bpy)
+		a: for(const ch of [map.get(x, y), map.get(x+1n, y), map.get(x, y+1n), map.get(x+1n, y+1n)])
 			if(ch) for(const e of ch.entities)
-				if(e.y < bpy + 1 && e.y + e.height > bpy && e.x - e.width < bpx + 1 && e.x + e.width > bpx){
+				if(e.y < npx + 1 && e.y + e.height > npy && e.x - e.width < npx + 1 && e.x + e.width > npx){
 					//Don't allow placing because there is an entity in the way
 					if(blockPlacing?.solid===true && !interactFluid) blockPlacing = null, bpx = bpy = NaN
 					break a
@@ -142,7 +143,7 @@ drawLayer('world', 400, c => {
 })
 
 drawLayer('world', 201, (c, w, h) => {
-	if(bx != bx || by != by) return
+	if(bx != bx) return
 	toBlockExact(c, bx, by)
 	const block = getblock(bx, by)
 	const item = me.inv[me.selected]
@@ -188,7 +189,7 @@ export function checkBlockPlacing(buf){
 		if(blockPlacing) setblock(bpx, bpy, blockPlacing)
 		buf.byte(me.selected)
 		buf.float(x); buf.float(y)
-		buf.int(bpx); buf.int(bpy)
+		buf.bigint(bpx); buf.bigint(bpy)
 		lastPlace = t
 	}else if(hasB && bx == bx && !paused && !(mode == 1 && !buttons.has(KEYS.ALT) && t <= lastPlace + .12)){
 		buf.byte(me.selected | 128)
@@ -201,8 +202,8 @@ export function checkBlockPlacing(buf){
 		const hitBtnDown = hasB && !paused
 		if(hitBtnDown && !didHit){
 			const xp = me.x + x, yp = me.y + me.head + y
-			const xa = xp - 32 >>> 6, ya = yp - 32 >>> 6, x1 = xa + 1 & 0x3FFFFFF, y1 = ya + 1 & 0x3FFFFFF
-			a: for(const ch of [map.get(xa+ya*0x4000000), map.get(x1+ya*0x4000000), map.get(xa+y1*0x4000000), map.get(x1+y1*0x4000000)]) if(ch) for(const e of ch.entities)
+			let xa = BigInt(floor(xp - 32)) >> 6n, ya = BigInt(floor(yp - 32)) >> 6n
+			a: for(const ch of [map.get(xa, ya), map.get(xa+1n, ya), map.get(xa, ya+1n), map.get(xa+1n, ya+1n)]) if(ch) for(const e of ch.entities)
 				if(e.y < yp && e.y + e.height > yp && e.x - e.width < xp && e.x + e.width > xp){
 					// Found entity
 					id = e.netId

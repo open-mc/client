@@ -18,8 +18,8 @@ function drawGlyph(code){
 	const char = glyphs.get(code)
 	if(!char) return
 	const w = char.w*16, charWidth = w+(style&16?LETTER_SPACING:0)
-	const otint2 = alphaTint<1 ? (a.x=tint2.x*alphaTint, a.y=tint2.y*alphaTint, a.z=tint2.z*alphaTint, a.w=tint2.w*alphaTint,a) : tint2
 	if(style&256){
+		const otint2 = alphaTint<1 ? (a.x=tint2.x*alphaTint, a.y=tint2.y*alphaTint, a.z=tint2.z*alphaTint, a.w=tint2.w*alphaTint,a) : tint2
 		ctx.drawRect(.125, -.125, w, 1, char, otint2)
 		if(style&16) ctx.drawRect(.25, -.125, w, 1, char, otint2)
 	}

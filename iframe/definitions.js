@@ -149,12 +149,12 @@ export class Entity{
 	f = PI / 2
 	get linked(){return this.netId>=0}
 	shouldSimulate(){
-		const x = floor(this.x)>>6, y = floor(this.y)>>6
-		if(!map.has((x&0x3FFFFFF)+(y&0x3FFFFFF)*0x4000000)) return false
-		const ox = (floor(this.x)>>>4&2)-1, oy = (floor(this.y)>>>4&2)-1
-		return map.has((x+ox&0x3FFFFFF)+(y&0x3FFFFFF)*0x4000000)
-			&& map.has((x&0x3FFFFFF)+(y+oy&0x3FFFFFF)*0x4000000)
-			&& map.has((x+ox&0x3FFFFFF)+(y+oy&0x3FFFFFF)*0x4000000)
+		const x = BigInt(floor(this.x))>>6n, y = BigInt(floor(this.y))>>6n
+		if(!map.has(x, y)) return false
+		const ox = floor(this.x)>>>5&1?1n:-1n, oy = floor(this.y)>>>5&1?1n:-1n
+		return map.has(x+ox, y)
+			&& map.has(x, y+oy)
+			&& map.has(x+ox, y+oy)
 	}
 	update(){}
 	place(){
@@ -283,7 +283,7 @@ export const particles = new Set
 drawLayer('world', 300, c => {
 	let tx = 0, ty = 0
 	for(const particle of particles){
-		c.translate(-(tx - (tx = ifloat(particle.x - cam.x))), -(ty - (ty = ifloat(particle.y - cam.y))))
+		c.translate(-(tx - (tx = particle.x - cam.x)), -(ty - (ty = particle.y - cam.y)))
 		particle.render(c, getTint(particle.x, particle.y))
 		particle.step()
 	}
@@ -310,7 +310,7 @@ export class BlockParticle extends Particle{
 }
 export function blockBreak(block, x, y){
 	for(let i = 0; i < 16; i++)
-		addParticle(new BlockParticle(block, i, x, y))
+		addParticle(new BlockParticle(block, i, Number(x), Number(y)))
 }
 
 export function stepParticles(block, e){
@@ -323,10 +323,10 @@ export function stepParticles(block, e){
 
 export function punchParticles(block, x, y){
 	const s = (random() * 256) | 0
-	let particle = new BlockParticle(block, s&15, x, y)
+	let particle = new BlockParticle(block, s&15, Number(x), Number(y))
 	particle.dy /= 2; particle.lifetime /= 2; particle.physical = false; particle.ddy /= 2
 	addParticle(particle)
-	particle = new BlockParticle(block, s>>4, x, y)
+	particle = new BlockParticle(block, s>>4, Number(x), Number(y))
 	particle.dy /= 2; particle.lifetime /= 2; particle.physical = false; particle.ddy /= 2
 	addParticle(particle)
 }

@@ -50,10 +50,10 @@ function tick(){
 	for(const e of entityMap.values()) if(e.tick) e.tick()
 	for(const ch of map.values()){
 		if(!ch.ticks.size) continue
-		const x = ch.x<<6, y = ch.y<<6
+		const x = Number(ch.x)*64, y = Number(ch.y)*64
 		for(const {0:i,1:v} of ch.ticks){
 			const id=ch[i],b=id==65535?ch.tileData.get(i):BlockIDs[i]
-			const v1 = b.update?.(v, x|i&63, y|i>>6)
+			const v1 = b.update?.(v, x+(i&63), y+(i>>6))
 			if(v1 === undefined) ch.ticks.delete(i)
 			else if(v1!=v) ch.ticks.set(i, v1)
 		}
@@ -69,7 +69,8 @@ let frames = 0
 globalThis.fps = 0
 globalThis.frame = () => {
 	const correctT = t
-	t *= options.speed; dt *= options.speed
+	const speed = options.speed ?? 1
+	t *= speed; dt *= speed
 	_networkUsage()
 	const p = 0.5**(dt*2)
 	if(dt>1e-9) fps = round((frames = frames*p+1) * (1-p)/dt)
@@ -90,21 +91,21 @@ globalThis.frame = () => {
 	if(!me.linked && !renderUI && !(me.health <= 0)) cam.x = me.ix = me.x, cam.y = me.iy = me.y
 	else if(options.camera == CAMERA_DYNAMIC){
 		const D = me.state & 4 ? 0.7 : 2
-		const dx = ifloat(me.x + pointer.x/D - cam.x + cam.baseX), dy = ifloat(me.y + pointer.y/D + me.head - cam.y + cam.baseY)
+		const dx = me.x + pointer.x/D - cam.x + cam.baseX, dy = me.y + pointer.y/D + me.head - cam.y + cam.baseY
 		if(abs(dx) > 64) cam.x += dx
 		else{
 			if(!camMovingX && abs(dx) > pointer.REACH / 2) camMovingX = true
 			else if(camMovingX && abs(dx) < pointer.REACH / 4) camMovingX = false
-			if(camMovingX) cam.x = ifloat(cam.x + (dx - sign(dx)*(pointer.REACH/4+0.25)) * dt * 4)
+			if(camMovingX) cam.x = cam.x + (dx - sign(dx)*(pointer.REACH/4+0.25)) * dt * 4
 		}
 		if(abs(dy) > 64) cam.y += dy
 		else{
 			if(!camMovingY && abs(dy) > pointer.REACH / 2) camMovingY = true
 			else if(camMovingY && abs(dy) < pointer.REACH / 4) camMovingY = false
-			if(camMovingY) cam.y = ifloat(cam.y + (dy - sign(dy)*(pointer.REACH/4+0.25)) * dt * 7)
+			if(camMovingY) cam.y = cam.y + (dy - sign(dy)*(pointer.REACH/4+0.25)) * dt * 7
 		}
 	}else if(options.camera == CAMERA_FOLLOW_SMOOTH){
-		const dx = ifloat(me.x + pointer.x - cam.x + cam.baseX), dy = ifloat(me.y + pointer.y + me.head - cam.y + cam.baseY)
+		const dx = me.x + pointer.x - cam.x + cam.baseX, dy = me.y + pointer.y + me.head - cam.y + cam.baseY
 		if(abs(dx) > 64) cam.x += dx
 		else cam.x += dx * dt
 		if(abs(dy) > 64) cam.y += dy
@@ -116,7 +117,7 @@ globalThis.frame = () => {
 		cam.x = me.x + cam.baseX
 		cam.y = me.y + me.head / 2 + cam.baseY
 	}else if(options.camera == CAMERA_PAGE){
-		const dx = ifloat(me.x - cam.x + cam.baseX), dy = ifloat(me.y + me.head/2 - cam.y + cam.baseY)
+		const dx = me.x - cam.x + cam.baseX, dy = me.y + me.head/2 - cam.y + cam.baseY
 		if(abs(dx) > W2 * 2 - 2) cam.x += dx
 		else if(dx > W2 - 1) cam.x += W2*2 - 4
 		else if(dx < 1 - W2) cam.x -= W2*2 - 4

@@ -82,16 +82,16 @@ export const fluidify = (B, type, tex, flowingTex) => {
 	B.texture = tex
 	B.fluidType = type
 	const filled = class extends B{
-		variant(x, y){ return !getblock(x, y+1).fluidLevel ? top : undefined }
+		variant(x, y){ return !getblock(x, y+1n).fluidLevel ? top : undefined }
 		static fluidLevel = 8
 		static flows = false
 	}
 	const top = class extends filled{
-		variant(x, y){ return getblock(x, y+1).fluidLevel ? filled : undefined }
+		variant(x, y){ return getblock(x, y+1n).fluidLevel ? filled : undefined }
 		static blockShape = BlockShape.TWO_SHORT
 		static texture = -1
 		render(c, tint, x, y){
-			const tx = toTex(getblock(x, y-1) == flowing ? flowingTex : tex)
+			const tx = toTex(getblock(x, y-1n) == flowing ? flowingTex : tex)
 			tx.h *= .875
 			c.drawRect(0, 0, 1, .875, tx, tint)
 		}
@@ -107,11 +107,11 @@ export const fluidify = (B, type, tex, flowingTex) => {
 		render(c, tint, x, y){
 			let y1 = 0, y2 = 0
 			{
-				const {solid, fluidLevel=0} = getblock(x+1,y)
+				const {solid, fluidLevel=0} = getblock(x+1n,y)
 				y2 = fluidLevel ? min(this.fluidLevel, fluidLevel) : (this.fluidLevel >> 1) + solid
 			}
 			{
-				const {solid, fluidLevel=0} = getblock(x-1,y)
+				const {solid, fluidLevel=0} = getblock(x-1n,y)
 				y1 = fluidLevel ? min(this.fluidLevel, fluidLevel) : (this.fluidLevel >> 1) + solid
 			}
 			y1 += y2*9

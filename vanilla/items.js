@@ -40,7 +40,7 @@ Items.grass = itemify(Blocks.grass, 'Grass block')
 Items.dirt = itemify(Blocks.dirt, 'Dirt')
 Items.sugar_cane = class extends Item{
 	places(_, _2, x, y){
-		const bl = getblock(x-1, y-1), br = getblock(x+1, y-1), b = getblock(x, y-1)
+		const bl = getblock(x-1n, y-1n), br = getblock(x+1n, y-1n), b = getblock(x, y-1n)
 		if(b == Blocks.sugar_cane | (((bl.flows === false & bl.fluidType === 'water') | (br.flows === false & br.fluidType === 'water')) & b.solid))
 			return Blocks.sugar_cane
 	}
@@ -168,37 +168,37 @@ Items.bucket_of_lava = class extends Item{
 }
 
 Items.oak_sapling = class extends Item{
-	place(_, _2, x, y){ if(getblock(x,y-1).dirt) return Blocks.oak_sapling }
+	place(_, _2, x, y){ if(getblock(x,y-1n).dirt) return Blocks.oak_sapling }
 	static texture = Blocks.oak_sapling.texture
 	static defaultName = 'Oak sapling'
 }
 
 Items.birch_sapling = class extends Item{
-	place(_, _2, x, y){ if(getblock(x,y-1).dirt) return Blocks.birch_sapling }
+	place(_, _2, x, y){ if(getblock(x,y-1n).dirt) return Blocks.birch_sapling }
 	static texture = Blocks.birch_sapling.texture
 	static defaultName = 'Birch sapling'
 }
 
 Items.spruce_sapling = class extends Item{
-	place(_, _2, x, y){ if(getblock(x,y-1).dirt) return Blocks.spruce_sapling }
+	place(_, _2, x, y){ if(getblock(x,y-1n).dirt) return Blocks.spruce_sapling }
 	static texture = Blocks.spruce_sapling.texture
 	static defaultName = 'Spruce sapling'
 }
 
 Items.dark_oak_sapling = class extends Item{
-	place(_, _2, x, y){ if(getblock(x,y-1).dirt) return Blocks.dark_oak_sapling }
+	place(_, _2, x, y){ if(getblock(x,y-1n).dirt) return Blocks.dark_oak_sapling }
 	static texture = Blocks.dark_oak_sapling.texture
 	static defaultName = 'Dark oak sapling'
 }
 
 Items.acacia_sapling = class extends Item{
-	place(_, _2, x, y){ if(getblock(x,y-1).dirt) return Blocks.acacia_sapling }
+	place(_, _2, x, y){ if(getblock(x,y-1n).dirt) return Blocks.acacia_sapling }
 	static texture = Blocks.acacia_sapling.texture
 	static defaultName = 'Acacia sapling'
 }
 
 Items.jungle_sapling = class extends Item{
-	place(_, _2, x, y){ if(getblock(x,y-1).dirt) return Blocks.jungle_sapling }
+	place(_, _2, x, y){ if(getblock(x,y-1n).dirt) return Blocks.jungle_sapling }
 	static texture = Blocks.jungle_sapling.texture
 	static defaultName = 'Jungle sapling'
 }
@@ -267,7 +267,7 @@ Items.torch = class extends Item{
 	static defaultName = 'Torch'
 	static useTint = false
 	places(fx, fy, x, y){
-		const sd = getblock(x,y-1).solid, sl = getblock(x-1,y).solid, sr = getblock(x+1,y).solid
+		const sd = getblock(x,y-1n).solid, sl = getblock(x-1n,y).solid, sr = getblock(x+1n,y).solid
 		let b = fx < .2 ? Blocks.torch_left : fx > .8 ? Blocks.torch_right : Blocks.torch
 		if(b == Blocks.torch_left && !sl) b = Blocks.torch
 		if(b == Blocks.torch_right && !sr) b = Blocks.torch

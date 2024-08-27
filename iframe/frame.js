@@ -63,8 +63,8 @@ drawLayer('none', 200, (ctx, w, h) => {
 	const lineWidth = .5/min(1024,S)
 	visibleChunks = 0
 	for(const chunk of map.values()){
-		const x0 = ifloat((chunk.x << 6) - cam.x) * SCALE
-		const y0 = ifloat((chunk.y << 6) - cam.y) * SCALE
+		const x0 = (Number(chunk.x << 6n) - cam.x) * SCALE
+		const y0 = (Number(chunk.y << 6n) - cam.y) * SCALE
 		if(x0+S <= -limX || y0+S <= -limY || x0 >= limX || y0 >= limY){ if(chunk.ctx) chunk.hide(); continue }
 		visibleChunks++
 		if(!chunk.ctx) chunk.draw()
@@ -75,9 +75,10 @@ drawLayer('none', 200, (ctx, w, h) => {
 	const b = borderTex.sub(-t,-t,128>>mipmap,128>>mipmap)
 	for(const chunk of map.values()){
 		if(!chunk.ctx) continue
-		const cxs = chunk.x << 6, cys = chunk.y << 6
-		const x0 = ifloat(cxs - cam.x) * SCALE
-		const y0 = ifloat(cys - cam.y) * SCALE
+		const chx = chunk.x << 6n, chy = chunk.y << 6n
+		let camx = floor(cam.x), camy = floor(cam.y)
+		const x0 = (Number(chx - BigInt(camx)) + (cam.x-camx)) * SCALE
+		const y0 = (Number(chy - BigInt(camy)) + (cam.y-camy)) * SCALE
 		const a = ctx.sub()
 		a.box(x0, y0, S, S)
 		const l = a.sub()
@@ -86,7 +87,7 @@ drawLayer('none', 200, (ctx, w, h) => {
 			const b = chunk[i]
 			const j = chunk.light[i]<<2
 			lightTint.x = lightArr[j]*.003921568627451; lightTint.y = lightArr[j|1]*.003921568627451; lightTint.z = lightArr[j|2]*.003921568627451; lightTint.w = 1
-			void(b==65535?chunk.tileData.get(i):BlockIDs[b]).render(l, lightTint, cxs|(i&63),cys|(i>>6))
+			void(b==65535?chunk.tileData.get(i):BlockIDs[b]).render(l, lightTint, chx|BigInt(i&63),chy|BigInt(i>>6))
 			l.resetTo(a)
 		}
 		if(chunk.flags&1) a.draw(b)
@@ -111,16 +112,16 @@ drawLayer('none', 200, (ctx, w, h) => {
 			ctx.drawRect((-cam.x-lineWidth2*.5),-H2,lineWidth2,H2*2, axisLineCol)
 		if(abs(cam.y) <= H2 + lineWidth2*.5)
 			ctx.drawRect(-W2,(-cam.y-lineWidth2*.5),W2*2,lineWidth2, axisLineCol)
-		if(abs(ifloat(cam.x + 2147483648)) <= W2 + lineWidth2*.5)
-			ctx.drawRect(ifloat(-cam.x+2147483648-lineWidth2*.5),-H2,lineWidth2,H2*2, axisLineCol)
-		if(abs(ifloat(cam.y + 2147483648)) <= H2 + lineWidth2*.5)
-			ctx.drawRect(-W2,ifloat(-cam.y+2147483648-lineWidth2*.5),W2*2,lineWidth2, axisLineCol)
+		if(abs(cam.x + 2147483648) <= W2 + lineWidth2*.5)
+			ctx.drawRect(-cam.x+2147483648-lineWidth2*.5,-H2,lineWidth2,H2*2, axisLineCol)
+		if(abs(cam.y + 2147483648) <= H2 + lineWidth2*.5)
+			ctx.drawRect(-W2,-cam.y+2147483648-lineWidth2*.5,W2*2,lineWidth2, axisLineCol)
 	}
 })
 drawLayer('none', 300, ctx => {
 	for(const ev of gridEventMap.values()){
 		toBlockExact(ctx, ev.x, ev.y)
-		if(!map.has((ev.x>>>6)+(ev.y>>>6)*0x4000000) || ev(ctx)) gridEventMap.delete(ev.i)
+		if(!map.has(ev.x>>6n, ev.y>>6n) || ev(ctx)) gridEventMap.delete(ev.i)
 	}
 })
 const entityHitboxCol = vec4(1), entityHitboxHeadCol = vec4(.8,0,0,1), entityHitboxFacingCol = vec4(.8, .64, 0, 1)
@@ -129,10 +130,10 @@ function renderEntity(ctx, entity, a=1){
 	const hitboxes = buttons.has(KEYS.SYMBOL) + renderBoxes
 	if(entity == me || dt > 1/30) entity.ix = entity.x, entity.iy = entity.y
 	else{
-		entity.ix += ifloat(entity.x - entity.ix) * dt * 20
-		entity.iy += ifloat(entity.y - entity.iy) * dt * 20
+		entity.ix += (entity.x - entity.ix) * dt * 20
+		entity.iy += (entity.y - entity.iy) * dt * 20
 	}
-	ctx.translate(ifloat(entity.ix - cam.x), ifloat(entity.iy - cam.y))
+	ctx.translate(entity.ix - cam.x, entity.iy - cam.y)
 	const tint = getTint(entity.ix, entity.iy, a)
 	entity.render(ctx.sub(), tint)
 	if(hitboxes){
@@ -198,9 +199,9 @@ function f3Text(detail){
 	const mex = floor(me.x) >> 3 & 6, mexi = (floor(me.x) & 15) / 16
 	const lookingAt = getblock(floor(pointer.x + me.x), floor(pointer.y + me.y + me.head))
 	const holding = me.inv[me.selected]
-	const pointX = floor(pointer.x + me.x)|0, pointY = floor(pointer.y + me.y + me.head)|0, light = getLightValue(pointX, pointY)
+	const pointX = floor(pointer.x + me.x), pointY = floor(pointer.y + me.y + me.head), light = getLightValue(pointX, pointY)
 	const mei = floor(me.x)&63|(floor(me.y)&63)<<6
-	const mek = (floor(me.x)>>>6)+(floor(me.y)>>>6)*0x4000000
+	const mekx = BigInt(floor(me.x))>>6n, meky = BigInt(floor(me.y))>>6n
 	if(detail < 2) return `\\27${VERSION}\\0f; \\+${(fps<20?'9':fps<50?'3':fps<235?'a':'d')+fps}\\+f fps; \\4+x: ${trueX}, y: ${trueY}\\0+; \\+6Day ${day} ${time}\\+f; ${(lookingAt.id?'':'\\+8')+lookingAt.className}\\+f`
 	return [`Paper MC ${VERSION} (Ctrl for f3 help)
 FPS: \\+${(fps<20?'9':fps<50?'3':fps<235?'a':'d')+fps}\\+f (${(timeToFrame*1000).toFixed(2).padStart(5,'\u2007')}ms)
@@ -208,8 +209,8 @@ Net: ${Number.formatData(networkUsage)}/s${performance.memory ? ', Mem: '+Number
 Draw: ${Number.formatData(frameData)}/${frameSprites}/${frameDrawCalls}
 Ch: ${visibleChunks}/${map.size}, E: ${entityMap.size}, P: ${particles.size}
 XY: \\4+${trueX} / ${trueY}\\0+
-ChXY: ${(mei&63).toString().padStart(2,'\u2007')} ${(mei>>6).toString().padStart(2,'\u2007')} in ${toString(bigintOffset.x>>6n,floor(me.x) >> 6, 0)} ${toString(bigintOffset.y>>6n,floor(me.y) >> 6, 0)}
-ChKey: ${mei} in ${mek}
+ChXY: ${(mei&63).toString().padStart(2,'\u2007')} ${(mei>>6).toString().padStart(2,'\u2007')} in ${BigInt(floor(me.x)) >> 6n} ${BigInt(floor(me.y)) >> 6n}
+ChKey: ${mei} in ${mekx},${meky}
 Facing: ${(me.f >= 0 ? 'R' : 'L') + (90 - abs(me.f / PI2 * 360)).toFixed(1).padStart(5, '\u2007')} (${me.f.toFixed(3)})`,`Tick ${world.tick}, Day ${day}, Time ${time}
 Dimension: ${world.id}
 Biome: ${me.chunk ? round(me.chunk.biomes[mex] * (1 - mexi) + me.chunk.biomes[mex+2] * mexi) : 0}/${me.chunk ? round(me.chunk.biomes[mex+1] * (1 - mexi) + me.chunk.biomes[mex+3] * mexi) : 0}

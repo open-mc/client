@@ -41,7 +41,7 @@ const rainSound = audioSet('misc/rain', 4)
 let lastRainPlay = -1
 tickPhase(-1000, now => {
 	const x = floor(me.x)
-	const e = exposureMap.get(x>>>6), exp = e?e[x&63]-floor(me.y+me.head)<0:true
+	const e = exposureMap.get(BigInt(x)>>6n), exp = e?e[x&63]<BigInt(floor(me.y+me.head)):true
 	if(world.weather && now - lastRainPlay > 1.3) lastRainPlay = now+.35, me.sound(rainSound, exp?0.4:0.2)
 })
 drawLayer('none', -100, c => {
@@ -52,7 +52,7 @@ drawLayer('none', -100, c => {
 		const light = time < 1800 ? time / 1800 : time < 13800 ? 1 : time < 15600 ? (15600 - time) / 1800 : 0
 		const orangeness = 1 - abs(time < 1800 ? time - 900 : time >= 13800 && time < 15600 ? time - 14700 : 900)/900
 		const wspan = w + 128 + pointer.REACH/2
-		const effx = ifloat(cam.x-me.x)*cam.z/4*pixelRatio, effy = ifloat(cam.y-me.y)*cam.z/4*pixelRatio
+		const effx = (cam.x-me.x)*cam.z/4*pixelRatio, effy = (cam.y-me.y)*cam.z/4*pixelRatio
 		if(light < 1 && rainyness < 1){
 			c.draw(nightGradient)
 			const fac = ((time + 12600) % 24000 / 8400 - .5)
@@ -110,22 +110,23 @@ drawLayer('world', 150, c => {
 	c.blend = cloudBlend
 	for(const {y, h, s, a} of cloudLayers){
 		const x = (t * s - cam.x) % (h*128)
-		c.drawRect(-W2, (y - cam.y) * 0.7, W2 * 2, h, cloudMap.super(.5+x/(W2*2), 0, 192/W2*h, 0), vec4(1-a*.75))
+		c.drawRect(-W2, (y - cam.y) * 0.7, W2 * 2, h, cloudMap.sup(.5+x/(W2*2), 0, 192/W2*h, 0), vec4(1-a*.75))
 	}
 	c.blend = 0
 	const rainyness = min(1-world.weatherFade/40, 1, (world.weather&0x0FFFFFFF)/40)
 	if(rainyness && cam.z > .125){
 		const col = vec4(rainyness/2)
-		const end = iceil(cam.x+W2)
+		const end = ceil(cam.x+W2)
 		const rainOff = t*30%16
-		let x = ifloor(cam.x-W2-1), e = exposureMap.get(x>>>6)
-		while((x=x+1|0) != end){
-			if(!(x&63)) e = exposureMap.get(x>>>6)
+		let x = BigInt(floor(cam.x-W2-1)), e = exposureMap.get(x>>6n)
+		while(x++ != end){
+			if(!(x&63)) e = exposureMap.get(x>>6n)
 			const exp = e?min(H2, max(-H2, e[x&63]-cam.y)):-H2
-			const off = ((x ^ x>>2 ^ x>>4 ^ x>>6) & 3)
-			let off2 = imul(x, 0x13F255A7) >> 16
+			let x1 = Number(x)
+			const off = ((x1 ^ x1>>2 ^ x1>>4 ^ x1>>6) & 3)
+			let off2 = imul(x1, 0x13F255A7) >> 16
 			off2 = ((off2 ^ off2 >> 2 ^ off2 >> 4 ^ off2 >> 6) & 3) << 2
-			c.drawRect(ifloat(x-cam.x), exp, 1, H2*2-exp, rain.sub(off/4,(rainOff+off2+cam.y%16)/16,.25,(H2*2-exp)/16), col)
+			c.drawRect(x1-cam.x, exp, 1, H2*2-exp, rain.sub(off/4,(rainOff+off2+cam.y%16)/16,.25,(H2*2-exp)/16), col)
 		}
 	}
 })
@@ -311,7 +312,7 @@ onpacket(13, buf => {
 	pause(true)
 })
 onpacket(14, buf => {
-	const b = getblock(buf.int(), buf.int())
+	const b = getblock(buf.bigint(), buf.bigint())
 	if(!b) return
 	invInterface = b
 	interfaceId = buf.byte()
@@ -322,7 +323,7 @@ onpacket(15, () => { invInterface = null })
 onpacket(32, buf => {
 	let i = buf.byte()
 	while(buf.left){
-		const e = i&2 ? invInterface : i&1 ? getblock(buf.int(), buf.int()) : entityMap.get(buf.uint32() + buf.short() * 4294967296)
+		const e = i&2 ? invInterface : i&1 ? getblock(buf.bigint(), buf.bigint()) : entityMap.get(buf.uint32() + buf.short() * 4294967296)
 		const id = buf.byte()
 		while(buf.left&&(i=buf.byte())<128){
 			const itm = Item.decode(buf)
@@ -350,7 +351,7 @@ gridEvents[4] = (buf, x, y) => {
 		if(!toBreak) return
 		const block = getblock(x, y)
 		if(t - lastParticle > .1){
-			addParticle(new BlockParticle(block, floor(random() * 16), x, y))
+			addParticle(new BlockParticle(block, floor(random() * 16), Number(x), Number(y)))
 			lastParticle = t
 		}
 		if(Number.isFinite(toBreak)){

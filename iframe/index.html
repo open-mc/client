@@ -146,6 +146,7 @@ globalThis.BitField = class BitField extends Array{
 	}
 	clear(){ this.length = 0 }
 }
+import '/server/modules/2keys.js'
 const _mac = navigator.platform.startsWith('Mac')
 Object.assign(globalThis, {
 	buttons: new BitField, changed: new BitField, touches: new Map, gesture: {dx: 0, dy: 0, scale: 1, rot: 0},
@@ -181,13 +182,7 @@ Number.prototype.toHex = function(){return h[this>>>28]+h[this>>24&15]+h[this>>2
 Number.formatData = bytes => bytes < 512 ? bytes.toFixed(0)+'B' : bytes < 524288 ? (bytes/1024).toFixed(1)+'KiB' : bytes < 536870912 ? (bytes/1048576).toFixed(1)+'MiB' : bytes < 549755813888 ? (bytes/1073741824).toFixed(1)+'GiB' : (bytes/1099511627776).toFixed(1)+'TiB'
 {let i=0,m=new MessageChannel,c=new Map;m.port1.onmessage=({data:i},j=c.get(i))=>(c.delete(i)&&j());m=m.port2;globalThis.setImmediate=(f,...a)=>(c.set(++i,a.length?f.bind(undefined,...a):f),m.postMessage(i),i);globalThis.clearImmediate=i=>c.delete(i)}
 Math.fclamp = (a, b = 1) => a < 0 ? 0 : (a > b ? b : a)
-Math.ifloat = x => {
-	let f = Math.floor(x)
-	return (f >> 0) + (x - f)
-}
 Math.randint = () => Math.random() * 4294967296 | 0
-Math.ifloor = x => Math.floor(x) | 0
-Math.iceil = x => Math.ceil(x) | 0
 Math.PI2 = Math.PI*2
 Object.defineProperties(globalThis, Object.getOwnPropertyDescriptors(Math))
 Object.defineProperties(Array.prototype, {
@@ -270,7 +265,7 @@ class img{
 	sub(x=0, y=0, w=1, h=1, l=this.l){
 		return new img(this.t, this.x+x*this.w, this.y+y*this.h, this.w*w, this.h*h, l)
 	}
-	super(x=0,y=0,w=1,h=1){
+	sup(x=0,y=0,w=1,h=1){
 		const tw = this.w/w, th = this.h/h
 		return new img(this.t, this.x-x*tw, this.y-y*th, tw, th)
 	}
@@ -305,9 +300,22 @@ class img{
 		let w=0, h=0
 		const rj = e => {
 			toLoad = -1
-			gl.deleteTexture(t.tex)
+			const {o} = t
+			img.fakeBind(t)
+			if(t.f[3]>>31)
+				gl.texParameterf(35866, 10240, 9728),
+				gl.texParameterf(35866, 10241, 9728)
+			else
+				gl.texParameterf(35866, 10240, 9728+(o&1)),
+				gl.texParameterf(35866, 10241, t.m?9984+(o>>1&3):9728+(o>>1&1))
+			gl.texParameterf(35866, 10242, o&8?10497:o&16?33648:33071)
+			gl.texParameterf(35866, 10243, o&32?10497:o&64?33648:33071)
+			gl.texStorage3D(35866, t.m||1, t.f[0], t.w=1, t.h=h=1, t.d=imgs.length)
+			if(!pma) gl.pixelStorei(37440,1),gl.pixelStorei(37441,pma=1)
+			if(t.m) gl.generateMipmap(35866)
+			if(t.i<0) gl.bindTexture(35866, null)
 			if(t.cbs) for(let i = 1; i < t.cbs.length; i+=3) t.cbs[i]?.(t.cbs[i+1])
-			t.tex = t.cbs = null
+			t.cbs = null
 		}
 		const imgs = t.src.map(a=>{
 			const i = new Image()

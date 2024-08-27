@@ -33,19 +33,16 @@ function clockPacket(data){
 function chunkPacket(buf){
 	const chunk = new Chunk(buf)
 	const {x,y} = chunk
-	const ky = y*0x4000000
-	const k = x+ky
-	const down = x+(y-1&0x3FFFFFF)*0x4000000
-	map.set(k, chunk)
+	map.set(x, y, chunk)
 	newChunks.push(chunk)
 	let ex = null
-	const u = map.get(x+(y+1&0x3FFFFFF)*0x4000000)
+	const u = map.get(x, y+1n)
 	if(u){
 		u.down = chunk, chunk.up = u
 		const {light,lightI} = u
 		if(lightI>-2) for(let i = 0; i < 64; i++) if(light[i]) _add(u, i)
 	}
-	const d = map.get(down)
+	const d = map.get(x, y-1n)
 	if(d){
 		d.up = chunk, chunk.down = d
 		chunk.exposure = ex = d.exposure, ex.ref++
@@ -53,51 +50,50 @@ function chunkPacket(buf){
 		if(lightI>-2) for(let i = 4032; i < 4096; i++) if(light[i]) _add(d, i)
 	}else if(ex=exposureMap.get(x))(chunk.exposure=ex).ref++
 	else{
-		exposureMap.set(x,chunk.exposure=ex=new Int32Array(64))
-		ex.ref=1; ex.fill(chunk.y+1<<6)
+		exposureMap.set(x,chunk.exposure=ex=new Array(64).fill(0n))
+		ex.ref=1; ex.fill(chunk.y+1n<<6n)
 	}
-	const l = map.get((x-1&0x3FFFFFF)+ky)
+	const l = map.get(x-1n, y)
 	if(l){
 		l.right = chunk, chunk.left = l
 		const {light,lightI} = l
 		if(lightI>-2) for(let i = 63; i < 4096; i+=64) if(light[i]) _add(l, i)
 	}
-	const r = map.get((x+1&0x3FFFFFF)+ky)
+	const r = map.get(x+1n, y)
 	if(r){
 		r.left = chunk, chunk.right = r
 		const {light,lightI} = r
 		if(lightI>-2) for(let i = 0; i < 4096; i+=64) if(light[i]) _add(r, i)
 	}
-	let chy = y<<6
+	let chy = y<<6n
 	for(let x = 0; x < 64; x++){
-		if((ex[x]-chy-64|0)>=0) continue
+		if(ex[x]-chy>=64n) continue
 		let y = 64
 		while(--y>=0){
 			const b = chunk[y<<6|x], {solid} = b===65535?chunk.tileData.get(y<<6|x):BlockIDs[b]
 			if(solid) break
 		}
 		if(y<0) continue
-		ex[x] = chy+y+1|0
+		ex[x] = chy+BigInt(y)+1n
 	}
 }
 function chunkDeletePacket(data){
 	while(data.left){
-		const cx = data.int() & 0x3FFFFFF, cy = data.int() & 0x3FFFFFF
-		const ky = cy*0x4000000
-		const chunk = map.get(ky+cx)
+		const cx = data.bigint(), cy = data.bigint()
+		const chunk = map.get(cx, cy)
 		chunk.hide()
-		map.delete(ky+cx)
+		map.delete(cx, cy)
 		if(!--chunk.exposure.ref) exposureMap.delete(cx)
-		const u = map.get(cx+(cy+1&0x3FFFFFF)*0x4000000)
+		const u = map.get(cx, cy+1n)
 		if(u) u.down = null
-		const d = map.get(cx+(cy-1&0x3FFFFFF)*0x4000000)
+		const d = map.get(cx, cy-1n)
 		if(d) d.up = null
-		const l = map.get((cx-1&0x3FFFFFF)+ky)
+		const l = map.get(cx-1n, cy)
 		if(l) l.right = null
-		const r = map.get((cx+1&0x3FFFFFF)+ky)
+		const r = map.get(cx+1n, cy)
 		if(r) r.left = null
 		for(const v of gridEventMap.values()){
-			if(v.x>>>6 == cx && v.y>>>6 == cy) gridEventMap.delete(v.i)
+			if(v.x>>>6n == cx && v.y>>>6n == cy) gridEventMap.delete(v.i)
 		}
 	}
 }
@@ -110,7 +106,7 @@ function blockSetPacket(buf){
 				gridEventMap.delete(buf.uint32())
 				continue
 			}else if(type2 > 0){
-				const x = buf.int(), y = buf.int()
+				const x = buf.bigint(), y = buf.bigint()
 				const id = buf.uint32()
 				if(!gridEvents[type2]) continue
 				const v = gridEvents[type2](buf, x, y)
@@ -122,11 +118,11 @@ function blockSetPacket(buf){
 			}
 		}
 		if(type > 0){
-			const x = buf.int(), y = buf.int()
+			const x = buf.bigint(), y = buf.bigint()
 			const bl = getblock(x, y)
 			if(type in bl) bl[type](buf, x, y)
 		}else{
-			const x = buf.int(), y = buf.int()
+			const x = buf.bigint(), y = buf.bigint()
 			const id = buf.short()
 			const block = setblock(x, y, BlockIDs[id])
 			if(block.savedata) buf.read(block.savedata, block)
@@ -201,26 +197,27 @@ function setBigintOffset(buf){
 	for(const v of buf.uint8array())
 		n <<= 8n, n |= BigInt(v)
 	n <<= 16n
-	const offx = Number(bigintOffset.x - n & 0xFFFF0000n) | 0
+	const offx = bigintOffset.x - n & -65536n
 	bigintOffset.x = n
 	n = 0n
 	for(const v of buf.uint8array())
 		n <<= 8n, n |= BigInt(v)
 	n <<= 16n
-	const offy = Number(bigintOffset.y - n & 0xFFFF0000n) | 0
+	const offy = bigintOffset.y - n & -65536n
 	bigintOffset.y = n
 
 	const chunks = [...map.values()]
 	map.clear()
 	for(const c of chunks){
-		c.x += offx >> 6; c.y += offx >> 6
-		map.set(c.x+c.y*0x4000000, c)
+		c.x += offx; c.y += offy
+		map.set(c.x, c.y, c)
 	}
+	let offx1 = Number(offx) * 64, offy1 = Number(offy) * 64
 	for(const e of entityMap.values()){
-		e.x += offx; e.y += offy
+		e.x += offx1; e.y += offy1
 	}
 	for(const g of gridEventMap.values()){
-		g.x += offx; g.y += offy
+		g.x += offx1; g.y += offy1
 	}
 }
 
@@ -230,7 +227,7 @@ function configPacket(buf){
 }
 
 function chunkInfoPacket(buf){
-	const ch = map.get((buf.int()&0x3FFFFFF)+(buf.int()&0x3FFFFFF)*0x4000000)
+	const ch = map.get(buf.bigint(), buf.bigint())
 	if(!ch) return
 	const type = buf.byte()
 	if(type != 0) return
