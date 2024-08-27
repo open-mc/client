@@ -121,9 +121,12 @@ drawLayer('world', 400, c => {
 			bx = by = NaN
 		}
 	}else px -= bpx - bx, py -= bpy - by
-	if(getblock(bpx, bpy).targettable) bpx = bpy = NaN
-	blockPlacing = perms >= 2 && (!getblock(bx, by).interactible || (me.state&2)) ? item?.places?.(px, py, bpx, bpy, bx, by) : undefined
-	const up = getblock(bpx, bpy + 1), down = getblock(bpx, bpy - 1), left = getblock(bpx - 1, bpy), right = getblock(bpx + 1, bpy)
+	let up,down,left,right; up=down=left=right=Blocks.air
+	if(bpx == bpx){
+		if(getblock(bpx, bpy).targettable) bpx = bpy = NaN
+		else up = getblock(bpx, bpy + 1), down = getblock(bpx, bpy - 1), left = getblock(bpx - 1, bpy), right = getblock(bpx + 1, bpy)
+	}
+	blockPlacing = perms >= 2 && (bx != bx || !getblock(bx, by).interactible || (me.state&2)) ? item?.places?.(px, py, bpx, bpy, bx, by) : undefined
 	if(interactFluid ?
 		up.flows === false && down.flows === false && left.flows === false && right.flows === false
 		: !(up.targettable||up.solid) && !(down.targettable||down.solid) && !(left.targettable||left.solid) && !(right.targettable||right.solid)
@@ -201,7 +204,7 @@ export function checkBlockPlacing(buf){
 		const hitBtnDown = hasB && !paused
 		if(hitBtnDown && !didHit){
 			const xp = me.x + x, yp = me.y + me.head + y
-			const xa = xp - 32 >>> 6, ya = yp - 32 >>> 6, x1 = xa + 1 & 0x3FFFFFF, y1 = ya + 1 & 0x3FFFFFF
+			const xa = floor(xp - 32) >>> 6, ya = floor(yp - 32) >>> 6, x1 = xa + 1 & 0x3FFFFFF, y1 = ya + 1 & 0x3FFFFFF
 			a: for(const ch of [map.get(xa+ya*0x4000000), map.get(x1+ya*0x4000000), map.get(xa+y1*0x4000000), map.get(x1+y1*0x4000000)]) if(ch) for(const e of ch.entities)
 				if(e.y < yp && e.y + e.height > yp && e.x - e.width < xp && e.x + e.width > xp){
 					// Found entity

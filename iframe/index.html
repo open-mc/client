@@ -186,8 +186,6 @@ Math.ifloat = x => {
 	return (f >> 0) + (x - f)
 }
 Math.randint = () => Math.random() * 4294967296 | 0
-Math.ifloor = x => Math.floor(x) | 0
-Math.iceil = x => Math.ceil(x) | 0
 Math.PI2 = Math.PI*2
 Object.defineProperties(globalThis, Object.getOwnPropertyDescriptors(Math))
 Object.defineProperties(Array.prototype, {
