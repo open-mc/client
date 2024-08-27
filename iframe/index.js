@@ -69,7 +69,8 @@ let frames = 0
 globalThis.fps = 0
 globalThis.frame = () => {
 	const correctT = t
-	t *= options.speed; dt *= options.speed
+	const speed = options.speed ?? 1
+	t *= speed; dt *= speed
 	_networkUsage()
 	const p = 0.5**(dt*2)
 	if(dt>1e-9) fps = round((frames = frames*p+1) * (1-p)/dt)
