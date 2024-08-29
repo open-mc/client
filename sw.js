@@ -13,7 +13,7 @@ let ready = /(\.|^)localhost$|^127.0.0.1$|^\[::1\]$/.test(location.hostname) ? (
 : (async () => {
 	let latest = fetch('/.gitversion').then(a => a.text(),()=>'{"error":"network"}')
 	cache = await caches.open('')
-	const ver = await cache.match('https://.git/')
+	const ver = await cache.match('/.git')
 	latest = await latest
 	const our = ver?ver.headers.get('commit'):'null'
 	if(latest[0] != '{' && our != latest) ready='', upt = update(latest, ver, our)
@@ -43,7 +43,7 @@ async function update(latest, ver, old){
 	const progress = a => {for(const l of areListening) l.postMessage(a); --todo||r()}
 	fetch: {
 		if(k.length){
-			if(k[k.length-1].url == 'https://.git/') break fetch
+			if(k[k.length-1].url == '/.git') break fetch
 			else await caches.delete('updates'),u=await caches.open('updates'),k.length=0
 		}
 		console.info('Downloading diffs for %s', latest.slice(0,7))
@@ -86,14 +86,14 @@ async function update(latest, ver, old){
 			}
 			await({then:a=>r=a})
 		}
-		k.push('https://.git/')
-		await u.put('https://.git/', new Response(res.join('\n'), {headers: {commit: latest}}))
+		k.push('/.git')
+		await u.put('/.git', new Response(res.join('\n'), {headers: {commit: latest}}))
 	}
 	console.info('Committing diffs over %s', old)
 	const total = (todo = k.length)*5
 	for(const req of k){
 		const url = typeof req=='object'?req.url:req
-		if(url.startsWith('https://.git/') && url.length > 13) cache.delete(url.slice(12)).then(()=>progress(1-todo/total))
+		if(url.startsWith('/.git') && url.length > 13) cache.delete(url.slice(12)).then(()=>progress(1-todo/total))
 		else u.match(req).then(a => cache.put(req, a)).then(()=>progress(1-todo/total))
 	}
 	await({then:a=>r=a})
