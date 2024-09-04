@@ -79,6 +79,7 @@ export function renderItemCount(c, item){
 	const arr = item.count > 1 && item.count <= 64 ? counts[item.count-2] :  calcText('\\+9' + item.count)
 	drawText(c, arr, 0.4375-arr.width*.5, 0, 0.5)
 }
+let slotx = NaN, sloty = NaN
 export let slotI = -1
 
 export function resetSlot(){
