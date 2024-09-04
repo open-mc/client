@@ -1,10 +1,10 @@
 import { Particle } from 'definitions'
 import './items.js'
 import './blocks.js'
+import particlePng from "./particles.png"
 
 const src = loader(import.meta)
 
-export const particlePng = Img(src`particles.png`)
 export const explode = [1,2,3,4].mmap(a => Wave(src`sound/misc/explode${a}.mp3`))
 export const hurt = [1,2,3].mmap(a => Wave(src`sound/misc/hurt${a}.mp3`))
 

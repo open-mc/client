@@ -1,3 +1,4 @@
+import './gamma.js'
 import { playerControls } from './controls.js'
 import { DataWriter } from '/server/modules/dataproto.js'
 import { mePhysics, stepEntity } from './entity.js'
@@ -9,7 +10,6 @@ import { jsonToType } from '/server/modules/dataproto.js'
 import { onChat } from './chat.js'
 import { loadingChunks } from './incomingPacket.js'
 import './frame.js'
-import '/img/_pako.js'
 
 let last = performance.now()
 globalThis.step = () => {
@@ -209,24 +209,7 @@ listen('music', () => bgGain.gain.value = options.music * options.music * 2)
 listen('sound', () => masterVolume = options.sound*2)
 listen('fps', () => ctxFramerate = options.fps ? options.fps < 1 ? options.fps*250 : Infinity : -1)
 let aid = NaN, bid = NaN
-let gotDefs = data => {
-	const packs = pako.inflate(data, {to: 'string'}).split('\0')
-	for(let i = 4; i < packs.length; i++) if(packs[i][0]=='~') packs[i] = 'http' + ip.slice(2) + packs[i].slice(1)
-	// import scripts
-	const list = packs[3].split('\n')
-	for(let i = 0; i < Classes.length; i++){
-		const h = (list[i]||'{}').split(' ')
-		Classes[i].savedata = jsonToType(h.pop())
-		Classes[i].savedatahistory = h.mmap(jsonToType)
-	}
-	Promise.all(packs.slice(4).map(a => import(a))).then(() => {
-		// done importing
-		let i
-		i = 0; for(const b of packs[0].split('\n')) funcify(b, i++, Blocks)
-		i = 0; for(const b of packs[1].split('\n')) funcify(b, i++, Items)
-		i = 0; for(const b of packs[2].split('\n')) funcify(b, i++, Entities)
-		if(!--loading) loaded()
-	})
+__import__.loadAll().then(packs => {
 	function funcify(a, i, Dict){
 		const Constructor = Dict == Items ? Item : Dict == Entities ? Entity : Block
 		const List = Dict == Items ? ItemIDs : Dict == Entities ? EntityIDs : BlockIDs
@@ -263,7 +246,18 @@ let gotDefs = data => {
 			if(!Thing.savedata) Object.defineProperties(Thing.constructor, Object.getOwnPropertyDescriptors(new Thing))
 		}
 	}
-}
+	const list = packs[3].split('\n')
+	for(let i = 0; i < Classes.length; i++){
+		const h = (list[i]||'{}').split(' ')
+		Classes[i].savedata = jsonToType(h.pop())
+		Classes[i].savedatahistory = h.mmap(jsonToType)
+	}
+	let i
+	i = 0; for(const b of packs[0].split('\n')) funcify(b, i++, Blocks)
+	i = 0; for(const b of packs[1].split('\n')) funcify(b, i++, Items)
+	i = 0; for(const b of packs[2].split('\n')) funcify(b, i++, Entities)
+	if(!--loading) loaded()
+})
 let connMsg = ''
 const onMsg = ({data,origin}) => {
 	if(origin=='null') return
@@ -319,7 +313,6 @@ const onMsg = ({data,origin}) => {
 			return
 		}
 	}else if(data instanceof ArrayBuffer){
-		if(gotDefs) return void(typeof data == 'string'?connMsg=data:(gotDefs(data),connMsg='',gotDefs=null))
 		if(loading>0) return void msgQueue.push(data)
 		_onPacket(data)
 	}else if(typeof data == 'string'){

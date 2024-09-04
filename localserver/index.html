@@ -2,7 +2,6 @@
 <script src="/img/_pako.js"></script>
 <script>
 // nice try
-if(location.origin != 'https://sandbox-41i.pages.dev') throw 1
 globalThis.loadFile = (i, f) => (i=decodeURI(i.url).replace(/[^\/]*$/,"").replace(/file:\/\/\/?(\w+:\/)?/y,'/'), f ? fetch(i + f).then(a=>a.arrayBuffer()).then(a=>new Uint8Array(a)) : f => fetch(i + f).then(a=>a.arrayBuffer()).then(a=>new Uint8Array(a)))
 globalThis.AsyncFunction = (async()=>{}).constructor
 

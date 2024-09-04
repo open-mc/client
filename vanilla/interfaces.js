@@ -1,7 +1,7 @@
 import { ephemeralInterfaces, EphemeralInterface } from "definitions"
 import { send } from 'api'
 import { renderSlot } from "./effects.js"
-const src = loader(import.meta)
+import craftingInterface from "./crafting.png"
 
 export function closeInterface(){
 	const buf = new DataWriter()
@@ -9,7 +9,6 @@ export function closeInterface(){
 	send(buf)
 }
 
-const craftingInterface = Img(src`crafting.png`)
 ephemeralInterfaces[1] = class extends EphemeralInterface{
 	slots = [null, null, null, null, null, null, null, null, null]
 	output = null

@@ -3,7 +3,7 @@
 <head>
 	<meta id="t" name="theme-color" content="#000">
 	<meta charset="UTF-8">
-	<meta property="og:title" content="Paper MC" />
+	<meta property="og:title" content="Open-MC" />
 	<meta property="og:image" content="https://openmc.pages.dev/img/icon.png" />
 	<meta property="og:description" content="Not a commercial project" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -30,7 +30,6 @@
 			color: red;
 			height: 30px; line-height: 30px;
 		}
-		#c{display:none}
 	</style>
 </head>
 <body onpointerdown="return!1" ontouchstart="event.target.click();return!1">
@@ -38,12 +37,10 @@
 	<div id="a"></div>
 	<div id="b"></div>
 </body>
-<iframe id="c"></iframe>
 <script>
 	const sw = navigator.serviceWorker
 	if(!sw) b.textContent = 'Unsupported device',a.remove()
-	else if(!sw.controller&&matchMedia('(display-mode: browser) or (display-mode: fullscreen)').matches
-	&& navigator.vendor.startsWith('Apple')){
+	else if(!sw.controller&&matchMedia('(display-mode: browser) or (display-mode: fullscreen)').matches && navigator.vendor.startsWith('Apple')){
 		fetch('langs/'+navigator.language.split('-',1)[0]+'.lang').then(a => a.status == 200 && a.headers.get('content-type').startsWith('text/html') ? fetch('langs/en.lang').then(a=>a.text()) : a.text(), e => fetch('langs/en.lang').then(a => a.text())).then(str => {
 			let lang={}
 			for(let line of str.split('\n')){
@@ -52,7 +49,7 @@
 				const {0:k,1:v} = line.split('=', 2)
 				if(v!=null) lang[k.trim()] = v.trim()
 			}
-			(d=>{d.display="fullscreen";d.icons=[{src:(d.start_url=location.origin,d.scope=location.origin)+"/img/icon.png",type:"image/png",sizes:"512x512"}];document.head.insertAdjacentHTML('beforeEnd', `<link rel="manifest" href="data:application/json;base64,${btoa(JSON.stringify(d))}"><meta name="apple-mobile-web-app-title" content="${d.short_name}"><link rel="shortcut icon" href="/img/icon.png">`);document.title=d.name;document.documentElement.style.backgroundColor=d.background_color})({name:lang['misc.app_name'],short_name:lang['misc.app_name_short'],theme_color:'#000',background_color:'#000'})
+			(d=>{d.display="fullscreen";d.icons=[{src:(d.start_url=location.origin,d.scope=location.origin)+"/img/icon.png",type:"image/png",sizes:"512x512"}];document.head.insertAdjacentHTML('beforeEnd', `<link rel="manifest" href="data:application/json;base64,${btoa(JSON.stringify(d))}"><meta name="mobile-web-app-title" content="${d.short_name}"><link rel="shortcut icon" href="/img/icon.png">`);document.title=d.name;document.documentElement.style.backgroundColor=d.background_color})({name:lang['misc.app_name'],short_name:lang['misc.app_name_short'],theme_color:'#000',background_color:'#000'})
 			b2.children[2].prepend(lang['misc.add_to_home_screen'])
 			d.textContent = lang['misc.continue_in_browser']
 		})
@@ -68,15 +65,12 @@
 	}else install()
 	function install(){
 		navigator.wakeLock.request('screen').catch(e => null)
-		let L = 2
-		onmessage=e=>--L||(location='/')
-		c.src = 'https://sandbox-41i.pages.dev/'
 		if(sw.controller) sw.controller.postMessage(null)
 		else sw.register('./sw.js', {type: 'module', updateViaCache: 'all'}).then(r => (r.active??r.installing).postMessage(null))
 		sw.onmessage = ({data}) => {
 			if(data<0) return void(b.textContent = sw.controller?'Update failed':'Please reload/reinstall app', document.body.onpointerdown=()=>location='')
 			a.style.setProperty('--p', data*100+'%')
-			if(data==1) --L||(location='/')
+			if(data==1) location='/'
 		}
 	}
 </script>

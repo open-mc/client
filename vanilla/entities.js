@@ -2,29 +2,18 @@ import { explode, AshParticle, BlastParticle, hurt } from './defs.js'
 import { audioSet, renderItem, renderItemCount, renderSlot } from './effects.js'
 import { Entities, Entity, Item, Blocks, BlockIDs, toTex, addParticle } from 'definitions'
 import { renderF3, renderUI, drawLayer, drawText, calcText } from 'api'
-import { getblock, cam, worldEvents, world, me, perms, getTint, mode } from 'world'
+import { getblock, cam, worldEvents, world, me, mode } from 'world'
 import { renderLeft, renderRight } from './creativeInventory.js'
 
 const src = loader(import.meta)
 
-const meInterface = Img(src`meint.png`)
+import meInterface from "./meint.png"
 
 const damageSounds = [
 	null, Wave(src`sound/fire/extinguish.mp3`)
 ]
 
-const enterWaterSounds = [
-	Wave(src`sound/water/enter1.mp3`),
-	Wave(src`sound/water/enter2.mp3`),
-	Wave(src`sound/water/enter3.mp3`)
-], exitWaterSounds = [
-	Wave(src`sound/water/exit1.mp3`),
-	Wave(src`sound/water/exit2.mp3`),
-	Wave(src`sound/water/exit3.mp3`)
-], splashSounds = [
-	Wave(src`sound/water/splash1.mp3`),
-	Wave(src`sound/water/splash2.mp3`)
-]
+const enterWaterSounds = audioSet('water/enter', 3), exitWaterSounds = audioSet('water/exit', 3), splashSounds = audioSet('water/splash', 3)
 const nameBgCol = vec4(0, 0, 0, .2)
 export class LivingEntity extends Entity{
 	health = 20
@@ -336,7 +325,7 @@ Entities.tnt = class extends Entity{
 		for(let i = 0; i < 30; i++) addParticle(new AshParticle(this.x, this.y))
 	}
 }
-const endercrystal = Img(src`endercrystal.png`)
+import endercrystal from "./endercrystal.png"
 const endCrystalWiregrid = endercrystal.crop(32,16,16,16)
 const endCrystalCore = endercrystal.crop(96,16,16,16)
 Entities.end_crystal = class extends Entity{

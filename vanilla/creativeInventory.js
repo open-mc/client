@@ -1,6 +1,7 @@
 import { uiButton, drawText, calcText, send } from 'api'
 import { commandBlockTexs } from './blocks.js'
-import { click, renderItem, renderTooltip, slotHighlightColor } from './effects.js'
+import { renderItem, renderTooltip, slotHighlightColor } from './effects.js'
+import click from "../img/click.mp3"
 import { toTex } from 'definitions'
 import './items.js'
 

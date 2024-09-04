@@ -116,4 +116,4 @@ export function uiButton(c, x0, y0, w, h){
 export let chatFocused = false
 export const _setChatFocused = a => chatFocused=a
 
-export { drawText, calcText, textShadeCol} from './font.js'
+export { drawText, calcText, textShadeCol } from './font.js'

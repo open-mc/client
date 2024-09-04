@@ -166,8 +166,7 @@ export function key(key, handler){
 	cbs[keyname].push(handler)
 }
 
-// Don't prompt if live server or local server
-window.onbeforeunload = () => !(/(\.|^)localhost$|^127.0.0.1$|^\[::1\]$/.test(location.hostname) || !ws)||void-0
+window.onbeforeunload = () => !(location.protocol != 'https:' || !ws)||void-0
 HTMLElement.prototype.requestFullscreen = HTMLElement.prototype.requestFullscreen || Function.prototype //Safari fullscreen is broken
 let wasFullscreen = false
 let ignoreEsc = false

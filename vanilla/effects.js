@@ -1,14 +1,12 @@
 import { music, me, server } from 'world'
 import { renderF3, drawText, calcText, drawLayer } from 'api'
 import { toTex } from 'definitions'
+import "./sound/contents.urls"
 const src = loader(import.meta)
-
 export const audioSet = (path, count) => Array.from({length: count}, (_, i) => Wave(src`sound/${path+(i+1)}.mp3`))
 
-export const click = Wave(src`../img/click.mp3`)
-
-export const icons = Img(src`icons.png`)
-const btns = Img(src`../img/button.png`)
+import icons from "./icons.png"
+import btns from "../img/button.png"
 export const uiButtons = {
 	large: btns.crop(124,20,200,20),
 	largeSelected: btns.crop(124,40,200,20),
@@ -81,7 +79,6 @@ export function renderItemCount(c, item){
 	const arr = item.count > 1 && item.count <= 64 ? counts[item.count-2] :  calcText('\\+9' + item.count)
 	drawText(c, arr, 0.4375-arr.width*.5, 0, 0.5)
 }
-let slotx = NaN, sloty = NaN
 export let slotI = -1
 
 export function resetSlot(){

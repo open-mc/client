@@ -4,32 +4,43 @@ import { pause } from '../uis/pauseui.js'
 import { serverlist } from '../uis/serverlist.js'
 import texts from './lang.js'
 import { defaultConfig, fallback } from './worldconfig.js'
-import { safari } from '../uis/defects.js'
-
 export let iframe = document.createElement('iframe'), win = null
 
+iframe.srcdoc = `<script>parent.postMessage(undefined,'*');addEventListener('message',e=>{
+let E="data:application/javascript,export%20default%20",H=${JSON.stringify(location.origin+'/')},[d,f]=e.data,m={__proto__:null},R=(b,s,c=s.charCodeAt(0))=>c==47||(c==46&&((c=s.charCodeAt(1))==47||(c==46&&s.charCodeAt(2)==47)))?new URL(s,b).href:s.startsWith(H)?'data:application/javascript,':c==c?s:b;(globalThis.__import__=(b,s='')=>import(R(b,s))).meta=u=>m[u]??=Object.freeze({url:u,resolve:s=>R(u,s)});for(let{0:k,1:v}of __import__.map=d){
+if(!v){m[k]='data:application/javascript,';continue};if(v.type=='application/javascript'){m[k]=URL.createObjectURL(v);continue}
+let ct=v.type,ct1='',i=ct.indexOf(';'),R="__import__.map.get("+encodeURI(JSON.stringify(k))+")";if(i>-1)ct=ct.slice(0,i);i=ct.indexOf('/');if(i>-1)ct1=ct.slice(0,i).trim().toLowerCase(),ct=ct.slice(i+1).trim().toLowerCase()
+if(ct1=='image')m[k]=E+"Img("+R+")"
+else if(ct1=='application'&&ct=='json')m[k]=E+"JSON.parse(await%20new%20Response("+R+").json())"
+else if(ct1=='audio')m[k]=E+"Wave("+R+")"
+else m[k]=E+R
+}m.vanilla=m[H+'vanilla/index.js'],m.core=m[H+'iframe/index.js'],m.world=m[H+'iframe/world.js'],m.api=m[H+'iframe/api.js'],m.definitions=m[H+'iframe/definitions.js']
+d=document.createElement('script');d.type='importmap';d.textContent=JSON.stringify({imports:m});document.head.append(d);m={__proto__:null}
+__import__.loadAll=async ()=>{__import__.loadAll=null;let i=3,a=[];while(++i<f.length)a.push(import(f[i]));for(const n of a)await n;return f};import('core')
+},{once:true})</script>`
+iframe.sandbox = 'allow-scripts'
 iframe.allow = 'cross-origin-isolated; autoplay'
-iframe.src = 'https://sandbox-41i.pages.dev/'
 document.body.append(iframe)
 export let iReady = false
 export const skin = new Uint8Array(1008)
-
+const sw = navigator.serviceWorker
 const queue = []
-export function gameIframe(f){
+export function gameIframe(f, url = 'file:'){
 	if(!iReady) return false
-	iframe.src = 'https://sandbox-41i.pages.dev/iframe/index.html'
+	iReady = false
+	const q = f.slice(3)
+	q[0] = url
+	sw.controller.postMessage(q)
+	sw.onmessage = ({data, source}) => {
+		if(source != sw.controller) return
+		iframe.contentWindow.postMessage([data,f], '*')
+		iReady = true
+	}
 	return true
 }
 
 const empty = new Comment()
 empty.esc = pause
-
-let c = caches.open(''); c.then(a=>c=a)
-function onfetch({data: url}){
-	if(url[url.length-1]=='/') url+='main.html'
-	const done = safari ? res => res?res.arrayBuffer().then(a=>this.postMessage({url, body: a, ct: res.headers.get('content-type')}, [a])):fetch(url).then(done) : res => res?this.postMessage({url, body: res.body, ct: res.headers.get('content-type')}, [res.body]):fetch(url).then(done)
-	;(c.then?c.then(c=>c.match(url)):c.match(url)).then(done)
-}
 
 export class LocalSocket extends MessageChannel{
 	static getOptions = ip => new Promise((r,f) => {
@@ -150,7 +161,7 @@ const tra=[null]
 let mport
 onmessage = ({data, source}) => {
 	if((source??0) !== iframe.contentWindow) return
-	if(!iReady){ if(data) (mport=data).onmessage = onfetch, iReady = true; else iframe.src+=''; return }
+	if(!iReady){ iReady = true; return }
 	if(typeof data != 'object'){
 		if(data === true) showUI(null)
 		else if(data === false) hideUI()
@@ -187,7 +198,6 @@ export const download = file => {
 }
 
 export function destroyIframe(){
-	iframe.src = 'https://sandbox-41i.pages.dev/'
 	iframe.remove()
 	document.body.append(iframe)
 	voiceOff(); if(m && typeof m == 'object') m.source.disconnect(), m = null

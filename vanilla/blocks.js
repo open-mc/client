@@ -1,14 +1,14 @@
-import { uiButtons, audioSet, lava, renderSlot, water, click, renderGenericTooltip } from './effects.js'
+import { uiButtons, audioSet, lava, renderSlot, water, renderGenericTooltip } from './effects.js'
+import click from "../img/click.mp3"
 import { sound, cam, world, updateblock, redrawblock, mode } from 'world'
 import { Blocks, Block, Items, BlockTexture, toTex } from 'definitions'
 import { BlockShape, blockShaped, fluidify } from './blockshapes.js'
 import { closeInterface } from './interfaces.js'
 import { uiButton, drawLayer, drawText } from 'api'
-const src = loader(import.meta)
 
-export const blocksPng = Img(src`blocks.png`)
-export const itemsPng = Img(src`items.png`)
-export const animatedPng = Img(src`animated.png`)
+import blocksPng from "./blocks.png"
+import itemsPng from "./items.png"
+import animatedPng from "./animated.png"
 
 Blocks.air = class extends Block{
 	static solid = false
@@ -247,8 +247,9 @@ Blocks.endstone = class extends Block{
 	static stepSounds = Blocks.stone.stepSounds
 }
 export const chestTop = blocksPng.crop(9*16, 3*16, 16, 16)
-const chestOpen = Wave(src`sound/containers/open_chest.mp3`), chestClose = Wave(src`sound/containers/close_chest.mp3`)
-const containerInterface = Img(src`container.png`)
+import chestOpen from "./sound/containers/open_chest.mp3"
+import chestClose from "./sound/containers/close_chest.mp3"
+import containerInterface from "./container.png"
 Blocks.chest = class extends Block{
 	static blockShape = [1/16, 0, 15/16, 7/8]
 	static texture = BlockTexture(blocksPng, 10, 3)
@@ -345,14 +346,17 @@ Blocks.gold_block = MineralBlock
 Blocks.emerald_block = MineralBlock
 Blocks.diamond_block = MineralBlock
 
-const fireAmbient = Wave(src`sound/fire/ambient.mp3`), portalAmbient = Wave(src`sound/portal/ambient.mp3`)
-const fireExtinguish = Wave(src`sound/fire/extinguish.mp3`)
+import fireAmbient from "./sound/fire/ambient.mp3"
+import portalAmbient from "./sound/portal/ambient.mp3"
+import fireExtinguish from "./sound/fire/extinguish.mp3"
+import flintIgnite from "./sound/fire/ignite.mp3"
+import portalEnter from "./sound/portal/enter.mp3"
 
 Blocks.fire = class extends Block{
 	static solid = false
 	static replaceable = true
 	static texture = BlockTexture(animatedPng, 1, 0, 32)
-	static placeSounds = [Wave(src`sound/fire/ignite.mp3`)]
+	static placeSounds = [flintIgnite]
 	static opacity = 0
 	static brightness = 14
 	random(x, y){
@@ -362,7 +366,6 @@ Blocks.fire = class extends Block{
 		sound(fireExtinguish, x, y, 0.5, random() * 1.6 + 1.8)
 	}
 }
-const portalEnter = Wave(src`sound/portal/enter.mp3`)
 let portalEffect = 0, inPortal = false
 Blocks.portal = class extends Block{
 	static solid = false
@@ -381,7 +384,9 @@ Blocks.portal = class extends Block{
 		}
 	}
 }
-const portalOverlay = Img(src`portal.png`)
+import portalOverlay from "./portal.png"
+import endPortalOverlay from "./endportaloverlay.png"
+
 drawLayer('none', 400, c => {
 	if(!inPortal){ portalEffect = 0; if(!cam.nausea) return }
 	inPortal = false
@@ -389,7 +394,6 @@ drawLayer('none', 400, c => {
 	if(!portalEffect && cam.nausea < 0.1) cam.nausea = max(0, cam.nausea-dt*.2)
 	if(cam.nausea) c.draw(portalOverlay.sub(0, (world.animTick%32)/32, 1, 1/32), vec4(cam.nausea))
 })
-const endPortalOverlay = Img(src`endportaloverlay.png`)
 const endShader = Shader(`
 #define PI 3.1415927
 #define ROT_MAT(rot) mat2(cos(rot),-sin(rot),-sin(rot),-cos(rot))
@@ -527,7 +531,7 @@ Blocks.crafting_table = class extends Planks{
 	static texture = BlockTexture(blocksPng, 12, 3)
 	static interactible = true
 }
-const furnaceInterface = Img(src`furnace.png`)
+import furnaceInterface from "./furnace.png"
 const furnaceUI = furnaceInterface.crop(0, 0, 176, 80), cookArrow = furnaceInterface.crop(176, 14, 24, 17), fuelIndicator = furnaceInterface.crop(176, 0, 14, 14)
 const furnaceTex = BlockTexture(blocksPng, 12, 2), furnaceLitTex = BlockTexture(blocksPng, 13, 3)
 Blocks.furnace = class extends Stone{
@@ -603,7 +607,7 @@ Blocks.glowstone = class extends Blocks.glass{
 	static texture = BlockTexture(blocksPng, 9, 6)
 }
 
-const commandBlockTex = Img(src`command_blocks.png`)
+import commandBlockTex from "./command_blocks.png"
 export const commandBlockTexs = [0,1,2,3,4,5].mmap(a => commandBlockTex.crop(a<<4,0,16,64))
 const commandBlockNames = ['Impulse','Impulse (inversed)','Repeating','Repeating (needs redstone)','Callable','Callable (once per tick)']
 const btnW = uiButtons.large.w

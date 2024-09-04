@@ -1,18 +1,19 @@
-import { uiButtons, icons, renderItem, renderItemCount, click, renderSlot, renderTooltip, resetSlot, slotI, audioSet } from './effects.js'
+import { uiButtons, renderItem, renderItemCount, renderSlot, renderTooltip, resetSlot, slotI, audioSet } from './effects.js'
+import click from "../img/click.mp3"
 import './entities.js'
 import { onkey, drawLayer, pause, renderUI, quit, onpacket, send, voice, drawText, calcText, tickPhase } from 'api'
 import { getblock, gridEvents, sound, entityMap, pointer, cam, world, configLoaded, me, W2, H2, exposureMap, mode } from 'world'
 import { Item, BlockParticle, addParticle, blockBreak, ephemeralInterfaces } from 'definitions'
 import { AshParticle, BlastParticle, explode } from './defs.js'
-import { blocksPng } from './blocks.js'
+import blocksPng from "./blocks.png"
+import icons from "./icons.png"
 import { closeInterface } from './interfaces.js'
 import './voice.js'
 
-const src = loader(import.meta)
-
 const BREAKING = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].mmap(x => blocksPng.sub(x/16, 0, 1/16, 1/16))
-const skyPng = await Img(src`sky.png`)
-const stars = Img(src`stars.png`, REPEAT)
+import skyPng from "./sky.png"
+import stars from "./stars.png"
+stars.setOptions(REPEAT)
 const sun = skyPng.crop(128, 64, 32, 32), moons = [
 	skyPng.crop(128, 0, 32, 32),
 	skyPng.crop(160, 0, 32, 32),
@@ -130,9 +131,9 @@ drawLayer('world', 150, c => {
 	}
 })
 
-const hotbar = Img(src`hotbar.png`)
-const selected = Img(src`slot.png`)
-const inventory = Img(src`inv.png`)
+import hotbar from "./hotbar.png"
+import selected from "./slot.png"
+import inventory from "./inv.png"
 
 const heart = icons.crop(52,0,9,9), halfHeart = icons.crop(61,0,9,9)
 const heartEmpty = icons.crop(16,0,9,9)

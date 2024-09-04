@@ -1,23 +1,4 @@
-<!DOCTYPE html>
-<!-- Good luck understanding this file, warning: very graphical -->
-<script async src="./_shim.js"></script>
-<script type="importmap">
-{"imports": {
-	"api": "./api.js",
-	"world": "./world.js",
-	"definitions": "./definitions.js"
-}}
-</script>
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
-<canvas style="position:fixed;inset:0;width:100%;height:100%;background:#000" width="0" height="0"></canvas>
-<script type="module">
-// nice try
-if(location.origin != 'https://sandbox-41i.pages.dev') throw 1
-delete Navigator.prototype.serviceWorker
-delete Navigator.prototype.storage
-delete Navigator.prototype.storageBuckets
-delete window.sharedStorage; delete window.caches;
-delete window.localStorage; delete window.indexedDB;
+document.head.insertAdjacentHTML('beforeend', `<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">`)
 onerror=(_,a,b,c,d)=>parent.postMessage([''+d,a,b,c], '*')
 onunhandledrejection=({reason})=>parent.postMessage([''+reason,'',0,0], '*')
 Array.prototype.bind = Array.prototype.push
@@ -226,7 +207,9 @@ globalThis.pixelRatio = 1
 globalThis.t = performance.now()/1000; globalThis.dt = 0
 let T=document.body
 T.parentElement.style.overflow='hidden'
-T.append(T=T.firstChild)
+T.append(T=document.createElement('canvas'))
+T.style = 'position:fixed;inset:0;width:100%;height:100%;background:#000'
+T.width = T.height = 0
 /** @type WebGL2RenderingContext */
 const gl = T.getContext('webgl2', {preserveDrawingBuffer: false, antialias: false, depth: false, premultipliedAlpha: true, stencil: true})
 function glLost(){
@@ -244,10 +227,7 @@ gl.disable(3024) // dither
 gl.pixelStorei(3317, 1)
 gl.pixelStorei(3333, 1)
 let pma = 1
-/*function texSub(){}
-function texSuper(){}
-function texCrop(){}
-function texLayer(){}*/
+const ibo = {imageOrientation: 'flipY', premultiplyAlpha: 'none'}
 class img{
 	get format(){return this.t.f}
 	get width(){return this.t.w}
@@ -261,7 +241,7 @@ class img{
 		this.w = w; this.h = h; this.l = l
 	}
 	get src(){return this.t.src}
-	set src(a){ if(this.t.src===null) return; this.t.src=a?typeof a=='string'?[a]:a:[];if(this.t.tex) this.delete() }
+	set src(a){ if(this.t.src===null) return; this.t.src=a?Array.isArray(a)?a:[a]:[];if(this.t.tex) this.delete() }
 	get loaded(){return this.t.d!=0}
 	get then(){return this.t.d==0?this.#then:null}
 	load(){if(!this.t.tex) img.load(this.t)}
@@ -292,7 +272,7 @@ class img{
 		if(!t.tex) img.load(t)
 	}
 	static load(t){
-		const tex = t.tex = gl.createTexture()
+		t.tex = gl.createTexture()
 		if(!t.src.length){
 			img.fakeBind(t)
 			gl.texStorage3D(35866, 1, t.f[0], t.w=1, t.h=1, t.d=1)
@@ -320,42 +300,37 @@ class img{
 			if(t.cbs) for(let i = 1; i < t.cbs.length; i+=3) t.cbs[i]?.(t.cbs[i+1])
 			t.cbs = null
 		}
-		const imgs = t.src.map(a=>{
-			const i = new Image()
-			i.onerror = () => rj('Failed to load image from src '+i.src)
-			i.onload = () => {
-				if(toLoad==imgs.length) w=i.naturalWidth, h=i.naturalHeight
-				else if(w!=i.naturalWidth||h!=i.naturalHeight) return rj('Failed to load image: all layers must be the same size')
-				if(--toLoad) return
-				const {o} = t
-				img.fakeBind(t)
-				if(t.f[3]>>31)
-					gl.texParameterf(35866, 10240, 9728),
-					gl.texParameterf(35866, 10241, 9728)
-				else
-					gl.texParameterf(35866, 10240, 9728+(o&1)),
-					gl.texParameterf(35866, 10241, t.m?9984+(o>>1&3):9728+(o>>1&1))
-				gl.texParameterf(35866, 10242, o&8?10497:o&16?33648:33071)
-				gl.texParameterf(35866, 10243, o&32?10497:o&64?33648:33071)
-				gl.texStorage3D(35866, t.m||1, t.f[0], t.w=w, t.h=h, t.d=imgs.length)
-				if(!pma) gl.pixelStorei(37440,1),gl.pixelStorei(37441,pma=1)
-				for(let l = 0; l < imgs.length; l++)
-					gl.texSubImage3D(35866, 0, 0, 0, l, w, h, 1, t.f[1], t.f[2], imgs[l])
-				if(t.m) gl.generateMipmap(35866)
-				if(t.i<0) gl.bindTexture(35866, null)
-				if(t.cbs) for(let i = 0; i < t.cbs.length; i+=3) t.cbs[i](t.cbs[i+2])
-				t.cbs = null
-			}
-			i.crossOrigin = 'anonymous'
-			i.src = a
-			return i
-		})
+		let p
+		const imgs = t.src.map((a,i)=>(typeof a=='string'?(p=__import__.map.get(a))?createImageBitmap(p, ibo):fetch(a).then(a=>a.blob()).then(a=>createImageBitmap(a, ibo)):a instanceof Blob?createImageBitmap(a, ibo):a).then(bmp => {
+			imgs[i] = bmp
+			if(toLoad==imgs.length) w=bmp.width, h=bmp.height
+			else if(w!=bmp.width||h!=bmp.height) return gl.deleteTexture(t.tex), rj('Failed to load image: all layers must be the same size')
+			if(--toLoad) return
+			const {o} = t
+			img.fakeBind(t)
+			if(t.f[3]>>31)
+				gl.texParameterf(35866, 10240, 9728),
+				gl.texParameterf(35866, 10241, 9728)
+			else
+				gl.texParameterf(35866, 10240, 9728+(o&1)),
+				gl.texParameterf(35866, 10241, t.m?9984+(o>>1&3):9728+(o>>1&1))
+			gl.texParameterf(35866, 10242, o&8?10497:o&16?33648:33071)
+			gl.texParameterf(35866, 10243, o&32?10497:o&64?33648:33071)
+			gl.texStorage3D(35866, t.m||1, t.f[0], t.w=w, t.h=h, t.d=imgs.length)
+			if(!pma) gl.pixelStorei(37440,1),gl.pixelStorei(37441,pma=1)
+			for(let l = 0; l < imgs.length; l++)
+				gl.texSubImage3D(35866, 0, 0, 0, l, w, h, 1, t.f[1], t.f[2], imgs[l])
+			if(t.m) gl.generateMipmap(35866)
+			if(t.i<0) gl.bindTexture(35866, null)
+			if(t.cbs) for(let i = 0; i < t.cbs.length; i+=3) t.cbs[i](t.cbs[i+2])
+			t.cbs = null
+		}, e => rj('Failed to load image')))
 	}
 	paste(tex, x=0, y=0, l=0, srcX=0, srcY=0, srcL=0, srcW=0, srcH=0, srcD=0){
 		const {t}=this; if(t.src) return this
 		if(typeof tex=='string') return new Promise((cb, rj) => {
 			const i = new Image()
-			i.onerror = () => rj('Failed to load image from src '+i.src)
+			i.onerror = () => rj('Failed to load image')
 			i.onload = () => {
 				img.fakeBind(t)
 				if(!pma) gl.pixelStorei(37440,1),gl.pixelStorei(37441,pma=1)
@@ -368,7 +343,7 @@ class img{
 			return this
 		})
 		const {t:t2}=tex
-		if(!t2.d) return tex.#then(cb=>this.paste(tex,x,y,l,srcX,srcY,srcL,srcW,srcH,srcD)), this
+		if(!t2.d) return tex.#then(()=>this.paste(tex,x,y,l,srcX,srcY,srcL,srcW,srcH,srcD)), this
 		if(t.tex==t2.tex) return console.warn('cannot copy from texture to itself'), this
 		i&&draw()
 		img.fakeBind(t)
@@ -442,8 +417,9 @@ class img{
 	}
 	setOptions(o){
 		const {t}=this
-		img.fakeBind(t)
 		t.o=o
+		if(!t.tex) return
+		img.fakeBind(t)
 		if(t.f[3]>>31)
 			gl.texParameterf(35866, 10240, 9728),
 			gl.texParameterf(35866, 10241, 9728)
@@ -466,7 +442,7 @@ class img{
 	}
 	genMipmaps(){
 		const {t}=this
-		if(!t.m) return
+		if(!t.tex||!t.m) return
 		img.fakeBind(t)
 		gl.generateMipmap(35866)
 		if(t.i<0) gl.bindTexture(35866, null)
@@ -485,7 +461,7 @@ globalThis.Texture = (w=0, h=0, d=0, o=0, f=Formats.RGBA, mips=0) => {
 	oU=0
 	return tx
 }
-globalThis.Img = (src, o=0, fmt=Formats.RGBA, mips=0) => new img({tex:null,i:-1,f:fmt,o,src:src?typeof src=='string'?[src]:src:[],w:0,h:0,d:0,cbs:null,m:mips})
+globalThis.Img = (src, o=0, fmt=Formats.RGBA, mips=0) => new img({tex:null,i:-1,f:fmt,o,src:src?Array.isArray(src)?src:[src]:[],w:0,h:0,d:0,cbs:null,m:mips})
 Object.assign(globalThis, {
 	UPSCALE_SMOOTH: 1, DOWNSCALE_SMOOTH: 2, MIPMAP_SMOOTH: 4, SMOOTH: 7, REPEAT_X: 8, REPEAT_MIRRORED_X: 16, REPEAT_Y: 32, REPEAT_MIRRORED_Y: 64, REPEAT: 40, REPEAT_MIRRORED: 80,
 	R: 1, G: 2, B: 4, A: 8,
@@ -556,17 +532,14 @@ const v3z = vec3.zero = {x:0,y:0,z:0}
 const v4z = vec4.zero = {x:0,y:0,z:0,w:0}
 let D
 globalThis.Formats={R:[33321,6403,5121],RG:[33323,33319,5121],RGB:[32849,6407,5121],RGBA:D=[32856,T=6408,5121],RGB565:[36194,6407,33635],R11F_G11F_B10F:[35898,6407,35899],RGB5_A1:[32855,T,32820],RGB10_A2:[32857,T,33640],RGBA4:[32854,T,32819],RGB9_E5:[35901,6407,35902],R8:[33330,T=36244,5121,1<<31],RG8:[33336,33320,5121,1<<31],RGB8:[36221,36248,5121,1<<31],RGBA8:[36220,36249,5121,1<<31],R16:[33332,T,5123,1<<31],RG16:[33338,33320,5123,1<<31],RGB16:[36215,36248,5123,1<<31],RGBA16:[36214,36249,5123,1<<31],R32:[33334,T,5125,1<<31],RG32:[33340,33320,5125,1<<31],RGB32:[36209,36248,5125,1<<31],RGBA32:[36208,36249,5125,1<<31],R16F:[33325,6403,5131],RG16F:[33327,33319,5131],RGB16F:[34843,6407,5131],RGBA16F:[34842,6408,5131],R16F_32F:[33325,6403,5126],RG16F_32F:[33327,33319,5126],RGB16F_32F:[34843,6407,5126],RGBA16F_32F:[34842,6408,5126],R32F:[33326,6403,5126],RG32F:[33328,33319,5126],RGB32F:[34837,6407,5126],RGBA32F:[34836,6408,5126]}
-globalThis.loader=({url})=>{
-	url = url.slice(0,url.lastIndexOf('/')+1)
-	return (...src) => {
-		if(src[0].raw){
-			const a = [src[0][0]]
-			for(let i = 1; i <= src.length; i++) a.push(src[i], src[0][i])
-			const s = a.join('')
-			return s[0]=='/'?s:url+s
-		}
-		return src.length==1?src[0][0]=='/'?src[0]:url+src[0]:src.map(src=>src[0]=='/'?src:url+src)
+globalThis.loader=({url}) => (...src) => {
+	if(src[0].raw){
+		const a = [src[0][0]]
+		for(let i = 1; i <= src.length; i++) a.push(src[i], src[0][i])
+		const s = new URL(a.join(''), url).href
+		return __import__.map.get(s)??s
 	}
+	return src.length==1?__import__.map.get(src=new URL(src[0],url).href)??src:src.map(a=>__import__.map.get(a=new URL(a,url).href)??a)
 }
 class can{
 	t;#a;#b;#c;#d;#e;#f;#m;#shader;s
@@ -905,7 +878,7 @@ globalThis.Wave = src => {
 	return function play(vol = 1, pitch = 1, pan = 0, start = 0, end = NaN, ends = true, bg = false){
 		if(buf === null){
 			buf = []
-			fetch(src, {credentials: 'omit', priority: 'high'}).then(a => a.arrayBuffer()).then(a => actx.decodeAudioData(a, b => {
+			void (typeof src == 'string' ? (__import__.map.get(src)?.arrayBuffer() ?? fetch(src, {credentials: 'omit', priority: 'high'}).then(a => a.arrayBuffer())) : src.arrayBuffer()).then(a => actx.decodeAudioData(a, b => {
 				const l = buf; buf = b
 				for(let i = 0; i < l.length; i++) l[i][0] = play(...l[i]), l[i].length = 1
 			}))
@@ -984,5 +957,3 @@ requestAnimationFrame(function f(){
 	ctx.reset(); try{frame?.(dt)}catch(e){Promise.reject(e)}; i&&draw()
 	timeToFrame = performance.now()/1000-t
 })
-import('./index.js')
-</script>

@@ -1,6 +1,7 @@
 import { Blocks, Items, Item, BlockTexture } from 'definitions'
 import { itemify, slabifyItem } from './blockshapes.js'
-import { chestTop, commandBlockTexs, itemsPng, barrierTex } from './blocks.js'
+import { chestTop, commandBlockTexs, barrierTex } from './blocks.js'
+import itemsPng from "./items.png"
 import { getblock } from 'world'
 
 Items.oak_log = itemify(Blocks.oak_log, 'Oak log')

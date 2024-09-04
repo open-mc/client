@@ -168,9 +168,13 @@ export async function play(n){
 		const p = packet.build()
 		globalThis.ws = new WebSocket(n.ip)
 		timeout = setTimeout(ws.close.bind(ws), 5000)
-		ws.onopen = () => (clearTimeout(timeout),ws.send(p),gameIframe(),timeout = -1)
+		ws.onopen = () => (clearTimeout(timeout),ws.send(p),timeout = -1)
 	}
-	ws.onmessage = fwPacket
+	ws.onmessage = ({data}) => {
+		if(typeof data == 'string') return pendingConnection(texts.connection.authenticating())
+		gameIframe(pako.inflate(data, {to: 'string'}).split('\0'))
+		ws.onmessage = fwPacket
+	}
 	ws.onclose = ({reason, code}) => {
 		reason = reason || (ws instanceof WebSocket ? timeout >= 0 ? texts.connection.refused() : texts.connection.lost() : texts.connection.invalid_ip())
 		finished()

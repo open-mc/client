@@ -1,16 +1,325 @@
 // Change this if you feed data from a different repo
 const REPO = 'open-mc/client'
+const LOCAL = location.protocol != 'https:'
+const HOST = location.origin + '/'
 self.addEventListener('fetch', e => {
 	let req = e.request.url
-	const i = req.indexOf('/')+2, j = req.indexOf('/', i)
-	if(req.slice(i,j) != location.host) return
+	if(!req.startsWith(HOST)) return
 	if(req[req.length-1]=='/') req += 'main.html'
+	if(LOCAL) return req != e.request.url && e.respondWith(fetch(req))
 	e.respondWith(ready ? ready.then(() => cache.match(ready == '' ? '/index.html' : req)) : cache.match(ready == '' ? '/index.html' : req))
 })
+
+const fromHex = h => (h=h-48&0xffff)<10?h:(h=(h|32)-49&0xffff)<6?h+10:0
+const parseModule = (str, baseUrl, imports) => {
+	let i = 0, levels = 0, src = [], r = null
+function rstr(end){
+	let r = ''
+	top: while(i < str.length){
+		const c = str.charCodeAt(i++)
+		if(c == end) break
+		if(c == 92){
+			const c2 = str.charCodeAt(i++)
+			if(c2 == 48) r += '\0'
+			else switch(c2|32){
+				case 98: r += '\b'; break;
+				case 102: r += '\f'; break;
+				case 110: r += '\n'; break;
+				case 114: r += '\r'; break;
+				case 116: r += '\t'; break;
+				case 117:
+				if(i>str.length-4){ r += '\ufffd'; break top }
+				const c1 = str.charCodeAt(i++)
+				if(c1 == 123){
+					let res = 0
+					while(i < str.length){
+						const c = str.charCodeAt(i++)
+						if(c == 125) break
+						if(c == end){r += '\ufffd'; break top }
+						else res = res<<4|fromHex(c)
+					}
+					r += (res >>>= 0) > 1114111 ? '\ufffd' : String.fromCodePoint(res)
+				}else r += String.fromCharCode(fromHex(c1)<<12|fromHex(str.charCodeAt(i++))<<8|fromHex(str.charCodeAt(i++))<<4|fromHex(str.charCodeAt(i++)));
+				break;
+				case 118: r += '\v'; break;
+				case 120:
+				if(i>str.length-2){ r += '\ufffd'; break top }
+				r += String.fromCharCode(fromHex(str.charCodeAt(i++))<<4|fromHex(str.charCodeAt(i++)))
+				break;
+				default: r += String.fromCharCode(c2);
+			}
+		}else r += str[i-1]
+	}
+	return r
+}
+
+function parse(end = 125){
+	let lastExpr = 0
+	for(;i < str.length;){
+		let c; do{c = str.charCodeAt(i++)}while(c == 32 || (c > 8 && c < 14))
+		if(c == 123){
+			let j = i-2, c3 = str.charCodeAt(j)
+			while(c3 == 32 || (c3 > 8 && c3 < 14)) c3 = str.charCodeAt(--j)
+			parse(125)
+			if(c3==33||c3==37||c3==38||c3==40||(c3>=42&&c3<=45)||(c3==47&&lastExpr!=j)||(c3>=58&&c3<=63)||c3==91||c3==123||c3==124||c3==126) lastExpr = i-1
+		}else if(end==41&&c==40) parse(41)
+		else if(c == end) return
+		else if(c == 47){
+			const c2 = str.charCodeAt(i)
+			if(c2 == 47){
+				i++; while(i < str.length && str.charCodeAt(i++) != 10);
+				continue
+			}else if(c2 == 42){
+				i++; while(i < str.length){
+					if(str.charCodeAt(i++) == 47 && str.charCodeAt(i-2) == 42) break
+				}
+				continue
+			}
+			let j = i-2, c3 = str.charCodeAt(j)
+			while(c3 == 32 || (c3 > 8 && c3 < 14)) c3 = str.charCodeAt(--j)
+			if(c3==33||c3==37||c3==38||c3==40||(c3>=42&&c3<=45)||(c3==47&&lastExpr!=j)||(c3>=58&&c3<=63)||c3==91||(c3>=123&&c3<=126&&lastExpr!=j)){
+				let cset = false
+				while(i < str.length){
+					const c = str.charCodeAt(i++)
+					if(cset){ cset = c!=93; continue }
+					if(c == 91) cset = true
+					else if(c == 47 && str.charCodeAt(i-1) != 92) break
+				}
+				lastExpr = i - 1
+			}
+		}else if((c-48&0xffff)<10||c==36||(c-95&0xffff)<28||(c-65&0xffff)<26){
+			let s = i-1
+			let c2 = 0
+			do{c2 = str.charCodeAt(i++)}while(c2 == c2 && ((c2-48&0xffff)<10||c2==36||(c2-97&0xffff)<26||(c2-65&0xffff)<26||c2==95));
+			let j = s
+			let c3 = str.charCodeAt(--j)
+			if(c3 == 35){ i--; continue }
+			while(c3 == 32 || (c3 > 8 && c3 < 14)) c3 = str.charCodeAt(--j)
+			if(c3 == 46){ i--; continue }
+			const k = str.slice(s, i-1)
+			if(k == 'import'){
+				while(c2 == 32 || (c2 > 8 && c2 < 14)) c2 = str.charCodeAt(i++)
+				if(c2 == 40){
+					// dynamic import
+					src.push(str.slice(0, s))
+					str = str.slice(i); i = 0
+					let j = src.length; src.push('import(')
+					parse(41)
+					do{c2 = str.charCodeAt(i++)}while(c2 == 32 || (c2 > 8 && c2 < 14)); i--
+					if(c2 != 123) src[j] = r ??= '__import__('+JSON.stringify(baseUrl)+','
+					continue
+				}else if(c2 == 46){
+					do{c2 = str.charCodeAt(i++)}while(c2 == 32 || (c2 > 8 && c2 < 14)); i--
+					let s1 = i
+					if(c2 == c2 && ((c2-48&0xffff)<10||c2==36||(c2-95&0xffff)<28||(c2-65&0xffff)<26)){
+						do{c2 = str.charCodeAt(i++)}while(c2 == c2 && ((c2-48&0xffff)<10||c2==36||(c2-97&0xffff)<26||(c2-65&0xffff)<26||c2==95));
+						const k2 = str.slice(s1, i-1)
+						if(k2!='meta') continue
+						src.push(str.slice(0, s), r ??= '__import__.meta('+JSON.stringify(baseUrl)+')')
+						str = str.slice(i-1); i = 0
+					}
+					continue
+				}
+				if(!levels && c2 == 34 || c2 == 39){
+					s = i-1
+					const href = resolve(rstr(c2), baseUrl)
+					imports.push(href)
+					src.push(str.slice(0, s), JSON.stringify(href))
+					str = str.slice(i); i = 0
+					continue
+				}
+				do{c2 = str.charCodeAt(i++)}while(c2 == c2 && c2 != 34 && c2 != 39)
+				if(c2!=c2){ i--; continue }
+				s = i-1
+				const href = resolve(rstr(c2), baseUrl)
+				imports.push(href)
+				src.push(str.slice(0, s), JSON.stringify(href))
+				str = str.slice(i); i = 0
+			}else if(k == 'export'){
+				while(c2 == 32 || (c2 > 8 && c2 < 14)) c2 = str.charCodeAt(i++)
+				if(c2 == 123){
+					// Edge case, find matching }
+					while(c2 == c2 && (c2 = str.charCodeAt(i++)) != 125);
+					do{c2 = str.charCodeAt(i++)}while(c2 == 32 || (c2 > 8 && c2 < 14))
+					if(c2 != 102 || str.charCodeAt(i++) != 114 || str.charCodeAt(i++) != 111 || str.charCodeAt(i++) != 109) continue
+					c2 = str.charCodeAt(i++); if(((c2-48&0xffff)<10||c2==36||(c2-95&0xffff)<28||(c2-65&0xffff)<26)) continue
+				}else if(c2 != 42) continue
+				while(c2 == c2 && c2 != 34 && c2 != 39) c2 = str.charCodeAt(i++);
+				if(c2!=c2) continue
+				s = i-1
+				const href = resolve(rstr(c2), baseUrl)
+				imports.push(href)
+				src.push(str.slice(0, s), JSON.stringify(href))
+				str = str.slice(i); i = 0
+			}else i--
+		}else if(c == 34){
+			while(i < str.length && (str.charCodeAt(i++) != 34 || str.charCodeAt(i-2) == 92));
+			continue
+		}else if(c == 39){
+			while(i < str.length && (str.charCodeAt(i++) != 39 || str.charCodeAt(i-2) == 92));
+			continue
+		}else if(c == 96){
+			while(i < str.length){
+				const c = str.charCodeAt(i++)
+				if(c == 96 && str.charCodeAt(i-2) != 92) break
+				else if(c==123 && str.charCodeAt(i-2) == 36){
+					i++
+					levels++; parse(125)
+				}
+			}
+			continue
+		}
+	}
+}
+	parse(125)
+	if(str) src.push(str)
+	return src
+}
+const cacheMeta = globalThis.cacheMeta = new Map
+const enc = new TextEncoder(), dec = new TextDecoder()
+const CORE = HOST + 'iframe/index.js'
+const IMPORT_MAP = new Map().set('core', CORE)
+	.set('vanilla', HOST + 'vanilla/index.js')
+	.set('world', HOST + 'iframe/world.js')
+	.set('api', HOST + 'iframe/api.js')
+	.set('definitions', HOST + 'iframe/definitions.js')
+const resolve = (path, base) => {
+	let c = path.charCodeAt(0)
+	// ../, ./ or /
+	if(c == 47 || (c == 46 && ((c = path.charCodeAt(1)) == 47 || (c == 46 && path.charCodeAt(2) == 47)))) return new URL(path, base).href
+	// Self import (import * as thisModule from "")
+	if(c != c) return base
+	// Import maps
+	if(path.startsWith(HOST)) return 'data:'
+	return IMPORT_MAP.get(path) ?? path
+}
+// 1d, 2d, 30d
+const INIT_LIFETIME = 86400, ACCESS_LIFETIME = 172800, MAX_LIFETIME = 2592000
+const h = {headers: new Headers()}; h.headers.set('x-version', 0)
+const download = (url, opts, m) => fetch(url, opts).then(res => {
+	let ct = res.headers.get('content-type')
+	let ct1 = '@file'
+	let i = ct.indexOf(';'); if(i>-1) ct = ct.slice(0, i);
+	i = ct.indexOf('/'); if(i>-1) ct1 = ct.slice(0, i).trim().toLowerCase(), ct = ct.slice(i+1).trim().toLowerCase()
+	if(ct1 == 'text' && ct == 'uri-list') return res.text().then(txt => {
+		m.imports = []
+		for(let l of txt.split('\n')){
+			l = l.trim()
+			if(l[0] == '#') continue
+			m.imports.push(resolve(l, url))
+		}
+		if(!LOCAL) cacheMeta.set(url, m)
+		else cacheMeta.delete(url)
+		return null
+	})
+	return (ct1 == 'application' && ct == 'javascript') ? res.text() : res.blob()
+}).then(blob => {
+	if(!blob) return null
+	if(typeof blob == 'string') blob = new Blob(parseModule(blob, url, m.imports = []), {type: 'application/javascript'})
+	if(!LOCAL) cache.put(url, new Response(blob)), cacheMeta.set(url, m)
+	else cacheMeta.delete(url)
+	return blob
+})
+function getBlobs(entries, cb){
+	const files = new Map()
+	let pending = 0
+	const now = Math.floor(Date.now()/1000)
+	const gather = (entries, version = 0) => { for(let url of entries){
+		const sep = url.lastIndexOf('^')
+		let v = version
+		if(sep >= 0) v = url.slice(sep+1)>>>0 || v, url = url.slice(0, sep)
+		if(files.has(url)) continue
+		let m = cacheMeta.get(url)
+		if(Array.isArray(m)){ pending++; m.push(v => {
+			files.set(url, v)
+			if(!--pending) saveMeta(), cb(files)
+		}); continue }
+		if(m === undefined || m.version < v){
+			const arr = [v => {
+				files.set(url, v)
+				if(!--pending) saveMeta(), cb(files)
+			}]
+			cacheMeta.set(url, arr)
+			if(m) m.version = v
+			else m = {version, expire: now + INIT_LIFETIME, pins: 0, imports: null}
+			pending++
+			h.headers.set('x-version', v)
+			download(url, h, m).then(blob => {
+				for(const f of arr) f(blob)
+				if(m.imports) gather(m.imports, v)
+			}, () => {
+				if(!LOCAL) cacheMeta.set(url, m)
+				else cacheMeta.delete(url)
+				for(const f of arr) f(null)
+			})
+			continue
+		}else{
+			pending++
+			files.set(url, null)
+			m.expire = Math.min(m.expire + ACCESS_LIFETIME, now + MAX_LIFETIME)
+			cache.match(url).then(a => a?a.blob():null).then(blob => {
+				files.set(url, blob)
+				if(!--pending) saveMeta(), cb(files)
+			})
+		}
+		if(m.imports) gather(m.imports, v)
+	} }
+	gather(entries, 0)
+	if(!pending) saveMeta(), cb(files)
+}
+
+function saveMeta(){
+	const now = Math.floor(Date.now()/1000)
+	const files = [], entries = [], ids = new Map
+	let bytes = 10
+	for(const {0:k,1:v} of cacheMeta){
+		if(Array.isArray(v)) continue
+		const {version,expire,pins,imports} = v
+		const e2 = expire - now, len = imports?.length ?? 0
+		if(e2 <= 0 && !pins){ cache.delete(k); continue }
+		const id = ids.get(k) ?? (ids.set(k, ids.size), files.push(enc.encode(k)), ids.size-1)
+		// id: u32, version: u32, expire: u32, pins: u32, importCount: u32, imports: u32[importCount]
+		const entry = new Uint8Array(20 + (len<<2)); bytes += entry.length
+		entry[0] = id>>24; entry[1] = id>>16; entry[2] = id>>8; entry[3] = id
+		entry[4] = version>>24; entry[5] = version>>16; entry[6] = version>>8; entry[7] = version
+		entry[8] = e2>>24; entry[9] = e2>>16; entry[10] = e2>>8; entry[11] = e2
+		entry[12] = pins>>24; entry[13] = pins>>16; entry[14] = pins>>8; entry[15] = pins
+		entry[16] = len>>24; entry[17] = len>>16; entry[18] = len>>8; entry[19] = len
+		let i = 20
+		if(len) for(const k of imports){
+			const id = ids.get(k) ?? (ids.set(k, ids.size), files.push(enc.encode(k)), ids.size-1)
+			entry[i] = id>>24; entry[i+1] = id>>16; entry[i+2] = id>>8; entry[i+3] = id
+			i += 4
+		}
+		entries.push(entry)
+	}
+	for(const arr of files) bytes += arr.length + 4
+	const total = new Uint8Array(bytes)
+	let l = files.length
+	total[0] = l>>24; total[1] = l>>16; total[2] = l>>8; total[3] = l
+	let i = 4
+	for(const f of files){
+		l = f.length
+		total[i] = l>>24; total[i+1] = l>>16; total[i+2] = l>>8; total[i+3] = l
+		total.set(f, i+=4); i += l
+	}
+	files.length = 0
+	const e2 = Math.floor(now/4294967296)
+	total[i] = e2>>8; total[i+1] = e2; total[i+2] = now>>24
+	total[i+3] = now>>16; total[i+4] = now>>8; total[i+5] = now
+	i += 6
+	for(const e of entries) total.set(e, i), i += e.length
+	entries.length = 0
+	cache.put('/.packs', new Response(total))
+}
 self.addEventListener('install', e => e.waitUntil(ready ? ready.then(() => upt) : upt))
 let cache, upt = null
-let ready = /(\.|^)localhost$|^127.0.0.1$|^\[::1\]$/.test(location.hostname) ? ((cache = globalThis).match = fetch,null)
-: (async () => {
+let ready = LOCAL ? caches.open('').then(a => {
+	cache = a
+	for(const l of areListening) l.postMessage(1)
+	areListening.length = 0
+	ready = null
+}) : (async () => {
 	let latest = fetch('/.gitversion').then(a => a.text(),()=>'{"error":"network"}')
 	cache = await caches.open('')
 	const ver = await cache.match('/.git')
@@ -18,17 +327,49 @@ let ready = /(\.|^)localhost$|^127.0.0.1$|^\[::1\]$/.test(location.hostname) ? (
 	const our = ver?ver.headers.get('commit'):'null'
 	if(latest[0] != '{' && our != latest) ready='', upt = update(latest, ver, our)
 	else{
-		ready = null
 		if(!ver) upt = Promise.reject('Install failed')
 		for(const l of areListening) l.postMessage(ver?1:-1)
 		areListening.length=0
 	}
+	const p = cache.match('/.packs').then(a => a?.arrayBuffer()).then(b => {
+		if(!b) return
+		const v = new Uint8Array(b)
+		const now = Math.floor(Date.now()/1000)
+		const files = []
+		let fl = v[0]<<24|v[1]<<16|v[2]<<8|v[3], i = 4
+		while(fl--){
+			const l = v[i]<<24|v[i+1]<<16|v[i+2]<<8|v[i+3]
+			files.push(dec.decode(v.subarray(i += 4, i += l)))
+		}
+		const t = (v[i]<<8|v[i+1])*4294967296+(v[i+2]<<24|v[i+3]<<16|v[i+4]<<8|v[i+5]); i += 6
+		while(i < v.length){
+			const id = v[i]<<24|v[i+1]<<16|v[i+2]<<8|v[i+3]
+			const version = v[i+4]<<24|v[i+5]<<16|v[i+6]<<8|v[i+7]
+			const expire = t + (v[i+8]<<24|v[i+9]<<16|v[i+10]<<8|v[i+11])
+			const pins = v[i+12]<<24|v[i+13]<<16|v[i+14]<<8|v[i+15]
+			let il = v[i+16]<<24|v[i+17]<<16|v[i+18]<<8|v[i+19]; i += 20
+			const imports = il ? [] : null
+			while(il--) imports.push(files[v[i]<<24|v[i+1]<<16|v[i+2]<<8|v[i+3]]), i += 4
+			if(expire <= now && !pins){
+				cache.delete(files[id])
+				continue
+			}
+			cacheMeta.set(files[id], {version, expire, pins, imports})
+		}
+	})
+	upt = upt ? upt.then(() => p) : p
 })()
 const areListening = []
 self.addEventListener('message', e => {
-	if(ready==null) e.source.postMessage(1)
+	if(e.data){
+		const d = e.data, s = d[0]; d[0] = CORE
+		for(let i=1;i<d.length;i++) d[i] = resolve(d[i], s)
+		const r = map => e.source.postMessage(map)
+		upt ? upt.then(() => getBlobs(d, r)) : getBlobs(d, r)
+	}else if(ready == null) e.source.postMessage(1)
 	else areListening.push(e.source)
 })
+const BLOBS_DIRS = ['vanilla/', 'iframe/', 'server/']
 async function update(latest, ver, old){
 	const _idx = ver?await ver.text():''
 	const hashes = new Map
@@ -61,10 +402,16 @@ async function update(latest, ver, old){
 				res.push(p+' '+sha)
 				if(hashes.get(p) == sha){hashes.delete(p);total-=1.25;continue}
 				hashes.delete(p)||(total+=1.25); todo++; k.push(p)
-				fetch(p).then(res => {
-					if(res.redirected) res = new Response(res.body,res)
-					return u.put(p, res)
-				}).then(() => progress(++done/total), () => r(1))
+				a: { for(const pat of BLOBS_DIRS) if(p.startsWith(pat)){
+					download(p, undefined, {version: 0, expire: 0, pins: 1, imports: null}).then(() => progress(++done/total), () => r(1))
+					break a
+				}
+					fetch(p).then(res => {
+						if(res.redirected) res = new Response(res.body,res)
+						return u.put(p, res)
+					}).then(() => progress(++done/total), () => r(1))
+				}
+				
 			}
 			--todo||r(0)
 		})
@@ -101,5 +448,5 @@ async function update(latest, ver, old){
 	progress(1)
 	console.info('Update complete!')
 	areListening.length = 0
-	ready = upt = null
+	upt = null
 }

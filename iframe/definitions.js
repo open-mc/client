@@ -279,8 +279,9 @@ export function addParticle(p){
 	if(particles.size < options.maxParticles) particles.add(p)
 }
 export const particles = new Set
+"world"
 
-drawLayer('world', 300, c => {
+drawLayer('world', 300, globalThis.x=c => {
 	let tx = 0, ty = 0
 	for(const particle of particles){
 		c.translate(-(tx - (tx = ifloat(particle.x - cam.x))), -(ty - (ty = ifloat(particle.y - cam.y))))

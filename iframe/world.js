@@ -1,5 +1,4 @@
 import { musicdict } from './sounds.js'
-
 let _offx = 0, _offy = 0
 export let W2 = 0, H2 = 0, SCALE = 1
 export const _setDims = (a,b,c,d,e) => (_offx=a,_offy=b,W2=c,H2=d,SCALE=e)
