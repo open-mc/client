@@ -389,7 +389,7 @@ self.addEventListener('message', e => {
 	}else if(ready == null) e.source.postMessage(1)
 	else areListening.push(e.source)
 })
-const BLOBS_DIRS = ['vanilla/', 'iframe/', 'server/']
+const BLOBS_DIRS = ['/vanilla/', '/iframe/', '/server/']
 async function update(latest, ver, old){
 	const _idx = ver?await ver.text():''
 	const hashes = new Map
