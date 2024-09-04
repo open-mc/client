@@ -209,7 +209,7 @@ const resolve = (path, base) => {
 // 1d, 2d, 30d
 const INIT_LIFETIME = 86400, ACCESS_LIFETIME = 172800, MAX_LIFETIME = 2592000
 const h = {headers: new Headers()}; h.headers.set('x-version', 0)
-const download = (url, opts, m) => fetch(url, opts).then(res => {
+const download = (url, opts, m, cache) => fetch(url, opts).then(res => {
 	let ct = res.headers.get('content-type')
 	let ct1 = '@file'
 	let i = ct.indexOf(';'); if(i>-1) ct = ct.slice(0, i);
@@ -256,7 +256,7 @@ function getBlobs(entries, cb){
 			else m = {version, expire: now + INIT_LIFETIME, pins: 0, imports: null}
 			pending++
 			h.headers.set('x-version', v)
-			download(url, h, m).then(blob => {
+			download(url, h, m, cache).then(blob => {
 				for(const f of arr) f(blob)
 				if(m.imports) gather(m.imports, v)
 			}, err => {
@@ -422,7 +422,7 @@ async function update(latest, ver, old){
 				if(hashes.get(p) == sha){hashes.delete(p);total-=1.25;continue}
 				hashes.delete(p)||(total+=1.25); todo++
 				a: { for(const pat of BLOBS_DIRS) if(p.startsWith(pat)){
-					download(new URL(p, HOST).href, undefined, {version: 0, expire: 0, pins: 1, imports: null}).then(b => (b&&k.push(p),progress(++done/total)), () => r(1))
+					download(new URL(p, HOST).href, undefined, {version: 0, expire: 0, pins: 1, imports: null}, u).then(b => (b&&k.push(p),progress(++done/total)), () => r(1))
 					break a
 				}
 					fetch(p).then(res => {
