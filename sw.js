@@ -468,5 +468,5 @@ async function update(latest, ver, old){
 	progress(1)
 	console.info('Update complete!')
 	areListening.length = 0
-	upt = null
+	ready = upt = null
 }
