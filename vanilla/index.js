@@ -138,8 +138,6 @@ import inventory from "./inv.png"
 const heart = icons.crop(52,0,9,9), halfHeart = icons.crop(61,0,9,9)
 const heartEmpty = icons.crop(16,0,9,9)
 
-const btnW = uiButtons.large.width*uiButtons.large.w
-
 let respawnClicked = false
 let hotbarTooltipAlpha = 0, lastSelected = -1
 let proximityChatTooltip = 0
@@ -194,6 +192,7 @@ drawLayer('ui', 1000, (c, w, h) => {
 		}
 	}
 	if(me.health <= 0){
+		const btnW = uiButtons.large.width
 		const h3 = h / 3
 		c2.drawRect(0, 0, w, h, vec4(.2, 0, 0, .2))
 		const arr = calcText('You died!')
@@ -327,7 +326,7 @@ onpacket(32, buf => {
 		const id = buf.byte()
 		while(buf.left&&(i=buf.byte())<128){
 			const itm = Item.decode(buf)
-			e.setItem?.(id, i, itm)
+			e?.setItem?.(id, i, itm)
 		}
 	}
 })

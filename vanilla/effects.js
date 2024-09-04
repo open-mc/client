@@ -7,6 +7,7 @@ export const audioSet = (path, count) => Array.from({length: count}, (_, i) => W
 
 import icons from "./icons.png"
 import btns from "../img/button.png"
+
 export const uiButtons = {
 	large: btns.crop(124,20,200,20),
 	largeSelected: btns.crop(124,40,200,20),

@@ -13,7 +13,7 @@ const damageSounds = [
 	null, Wave(src`sound/fire/extinguish.mp3`)
 ]
 
-const enterWaterSounds = audioSet('water/enter', 3), exitWaterSounds = audioSet('water/exit', 3), splashSounds = audioSet('water/splash', 3)
+const enterWaterSounds = audioSet('water/enter', 3), exitWaterSounds = audioSet('water/exit', 3), splashSounds = audioSet('water/splash', 2)
 const nameBgCol = vec4(0, 0, 0, .2)
 export class LivingEntity extends Entity{
 	health = 20
