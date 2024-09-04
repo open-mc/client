@@ -229,7 +229,7 @@ const download = (url, opts, m) => fetch(url, opts).then(res => {
 }).then(blob => {
 	if(!blob) return null
 	if(typeof blob == 'string') blob = new Blob(parseModule(blob, url, m.imports = []), {type: 'application/javascript'})
-	if(!LOCAL) cache.put(url, new Response(blob)), cacheMeta.set(url, m)
+	if(!LOCAL) console.log(url), cache.put(url, new Response(blob)), cacheMeta.set(url, m)
 	else cacheMeta.delete(url)
 	return blob
 })
@@ -429,6 +429,7 @@ async function update(latest, ver, old){
 					fetch(p).then(res => {
 						k.push(p)
 						if(res.redirected) res = new Response(res.body,res)
+						console.log(p)
 						return u.put(p, res)
 					}).then(() => progress(++done/total), () => r(1))
 				}
@@ -462,7 +463,7 @@ async function update(latest, ver, old){
 	for(const req of k){
 		const url = typeof req=='object'?req.url:req
 		if(url.startsWith('https://.del') && url.length > 13) cache.delete(url.slice(12)).then(()=>progress(1-todo/total))
-		else u.match(req).then(a => (console.log(a),cache.put(req, a))).then(()=>progress(1-todo/total))
+		else u.match(req).then(a => (a||console.warn(req),cache.put(req, a))).then(()=>progress(1-todo/total))
 	}
 	await({then:a=>r=a})
 	await caches.delete('updates')
