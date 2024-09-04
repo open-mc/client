@@ -421,12 +421,13 @@ async function update(latest, ver, old){
 				} continue }
 				res.push(p+' '+sha)
 				if(hashes.get(p) == sha){hashes.delete(p);total-=1.25;continue}
-				hashes.delete(p)||(total+=1.25); todo++; k.push(p)
+				hashes.delete(p)||(total+=1.25); todo++
 				a: { for(const pat of BLOBS_DIRS) if(p.startsWith(pat)){
-					download(new URL(p, HOST).href, undefined, {version: 0, expire: 0, pins: 1, imports: null}).then(() => progress(++done/total), () => r(1))
+					download(new URL(p, HOST).href, undefined, {version: 0, expire: 0, pins: 1, imports: null}).then(b => (b&&k.push(p),progress(++done/total)), () => r(1))
 					break a
 				}
 					fetch(p).then(res => {
+						k.push(p)
 						if(res.redirected) res = new Response(res.body,res)
 						return u.put(p, res)
 					}).then(() => progress(++done/total), () => r(1))
@@ -447,7 +448,7 @@ async function update(latest, ver, old){
 			let e
 			todo = hashes.size
 			for(const file of hashes.keys()){
-				const req = 'https://.git' + file
+				const req = 'https://.del' + file
 				k.push(req)
 				u.put(req,e||(e=new Response())).then(() => progress(++done/total))
 			}
@@ -460,7 +461,7 @@ async function update(latest, ver, old){
 	const total = (todo = k.length)*5
 	for(const req of k){
 		const url = typeof req=='object'?req.url:req
-		if(url.startsWith('/.git') && url.length > 13) cache.delete(url.slice(12)).then(()=>progress(1-todo/total))
+		if(url.startsWith('https://.del') && url.length > 13) cache.delete(url.slice(12)).then(()=>progress(1-todo/total))
 		else u.match(req).then(a => cache.put(req, a)).then(()=>progress(1-todo/total))
 	}
 	await({then:a=>r=a})
