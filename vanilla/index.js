@@ -192,7 +192,7 @@ drawLayer('ui', 1000, (c, w, h) => {
 		}
 	}
 	if(me.health <= 0){
-		const btnW = uiButtons.large.width
+		const btnW = uiButtons.large.width * uiButtons.large.w
 		const h3 = h / 3
 		c2.drawRect(0, 0, w, h, vec4(.2, 0, 0, .2))
 		const arr = calcText('You died!')

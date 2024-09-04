@@ -62,7 +62,12 @@ export function exportWorld(id, name = 'external-world'){
 			download(new File(blobs, name+'.map', {type: '@file'}))
 		}
 		let L = 1
-		let r = o.getAllKeys(null, 1e6); r.onsuccess = function writeKeys(){
+		let r = db.result.transaction(['meta'], 'readonly').objectStore('meta').get('config')
+		r.onsuccess = () => {
+			const arr = encoder.encode(JSON.stringify(r.result)), l = arr.length
+			def.push(new Uint8Array(l<64?[l]:l<16384?[l>>8|64,l]:[l>>24|128,l>>16,l>>8,l]))
+			def.push(arr)
+			r = o.getAllKeys(null, 1e6); r.onsuccess = function writeKeys(){
 			for(const k of r.result){
 				L++
 				const r = o.get(k); r.onsuccess = () => {
@@ -87,6 +92,6 @@ export function exportWorld(id, name = 'external-world'){
 				r.onsuccess = writeKeys
 			}
 			--L||done()
-		}
+		}}
 	}
 }

@@ -151,11 +151,13 @@ addRow.lastChild.on('click', () => {click();i.accept = '.map';i.click();i.onchan
 	LocalSocket.setOptions(id, fallback({name: i.files[0].name.replace(/(\.map)?$/, ' (Imported)')}, defaultConfig), async db => {
 		let t = null, os = null
 		const inflate = new pako.Inflate()
-		let left = 0, tot = 0, done
-		let queue = []
+		let left = 0, tot = 0, done = () => {
+			addServer(id)
+		}, tasks = 1
+		let queue = null
 		const next = () => {
 			let i = queue.length
-			if(!i) return void(t=os=null,done?.())
+			if(!i) return void(t=os=null,--tasks||done?.())
 			while((i-=2)>=0)
 				os.put(queue[i+1], queue[i]).onsuccess = next
 			queue.length = 0
@@ -196,15 +198,22 @@ addRow.lastChild.on('click', () => {click();i.accept = '.map';i.click();i.onchan
 				}
 				if(left) inflate.chunks.push(ch.subarray(i, i+=left)), left = 0
 				let j = 0
-				for(const ch of inflate.chunks){
-					const k = ch.indexOf(255)
+				let ch1 = inflate.chunks[0]
+				if(!queue){
+					const v = new Uint8Array(tot)
+					queue = []; let j = 0
+					for(const c of inflate.chunks){ v.set(c, j); j += c.length }
+					tasks++
+					db.transaction(['meta'], 'readwrite').objectStore('meta').put(JSON.parse(decoder.decode(v)), 'config').onsuccess = () => void(--tasks||done?.())
+				}else for(ch1 of inflate.chunks){
+					const k = ch1.indexOf(255)
 					if(k>=0){
 						const u = new Uint8Array(j+k), v = new Uint8Array(tot-j-k-1)
-						k&&u.set(ch.subarray(0, k), j); j = 0
+						k&&u.set(ch1.subarray(0, k), j); j = 0
 						const it = inflate.chunks.values()
-						for(const c of it){ if(c==ch)break; u.set(c, j); j+=c.length }
+						for(const c of it){ if(c==ch1)break; u.set(c, j); j+=c.length }
 						const key = decoder.decode(u)
-						v.set(ch.subarray(k+1)); j=ch.length-k-1
+						v.set(ch1.subarray(k+1)); j=ch1.length-k-1
 						for(const c of it){ v.set(c, j); j += c.length }
 						if(!t){
 							t = db.transaction(['db'], 'readwrite')
@@ -212,14 +221,13 @@ addRow.lastChild.on('click', () => {click();i.accept = '.map';i.click();i.onchan
 							os.put(v.buffer, key).onsuccess = next
 						}else queue.push(key, v.buffer)
 						break
-					}else j+=ch.length
+					}else j+=ch1.length
 				}
 				inflate.chunks.length = 0
 			}
 		}
 		let ch; while(ch = await s.read(), !ch.done) inflate.push(ch.value)
-		if(queue.length) await new Promise(r=>done=r)
-		addServer(id)
+		--tasks||done?.()
 	})
 }}).classList.add('selectable')
 selectSkinBtn.classList.add('selectable')
