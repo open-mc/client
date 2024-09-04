@@ -11,9 +11,9 @@ let E="data:application/javascript,export%20default%20",H=${JSON.stringify(locat
 if(!v){m[k]='data:application/javascript,';continue};if(v.type=='application/javascript'){m[k]=URL.createObjectURL(v);continue}
 let ct=v.type,ct1='',i=ct.indexOf(';'),R="__import__.map.get("+encodeURI(JSON.stringify(k))+")";if(i>-1)ct=ct.slice(0,i);i=ct.indexOf('/');if(i>-1)ct1=ct.slice(0,i).trim().toLowerCase(),ct=ct.slice(i+1).trim().toLowerCase()
 if(ct1=='image')m[k]=E+"Img("+R+")"
-else if(ct1=='application'&&ct=='json')m[k]=E+"JSON.parse(await%20new%20Response("+R+").json())"
+else if(ct1=='application'&&ct=='json')m[k]=E+"await%20new%20Response("+R+").json()"
 else if(ct1=='audio')m[k]=E+"Wave("+R+")"
-else if(ct1=='text')m[k]=E+"await%20new%20Response("+R+").json()"
+else if(ct1=='text')m[k]=E+"await%20new%20Response("+R+").text()"
 else m[k]=E+R
 }m.vanilla=m[H+'vanilla/index.js'],m.core=m[H+'iframe/index.js'],m.world=m[H+'iframe/world.js'],m.api=m[H+'iframe/api.js'],m.definitions=m[H+'iframe/definitions.js']
 d=document.createElement('script');d.type='importmap';d.textContent=JSON.stringify({imports:m});document.head.append(d);m={__proto__:null}
