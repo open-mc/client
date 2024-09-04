@@ -423,7 +423,7 @@ async function update(latest, ver, old){
 				if(hashes.get(p) == sha){hashes.delete(p);total-=1.25;continue}
 				hashes.delete(p)||(total+=1.25); todo++; k.push(p)
 				a: { for(const pat of BLOBS_DIRS) if(p.startsWith(pat)){
-					download(p, undefined, {version: 0, expire: 0, pins: 1, imports: null}).then(() => progress(++done/total), () => r(1))
+					download(new URL(p, HOST).href, undefined, {version: 0, expire: 0, pins: 1, imports: null}).then(() => progress(++done/total), () => r(1))
 					break a
 				}
 					fetch(p).then(res => {
