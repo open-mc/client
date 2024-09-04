@@ -12,6 +12,7 @@ self.addEventListener('fetch', e => {
 
 const fromHex = h => (h=h-48&0xffff)<10?h:(h=(h|32)-49&0xffff)<6?h+10:0
 const parseModule = (str, baseUrl, imports) => {
+	if(/\s*\/\/\s*@no-resolve/yi.test(str)) return str
 	let i = 0, levels = 0, src = [], r = null
 function rstr(end){
 	let r = ''
@@ -65,29 +66,29 @@ function parse(end = 125){
 		}else if(end==41&&c==40) parse(41)
 		else if(c == end) return
 		else if(c == 47){
-			const c2 = str.charCodeAt(i)
+			const c2 = str.charCodeAt(i++)
 			if(c2 == 47){
-				i++; while(i < str.length && str.charCodeAt(i++) != 10);
+				while(i < str.length && str.charCodeAt(i++) != 10);
 				continue
 			}else if(c2 == 42){
-				i++; while(i < str.length){
+				while(i < str.length){
 					if(str.charCodeAt(i++) == 47 && str.charCodeAt(i-2) == 42) break
 				}
 				continue
 			}
-			let j = i-2, c3 = str.charCodeAt(j)
+			let j = --i-2, c3 = str.charCodeAt(j)
 			while(c3 == 32 || (c3 > 8 && c3 < 14)) c3 = str.charCodeAt(--j)
 			if(c3==33||c3==37||c3==38||c3==40||(c3>=42&&c3<=45)||(c3==47&&lastExpr!=j)||(c3>=58&&c3<=63)||c3==91||(c3>=123&&c3<=126&&lastExpr!=j)){
 				let cset = false
 				while(i < str.length){
 					const c = str.charCodeAt(i++)
-					if(cset){ cset = c!=93; continue }
+					if(cset){ cset = c!=93||str.charCodeAt(i-1)==92; continue }
 					if(c == 91) cset = true
-					else if(c == 47 && str.charCodeAt(i-1) != 92) break
+					else if(c == 47 && str.charCodeAt(i-2) != 92) break
 				}
 				lastExpr = i - 1
 			}
-		}else if((c-48&0xffff)<10||c==36||(c-95&0xffff)<28||(c-65&0xffff)<26){
+		}else if((c-48&0xffff)<10||c==36||(c-97&0xffff)<26||c==95||(c-65&0xffff)<26){
 			let s = i-1
 			let c2 = 0
 			do{c2 = str.charCodeAt(i++)}while(c2 == c2 && ((c2-48&0xffff)<10||c2==36||(c2-97&0xffff)<26||(c2-65&0xffff)<26||c2==95));
@@ -104,6 +105,18 @@ function parse(end = 125){
 					src.push(str.slice(0, s))
 					str = str.slice(i); i = 0
 					let j = src.length; src.push('import(')
+					do{c2 = str.charCodeAt(i++)}while(c2 == 32 || (c2 > 8 && c2 < 14))
+					if(c2 == 34 || c2 == 39){
+						const url = resolve(rstr(c2), baseUrl)
+						do{c2 = str.charCodeAt(i++)}while(c2 == 32 || (c2 > 8 && c2 < 14))
+						if(c2==41){
+							imports.push(url)
+							src[j] = '__import__('+JSON.stringify(url)+',"")'
+							str = str.slice(i); i = 0
+							continue
+						}
+					}
+					i = 0
 					parse(41)
 					do{c2 = str.charCodeAt(i++)}while(c2 == 32 || (c2 > 8 && c2 < 14)); i--
 					if(c2 != 123) src[j] = r ??= '__import__('+JSON.stringify(baseUrl)+','
@@ -111,7 +124,7 @@ function parse(end = 125){
 				}else if(c2 == 46){
 					do{c2 = str.charCodeAt(i++)}while(c2 == 32 || (c2 > 8 && c2 < 14)); i--
 					let s1 = i
-					if(c2 == c2 && ((c2-48&0xffff)<10||c2==36||(c2-95&0xffff)<28||(c2-65&0xffff)<26)){
+					if(c2 == c2 && ((c2-48&0xffff)<10||c2==36||(c2-97&0xffff)<26||c2==95||(c2-65&0xffff)<26)){
 						do{c2 = str.charCodeAt(i++)}while(c2 == c2 && ((c2-48&0xffff)<10||c2==36||(c2-97&0xffff)<26||(c2-65&0xffff)<26||c2==95));
 						const k2 = str.slice(s1, i-1)
 						if(k2!='meta') continue
@@ -142,7 +155,7 @@ function parse(end = 125){
 					while(c2 == c2 && (c2 = str.charCodeAt(i++)) != 125);
 					do{c2 = str.charCodeAt(i++)}while(c2 == 32 || (c2 > 8 && c2 < 14))
 					if(c2 != 102 || str.charCodeAt(i++) != 114 || str.charCodeAt(i++) != 111 || str.charCodeAt(i++) != 109) continue
-					c2 = str.charCodeAt(i++); if(((c2-48&0xffff)<10||c2==36||(c2-95&0xffff)<28||(c2-65&0xffff)<26)) continue
+					c2 = str.charCodeAt(i++); if(((c2-48&0xffff)<10||c2==36||(c2-97&0xffff)<26||c2==95||(c2-65&0xffff)<26)) continue
 				}else if(c2 != 42) continue
 				while(c2 == c2 && c2 != 34 && c2 != 39) c2 = str.charCodeAt(i++);
 				if(c2!=c2) continue
@@ -247,7 +260,8 @@ function getBlobs(entries, cb){
 			download(url, h, m).then(blob => {
 				for(const f of arr) f(blob)
 				if(m.imports) gather(m.imports, v)
-			}, () => {
+			}, err => {
+				console.warn(err)
 				if(!LOCAL) cacheMeta.set(url, m)
 				else cacheMeta.delete(url)
 				for(const f of arr) f(null)
@@ -362,8 +376,14 @@ let ready = LOCAL ? caches.open('').then(a => {
 const areListening = []
 self.addEventListener('message', e => {
 	if(e.data){
-		const d = e.data, s = d[0]; d[0] = CORE
-		for(let i=1;i<d.length;i++) d[i] = resolve(d[i], s)
+		const d = e.data, s = d[0]
+		if(s){
+			d[0] = CORE
+			for(let i=1;i<d.length;i++) d[i] = resolve(d[i], s)
+		}else{
+			d[0] = HOST + 'localserver/index.js'
+			for(let i=1;i<d.length;i++) d[i] = new URL(d[i], HOST).href
+		}
 		const r = map => e.source.postMessage(map)
 		upt ? upt.then(() => getBlobs(d, r)) : getBlobs(d, r)
 	}else if(ready == null) e.source.postMessage(1)

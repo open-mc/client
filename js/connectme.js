@@ -153,7 +153,6 @@ export async function play(n){
 	let timeout = -1
 	if(!n.host){
 		globalThis.ws = new LocalSocket(n.ip)
-		gameIframe()
 	}else{
 		const t = Date.now()+n.timeOff+15e3
 		const signature = await makeSign(encoder.encode(n.host+'/'+t))

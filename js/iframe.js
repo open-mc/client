@@ -13,6 +13,7 @@ let ct=v.type,ct1='',i=ct.indexOf(';'),R="__import__.map.get("+encodeURI(JSON.st
 if(ct1=='image')m[k]=E+"Img("+R+")"
 else if(ct1=='application'&&ct=='json')m[k]=E+"JSON.parse(await%20new%20Response("+R+").json())"
 else if(ct1=='audio')m[k]=E+"Wave("+R+")"
+else if(ct1=='text')m[k]=E+"await%20new%20Response("+R+").json()"
 else m[k]=E+R
 }m.vanilla=m[H+'vanilla/index.js'],m.core=m[H+'iframe/index.js'],m.world=m[H+'iframe/world.js'],m.api=m[H+'iframe/api.js'],m.definitions=m[H+'iframe/definitions.js']
 d=document.createElement('script');d.type='importmap';d.textContent=JSON.stringify({imports:m});document.head.append(d);m={__proto__:null}
@@ -24,18 +25,22 @@ document.body.append(iframe)
 export let iReady = false
 export const skin = new Uint8Array(1008)
 const sw = navigator.serviceWorker
+let cbq = []
+sw.onmessage = ({data, source}) => {
+	if(source != sw.controller) return
+	cbq.shift()?.(data)
+}
 const queue = []
-export function gameIframe(f, url = 'file:'){
+export function gameIframe(f, url){
 	if(!iReady) return false
 	iReady = false
 	const q = f.slice(3)
-	q[0] = url
+	q[0] = url || 'file:'
 	sw.controller.postMessage(q)
-	sw.onmessage = ({data, source}) => {
-		if(source != sw.controller) return
+	cbq.push(data => {
 		iframe.contentWindow.postMessage([data,f], '*')
 		iReady = true
-	}
+	})
 	return true
 }
 
@@ -74,11 +79,22 @@ export class LocalSocket extends MessageChannel{
 		port.url = ip; port.opts = null; port._db = null
 		if(ip[0] != '@') return Promise.resolve().then(()=>port.close()), port
 		const ifr = port.ifr = document.createElement('iframe')
-		ifr.src = 'https://sandbox-41i.pages.dev/localserver/index.html'
+		ifr.srcdoc = `<script>addEventListener('message',e=>{
+let E="data:application/javascript,export%20default%20",H=${JSON.stringify(location.origin+'/')},d=(globalThis.__data__=e.data).cache,m={__proto__:null},R=(b,s,c=s.charCodeAt(0))=>c==47||(c==46&&((c=s.charCodeAt(1))==47||(c==46&&s.charCodeAt(2)==47)))?new URL(s,b).href:s.startsWith(H)?'data:application/javascript,':c==c?s:b;(globalThis.__import__=(b,s='')=>import(R(b,s))).meta=u=>m[u]??=Object.freeze({url:u,resolve:s=>R(u,s)});__import__.origin=H;for(let{0:k,1:v}of __import__.map=d){
+if(!v){m[k]='data:application/javascript,';continue};if(v.type=='application/javascript'){m[k]=URL.createObjectURL(v);continue}}
+d=document.createElement('script');d.type='importmap';d.textContent=JSON.stringify({imports:m});document.head.append(d);m={__proto__:null}
+import(H+'localserver/index.js')
+globalThis.parentPort = null
+},{once:true})</script>`
+		sw.controller.postMessage(['', '/server/worldgen/genprocess.js'])
+		cbq.push(data => {
+			dat.cache = data
+			P?--P||ifr.contentWindow.postMessage(dat, '*', [dat.port,dat.dbport]):port._finish()
+		})
 		ifr.style.display = 'none'
 		const {port1, port2} = new MessageChannel()
-		const dat = {name: storage.name, skin: skin.buffer, port: this.port2, dbport: port2, config: null}
-		let P = 2
+		const dat = {name: storage.name, skin: skin.buffer, port: this.port2, dbport: port2, config: null, cache: null}
+		let P = 3
 		ifr.onload = () => P?--P||ifr.contentWindow.postMessage(dat, '*', [dat.port,dat.dbport]):port._finish()
 		let r = indexedDB.open(ip,1)
 		r.onupgradeneeded = () => (r.result.createObjectStore('db'),r.result.createObjectStore('meta'))
@@ -89,7 +105,7 @@ export class LocalSocket extends MessageChannel{
 			port._db = r
 			t.onsuccess = () => {
 				dat.config=port.opts=fallback(t.result,defaultConfig)
-				--P||ifr.contentWindow.postMessage(dat, '*', [dat.port,dat.dbport])
+				P?--P||ifr.contentWindow.postMessage(dat, '*', [dat.port,dat.dbport]):port._finish()
 			}
 		}
 		const tra = []
@@ -176,10 +192,7 @@ onmessage = ({data, source}) => {
 		if(!win) return
 		if(!m && voice) microphone()
 		for(const k in options) win.postMessage([k, options[k]], '*')
-		for(const a of queue){
-			if(a.buffer) win.postMessage(a.buffer, '*', [a.buffer])
-			else win.postMessage(a, '*')
-		}
+		for(const a of queue) win.postMessage(a, '*', typeof a == 'string' ? undefined : [a])
 		queue.length = 0
 		hideUI()
 	}else if(data instanceof ArrayBuffer && globalThis.ws) ws.send(data)
@@ -210,7 +223,7 @@ listen((a,b) => win?.postMessage([a, b], '*'))
 
 export function fwPacket({data:a}){
 	if(!win) return void queue.push(a)
-	win.postMessage(a, '*')
+	win.postMessage(a, '*', typeof a == 'string' ? undefined : [a])
 }
 
 export const ifrMsg = (a,c=!(ui instanceof Element)) => c&&win?.postMessage(a, '*')

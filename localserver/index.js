@@ -1,7 +1,5 @@
-<base href="/server/">
-<script src="/img/_pako.js"></script>
-<script>
-// nice try
+import "/img/_pako.js"
+
 globalThis.loadFile = (i, f) => (i=decodeURI(i.url).replace(/[^\/]*$/,"").replace(/file:\/\/\/?(\w+:\/)?/y,'/'), f ? fetch(i + f).then(a=>a.arrayBuffer()).then(a=>new Uint8Array(a)) : f => fetch(i + f).then(a=>a.arrayBuffer()).then(a=>new Uint8Array(a)))
 globalThis.AsyncFunction = (async()=>{}).constructor
 
@@ -69,9 +67,14 @@ globalThis.Worker = class Worker extends MessageChannel{
 		let {port1, port2} = super()
 		port1._oncl = null
 		const ifr = port1.ifr = document.createElement('iframe')
-		ifr.src = 'https://sandbox-41i.pages.dev/localserver/index.html#' + encodeURIComponent(src)
-		ifr.onload = () =>{
-			if(port2) return void(ifr.contentWindow.postMessage(port2, '*', [port2]), port2=null)
+		ifr.srcdoc = `<script>addEventListener('message',e=>{
+let E="data:application/javascript,export%20default%20",H=${JSON.stringify(__import__.origin)},d=(globalThis.__data__=e.data).cache,m={__proto__:null},R=(b,s,c=s.charCodeAt(0))=>c==47||(c==46&&((c=s.charCodeAt(1))==47||(c==46&&s.charCodeAt(2)==47)))?new URL(s,b).href:s.startsWith(H)?'data:application/javascript,':c==c?s:b;(globalThis.__import__=(b,s='')=>import(R(b,s))).meta=u=>m[u]??=Object.freeze({url:u,resolve:s=>R(u,s)});__import__.origin=H;for(let{0:k,1:v}of __import__.map=d){
+if(!v){m[k]='data:application/javascript,';continue};if(v.type=='application/javascript'){m[k]=URL.createObjectURL(v);continue}}
+d=document.createElement('script');d.type='importmap';d.textContent=JSON.stringify({imports:m});document.head.append(d);m={__proto__:null}
+import(H+'localserver/index.js').then(()=>import(e.data.path))
+},{once:true})</script>` + encodeURIComponent(src)
+		ifr.onload = () => {
+			if(port2) return void(ifr.contentWindow.postMessage({parent: port2, cache: __import__.map, path: new URL(src, __import__.origin+'server/').href}, '*', [port2]), port2=null)
 			Worker._workers.delete(ifr.contentWindow)
 			ifr.remove(),port1.close()
 		}
@@ -144,14 +147,14 @@ globalThis.PNG = {
 
 globalThis.deflate = pako.deflate
 globalThis.inflate = pako.inflate
-
 globalThis.close = () => location = 'about:blank'
-if(location.hash) addEventListener('message', ({data}) => {
+
+if(__data__.parent){
 	addEventListener('message', ({data, source}) => void Worker._workers.get(source)?.dispatchEvent(new ErrorEvent('error', {data,source})))
-	;(globalThis.parentPort = data).start()
-	import(decodeURIComponent(location.hash.slice(1)))
-}, {once:true});else globalThis.parentPort = null,
-addEventListener('message', ({data: {name, skin, port, dbport, config}}) => {
+	;(globalThis.parentPort = __data__.parent).start()
+}else{
+globalThis.parentPort = null
+const {name, skin, port, dbport, config} = __data__
 const tra = [null]
 globalThis.hostSocket = Object.setPrototypeOf(port, Object.create(MessagePort.prototype, {
 	send: {enumerable:false, value(a){typeof a=='string'?this.postMessage(a):this.postMessage(tra[0]=a instanceof ArrayBuffer?a.slice():a.buffer.slice(a.byteOffset,a.byteOffset+a.byteLength),tra)}},
@@ -214,5 +217,5 @@ globalThis.DB = new class IDBLevel{
 		}
 	}
 }
-import('/localserver/server.js')
-}, {once: true})</script>
+import('./server.js')
+}

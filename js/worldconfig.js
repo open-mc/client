@@ -11,7 +11,7 @@ export const defaultConfig = {
 		nether_scale: 16,
 		chunk_loading_range: 2
 	},
-	components: [ "/vanilla/index.js" ],
+	components: [ "vanilla" ],
 	generators: {
 		overworld: "default",
 		nether: "default",
