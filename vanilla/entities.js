@@ -334,7 +334,7 @@ Entities.end_crystal = class extends Entity{
 	power = 180
 	render(c){
 		const t = this.age / world.tps
-		const a = 2-this.power/180, tint = vec4(1, a, a, 1)
+		const a = 2-this.power/200, tint = vec4(1, a, a, 1)
 		c.translate(0, 1.2 + sin(t * 4) / 3)
 		c.rotate(t*0.5)
 		c.drawRect(-0.4, -0.4, 0.8, 0.8, endCrystalCore)
@@ -344,7 +344,7 @@ Entities.end_crystal = class extends Entity{
 		c.drawRect(-0.6, -0.6, 1.2, 1.2, endCrystalWiregrid, tint)
 	}
 	3(){
-		this.sound(explode, this.power/90-1)
+		this.sound(explode, this.power/100-1)
 		for(let i = 0; i < 15; i++) addParticle(new BlastParticle(this.x, this.y))
 		for(let i = 0; i < 30; i++) addParticle(new AshParticle(this.x, this.y))
 	}

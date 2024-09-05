@@ -19,7 +19,7 @@ else m[k]=E+R
 d=document.createElement('script');d.type='importmap';d.textContent=JSON.stringify({imports:m});document.head.append(d);m={__proto__:null}
 __import__.loadAll=async ()=>{__import__.loadAll=null;let i=3,a=[];while(++i<f.length)a.push(import(f[i]));for(const n of a)await n;return f};import('core')
 },{once:true})</script>`
-iframe.sandbox = 'allow-scripts'
+iframe.sandbox = 'allow-scripts allow-pointer-lock allow-downloads'
 iframe.allow = 'cross-origin-isolated; autoplay'
 document.body.append(iframe)
 export let iReady = false
