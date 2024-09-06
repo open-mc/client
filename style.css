@@ -45,6 +45,7 @@ input, textarea{
 	resize: none;
 	background: none;
 	color: transparent;
+	caret-color: transparent;
 }
 in{
 	display: block;
@@ -177,12 +178,18 @@ btn.disabled{
 iframe{
 	position: fixed;
 	border: none;
-	left: 0;
-	top: 0;
+	inset: 0;
 	width: 100%;
 	height: 100%;
-	z-index: -1;
+	z-index: 0;
 }
+div > iframe{
+	position: absolute;
+	inset: var(--padding) calc(var(--padding) + env(safe-area-inset-right)) calc(var(--padding) + env(safe-area-inset-bottom)) calc(var(--padding) + env(safe-area-inset-left));
+	width: calc(100% - var(--padding)*2 - env(safe-area-inset-right) - env(safe-area-inset-left));
+	height: calc(100% - var(--padding)*2 - env(safe-area-inset-bottom));
+}
+
 
 hr{
 	visibility: hidden;
@@ -194,14 +201,12 @@ hr{
 #ui{
 	padding: 0 env(safe-area-inset-right) 0 env(safe-area-inset-left);
 	display: flex;
-	position: absolute;
+	position: absolute; inset: 0;
+	z-index: 1;
 	flex-direction: column;
 	justify-content: center;
 	background-color: #0006;
 	align-items: center;
-	top: 0; left: 0;
-	bottom: 0; right: var(--pr);
-	z-index: 1001;
 	/* No BGR antialiasing on windows 10 (it looks really ugly) */
 	filter: invert(0);
 }
@@ -237,17 +242,6 @@ column{
 	bottom: 5rem; left: 5rem;
 	filter: drop-shadow(0 0 3px black)
 }
-#chatbox{
-	position: fixed;
-	bottom: 30rem;
-	z-index: 20;
-	left: 2rem;
-	background: #0004;
-	border: none;
-	height: 12rem;
-	width: calc(100% - 4rem);
-	--padding: 0 3rem;
-}
 
 [hidden]{display: none !important}
 
@@ -280,7 +274,17 @@ column{
 	height: 52rem;
 	flex: 1;
 }
-#serverlist > row:last-child{ height: 30rem; }
+#serverlist > row{
+	pointer-events: none;
+}
+#serverlist > row btn{ pointer-events: all; position: relative; z-index: 1; }
+#serverlist > row:after{
+	content: "";
+	position: absolute;
+	top: 100%; left: 0; width: 100%; height: 4rem;
+	pointer-events: all;
+}
+#serverlist > row:last-child{ height: 30rem; padding: 0; flex: 1; pointer-events: all; }
 #serverlist > row:last-child > div{
 	text-align: center;
 	height: 30rem;

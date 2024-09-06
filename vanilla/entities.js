@@ -334,10 +334,10 @@ Entities.end_crystal = class extends Entity{
 	power = 180
 	render(c){
 		const t = this.age / world.tps
-		const a = 2-this.power/200, tint = vec4(1, a, a, 1)
+		let a = 2-this.power/200, tint = vec4(1, a, a, 1), tint1 = vec4(1, a=a*.5+.5, a, 1)
 		c.translate(0, 1.2 + sin(t * 4) / 3)
 		c.rotate(t*0.5)
-		c.drawRect(-0.4, -0.4, 0.8, 0.8, endCrystalCore)
+		c.drawRect(-0.4, -0.4, 0.8, 0.8, endCrystalCore, tint1)
 		c.rotate(-t)
 		c.drawRect(-0.53, -0.53, 1.06, 1.06, endCrystalWiregrid, tint)
 		c.rotate(t*1.5)

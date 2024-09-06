@@ -27,35 +27,13 @@ Object.defineProperty(Node.prototype, 'text', Object.getOwnPropertyDescriptor(No
 for(const n of [HTMLCollection, NodeList]) Object.setPrototypeOf(n.prototype, Array.prototype)
 
 export const NONE = new Comment()
-NONE.esc = hideUI
 document.body.append(NONE)
 
-export let ptrSuccess = Function.prototype, ptrFail = Function.prototype
-export const ptrLockOpts = !navigator.platform.startsWith('Linux') && Intl.v8BreakIterator ? {unadjustedMovement: true} : {}
-export const ptrlock = () => new Promise((r, c) => {
-	ptrSuccess = r; ptrFail = c
-	const fs = options.fsc ? document.documentElement.requestFullscreen() : undefined
-	if(!document.body.requestPointerLock) return void r()
-	if(fs instanceof Promise) fs.catch(e=>null).then(() => document.body.requestPointerLock?.(ptrLockOpts)?.catch(e=>null))
-	else document.body.requestPointerLock?.(ptrLockOpts)?.catch(e=>null)
-})
-
 export let ui = null
-export async function hideUI(){
-	if(!ui) return
-	try{
-		await ptrlock()
-		ui.replaceWith(NONE)
-		void (ui.finish||Function.prototype)()	
-		ui = null	
-	}catch{ defaultUI() }	
-}
 
 export function showUI(a = null){
-	if(a instanceof Element && document.fullscreenElement && (a.classList.contains('dirtbg') || !a.classList.contains('noshade'))) document.exitFullscreen()
-	document.exitPointerLock?.()
-	void (ui && ui.finish || Function.prototype)()
-	void (ui || NONE).replaceWith(ui = a || NONE)
+	ui?.finish?.()
+	void (ui??NONE).replaceWith((ui = a) ?? NONE)
 }
 
 const selchange = new Set
@@ -78,11 +56,6 @@ function newnode(v, k, text){
 	n.textContent = text
 	v.append(n)
 	return n
-}
-function clear(){
-	this.firstChild.value = ''
-	this.firstChild.os = this.firstChild.oe = 0
-	this.lastChild.innerHTML = '<f class="__cursor">_</f>'
 }
 const {prototype: InputPrototype} = class extends HTMLElement{
 	get placeholder(){return this.t.placeholder}
@@ -110,7 +83,6 @@ export const Input = (type, placeholder, tokenizers = {txt:/[^]*/y}) => {
 	t.autocomplete = 'off'; t.name = '\0'
 	el.os = el.oe = 0
 	el.t = t
-	el.clear = clear
 	t.placeholder = placeholder
 	el.innerHTML = ''
 	el.v = v
@@ -192,7 +164,7 @@ export const Btn = (text, onclick, classes = '') => {
 		if(btn.disabled) return
 		click()
 		e.stopPropagation()
-		onclick(btn)
+		onclick?.(btn)
 	}
 	Object.setPrototypeOf(btn, BtnPrototype)
 	return btn

@@ -55,18 +55,18 @@ export function exportWorld(id, name = 'external-world'){
 			res.push(ch)
 			if((tot+=ch.byteLength) > 67108864) blobs.push(new Blob(res)), res.length = 0
 		}
-		const blobs = [], res = []; let tot = 0
-		const o = db.result.transaction(['db'], 'readonly').objectStore('db'), done = () => {
+		const blobs = [], res = [], done = () => {
 			def.push('', true)
 			for(const a of res) blobs.push(a); res.length = 0
 			download(new File(blobs, name+'.map', {type: '@file'}))
-		}
+		}; let tot = 0
 		let L = 1
 		let r = db.result.transaction(['meta'], 'readonly').objectStore('meta').get('config')
 		r.onsuccess = () => {
 			const arr = encoder.encode(JSON.stringify(r.result)), l = arr.length
 			def.push(new Uint8Array(l<64?[l]:l<16384?[l>>8|64,l]:[l>>24|128,l>>16,l>>8,l]))
 			def.push(arr)
+			const o = db.result.transaction(['db'], 'readonly').objectStore('db')
 			r = o.getAllKeys(null, 1e6); r.onsuccess = function writeKeys(){
 			for(const k of r.result){
 				L++

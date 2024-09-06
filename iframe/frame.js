@@ -1,6 +1,6 @@
 import { gridEventMap, getblock, entityMap, map, cam, world, bigintOffset, me, genLightmap, lightTint, lightTex, lightArr, setGamma, getTint, getLightValue, W2, H2, SCALE, toBlockExact } from 'world'
 import * as pointer from './pointer.js'
-import { drawLayer, options, _renderPhases, renderBoxes, renderF3, _updatePaused, drawText, calcText, textShadeCol, _networkUsage, networkUsage, listen, _tickPhases, renderUI } from 'api'
+import { drawLayer, options, _renderPhases, renderBoxes, renderF3, drawText, calcText, textShadeCol, _networkUsage, networkUsage, listen, _tickPhases, renderUI } from 'api'
 import { particles, blockAtlas, _recalcDimensions, prep, BlockIDs } from 'definitions'
 import { VERSION } from '../server/version.js'
 import { performLightUpdates } from './lighting.js'

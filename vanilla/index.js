@@ -1,7 +1,7 @@
 import { uiButtons, renderItem, renderItemCount, renderSlot, renderTooltip, resetSlot, slotI, audioSet } from './effects.js'
 import click from "../img/click.mp3"
 import './entities.js'
-import { onkey, drawLayer, pause, renderUI, quit, onpacket, send, voice, drawText, calcText, tickPhase } from 'api'
+import { onkey, drawLayer, setPlaying, renderUI, quit, onpacket, send, voice, drawText, calcText, tickPhase } from 'api'
 import { getblock, gridEvents, sound, entityMap, pointer, cam, world, configLoaded, me, W2, H2, exposureMap, mode } from 'world'
 import { Item, BlockParticle, addParticle, blockBreak, ephemeralInterfaces } from 'definitions'
 import { AshParticle, BlastParticle, explode } from './defs.js'
@@ -204,7 +204,7 @@ drawLayer('ui', 1000, (c, w, h) => {
 			: 0
 		: 0
 		if(!respawnClicked){
-			pause()
+			setPlaying(false)
 			c2.drawRect((w - btnW) / 2, h3, btnW, 20, selectedBtn == 1 ? uiButtons.largeSelected : uiButtons.large)
 			let arr = calcText('Respawn')
 			drawText(c2, arr, w / 2 - arr.width*4, h3 + 7, 8)
@@ -218,7 +218,7 @@ drawLayer('ui', 1000, (c, w, h) => {
 				const buf = new DataWriter()
 				buf.byte(5)
 				send(buf)
-				pause(false)
+				setPlaying(true)
 			}else if((changed.has(LBUTTON) && !buttons.has(LBUTTON) && selectedBtn == -1) || (changed.has(GAMEPAD.MENU) && !buttons.has(GAMEPAD.MENU) && selectedBtn == -1)){
 				respawnClicked = true
 				quit()
@@ -233,7 +233,7 @@ drawLayer('ui', 1000, (c, w, h) => {
 	const action = invAction
 	invAction = 0
 	if(!invInterface) return
-	pause()
+	setPlaying(false)
 	resetSlot()
 	c2.drawRect(0, 0, w, h, vec4(0, 0, 0, .4))
 	c2.translate(w / 2, h / 2)
@@ -301,21 +301,21 @@ onpacket(12, buf => {
 	const kind = buf.short()
 	interfaceId = buf.byte()
 	invInterface = new ephemeralInterfaces[kind](buf)
-	pause(true)
+	setPlaying(false)
 })
 onpacket(13, buf => {
 	const e = entityMap.get(buf.uint32() + buf.short() * 4294967296)
 	if(!e) return
 	invInterface = e
 	interfaceId = buf.byte()
-	pause(true)
+	setPlaying(false)
 })
 onpacket(14, buf => {
 	const b = getblock(buf.int(), buf.int())
 	if(!b) return
 	invInterface = b
 	interfaceId = buf.byte()
-	pause(true)
+	setPlaying(false)
 })
 onpacket(15, () => { invInterface = null })
 

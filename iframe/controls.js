@@ -1,4 +1,4 @@
-import { onkey, onwheel, paused } from 'api'
+import { onkey, onwheel, playing } from 'api'
 import { mePhysics } from './entity.js'
 import { getblock, me, mode } from 'world'
 import { send } from './api.js'
@@ -8,7 +8,7 @@ let lastPressUp = 0, lastPressRight = 0, lastPressLeft = 0
 let gamepadToggleCrouch = false
 onkey(GAMEPAD.B, () => gamepadToggleCrouch=!gamepadToggleCrouch)
 export const playerControls = () => {
-	if(paused||!me) return
+	if(!playing||!me) return
 	if((me.state&1)&&mode<1) me.state &= -2
 	const r = buttons.has(KEYS.RIGHT) || buttons.has(KEYS.D) || cursor.jlx > 0.4
 	const l = buttons.has(KEYS.LEFT) || buttons.has(KEYS.A) || cursor.jlx < -0.4
@@ -78,7 +78,7 @@ onkey(KEYS.BACK, () => {
 })
 
 let cummulative = 0
-onwheel.bind(dy => {
+onwheel.bind((_, dy) => {
 	cummulative += dy
 	if(buttons.has(KEYS.CTRL)){
 		if(cummulative > 60)

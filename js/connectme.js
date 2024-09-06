@@ -1,9 +1,8 @@
 import { DataWriter, DataReader, encoder } from '/server/modules/dataproto.js'
-import "../uis/chat.js"
 import { pendingConnection, msg } from '../uis/dirtscreen.js'
 import { Btn, click, Div, Img, Label, Row, ping } from './ui.js'
 import { storage } from './save.js'
-import { LocalSocket, destroyIframe, fwPacket, gameIframe, iReady, skin, win } from './iframe.js'
+import { LocalSocket, destroyIframe, fwPacket, gameIframe, skin, win } from './iframe.js'
 import { PROTOCOL_VERSION } from '../server/version.js'
 import texts from './lang.js'
 import { worldoptions } from '../uis/worldoptions.js'
@@ -122,8 +121,11 @@ export function preconnect(ip, cb = Function.prototype){
 			motd = Label(texts.connection.connecting()).css({opacity: .5})
 		)
 	)
-	node.classList.add('selectable')
-	node.onclick = () => {click(); play(n)}
+	node.classList.add('controller-selectable')
+	node.onclick = e => {
+		if(e.isTrusted) return
+		click(); play(n)
+	}
 	return node
 }
 
@@ -139,16 +141,16 @@ onfocus = () => {
 	blurred = false
 	notifs = 0
 	document.title = ws ? texts.misc.title.playing(lastN.name) : texts.misc.title.menu()
-	win?.postMessage(Infinity, '*')
+	win?.postMessage(-3, '*')
 }
-onblur = () => { blurred = true; win?.postMessage(Infinity, '*') }
+onblur = () => { blurred = true; win?.postMessage(-4, '*') }
 export const clearNotifs = () => {
 	notifs = 0
 	document.title = ws ? texts.misc.title.playing(lastN.name) : texts.misc.title.menu()
 }
 
 export async function play(n){
-	if(!n || !iReady) return
+	if(!n) return
 	lastN = n
 	let timeout = -1
 	if(!n.host){

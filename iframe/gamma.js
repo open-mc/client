@@ -211,7 +211,7 @@ T.append(T=document.createElement('canvas'))
 T.style = 'position:fixed;inset:0;width:100%;height:100%;background:#000'
 T.width = T.height = 0
 /** @type WebGL2RenderingContext */
-const gl = T.getContext('webgl2', {preserveDrawingBuffer: false, antialias: false, depth: false, premultipliedAlpha: true, stencil: true})
+export const gl = T.getContext('webgl2', {preserveDrawingBuffer: false, antialias: false, depth: false, premultipliedAlpha: true, stencil: true})
 function glLost(){
 	parent.postMessage(false, '*')
 	document.body.textContent = 'WebGL2 context lost :('
@@ -505,33 +505,72 @@ Object.assign(globalThis, {
 	FIXED: 4, _: undefined,
 	TRIANGLE_STRIP: 5, TRIANGLES: 4, TRIANGLE_FAN: 6, LINE_LOOP: 2, LINE_STRIP: 3, LINES: 1, POINTS: 0
 })
-function v2plus(o){
-	return typeof o == 'number' ? {x: this.x+o, y: this.y+o, plus: v2plus, times: v2times} : {x: this.x+o.x, y: this.y+o.y, plus: v2plus, times: v2times}
+const V=class vec2{
+	constructor(x,y){this.x=x;this.y=y}
+	copy(){return new V(this.x,this.y)}
+	plus(v=0){return typeof v=='number'?new V(this.x+v,this.y+v):new V(this.x+v.x,this.y+v.y)}
+	minus(v=0){return typeof v=='number'?new V(this.x-v,this.y-v):new V(this.x-v.x,this.y-v.y)}
+	neg(){return new V(-this.x,-this.y)}
+	recip(){return new V(1/this.x,1/this.y)}
+	times(v=1){return typeof v=='number'?new V(this.x*v,this.y*v):new V(this.x*v.x,this.y*v.y)}
+	div(v=1){return typeof v=='number'?new V(this.x/v,this.y/v):new V(this.x/v.x,this.y/v.y)}
+	pow(v=1){return typeof v=='number'?new V(this.x**v,this.y**v):new V(this.x**v.x,this.y**v.y)}
+	set(v=0){if(typeof v=='number')this.x=this.y=v;else this.x=v.x,this.y=v.y}
+	map(fn){return new V(fn(this.x),fn(this.y))}
+	eq(v){return typeof v=='number'?this.x==v&&this.y==v:this.x==v.x&&this.y==v.y}
+	length(){return hypot(this.x,this.y)}
+	get yx(){return V(this.y,this.x)}
+},W=class vec3{
+	constructor(x,y,z){this.x=x;this.y=y;this.z=z}
+	copy(){return new W(this.x,this.y,this.z)}
+	plus(v=0){return typeof v=='number'?new W(this.x+v,this.y+v,this.z+v):new W(this.x+v.x,this.y+v.y,this.z+v.z)}
+	minus(v=0){return typeof v=='number'?new W(this.x-v,this.y-v,this.z-v):new W(this.x-v.x,this.y-v.y,this.z-v.z)}
+	neg(){return new W(-this.x,-this.y,-this.z)}
+	recip(){return new W(1/this.x,1/this.y,1/this.z)}
+	times(v=1){return typeof v=='number'?new W(this.x*v,this.y*v,this.z*v):new W(this.x*v.x,this.y*v.y,this.z*v.z)}
+	div(v=1){return typeof v=='number'?new W(this.x/v,this.y/v,this.z/v):new W(this.x/v.x,this.y/v.y,this.z/v.z)}
+	pow(v=1){return typeof v=='number'?new W(this.x**v,this.y**v,this.z**v):new W(this.x**v.x,this.y**v.y,this.z**v.z)}
+	set(v=0){if(typeof v=='number')this.x=this.y=this.z=v;else this.x=v.x,this.y=v.y,this.z=v.z}
+	map(fn){return new W(fn(this.x),fn(this.y),fn(this.z))}
+	eq(v){return typeof v=='number'?this.x==v&&this.y==v&&this.z==v:this.x==v.x&&this.y==v.y&&this.z==v.z}
+	length(){return hypot(this.x,this.y,this.z)}
+	get xy(){return new V(this.x,this.y)}
+	get xz(){return new V(this.x,this.z)}
+	get yz(){return new V(this.y,this.z)}
+	get zyx(){return new W(this.z,this.y,this.x)}
+},X=class vec4{
+	constructor(x,y,z,w){this.x=x;this.y=y;this.z=z;this.w=w}
+	copy(){return new X(this.x,this.y,this.z,this.w)}
+	plus(v=0){return typeof v=='number'?new X(this.x+v,this.y+v,this.z+v,this.w+v):new X(this.x+v.x,this.y+v.y,this.z+v.z,this.w+v.w)}
+	minus(v=0){return typeof v=='number'?new X(this.x-v,this.y-v,this.z-v,this.w-v):new X(this.x-v.x,this.y-v.y,this.z-v.z,this.w-v.w)}
+	neg(){return new X(-this.x,-this.y,-this.z,-this.w)}
+	recip(){return new X(1/this.x,1/this.y,1/this.z,1/this.w)}
+	times(v=1){return typeof v=='number'?new X(this.x*v,this.y*v,this.z*v,this.w*v):new X(this.x*v.x,this.y*v.y,this.z*v.z,this.w*v.w)}
+	div(v=1){return typeof v=='number'?new X(this.x/v,this.y/v,this.z/v,this.w/v):new X(this.x/v.x,this.y/v.y,this.z/v.z,this.w/v.w)}
+	pow(v=1){return typeof v=='number'?new X(this.x**v,this.y**v,this.z**v,this.w**v):new X(this.x**v.x,this.y**v.y,this.z**v.z,this.w**v.w)}
+	set(v=0){if(typeof v=='number')this.x=this.y=this.z=this.w=v;else this.x=v.x,this.y=v.y,this.z=v.z,this.w=v.w}
+	map(fn){return new X(fn(this.x),fn(this.y),fn(this.z),fn(this.w))}
+	eq(v){return typeof v=='number'?this.x==v&&this.y==v&&this.z==v&&this.w==v:this.x==v.x&&this.y==v.y&&this.z==v.z&&this.w==v.w}
+	length(){return hypot(this.x,this.y,this.z,this.w)}
+	get xy(){return new V(this.x,this.y)}
+	get xz(){return new V(this.x,this.z)}
+	get xw(){return new V(this.x,this.w)}
+	get yz(){return new V(this.y,this.z)}
+	get yw(){return new V(this.y,this.w)}
+	get zw(){return new V(this.z,this.w)}
+	get xyz(){return new W(this.x,this.y,this.z)}
+	get xyw(){return new W(this.x,this.y,this.w)}
+	get xzw(){return new W(this.x,this.z,this.w)}
+	get yzw(){return new W(this.y,this.z,this.w)}
+	get wzyx(){return new X(this.w,this.z,this.y,this.x)}
 }
-function v2times(o){
-	return typeof o == 'number' ? {x: this.x*o, y: this.y*o, plus: v2plus, times: v2times} : {x: this.x*o.x, y: this.y*o.y, plus: v2plus, times: v2times}
-}
-function v3plus(o){
-	return typeof o == 'number' ? {x: this.x+o, y: this.y+o, z: this.z+o, plus: v3plus, times: v3times} : {x: this.x+o.x, y: this.y+o.y, z: this.z+o.z, plus: v3plus, times: v3times}
-}
-function v3times(o){
-	return typeof o == 'number' ? {x: this.x*o, y: this.y*o, z: this.z*o, plus: v3plus, times: v3times} : {x: this.x*o.x, y: this.y*o.y, z: this.z*o.z, plus: v3plus, times: v3times}
-}
-function v4plus(o){
-	return typeof o == 'number' ? {x: this.x+o, y: this.y+o, z: this.z+o, w: this.w+o, plus: v4plus, times: v4times} : {x: this.x+o.x, y: this.y+o.y, z: this.z+o.z, w: this.w+o.w, plus: v4plus, times: v4times}
-}
-function v4times(o){
-	return typeof o == 'number' ? {x: this.x*o, y: this.y*o, z: this.z*o, w: this.w*o, plus: v4plus, times: v4times} : {x: this.x*o.x, y: this.y*o.y, z: this.z*o.z, w: this.w*o.w, plus: v4plus, times: v4times}
-}
-globalThis.vec2 = (x=0,y=x)=>({x,y,plus:v2plus,times:v2times})
-globalThis.vec3 = (x=0,y=x,z=x)=>({x,y,z, plus: v3plus, times: v3times})
-globalThis.vec4 = (x=0,y=x,z=x,w=x)=>({x,y,z,w, plus: v4plus, times: v4times})
-vec4.one = vec4(1), vec3.one = vec3(1), vec2.one = vec2(1)
-const v2z = vec2.zero = {x:0,y:0}
-const v3z = vec3.zero = {x:0,y:0,z:0}
-const v4z = vec4.zero = {x:0,y:0,z:0,w:0}
-let D
-globalThis.Formats={R:[33321,6403,5121],RG:[33323,33319,5121],RGB:[32849,6407,5121],RGBA:D=[32856,T=6408,5121],RGB565:[36194,6407,33635],R11F_G11F_B10F:[35898,6407,35899],RGB5_A1:[32855,T,32820],RGB10_A2:[32857,T,33640],RGBA4:[32854,T,32819],RGB9_E5:[35901,6407,35902],R8:[33330,T=36244,5121,1<<31],RG8:[33336,33320,5121,1<<31],RGB8:[36221,36248,5121,1<<31],RGBA8:[36220,36249,5121,1<<31],R16:[33332,T,5123,1<<31],RG16:[33338,33320,5123,1<<31],RGB16:[36215,36248,5123,1<<31],RGBA16:[36214,36249,5123,1<<31],R32:[33334,T,5125,1<<31],RG32:[33340,33320,5125,1<<31],RGB32:[36209,36248,5125,1<<31],RGBA32:[36208,36249,5125,1<<31],R16F:[33325,6403,5131],RG16F:[33327,33319,5131],RGB16F:[34843,6407,5131],RGBA16F:[34842,6408,5131],R16F_32F:[33325,6403,5126],RG16F_32F:[33327,33319,5126],RGB16F_32F:[34843,6407,5126],RGBA16F_32F:[34842,6408,5126],R32F:[33326,6403,5126],RG32F:[33328,33319,5126],RGB32F:[34837,6407,5126],RGBA32F:[34836,6408,5126]}
+T = globalThis.vec2 = (x=0,y=x)=>new V(x,y)
+T.one = T(1); const v2z = T.zero = T(0)
+T = globalThis.vec3 = (x=0,y=x,z=x)=>new W(x,y,z)
+T.one = T(1); const v3z = T.zero = T(0)
+T = globalThis.vec4 = (x=0,y=x,z=x,w=x)=>new X(x,y,z,w)
+T.one = T(1); const v4z = T.zero = T(0)
+globalThis.Formats={R:[33321,6403,5121],RG:[33323,33319,5121],RGB:[32849,6407,5121],RGBA:[32856,T=6408,5121],RGB565:[36194,6407,33635],R11F_G11F_B10F:[35898,6407,35899],RGB5_A1:[32855,T,32820],RGB10_A2:[32857,T,33640],RGBA4:[32854,T,32819],RGB9_E5:[35901,6407,35902],R8:[33330,T=36244,5121,1<<31],RG8:[33336,33320,5121,1<<31],RGB8:[36221,36248,5121,1<<31],RGBA8:[36220,36249,5121,1<<31],R16:[33332,T,5123,1<<31],RG16:[33338,33320,5123,1<<31],RGB16:[36215,36248,5123,1<<31],RGBA16:[36214,36249,5123,1<<31],R32:[33334,T,5125,1<<31],RG32:[33340,33320,5125,1<<31],RGB32:[36209,36248,5125,1<<31],RGBA32:[36208,36249,5125,1<<31],R16F:[33325,6403,5131],RG16F:[33327,33319,5131],RGB16F:[34843,6407,5131],RGBA16F:[34842,6408,5131],R16F_32F:[33325,6403,5126],RG16F_32F:[33327,33319,5126],RGB16F_32F:[34843,6407,5126],RGBA16F_32F:[34842,6408,5126],R32F:[33326,6403,5126],RG32F:[33328,33319,5126],RGB32F:[34837,6407,5126],RGBA32F:[34836,6408,5126]}
 globalThis.loader=({url}) => (...src) => {
 	if(src[0].raw){
 		const a = [src[0][0]]
@@ -734,7 +773,7 @@ globalThis.Shader = (src, inputs, uniforms, output=4, defaults, uDefaults, frat=
 	for(const t of inputs){
 		let c = (t&3)+1, n = names[t&3|t>>4<<2]
 		const isCol = t==4||t==8||t==12
-		defaults[id] ??= t==4?vec4.zero:c==1?0:c==2?vec2.zero:c==3?vec3.zero:vec4.zero
+		defaults[id] ??= t==4?v4z:c==1?0:c==2?v2z:c==3?v3z:v4z
 		fnParams.push(id+':a'+j+'=defaults['+id+'],')
 		const A = t>15?(o|=1,'iarr[j+'):'arr[j+'
 		if(t==20||t==24||t==28){
@@ -772,7 +811,7 @@ globalThis.Shader = (src, inputs, uniforms, output=4, defaults, uDefaults, frat=
 	const uniTex = [], uniLocs = []
 	for(const t of uniforms){
 		let c = (t&3)+1, n = names[t&3|t>>4<<2]
-		uDefaults[id] ??= t==4?vec4.zero:c==1?0:c==2?vec2.zero:c==3?vec3.zero:vec4.zero
+		uDefaults[id] ??= t==4?v4z:c==1?0:c==2?v2z:c==3?v3z:v4z
 		fn2Params.push('a'+j2+'=uDefaults['+id+']')
 		if(t==12||t==28) o|=2
 		if(t==8||t==24) iCount++,fCount--
@@ -865,10 +904,9 @@ Shader.UINT = Shader(`void main(){color=arg0();}`, UCOLOR, _, UINT)
 Shader.NONE = Shader(`void main(){color=vec4(0,0,0,1);}`)
 gl.useProgram(sh.program)
 gl.bindVertexArray(sh.vao)
-globalThis._gl = gl
 globalThis.ctx = new can(ca={tex:gl.canvas,img:null,layer:0,stencil:0,stencilBuf:null,w:0,h:0})
 
-const actx = globalThis._actx = new AudioContext({latencyHint: 'interactive'})
+export const actx = new AudioContext({latencyHint: 'interactive'})
 globalThis.bgGain = actx.createGain()
 bgGain.connect(actx.destination)
 globalThis.masterVolume = 1
@@ -933,7 +971,7 @@ globalThis.timeToFrame = 0
 setInterval(function g(j){
 	if(j) step?.()
 	if(ctxFramerate<0||!gl) return
-	if(_gl.isContextLost?.()) return glLost()
+	if(gl.isContextLost?.()) return glLost()
 	let now = performance.now()/1000
 	if(now < nextF) return
 	dt = max(.01/ctxFramerate, -(globalThis.t-(globalThis.t=now)))
@@ -944,7 +982,7 @@ setInterval(function g(j){
 	timeToFrame = now-t
 }, 0, 1)
 requestAnimationFrame(function f(){
-	if(_gl.isContextLost?.()) return glLost()
+	if(gl.isContextLost?.()) return glLost()
 	requestAnimationFrame(f)
 	i&&draw()
 	pixelRatio = devicePixelRatio * ctxSupersample

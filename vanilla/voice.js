@@ -1,5 +1,8 @@
-import { send, onpacket, voice, stopVoice, drawLayer, onkey } from 'api'
+import { send, onpacket, voice, drawLayer, onkey } from 'api'
 import { entityMap, CONFIG, me } from 'world'
+import '../img/_pako.js'
+
+const actx = new AudioContext({latencyHint: 'interactive', sampleRate: 22050})
 
 onpacket(96, buf => {
 	if(!pako) return
@@ -30,13 +33,12 @@ function queuePlay(e, sampleRate, data){
 	if(obj.ends < actx.currentTime || actx.state != 'running' || obj.ends > actx.currentTime + 10) obj.ends = actx.currentTime
 	n.start(obj.ends)
 	if(obj.ends - actx.currentTime > 0.5) n.playbackRate.value = 1.25
-	obj.ends += (f32.length/sampleRate) / n.playbackRate.value
+	obj.ends += b.duration / n.playbackRate.value
 	if(typeof e === 'object') setVol(e, obj)
 }
 
 function setVol(e, obj){
 	const dx = e.x-me.x, dy = e.y-me.y
-	// TODO
 	obj.gain.gain.value = 1-hypot(dx, dy)/CONFIG.proximity_chat
 	obj.pan.pan.value = tanh(dx/sqrt(CONFIG.proximity_chat)/4)
 }
@@ -46,7 +48,7 @@ drawLayer('none', -10000, () => {
 		if(obj.ends < actx.currentTime - 10000){ bufferEnds.delete(e); continue }
 		if(typeof e === 'object') setVol(e, obj)
 	}
-	if(voice.active && (!buttons.has(KEYS.ENTER)^voiceToggle)) stopVoice(), me.state &= ~0x100
+	if(voice.active && (!buttons.has(KEYS.ENTER)^voiceToggle)) voice.stop(), me.state &= ~0x100
 	else if(!voice.active && (buttons.has(KEYS.ENTER)^voiceToggle) && CONFIG.proximity_chat) voice(sendVoice), me.state |= 0x100
 })
 let voiceToggle = false

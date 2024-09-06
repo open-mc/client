@@ -70,13 +70,6 @@ let fluidGeometry
 	}
 	fluidGeometry = Geometry(TRIANGLE_STRIP, arr)
 }
-globalThis.test = (y1, y2) => {
-	y1 += y2*9
-	const a = new Float32Array(8)
-	_gl.bindBuffer(_gl.COPY_READ_BUFFER, fluidGeometry.b)
-	_gl.getBufferSubData(_gl.COPY_READ_BUFFER, ((y1>>1)*6+(y1<<1&2))<<3, a)
-	return a
-}
 
 export const fluidify = (B, type, tex, flowingTex) => {
 	B.texture = tex

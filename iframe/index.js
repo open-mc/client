@@ -4,7 +4,7 @@ import { DataWriter } from '/server/modules/dataproto.js'
 import { mePhysics, stepEntity } from './entity.js'
 import { getblock, entityMap, map, cam, onPlayerLoad, world, me, W2, H2, SCALE } from 'world'
 import * as pointer from './pointer.js'
-import { options, _renderPhases, renderBoxes, send, download, copy, pause, _updatePaused, drawText, calcText, _networkUsage, listen, _tickPhases, renderUI, _cbs, onmousemove, onwheel, _optionListeners, _setChatFocused, _onvoice, voice, _onPacket, onfocus, onblur, onkey, ongesture, onpress } from 'api'
+import { options, _renderPhases, renderBoxes, send, download, copy, setPlaying, drawText, calcText, _networkUsage, listen, _tickPhases, renderUI, _cbs, onmousemove, onwheel, _optionListeners, _onvoice, voice, _onPacket, onfocus, onblur, onkey, ongesture, onpress, playing, paused, ptrlock, exitPtrlock, movementScale, gl } from 'api'
 import { _recalcDimensions, Blocks, Items, Entities, BlockIDs, ItemIDs, EntityIDs, Block, Item, Entity, Classes } from 'definitions'
 import { jsonToType } from '/server/modules/dataproto.js'
 import { onChat } from './chat.js'
@@ -68,6 +68,7 @@ let flashbang = 0
 let frames = 0
 globalThis.fps = 0
 globalThis.frame = () => {
+	if(navigator.getGamepads) uptGamepads()
 	const correctT = t
 	const speed = options.speed ?? 1
 	t *= speed; dt *= speed
@@ -81,7 +82,7 @@ globalThis.frame = () => {
 		drawText(ctx, arr, -arr.width*8, 0, 16)
 		return
 	}
-	pause(false)
+	setPlaying(true)
 	playerControls()
 	for(const entity of entityMap.values()) stepEntity(entity)
 	const tzoom = (me.state & 4 ? -0.13 : 0) * ((1 << options.ffx * (options.camera != 4)) - 1) + 1
@@ -147,6 +148,7 @@ globalThis.frame = () => {
 		}catch(e){Promise.reject(e)}
 	}
 	if(flashbang) ctx.reset(), ctx.drawRect(1, 0, -flashbang, flashbang, vec4(flashbang*.667)), flashbang = max(0, flashbang-dt*3)
+	uptElements()
 	t=correctT
 	changed.clear()
 	for(const t of touches.values()){
@@ -158,24 +160,25 @@ globalThis.frame = () => {
 	cursor.dx = cursor.dy = cursor.mx = cursor.my = 0
 	gesture.dx = gesture.dy = gesture.rot = 0
 	gesture.scale = 1
-	_updatePaused()
+	if(playing && !paused && !document.pointerLockElement) ptrlock()
+	else if(!playing && document.pointerLockElement) exitPtrlock()
 }
 globalThis.cam = cam
 
 
-onkey(KEYS.F2, () => requestAnimationFrame(() => _gl.canvas.toBlob(blob => {
+onkey(KEYS.F2, () => requestAnimationFrame(() => gl.canvas.toBlob(blob => {
 	const f = new File([blob], 'screenshot-'+timestamp(), blob)
 	if(buttons.has(KEYS.ALT)) copy(f), flashbang = 1
 	else download(f)
 }, 'image/png')))
 let rec = null
 const timestamp = (d = new Date()) => `${d.getYear()+1900}-${('0'+d.getMonth()).slice(-2)}-${('0'+d.getDate()).slice(-2)}-at-${('0'+d.getHours()).slice(-2)}-${('0'+d.getMinutes()).slice(-2)}-${('0'+d.getSeconds()).slice(-2)}`
-_gl.canvas.style.outlineOffset = '-1px'
+gl.canvas.style.outlineOffset = '-1px'
 onkey(KEYS.F6, () => {
 	if(!rec){
 		audioOut = _actx.createMediaStreamDestination()
 		bgGain.connect(audioOut)
-		const s = _gl.canvas.captureStream()
+		const s = gl.canvas.captureStream()
 		s.addTrack(audioOut.stream.getTracks()[0])
 		rec = new MediaRecorder(s, {videoBitsPerSecond: buttons.has(KEYS.ALT) ? 100e5 : 40e5})
 		const chunks = []
@@ -185,13 +188,13 @@ onkey(KEYS.F6, () => {
 			chunks.length = 0
 		}
 		rec.start()
-		_gl.canvas.style.outline = options.guiScale*2+'px red solid'
+		gl.canvas.style.outline = options.guiScale*2+'px red solid'
 		return
 	}
 	rec.stop(); rec = null
 	bgGain.disconnect(audioOut)
 	audioOut = null
-	_gl.canvas.style.outline = ''
+	gl.canvas.style.outline = ''
 })
 
 Object.assign(globalThis, {Blocks, Items, Entities, BlockIDs, ItemIDs, EntityIDs, me})
@@ -258,79 +261,142 @@ __import__.loadAll().then(packs => {
 	i = 0; for(const b of packs[2].split('\n')) funcify(b, i++, Entities)
 	if(!--loading) loaded()
 })
+
+import click from "../img/click.mp3"
+import { uptElements } from './api.js'
+
+document.onclick = e => {
+	if(!paused) return
+	document.documentElement.style.cursor = ''
+	e&&click(); ptrlock()
+}
+let lastMx = 0, lastMy = 0
+document.onmousemove = ({movementX, movementY, clientX, clientY}) => {
+	const dx = movementX * movementScale, dy = -movementY * movementScale
+	if(Math.hypot(lastMx - (lastMx=dx), lastMy - (lastMy=dy)) > 150) return
+	cursor.dx -= cursor.x - (cursor.x=clientX / innerWidth)
+	cursor.dy -= cursor.y - (cursor.y=1 - clientY / innerHeight)
+	if(document.pointerLockElement){
+		cursor.mx += dx; cursor.my += dy
+		onmousemove.fire(dx, dy)
+	}
+}
+
+document.onkeydown = e => {
+	e.preventDefault()
+	if(e.repeat) return
+	const n = e.keyCode
+	buttons.set(n); changed.set(n)
+	if(_cbs[n]) for(const f of _cbs[n]) f()
+}
+document.onkeyup = e => {
+	e.preventDefault()
+	const n = e.keyCode
+	buttons.unset(n); changed.set(n)
+}
+document.onmousedown = e => {
+	if(paused) return
+	const n = e.button
+	buttons.set(n); changed.set(n)
+	if(_cbs[n]) for(const f of _cbs[n]) f()
+}
+document.onmouseup = e => {
+	const n = e.button
+	buttons.pop(n) && changed.set(n)
+}
+addEventListener('wheel', e => {
+	e.preventDefault()
+	onwheel.fire(e.deltaX * movementScale, e.deltaY * movementScale)
+}, {passive: false})
+document.ontouchstart = document.ontouchmove = e => {
+	for(let i = 0; i < e.changedTouches.length; i++){
+		const t = e.changedTouches[i]
+		const id = t.identifier, x = t.clientX / innerWidth, y = 1 - t.clientY / innerHeight
+		let v = touches.get(id)
+		if(!v) return void touches.set(id, v = {x: x, y: y, dx: 0, dy: 0, age: 0, d: 0})
+		const ox = v.x, oy = v.y, dx = (v.x=x)-ox, dy = (v.y=y)-oy
+		v.dx += dx; v.dy += dy
+		if((v.d += hypot(dx*innerWidth,dy*innerHeight)) < 16) return
+		if(aid!=aid) aid=id
+		else if(aid!=id&&bid!=bid) bid=id
+		if(bid==bid){
+			const other = aid==id?touches.get(aid):bid==id?touches.get(bid):null
+			if(!other) return
+			const px = dx/2, py = dy/2
+			const x1 = (x-other.x)*innerWidth, y1 = (y-other.y)*innerHeight
+			const x2 = (ox-other.x)*innerWidth, y2 = (oy-other.y)*innerHeight
+			const s = sqrt((x1*x1+y1*y1)/(x2*x2+y2*y2))
+			const r = atan2(x1*y2-y1*x2, x1*x2+y1*y2)
+			gesture.dx += px; gesture.dy += py
+			gesture.scale *= s; gesture.rot += r
+			ongesture.fire(px, py, s, r)
+		}else if(aid==id){
+			gesture.dx += dx; gesture.dy += dy
+			ongesture.fire(dx, dy, 1, 0)
+		}
+	}
+}
+document.ontouchend = e => {
+	for(let i = 0; i < e.changedTouches.length; i++){
+		const id = e.changedTouches[i].identifier
+		const v = touches.get(id); touches.delete(id)
+		if(v.d < 16 && v.age < .5) onpress.fire(v.x, v.y)
+		id==bid?bid=NaN:id==aid?(aid=bid,bid=NaN):0
+	}
+}
+
+function uptGamepads(){
+	if(paused){
+		cursor.jlx = cursor.jrx = cursor.jly = cursor.jry = 0
+		return
+	}
+	for(const d of navigator.getGamepads()){
+		if(!d) continue
+		let i = (d.mapping != 'standard')<<6|256
+		for(const b of d.buttons){
+			if(b.pressed || b == 1){
+				if(!buttons.has(i)){
+					buttons.set(i); changed.set(i)
+					if(_cbs[i]) for(const f of _cbs[i]) f()
+					if(i===320) document.exitPointerLock?.()
+				}
+			}else if(buttons.has(i))
+				buttons.unset(i), changed.set(i)
+			i++
+		}
+		let x = d.axes[0], y = d.axes[1]
+		let l = hypot(x, y)
+		if(l > 1) x /= l, y /= l
+		cursor.jlx = x; cursor.jly = y
+		x = d.axes[2], y = d.axes[3]
+		l = hypot(x, y)
+		if(l > 1) x /= l, y /= l
+		cursor.jrx = x; cursor.jry = y
+	}
+}
+
 let connMsg = ''
 const onMsg = ({data,origin}) => {
 	if(origin=='null') return
 	if(Array.isArray(data)){
 		if(data.length == 2){
 			const {0:a,1:b} = data
-			if(typeof a == 'string'){
-				options[a] = b
-				if(_optionListeners[a]) for(const f of _optionListeners[a]) f(b)
-			}else if(a===null){
-				const v = touches.get(b); touches.delete(b)
-				if(v.d < 16){
-					if(v.age < .5) onpress.fire(v.x, v.y)
-				}
-				b==bid?bid=NaN:b==aid?(aid=bid,bid=NaN):0
-			}
-			return
-		}else if(data.length == 3){
-			const {0:id, 1:x, 2:y} = data
-			if(id == -Infinity) cursor.jlx = x, cursor.jly = y
-			else if(id == Infinity) cursor.jrx = x, cursor.jry = y
-			else{
-				let v = touches.get(id)
-				if(!v) return void touches.set(id, v = {x: x, y: y, dx: 0, dy: 0, age: 0, d: 0})
-				const ox = v.x, oy = v.y, dx = (v.x=x)-ox, dy = (v.y=y)-oy
-				v.dx += dx; v.dy += dy
-				if((v.d += hypot(dx*innerWidth,dy*innerHeight)) < 16) return
-				if(aid!=aid) aid=id
-				else if(aid!=id&&bid!=bid) bid=id
-				if(bid==bid){
-					const other = aid==id?touches.get(aid):bid==id?touches.get(bid):null
-					if(!other) return
-					const px = dx/2, py = dy/2
-					const x1 = (x-other.x)*innerWidth, y1 = (y-other.y)*innerHeight
-					const x2 = (ox-other.x)*innerWidth, y2 = (oy-other.y)*innerHeight
-					const s = sqrt((x1*x1+y1*y1)/(x2*x2+y2*y2))
-					const r = atan2(x1*y2-y1*x2, x1*x2+y1*y2)
-					gesture.dx += px; gesture.dy += py
-					gesture.scale *= s; gesture.rot += r
-					ongesture.fire(px, py, s, r)
-				}else if(aid==id){
-					gesture.dx += dx; gesture.dy += dy
-					ongesture.fire(dx, dy, 1, 0)
-				}
-			}
-			return
-		}else if(data.length == 1) return data[0]===Infinity?_setChatFocused(true):data[0]===-Infinity?_setChatFocused(false):onwheel.fire(data[0])
-		else if(data.length == 4){
-			cursor.dx -= cursor.x - (cursor.x=data[0])
-			cursor.dy -= cursor.y - (cursor.y=data[1])
-			cursor.mx += data[2]; cursor.my += data[3]
-			onmousemove.fire(data[2], data[3])
+			options[a] = b
+			if(_optionListeners[a]) for(const f of _optionListeners[a]) f(b)
 			return
 		}
 	}else if(data instanceof ArrayBuffer){
 		if(loading>0) return void msgQueue.push(data)
 		_onPacket(data)
-	}else if(typeof data == 'string'){
-		onChat(data)
-	}else if(data instanceof Float32Array) _onvoice?.(data)
+	}else if(typeof data == 'string') onChat(data)
+	else if(data instanceof Float32Array) _onvoice?.(data)
 	else if(typeof data == 'number'){
-		if(!Number.isFinite(data)){
-			if(data > 0) onfocus.fire()
-			else if(data < 0) onblur.fire()
-		}else if(data >= 5e9) voice.sampleRate = data - 5e9
-		else if(data >= 0){
-			buttons.set(data)
-			changed.set(data)
-			if(_cbs[data]) for(const f of _cbs[data]) f()
-		}else buttons.pop(~data) && changed.set(~data)
-	}else if(typeof data == 'boolean') _updatePaused(data)
+		if(data > 0) voice.sampleRate = data
+		else if(data >= -4) (data==-3?onfocus:onblur).fire()
+	}
 }
 addEventListener('message', onMsg)
 parent.postMessage(null, '*')
 
 await new Promise(onPlayerLoad)
+document.onclick()

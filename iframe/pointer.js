@@ -1,6 +1,6 @@
 import { setblock, getblock, map, cam, me, onPlayerLoad, perms, pointer, W2, H2, toBlockExact, mode } from 'world'
 import './controls.js'
-import { onkey, options, paused, renderUI, drawLayer, onpress } from 'api'
+import { onkey, options, playing, renderUI, drawLayer, onpress } from 'api'
 import { Entity, TEX_SIZE, BlockIDs } from 'definitions'
 
 export const CAMERA_DYNAMIC = 0, CAMERA_FOLLOW_SMOOTH = 1, CAMERA_FOLLOW_POINTER = 2,
@@ -41,7 +41,7 @@ export const DEFAULT_BLOCKSHAPE = [0, 0, 1, 1]
 let blockPlacing = null
 const invertBlend = Blend(ONE_MINUS_DST, ADD, ONE_MINUS_SRC)
 drawLayer('world', 400, c => {
-	if(paused) return
+	if(!playing) return
 	if(cursor.mx||cursor.my) pointerMoved(cursor.mx, cursor.my), pointerOpacity = 1
 	if(gesture.dx||gesture.dy) pointerMoved(gesture.dx*W2, gesture.dy*H2, 4), pointerOpacity = 0
 	if(renderUI && me.health){
@@ -187,13 +187,13 @@ export function checkBlockPlacing(buf){
 	const hasP = buttons.has(options.click ? LBUTTON : RBUTTON) || buttons.has(options.click ? GAMEPAD.LT : GAMEPAD.RT) || touchPlace
 	touchPlace = false
 	const hasB = buttons.has(options.click ? RBUTTON : LBUTTON) || buttons.has(options.click ? GAMEPAD.RT : GAMEPAD.LT)
-	if(hasP && ((mode == 1 && buttons.has(KEYS.ALT)) || t > lastPlace + .12) && !paused && bpx == bpx){
+	if(hasP && ((mode == 1 && buttons.has(KEYS.ALT)) || t > lastPlace + .12) && playing && bpx == bpx){
 		if(blockPlacing) setblock(bpx, bpy, blockPlacing)
 		buf.byte(me.selected)
 		buf.float(x); buf.float(y)
 		buf.int(bpx); buf.int(bpy)
 		lastPlace = t
-	}else if(hasB && bx == bx && !paused && !(mode == 1 && !buttons.has(KEYS.ALT) && t <= lastPlace + .12)){
+	}else if(hasB && bx == bx && playing && !(mode == 1 && !buttons.has(KEYS.ALT) && t <= lastPlace + .12)){
 		buf.byte(me.selected | 128)
 		buf.float(x); buf.float(y)
 		blockbreakx = bx; blockbreaky = by
@@ -201,7 +201,7 @@ export function checkBlockPlacing(buf){
 	}else{
 		buf.byte(me.selected); buf.float(NaN); buf.float(me.f)
 		let id = Entity.meid // -1
-		const hitBtnDown = hasB && !paused
+		const hitBtnDown = hasB && playing
 		if(hitBtnDown && !didHit){
 			const xp = me.x + x, yp = me.y + me.head + y
 			const xa = floor(xp - 32) >>> 6, ya = floor(yp - 32) >>> 6, x1 = xa + 1 & 0x3FFFFFF, y1 = ya + 1 & 0x3FFFFFF

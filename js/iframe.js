@@ -1,12 +1,12 @@
 import { listen, options, storage } from './save.js'
-import { hideUI, showUI, ui } from './ui.js'
+import { showUI } from './ui.js'
 import { pause } from '../uis/pauseui.js'
-import { serverlist } from '../uis/serverlist.js'
+import { serverClicked, serverlist } from '../uis/serverlist.js'
 import texts from './lang.js'
 import { defaultConfig, fallback } from './worldconfig.js'
-export let iframe = document.createElement('iframe'), win = null
 
-iframe.srcdoc = `<script>parent.postMessage(undefined,'*');addEventListener('message',e=>{
+export let iframe = document.createElement('iframe'), win = null
+iframe.srcdoc = `<html style="height:100%;cursor:pointer"><style></style><script>addEventListener('message',e=>{
 let E="data:application/javascript,export%20default%20",H=${JSON.stringify(location.origin+'/')},[d,f]=e.data,m={__proto__:null},R=(b,s,c=s.charCodeAt(0))=>c==47||(c==46&&((c=s.charCodeAt(1))==47||(c==46&&s.charCodeAt(2)==47)))?new URL(s,b).href:s.startsWith(H)?'data:application/javascript,':c==c?s:b;(globalThis.__import__=(b,s='')=>import(R(b,s))).meta=u=>m[u]??=Object.freeze({url:u,resolve:s=>R(u,s)});for(let{0:k,1:v}of __import__.map=d){
 if(!v){m[k]='data:application/javascript,';continue};if(v.type=='application/javascript'){m[k]=URL.createObjectURL(v);continue}
 let ct=v.type,ct1='',i=ct.indexOf(';'),R="__import__.map.get("+encodeURI(JSON.stringify(k))+")";if(i>-1)ct=ct.slice(0,i);i=ct.indexOf('/');if(i>-1)ct1=ct.slice(0,i).trim().toLowerCase(),ct=ct.slice(i+1).trim().toLowerCase()
@@ -14,13 +14,16 @@ if(ct1=='image')m[k]=E+"Img("+R+")"
 else if(ct1=='application'&&ct=='json')m[k]=E+"await%20new%20Response("+R+").json()"
 else if(ct1=='audio')m[k]=E+"Wave("+R+")"
 else if(ct1=='text')m[k]=E+"await%20new%20Response("+R+").text()"
+else if(ct1=='font')m[k]=E+"await%20new%20FontFace('font',"+encodeURI(JSON.stringify('url('+URL.createObjectURL(v)+')'))+").load()"
 else m[k]=E+R
 }m.vanilla=m[H+'vanilla/index.js'],m.core=m[H+'iframe/index.js'],m.world=m[H+'iframe/world.js'],m.api=m[H+'iframe/api.js'],m.definitions=m[H+'iframe/definitions.js']
 d=document.createElement('script');d.type='importmap';d.textContent=JSON.stringify({imports:m});document.head.append(d);m={__proto__:null}
 __import__.loadAll=async ()=>{__import__.loadAll=null;let i=3,a=[];while(++i<f.length)a.push(import(f[i]));for(const n of a)await n;return f};import('core')
-},{once:true})</script>`
+onpointermove=onpointerup=onpointerout=null
+},{once:true});onpointermove=e=>parent.postMessage(e.clientY,'*');onpointerup=e=>parent.postMessage(-1-e.clientY,'*');onpointerout=e=>parent.postMessage(NaN,'*')</script></html>`
 iframe.sandbox = 'allow-scripts allow-pointer-lock allow-downloads'
-iframe.allow = 'cross-origin-isolated; autoplay'
+iframe.allow = 'cross-origin-isolated; autoplay; fullscreen'
+iframe.allowfullscreen = true
 document.body.append(iframe)
 export let iReady = false
 export const skin = new Uint8Array(1008)
@@ -32,8 +35,6 @@ sw.onmessage = ({data, source}) => {
 }
 const queue = []
 export function gameIframe(f, url){
-	if(!iReady) return false
-	iReady = false
 	const q = f.slice(3)
 	q[0] = url || 'file:'
 	sw.controller.postMessage(q)
@@ -177,14 +178,15 @@ const tra=[null]
 let mport
 onmessage = ({data, source}) => {
 	if((source??0) !== iframe.contentWindow) return
-	if(!iReady){ iReady = true; return }
+	if(!iReady){ serverClicked(data); return }
+	if(data instanceof ArrayBuffer || typeof data == 'string') ws?.send(data)
 	if(typeof data != 'object'){
-		if(data === true) showUI(null)
-		else if(data === false) hideUI()
+		if(data === true) pause()
+		else if(data === false) showUI(null)
 		else if(data !== data) serverlist()
 		else if(data === Infinity) voiceOn()
 		else if(data === -Infinity) voiceOff()
-		else if(data === '') notif()
+		else if(data === undefined) notif()
 		return
 	}
 	if(data === null){
@@ -194,9 +196,8 @@ onmessage = ({data, source}) => {
 		for(const k in options) win.postMessage([k, options[k]], '*')
 		for(const a of queue) win.postMessage(a, '*', typeof a == 'string' ? undefined : [a])
 		queue.length = 0
-		hideUI()
-	}else if(data instanceof ArrayBuffer && globalThis.ws) ws.send(data)
-	else if(data instanceof Blob) download(data)
+		showUI(null)
+	}else if(data instanceof Blob) download(data)
 	else if(Array.isArray(data)){
 		if(data.length == 1 && data[0] instanceof Blob) navigator.clipboard.write([new ClipboardItem({[data[0].type]: data[0]})])
 		else; //onerror(undefined,''+data[1],+data[2],+data[3],data[0])
@@ -226,39 +227,39 @@ export function fwPacket({data:a}){
 	win.postMessage(a, '*', typeof a == 'string' ? undefined : [a])
 }
 
-export const ifrMsg = (a,c=!(ui instanceof Element)) => c&&win?.postMessage(a, '*')
-
-
 const TARGET_SAMPLE_RATE = 22050
+let node, ctx, sampleRate = 0, bufferSize = 2048, r = null, proc
 let m = null, voice = false
 async function microphone(){
 	m = 1
 	try{
 		m = await navigator.mediaDevices.getUserMedia({audio: true})
 		if(!voice) return voiceOff()
-		let node, ctx = null, sampleRate
-		// Firefox, wtf??? https://bugzilla.mozilla.org/show_bug.cgi?id=1388586
-		for(sampleRate of [TARGET_SAMPLE_RATE, 8000, 16000, 32000, 44100, 48000]) try{
-			ctx = new AudioContext({sampleRate})
-			node = ctx.createMediaStreamSource(m)
-			break
-		}catch{}
-		if(!node) throw alert(texts.warning.unsupported_microphone_api), 'browser does not support processing microphone input'
-		let bufferSize = 2048, r = null
-		if(sampleRate !== TARGET_SAMPLE_RATE){
-			bufferSize = 1<<Math.round(Math.log2(sampleRate/10))
-			const {resampler} = await import('/img/_resampler.js')
-			r = resampler(sampleRate, TARGET_SAMPLE_RATE, 1, bufferSize)
-		}
-		win?.postMessage(sampleRate + 5e9, '*')
-		const a = ctx.createScriptProcessor(4096, 1, 1) // Blink/webkit bug, node requires output
-		a.onaudioprocess = ({inputBuffer}) => {
-			if(!voice) return
-			const f32 = r?r(inputBuffer.getChannelData(0)):inputBuffer.getChannelData(0)
-			win?.postMessage(f32, '*')
-		}
-		m.source=node;m.source.connect(a)
-		a.connect(ctx.destination)
+		let node
+		if(!ctx){
+			// Firefox, wtf??? https://bugzilla.mozilla.org/show_bug.cgi?id=1388586
+			for(sampleRate of [TARGET_SAMPLE_RATE, 8000, 16000, 32000, 44100, 48000]) try{
+				ctx = new AudioContext({sampleRate})
+				node = ctx.createMediaStreamSource(m)
+				break
+			}catch{}
+			if(!node) throw alert(texts.warning.unsupported_microphone_api), 'browser does not support processing microphone input'
+			bufferSize = 2048
+			if(sampleRate !== TARGET_SAMPLE_RATE){
+				bufferSize = 1<<Math.round(Math.log2(sampleRate/10))
+				const {resampler} = await import('/img/_resampler.js')
+				r = resampler(sampleRate, TARGET_SAMPLE_RATE, 1, bufferSize)
+			}
+			proc = ctx.createScriptProcessor(bufferSize, 1, 1) // Blink/webkit bug, node requires output
+			proc.onaudioprocess = ({inputBuffer}) => {
+				if(!voice) return
+				const f32 = inputBuffer.getChannelData(0)
+				win?.postMessage(r?r(f32):f32, '*')
+			}
+			proc.connect(ctx.destination)
+			win?.postMessage(TARGET_SAMPLE_RATE, '*')
+		}else node = ctx.createMediaStreamSource(m)
+		void (m.source=node).connect(proc)
 	}catch(e){console.warn(e)}
 }
 const voiceEl = document.getElementById('voice')
