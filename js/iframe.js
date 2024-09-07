@@ -7,7 +7,7 @@ import { defaultConfig, fallback } from './worldconfig.js'
 
 export let iframe = document.createElement('iframe'), win = null
 iframe.srcdoc = `<html style="height:100%;cursor:pointer"><style></style><script>addEventListener('message',e=>{
-let E="data:application/javascript,export%20default%20",H=${JSON.stringify(location.origin+'/')},[d,f]=e.data,m={__proto__:null},R=(b,s,c=s.charCodeAt(0))=>c==47||(c==46&&((c=s.charCodeAt(1))==47||(c==46&&s.charCodeAt(2)==47)))?new URL(s,b).href:s.startsWith(H)?'data:application/javascript,':c==c?s:b;(globalThis.__import__=(b,s='')=>import(R(b,s))).meta=u=>m[u]??=Object.freeze({url:u,resolve:s=>R(u,s)});for(let{0:k,1:v}of __import__.map=d){
+let E="data:application/javascript,export%20default%20",H=${JSON.stringify(location.origin+'/')},[d,f,F]=e.data,m={__proto__:null},R=(b,s,c=s.charCodeAt(0))=>c==47||(c==46&&((c=s.charCodeAt(1))==47||(c==46&&s.charCodeAt(2)==47)))?new URL(s,b).href:s.startsWith(H)?'data:application/javascript,':c==c?s:b;(globalThis.__import__=(b,s='')=>import(R(b,s))).meta=u=>m[u]??=Object.freeze({url:u,resolve:s=>R(u,s)});for(let{0:k,1:v}of __import__.map=d){
 if(!v){m[k]='data:application/javascript,';continue};if(v.type=='application/javascript'){m[k]=URL.createObjectURL(v);continue}
 let ct=v.type,ct1='',i=ct.indexOf(';'),R="__import__.map.get("+encodeURI(JSON.stringify(k))+")";if(i>-1)ct=ct.slice(0,i);i=ct.indexOf('/');if(i>-1)ct1=ct.slice(0,i).trim().toLowerCase(),ct=ct.slice(i+1).trim().toLowerCase()
 if(ct1=='image')m[k]=E+"Img("+R+")"
@@ -18,7 +18,7 @@ else if(ct1=='font')m[k]=E+"await%20new%20FontFace('font',"+encodeURI(JSON.strin
 else m[k]=E+R
 }m.vanilla=m[H+'vanilla/index.js'],m.core=m[H+'iframe/index.js'],m.world=m[H+'iframe/world.js'],m.api=m[H+'iframe/api.js'],m.definitions=m[H+'iframe/definitions.js']
 d=document.createElement('script');d.type='importmap';d.textContent=JSON.stringify({imports:m});document.head.append(d);m={__proto__:null}
-__import__.loadAll=async ()=>{__import__.loadAll=null;let i=3,a=[];while(++i<f.length)a.push(import(f[i]));for(const n of a)await n;return f};import('core')
+__import__.loadAll=async ()=>{__import__.loadAll=null;let i=0;while(i<f.length)f[i]=import(f[i++]);for(const n of f)await n;return F};import('core')
 onpointermove=onpointerup=onpointerout=null
 },{once:true});onpointermove=e=>parent.postMessage(e.clientY,'*');onpointerup=e=>parent.postMessage(-1-e.clientY,'*');onpointerout=e=>parent.postMessage(NaN,'*')</script></html>`
 iframe.sandbox = 'allow-scripts allow-pointer-lock allow-downloads'
@@ -34,12 +34,11 @@ sw.onmessage = ({data, source}) => {
 	cbq.shift()?.(data)
 }
 const queue = []
-export function gameIframe(f, url){
-	const q = f.slice(3)
-	q[0] = url || 'file:'
-	sw.controller.postMessage(q)
+export function gameIframe(f, base){
+	let maps = f.pop(), files = f.pop()
+	sw.controller.postMessage({base, files: files = files?files.split('\n'):[], maps})
 	cbq.push(data => {
-		iframe.contentWindow.postMessage([data,f], '*')
+		iframe.contentWindow.postMessage([data,files,f], '*')
 		iReady = true
 	})
 	return true
@@ -87,7 +86,7 @@ d=document.createElement('script');d.type='importmap';d.textContent=JSON.stringi
 import(H+'localserver/index.js')
 globalThis.parentPort = null
 },{once:true})</script>`
-		sw.controller.postMessage(['', '/server/worldgen/genprocess.js'])
+		sw.controller.postMessage({base: '', files: ['/server/worldgen/genprocess.js'], maps: []})
 		cbq.push(data => {
 			dat.cache = data
 			P?--P||ifr.contentWindow.postMessage(dat, '*', [dat.port,dat.dbport]):port._finish()

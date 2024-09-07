@@ -72,7 +72,7 @@ export function preconnect(ip, cb = Function.prototype){
 			icon.src = obj.icon || 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEAAAAALAAAAAABAAEAAAIBAAA'
 			if(obj.banner) node.css({background: 'linear-gradient(75deg, #000a 80rem, #0001 100%), url("'+CSS.escape(obj.banner)+'") center/cover'})
 		}
-		cb(n={ip:u+'', timeOff:0, displayIp, name: obj.name, host: ''})
+		cb(n={ip:u+'', timeOff:0, displayIp, name: obj.name, host: '', url: 'file:'})
 	}):fetch(u+'preview').then(a=>a.arrayBuffer()).then(dat => {
 		const packet = new DataReader(dat)
 		const nameString = packet.string()
@@ -86,7 +86,7 @@ export function preconnect(ip, cb = Function.prototype){
 			icon.src = src || 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEAAAAALAAAAAABAAEAAAIBAAA'
 			if(banner) node.css({background: 'linear-gradient(75deg, #000a 80rem, #0001 100%), url("'+CSS.escape(banner)+'") center/cover'})
 		}
-		cb(n={ip, timeOff, displayIp, name: nameString, host: u.host})
+		cb(n={ip, timeOff, displayIp, name: nameString, host: u.host, url: u.href})
 	}):Promise.reject()).catch(err => {
 		if(cb != play){
 			icon.src = './img/pack.png'
@@ -173,7 +173,7 @@ export async function play(n){
 	}
 	ws.onmessage = ({data}) => {
 		if(typeof data == 'string') return pendingConnection(texts.connection.authenticating())
-		gameIframe(pako.inflate(data, {to: 'string'}).split('\0'))
+		gameIframe(pako.inflate(data, {to: 'string'}).split('\0'), n.url)
 		ws.onmessage = fwPacket
 	}
 	ws.onclose = ({reason, code}) => {

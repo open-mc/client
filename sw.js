@@ -209,12 +209,43 @@ const resolve = (path, base) => {
 // 1d, 2d, 30d
 const INIT_LIFETIME = 86400, ACCESS_LIFETIME = 172800, MAX_LIFETIME = 2592000
 const h = {headers: new Headers()}; h.headers.set('x-version', 0)
+const mimes = {__proto__: null}
+mimes.js = mimes.mjs = mimes.cjs = 'application/javascript'
+mimes.json = 'application/json'
+mimes.uri = mimes.uris = mimes.urls = 'text/uri-list'
+mimes.txt = 'text/plain'
+mimes.md = 'text/markdown'
+mimes.csv = 'text/csv'
+mimes.xml = 'text/xml'
+mimes.html = mimes.htm = 'text/html'
+mimes.cache = 'application/cache-list'
+// Image
+mimes.png = 'image/png'; mimes.apng = 'image/apng'
+mimes.avif = 'image/avif'; mimes.gif = 'image/gif'
+mimes.jpg = mimes.jpeg = mimes.jfif = mimes.jpe = mimes.jif = 'image/jpeg'
+mimes.svg = 'image/svg+xml'; mimes.webp = 'image/webp'
+mimes.bmp = 'image/bmp'; mimes.ico = mimes.cur = 'image/x-icon'
+mimes.tif = mimes.tiff = 'image/tiff'
+// Video
+mimes.mp4 = mimes.m4a = 'video/mp4'
+mimes.m4v = 'video/x-m4v'; mimes.webm = 'video/webm'
+mimes.mov = mimes.qt = 'video/quicktime'
+mimes.mpeg = 'video/mpeg'; mimes.ogv = 'video/ogg'
+// Audio
+mimes.mp3 = 'audio/mpeg'
+mimes.wav = mimes.wave = 'audio/wav'
+mimes.mid = mimes.midi = 'audio/midi'
+mimes.wav = mimes.wave = 'audio/x-wav'
+mimes.oga = mimes.ogg = mimes.opus = 'audio/ogg'
+// Font
+mimes.ttf = 'font/ttf'; mimes.otf = 'font/otf'
+mimes.woff = 'font/woff'; mimes.woff2 = 'font/woff2'
+
 const download = (url, opts, m, cache) => fetch(url, opts).then(res => {
-	let ct = res.headers.get('content-type')
-	let ct1 = '@file'
-	let i = ct.indexOf(';'); if(i>-1) ct = ct.slice(0, i);
-	i = ct.indexOf('/'); if(i>-1) ct1 = ct.slice(0, i).trim().toLowerCase(), ct = ct.slice(i+1).trim().toLowerCase()
-	if(ct1 == 'text' && ct == 'uri-list') return res.text().then(txt => {
+	let ex = url.slice(url.lastIndexOf('.')+1)
+	if(ex.includes('/')) ex = ''
+	const mime = mimes[ex.toLowerCase()] ?? 'application/octet-stream'
+	if(mime == 'application/cache-list') return res.text().then(txt => {
 		m.imports = []
 		for(let l of txt.split('\n')){
 			l = l.trim()
@@ -225,12 +256,15 @@ const download = (url, opts, m, cache) => fetch(url, opts).then(res => {
 		else cacheMeta.delete(url)
 		return null
 	})
-	return (ct1 == 'application' && ct == 'javascript') ? res.text() : res.blob()
-}).then(blob => {
-	if(!blob) return null
-	if(typeof blob == 'string') blob = new Blob(parseModule(blob, url, m.imports = []), {type: 'application/javascript'})
-	if(!LOCAL) return cacheMeta.set(url, m), cache.put(url, new Response(blob)).then(()=>blob)
-	else return cacheMeta.delete(url), blob
+	return mime == 'application/javascript' ? res.text().then(a => {
+		const blob = new Blob(parseModule(a, url, m.imports = []), {type: 'application/javascript'})
+		if(!LOCAL) return cache.put(url, new Response(blob)).then(()=>(cacheMeta.set(url, m), blob))
+		else return cacheMeta.delete(url), blob
+	}) : res.blob().then(blob => {
+		blob = blob.slice(0, blob.size, mime)
+		if(!LOCAL) return cache.put(url, new Response(blob)).then(()=>(cacheMeta.set(url, m), blob))
+		else return cacheMeta.delete(url), blob
+	})
 })
 function getBlobs(entries, cb){
 	const files = new Map()
@@ -325,6 +359,22 @@ function saveMeta(){
 	entries.length = 0
 	cache.put('/.packs', new Response(total))
 }
+const areListening = []
+self.addEventListener('message', e => {
+	if(e.data){
+		const {base, files, maps} = e.data
+		if(base){
+			const l = files.push(CORE)-1
+			for(let i=0;i<l;i++) files[i] = resolve(files[i], base)
+		}else{
+			const l = files.push(HOST + 'localserver/index.js')-1
+			for(let i=0;i<l;i++) files[i] = new URL(files[i], HOST).href
+		}
+		const r = map => e.source.postMessage(map)
+		upt ? upt.then(() => getBlobs(files, r)) : getBlobs(files, r)
+	}else if(ready == null) e.source.postMessage(1)
+	else areListening.push(e.source)
+})
 self.addEventListener('install', e => e.waitUntil(ready ? ready.then(() => upt) : upt))
 let cache, upt = null
 let ready = LOCAL ? caches.open('').then(a => {
@@ -372,22 +422,6 @@ let ready = LOCAL ? caches.open('').then(a => {
 	})
 	upt = upt ? upt.then(() => p) : p
 })()
-const areListening = []
-self.addEventListener('message', e => {
-	if(e.data){
-		const d = e.data, s = d[0]
-		if(s){
-			d[0] = CORE
-			for(let i=1;i<d.length;i++) d[i] = resolve(d[i], s)
-		}else{
-			d[0] = HOST + 'localserver/index.js'
-			for(let i=1;i<d.length;i++) d[i] = new URL(d[i], HOST).href
-		}
-		const r = map => e.source.postMessage(map)
-		upt ? upt.then(() => getBlobs(d, r)) : getBlobs(d, r)
-	}else if(ready == null) e.source.postMessage(1)
-	else areListening.push(e.source)
-})
 const BLOBS_DIRS = ['/vanilla/', '/iframe/', '/server/']
 async function update(latest, ver, old){
 	const _idx = ver?await ver.text():''
