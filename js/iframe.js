@@ -213,7 +213,7 @@ export const download = file => {
 export function destroyIframe(){
 	iframe.remove()
 	document.body.append(iframe)
-	voiceOff(); if(m && typeof m == 'object') m.source?.disconnect(), m = null
+	voiceOff(); if(m && typeof m == 'object') m.source.disconnect(), m = null
 	win = null; queue.length = 0
 	mport?.close()
 	iReady = false
@@ -232,14 +232,14 @@ let m = null, voice = false
 async function microphone(){
 	m = 1
 	try{
-		m = await navigator.mediaDevices.getUserMedia({audio: true})
+		const m1 = await navigator.mediaDevices.getUserMedia({audio: true})
 		if(!voice) return voiceOff()
 		let node
 		if(!ctx){
 			// Firefox, wtf??? https://bugzilla.mozilla.org/show_bug.cgi?id=1388586
 			for(sampleRate of [TARGET_SAMPLE_RATE, 8000, 16000, 32000, 44100, 48000]) try{
 				ctx = new AudioContext({sampleRate})
-				node = ctx.createMediaStreamSource(m)
+				node = ctx.createMediaStreamSource(m1)
 				break
 			}catch{}
 			if(!node) throw alert(texts.warning.unsupported_microphone_api), 'browser does not support processing microphone input'
@@ -257,8 +257,9 @@ async function microphone(){
 			}
 			proc.connect(ctx.destination)
 			win?.postMessage(TARGET_SAMPLE_RATE, '*')
-		}else node = ctx.createMediaStreamSource(m)
-		void (m.source=node).connect(proc)
+		}else node = ctx.createMediaStreamSource(m1)
+		m = m1; m.source = node
+		node.connect(proc)
 	}catch(e){console.warn(e)}
 }
 const voiceEl = document.getElementById('voice')
