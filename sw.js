@@ -494,8 +494,11 @@ async function update(latest, ver, old){
 	const total = (todo = k.length)*5
 	for(const req of k){
 		const url = typeof req=='object'?req.url:req
-		if(url.startsWith('https://.del') && url.length > 13) cache.delete(url.slice(12)).then(()=>progress(1-todo/total))
-		else u.match(req).then(a => cache.put(req, a)).then(()=>progress(1-todo/total))
+		if(url.startsWith('https://.del') && url.length > 13){
+			const u = url.slice(12)
+			cache.delete(u).then(()=>progress(1-todo/total))
+			cacheMeta.delete(u)
+		}else u.match(req).then(a => cache.put(req, a)).then(()=>progress(1-todo/total))
 	}
 	await({then:a=>r=a})
 	await caches.delete('updates')
