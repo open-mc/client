@@ -161,7 +161,8 @@ globalThis.hostSocket = Object.setPrototypeOf(port, Object.create(MessagePort.pr
 	end: {enumerable:false, value(code, reason){
 		// Simulate close
 		this.dispatchEvent(new MessageEvent('message', {data:null}))
-	}}
+	}},
+	getRemoteAddressAsText(){return new ArrayBuffer()}
 }))
 hostSocket.username = name
 hostSocket.state = 0
