@@ -279,10 +279,6 @@ function getBlobs(entries, cb, now = Math.floor(Date.now()/1000), mappings){
 		const sep = url.lastIndexOf('^')
 		if(sep >= 0) v = url.slice(sep+1)>>>0 || v, url = url.slice(0, sep)
 		if(files.has(url)) continue
-		if(Array.isArray(m)){ pending++; m.push(v => {
-			files.set(url, v)
-			if(!--pending) saveMeta(), cb(files)
-		}); continue }
 		const M = mappings?.get(url)
 		let url1 = url
 		if(M){
@@ -292,6 +288,10 @@ function getBlobs(entries, cb, now = Math.floor(Date.now()/1000), mappings){
 			if(sep >= 0) v = url1.slice(sep+1)>>>0 || v, url1 = url1.slice(0, sep)
 		}
 		let m = cacheMeta.get(url)
+		if(Array.isArray(m)){ pending++; m.push(v => {
+			files.set(url, v)
+			if(!--pending) saveMeta(), cb(files)
+		}); continue }
 		if(m === undefined || m.version < v){
 			const arr = [v => {
 				files.set(url, v)
