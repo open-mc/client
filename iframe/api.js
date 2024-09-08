@@ -291,7 +291,7 @@ in textarea:focus + div > f.__cursor, in input:focus + div > f.__cursor{display:
 .c12{ color: #55f; --tc: #15153f; text-shadow: 1rem 1rem var(--tc); }
 .c13{ color: #f5f; --tc: #3f153f; text-shadow: 1rem 1rem var(--tc); }
 .c14{ color: #5ff; --tc: #153f3f; text-shadow: 1rem 1rem var(--tc); }
-.c15{ color: #fff; --tc: #3f3f3f; text-shadow: 1rem 1rem var(--tc); }
+.c15, in > div{ color: #fff; --tc: #3f3f3f; text-shadow: 1rem 1rem var(--tc); }
 .s1, .s3 { text-shadow: .5rem 0, 1rem 0, 1rem 1rem var(--tc), 1.5rem 1rem var(--tc), 2rem 1rem var(--tc); letter-spacing: 1rem; }
 .s2, .s3, .s6, .s7, .s10, .s11, .s14, .s15{ font-style: italic; }
 .s4, .s5, .s6, .s7 { text-decoration: underline 1rem }
