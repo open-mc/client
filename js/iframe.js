@@ -213,7 +213,7 @@ export const download = file => {
 export function destroyIframe(){
 	iframe.remove()
 	document.body.append(iframe)
-	voiceOff(); if(m && typeof m == 'object') m.source.disconnect(), m = null
+	voiceOff(); if(m && typeof m == 'object') m.source?.disconnect(), m = null
 	win = null; queue.length = 0
 	mport?.close()
 	iReady = false

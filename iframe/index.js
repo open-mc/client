@@ -68,13 +68,14 @@ let flashbang = 0
 let frames = 0
 globalThis.fps = 0
 globalThis.frame = () => {
+	if(!dt) return
 	if(navigator.getGamepads) uptGamepads()
 	const correctT = t
 	const speed = options.speed ?? 1
 	t *= speed; dt *= speed
 	_networkUsage()
 	const p = 0.5**(dt*2)
-	if(dt>1e-9) fps = round((frames = frames*p+1) * (1-p)/dt)
+	fps = round((frames = frames*p+1) * (1-p)/dt)
 	if(loadingChunks || !me){
 		const s = options.guiScale * pixelRatio * 2, w = ctx.width/s, h = ctx.height/s
 		ctx.reset(s/ctx.width, 0, 0, s/ctx.height, (w>>1)/w, (h>>2)/h)
