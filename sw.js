@@ -110,7 +110,7 @@ function parse(end = 125){
 						const url = resolve(rstr(c2), baseUrl)
 						do{c2 = str.charCodeAt(i++)}while(c2 == 32 || (c2 > 8 && c2 < 14))
 						if(c2==41){
-							imports.push(url)
+							imports.push(url+vS)
 							src[j] = '__import__('+JSON.stringify(url)+',"")'
 							str = str.slice(i); i = 0
 							continue
@@ -136,7 +136,7 @@ function parse(end = 125){
 				if(!levels && c2 == 34 || c2 == 39){
 					s = i-1
 					const href = resolve(rstr(c2), baseUrl)
-					imports.push(href)
+					imports.push(href+vS)
 					src.push(str.slice(0, s), JSON.stringify(href))
 					str = str.slice(i); i = 0
 					continue
@@ -145,7 +145,7 @@ function parse(end = 125){
 				if(c2!=c2){ i--; continue }
 				s = i-1
 				const href = resolve(rstr(c2), baseUrl)
-				imports.push(href)
+				imports.push(href+vS)
 				src.push(str.slice(0, s), JSON.stringify(href))
 				str = str.slice(i); i = 0
 			}else if(k == 'export'){
@@ -161,7 +161,7 @@ function parse(end = 125){
 				if(c2!=c2) continue
 				s = i-1
 				const href = resolve(rstr(c2), baseUrl)
-				imports.push(href)
+				imports.push(href+vS)
 				src.push(str.slice(0, s), JSON.stringify(href))
 				str = str.slice(i); i = 0
 			}else i--
@@ -196,7 +196,12 @@ const IMPORT_MAP = new Map().set('core', CORE)
 	.set('world', HOST + 'iframe/world.js')
 	.set('api', HOST + 'iframe/api.js')
 	.set('definitions', HOST + 'iframe/definitions.js')
+
+let vS = '', vI = 0
 const resolve = (path, base) => {
+	vS = ''; vI = 0
+	const sep = path.lastIndexOf('^')
+	if(sep >= 0) vS = '^'+(vI = path.slice(sep+1)>>>0), path = path.slice(0, sep)
 	let c = path.charCodeAt(0)
 	// ../, ./ or /
 	if(c == 47 || (c == 46 && ((c = path.charCodeAt(1)) == 47 || (c == 46 && path.charCodeAt(2) == 47)))) return new URL(path, base).href
@@ -204,7 +209,7 @@ const resolve = (path, base) => {
 	if(c != c) return base
 	// Import maps
 	if(path.startsWith(HOST)) return 'data:'
-	return IMPORT_MAP.get(path) ?? path
+	return (IMPORT_MAP.get(path) ?? path)
 }
 // 1d, 2d, 30d
 const INIT_LIFETIME = 86400, ACCESS_LIFETIME = 172800, MAX_LIFETIME = 2592000
@@ -241,7 +246,7 @@ mimes.oga = mimes.ogg = mimes.opus = 'audio/ogg'
 mimes.ttf = 'font/ttf'; mimes.otf = 'font/otf'
 mimes.woff = 'font/woff'; mimes.woff2 = 'font/woff2'
 
-const download = (url, opts, m, cache) => fetch(url, opts).then(res => {
+const download = (url, m, cache) => fetch(url).then(res => {
 	let ex = url.slice(url.lastIndexOf('.')+1)
 	if(ex.includes('/')) ex = ''
 	const mime = mimes[ex.toLowerCase()] ?? 'application/octet-stream'
@@ -250,7 +255,7 @@ const download = (url, opts, m, cache) => fetch(url, opts).then(res => {
 		for(let l of txt.split('\n')){
 			l = l.trim()
 			if(l[0] == '#') continue
-			m.imports.push(resolve(l, url))
+			m.imports.push(resolve(l, url)+vS)
 		}
 		if(!LOCAL) cacheMeta.set(url, m)
 		else cacheMeta.delete(url)
@@ -266,37 +271,43 @@ const download = (url, opts, m, cache) => fetch(url, opts).then(res => {
 		else return cacheMeta.delete(url), blob
 	})
 })
-function getBlobs(entries, cb){
+function getBlobs(entries, cb, now = Math.floor(Date.now()/1000), mappings){
 	const files = new Map()
 	let pending = 0
-	const now = Math.floor(Date.now()/1000)
 	const gather = (entries, version = 0) => { for(let url of entries){
-		const sep = url.lastIndexOf('^')
 		let v = version
+		const sep = url.lastIndexOf('^')
 		if(sep >= 0) v = url.slice(sep+1)>>>0 || v, url = url.slice(0, sep)
 		if(files.has(url)) continue
-		let m = cacheMeta.get(url)
 		if(Array.isArray(m)){ pending++; m.push(v => {
 			files.set(url, v)
 			if(!--pending) saveMeta(), cb(files)
 		}); continue }
+		const M = mappings?.get(url)
+		let url1 = url
+		if(M){
+			url1 = M
+			v = version
+			const sep = url1.lastIndexOf('^')
+			if(sep >= 0) v = url1.slice(sep+1)>>>0 || v, url1 = url1.slice(0, sep)
+		}
+		let m = cacheMeta.get(url)
 		if(m === undefined || m.version < v){
 			const arr = [v => {
 				files.set(url, v)
 				if(!--pending) saveMeta(), cb(files)
 			}]
-			cacheMeta.set(url, arr)
+			cacheMeta.set(url1, arr)
 			if(m) m.version = v
-			else m = {version, expire: now + INIT_LIFETIME, pins: 0, imports: null}
+			else m = {version: v, expire: now + INIT_LIFETIME, pins: 0, imports: null}
 			pending++
-			h.headers.set('x-version', v)
-			download(url, h, m, cache).then(blob => {
+			download(url1, m, cache).then(blob => {
 				for(const f of arr) f(blob)
 				if(m.imports) gather(m.imports, v)
 			}, err => {
 				console.warn(err)
-				if(!LOCAL) cacheMeta.set(url, m)
-				else cacheMeta.delete(url)
+				if(!LOCAL) cacheMeta.set(url1, m)
+				else cacheMeta.delete(url1)
 				for(const f of arr) f(null)
 			})
 			continue
@@ -304,7 +315,7 @@ function getBlobs(entries, cb){
 			pending++
 			files.set(url, null)
 			m.expire = Math.min(m.expire + ACCESS_LIFETIME, now + MAX_LIFETIME)
-			cache.match(url).then(a => a?a.blob():null).then(blob => {
+			cache.match(url1).then(a => a?a.blob():null).then(blob => {
 				files.set(url, blob)
 				if(!--pending) saveMeta(), cb(files)
 			})
@@ -365,13 +376,49 @@ self.addEventListener('message', e => {
 		const {base, files, maps} = e.data
 		if(base){
 			const l = files.push(CORE)-1
-			for(let i=0;i<l;i++) files[i] = resolve(files[i], base)
+			for(let i=0;i<l;i++) files[i] = resolve(files[i], base)+vS
 		}else{
 			const l = files.push(HOST + 'localserver/index.js')-1
 			for(let i=0;i<l;i++) files[i] = new URL(files[i], HOST).href
 		}
-		const r = map => e.source.postMessage(map)
-		upt ? upt.then(() => getBlobs(files, r)) : getBlobs(files, r)
+		let mappings = new Map, tot = 0
+		const now = Math.floor(Date.now()/1000)
+		const r = map => e.source.postMessage(map), done = () => (upt ? upt.then(() => getBlobs(files, r, now, mappings)) : getBlobs(files, r, now, mappings))
+		if(maps) for(let url of maps.split('\n')){
+			tot++
+			let i = url.indexOf(' ')
+			let base1 = ''
+			if(i >= 0){ base1 = resolve(url.slice(0, i), base || 'file:'), url = resolve(url.slice(i+1), base || 'file:') }
+			else url = resolve(url, base || 'file:')
+			let m = cacheMeta.get(url)
+			const r = v => v ? v.text().then(txt => {
+				for(let l of txt.split('\n')){
+					l = l.trim()
+					if(l[0] == '#') continue
+					let j = l.indexOf(' '), key = ''
+					if(j >= 0) key = l.slice(0, j), l = l.slice(j+1)
+					mappings.set(new URL(key, base1).href, resolve(l, base)+vS)
+				}
+				--tot||done()
+			}) : --tot||done()
+			if(Array.isArray(m)){ m.push(r); continue }
+			if(m === undefined || m.version < vI){
+				const arr = [r]
+				cacheMeta.set(url, arr)
+				if(m) m.version = vI
+				else m = {version: vI, expire: now + INIT_LIFETIME, pins: 0, imports: null}
+				download(url, m, cache).then(blob => { for(const f of arr) f(blob) }, err => {
+					console.warn(err)
+					if(!LOCAL) cacheMeta.set(url, m)
+					else cacheMeta.delete(url)
+					for(const f of arr) f(null)
+				})
+				continue
+			}else{
+				m.expire = Math.min(m.expire + ACCESS_LIFETIME, now + MAX_LIFETIME)
+				cache.match(url).then(a => a?a.blob():null).then(r)
+			}
+		}else done()
 	}else if(ready == null) e.source.postMessage(1)
 	else areListening.push(e.source)
 })
@@ -456,7 +503,7 @@ async function update(latest, ver, old){
 				if(hashes.get(p) == sha){hashes.delete(p);total-=1.25;continue}
 				hashes.delete(p)||(total+=1.25); todo++
 				a: { for(const pat of BLOBS_DIRS) if(p.startsWith(pat)){
-					download(new URL(p, HOST).href, undefined, {version: 0, expire: 0, pins: 1, imports: null}, u).then(b => (b&&k.push(p),progress(++done/total)), () => r(1))
+					download(new URL(p, HOST).href, {version: 0, expire: 0, pins: 1, imports: null}, u).then(b => (b&&k.push(p),progress(++done/total)), () => r(1))
 					break a
 				}
 					fetch(p).then(res => {

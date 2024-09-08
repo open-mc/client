@@ -20,8 +20,8 @@ Todo: Passive mobs
 
 ## Beta 1.0
 
-- Offline support
-- Internal refactors
+- **Offline support**
+- Lots and lots of internal changes
 - Singleplayer
 - World export/import
 
