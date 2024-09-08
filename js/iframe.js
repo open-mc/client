@@ -86,7 +86,7 @@ d=document.createElement('script');d.type='importmap';d.textContent=JSON.stringi
 import(H+'localserver/index.js')
 globalThis.parentPort = null
 },{once:true})</script>`
-		sw.controller.postMessage({base: '', files: ['/server/worldgen/genprocess.js'], maps: []})
+		sw.controller.postMessage({base: '', files: ['/server/worldgen/genprocess.js'], maps: ''})
 		cbq.push(data => {
 			dat.cache = data
 			P?--P||ifr.contentWindow.postMessage(dat, '*', [dat.port,dat.dbport]):port._finish()
