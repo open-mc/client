@@ -113,11 +113,10 @@ const ptrLockOpts = !navigator.platform.startsWith('Linux') && Intl.v8BreakItera
 export const movementScale = ptrLockOpts.unadjustedMovement ? 1 : globalThis.netscape ? devicePixelRatio : /Opera|OPR\//.test(navigator.userAgent) ? 1/devicePixelRatio : 1
 export const ptrlock = () => {
 	const el = gl.canvas
-	const fs = options.fsc && !document.fullscreenElement ? el.requestFullscreen() : undefined
+	const fs = options.fsc && !document.fullscreenElement ? document.body.requestFullscreen?.() : undefined
 	if(fs instanceof Promise) fs.catch(e=>null).then(() => el.requestPointerLock?.(ptrLockOpts)?.catch(e=>null))
 	else el.requestPointerLock?.(ptrLockOpts)?.catch(e=>null)
 }
-HTMLElement.prototype.requestFullscreen ??= Function.prototype
 let exited = false
 export const exitPtrlock = () => {
 	exited = true
