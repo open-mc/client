@@ -9,12 +9,12 @@ export let iframe = document.createElement('iframe'), win = null
 iframe.srcdoc = `<html style="height:100%;cursor:pointer"><style></style><script>addEventListener('message',e=>{
 let E="data:application/javascript,export%20default%20",H=${JSON.stringify(location.origin+'/')},[d,f,F]=e.data,m={__proto__:null},R=(b,s,c=s.charCodeAt(0))=>c==47||(c==46&&((c=s.charCodeAt(1))==47||(c==46&&s.charCodeAt(2)==47)))?new URL(s,b).href:s.startsWith(H)?'data:application/javascript,':c==c?s:b;(globalThis.__import__=(b,s='')=>import(R(b,s))).meta=u=>m[u]??=Object.freeze({url:u,resolve:s=>R(u,s)});for(let{0:k,1:v}of __import__.map=d){
 if(!v){m[k]='data:application/javascript,';continue};if(v.type=='application/javascript'){m[k]=URL.createObjectURL(v);continue}
-let ct=v.type,ct1='',i=ct.indexOf(';'),R="__import__.map.get("+encodeURI(JSON.stringify(k))+")";if(i>-1)ct=ct.slice(0,i);i=ct.indexOf('/');if(i>-1)ct1=ct.slice(0,i).trim().toLowerCase(),ct=ct.slice(i+1).trim().toLowerCase()
-if(ct1=='image')m[k]=E+"Img("+R+")"
-else if(ct1=='application'&&ct=='json')m[k]=E+"await%20new%20Response("+R+").json()"
-else if(ct1=='audio')m[k]=E+"Wave("+R+")"
-else if(ct1=='text')m[k]=E+"await%20new%20Response("+R+").text()"
-else if(ct1=='font')m[k]=E+"await%20new%20FontFace('font',"+encodeURI(JSON.stringify('url('+URL.createObjectURL(v)+')'))+").load()"
+let c=v.type,R="__import__.map.get("+encodeURI(JSON.stringify(k))+")"
+if(c.startsWith('image/'))m[k]=E+"Img("+R+")"
+else if(c=='application/json')m[k]=E+"await%20new%20Response("+R+").json()"
+else if(c.startsWith('audio/'))m[k]=E+"Wave("+R+")"
+else if(c.startsWith('text/'))m[k]=E+"await%20new%20Response("+R+").text()"
+else if(c.startsWith('font/'))m[k]=E+"await%20new%20FontFace('font',"+encodeURI(JSON.stringify('url('+URL.createObjectURL(v)+')'))+").load()"
 else m[k]=E+R
 }m.vanilla=m[H+'vanilla/index.js'],m.core=m[H+'iframe/index.js'],m.world=m[H+'iframe/world.js'],m.api=m[H+'iframe/api.js'],m.definitions=m[H+'iframe/definitions.js']
 d=document.createElement('script');d.type='importmap';d.textContent=JSON.stringify({imports:m});document.head.append(d);m={__proto__:null}
