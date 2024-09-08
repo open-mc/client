@@ -177,7 +177,7 @@ export async function play(n){
 		ws.onmessage = fwPacket
 	}
 	ws.onclose = ({reason, code}) => {
-		reason = reason || (ws instanceof WebSocket ? timeout >= 0 ? texts.connection.refused() : texts.connection.lost() : texts.connection.invalid_ip())
+		reason = reason || (ws instanceof WebSocket ? timeout >= 0 ? texts.connection.refused() : texts.connection.lost() : texts.connection.refused())
 		finished()
 		if(code >= 3000 && code < 4000){
 			pendingConnection(reason)

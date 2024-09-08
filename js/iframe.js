@@ -35,11 +35,11 @@ sw.onmessage = ({data, source}) => {
 }
 const queue = []
 export function gameIframe(f, base){
+	iReady = true
 	let maps = f.pop(), files = f.pop()
 	sw.controller.postMessage({base, files: files = files?files.split('\n'):[], maps})
 	cbq.push(data => {
 		iframe.contentWindow.postMessage([data,files,f], '*')
-		iReady = true
 	})
 	return true
 }
@@ -159,7 +159,7 @@ globalThis.parentPort = null
 		send: {enumerable:false, value(a){typeof a=='string'?this.postMessage(a):this.postMessage(tra[0]=a instanceof ArrayBuffer?a.slice():a.buffer.slice(a.byteOffset,a.byteOffset+a.byteLength),tra)}},
 		close: {enumerable:false,value(code, reason){
 			if(this.readyState > 1) return
-			this.postMessage(undefined)
+			this.postMessage(null)
 			this.readyState = 2
 			setTimeout(() => this._finish(code, reason), 30e3)
 		}},
@@ -174,7 +174,6 @@ globalThis.parentPort = null
 	})
 }
 const tra=[null]
-let mport
 onmessage = ({data, source}) => {
 	if((source??0) !== iframe.contentWindow) return
 	if(!iReady){ serverClicked(data); return }
@@ -213,9 +212,9 @@ export const download = file => {
 export function destroyIframe(){
 	iframe.remove()
 	document.body.append(iframe)
+	cbq.fill(undefined)
 	voiceOff(); if(m && typeof m == 'object') m.source.disconnect(), m = null
 	win = null; queue.length = 0
-	mport?.close()
 	iReady = false
 }
 

@@ -160,7 +160,7 @@ globalThis.hostSocket = Object.setPrototypeOf(port, Object.create(MessagePort.pr
 	send: {enumerable:false, value(a){typeof a=='string'?this.postMessage(a):this.postMessage(tra[0]=a instanceof ArrayBuffer?a.slice():a.buffer.slice(a.byteOffset,a.byteOffset+a.byteLength),tra)}},
 	end: {enumerable:false, value(code, reason){
 		// Simulate close
-		this.dispatchEvent(new MessageEvent('message', {data:undefined}))
+		this.dispatchEvent(new MessageEvent('message', {data:null}))
 	}}
 }))
 hostSocket.username = name

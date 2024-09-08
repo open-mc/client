@@ -39,7 +39,7 @@ export class LivingEntity extends Entity{
 	render(c){
 		this.hitTimer -= dt
 		if(this.hitTimer < 0) this.hitTimer = 0
-		if((!this.linked) && !this.hitTimer) return true
+		if(!this.linked && !this.hitTimer && this.health <= 0) return true
 		const xs = this.f >= 0 ? 1 : -1, ys = this.name == 'Dinnerbone' || this.name == 'Grumm' ? -1 : 1
 		if(this.name && ((renderF3>1&&renderUI) || this != me)){
 			const c2 = c.sub()
@@ -51,7 +51,7 @@ export class LivingEntity extends Entity{
 		}
 		if(ys < 0) c.translate(0, this.height)
 		c.scale(xs, ys)
-		if(!this.linked) c.rotate(PI * (this.hitTimer*this.hitTimer - 1) * ((this.flags&1) - .5) * -xs)
+		if(this.health <= 0) c.rotate(PI * (this.hitTimer*this.hitTimer - 1) * ((this.flags&1) - .5) * -xs)
 	}
 	blocksWalked = 0
 	update(){

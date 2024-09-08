@@ -3,9 +3,10 @@ import { DEFAULT_TPS, saveAll, saving } from '/server/world/index.js'
 import { setTPS } from "/server/world/tick.js"
 import { codes, onstring } from '/server/misc/incomingPacket.js'
 import { DataReader } from '/server/modules/dataproto.js'
+import { PERMISSIONS } from '/server/world/index.js'
 
 hostSocket.onmessage = function({data}){
-	if(data === undefined){
+	if(data === null){
 		// Shutdown
 		saving.then(() => {
 			const pr = [saveAll()]
@@ -21,5 +22,6 @@ hostSocket.onmessage = function({data}){
 await ready
 started = Date.now()
 setTPS(DEFAULT_TPS)
+// Avoid lock-outs
+PERMISSIONS[hostSocket.username] = 4
 await socketOpen.call(hostSocket)
-hostSocket.perms = 4
