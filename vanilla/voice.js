@@ -16,7 +16,7 @@ let bufferEnds = new Map()
 function queuePlay(e, sampleRate, data){
 	const f32 = new Float32Array(data.length)
 	const b = actx.createBuffer(1, f32.length, sampleRate)
-	for(let i = 0; i < f32.length; i++) f32[i] = (data[i]-128.5)/128
+	for(let i = 0; i < f32.length; i++) f32[i] = (data[i]-128)/128
 	b.copyToChannel(f32, 0)
 	const n = actx.createBufferSource()
 	n.buffer = b
@@ -56,7 +56,7 @@ onkey(KEYS.P, () => voiceToggle = !voiceToggle)
 function sendVoice(f32){
 	if(!pako) return
 	const arr = new Uint8ClampedArray(f32.length)
-	for(let i = 0; i < f32.length; i++) arr[i] = f32[i]*128+128.5
+	for(let i = 0; i < f32.length; i++) arr[i] = f32[i]*128+128
 	const d = pako.deflateRaw(arr)
 	const a = new Uint8Array(new ArrayBuffer(d.length+5))
 	a.set(d, 5)
