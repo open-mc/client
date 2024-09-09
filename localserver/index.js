@@ -1,5 +1,4 @@
 import "/img/_pako.js"
-
 globalThis.loadFile = (i, f) => (i=decodeURI(i.url).replace(/[^\/]*$/,"").replace(/file:\/\/\/?(\w+:\/)?/y,'/'), f ? fetch(i + f).then(a=>a.arrayBuffer()).then(a=>new Uint8Array(a)) : f => fetch(i + f).then(a=>a.arrayBuffer()).then(a=>new Uint8Array(a)))
 globalThis.AsyncFunction = (async()=>{}).constructor
 
@@ -122,17 +121,11 @@ globalThis.host = ''
 
 const c = document.createElement('canvas'), ctx = c.getContext('2d')
 globalThis.PNG = {
-	from: (m, src) => {
-		const i = new Image
-		i.onload = () => {
-			c.width = i.width; c.height = i.height
-			ctx.drawImage(i, 0, 0)
-			r(new Uint8Array(ctx.getImageData(0, 0, c.width, c.height).data.buffer))
-		}
-		let r, pr = new Promise((_r,_c)=>(r=_r,i.onerror=_c))
-		i.src = decodeURI(m.url).replace(/[^\/]*$/,"").replace(/file:\/\/\/?(\w+:\/)?/y,'/') + src
-		return pr
-	},
+	from: (m, src) => createImageBitmap(__import__.map.get(new URL(src, m.url).href)).then(i => {
+		c.width = i.width; c.height = i.height
+		ctx.drawImage(i, 0, 0)
+		return new Uint8Array(ctx.getImageData(0, 0, c.width, c.height).data.buffer)
+	}),
 	read: buf => createImageBitmap(new Blob([buf])).then(i => {
 		c.width = i.width; c.height = i.height
 		ctx.drawImage(i, 0, 0)

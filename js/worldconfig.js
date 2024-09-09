@@ -36,12 +36,13 @@ export const defaultConfig = {
 }
 
 export function fallback(o, f){
-	if(o == null && typeof f == 'object') o = {}
-	else if(Array.isArray(o)) return o
+	if(Array.isArray(f)) return !o || typeof o != 'object' ? f.map(a=>a&&typeof a=='object'?fallback(null,a):a) : o
+	if(!o || typeof o != 'object') o = {}
 	for(const k in f){
-		if(k in o){
-			if(typeof f[k] == 'object') fallback(o[k], f[k])
-		}else o[k] = f[k]
+		const d = f[k]
+		if(d && typeof d == 'object'){
+			o[k] = fallback(o[k], d)
+		}else o[k] ??= d
 	}
 	return o
 }
