@@ -234,10 +234,11 @@ export function fwPacket({data:a}){
 const TARGET_SAMPLE_RATE = 22050
 let ctx, sampleRate = 0, bufferSize = 2048, r = null, proc
 let m = null, voice = false
+const ideal = {ideal: true}
 async function microphone(){
 	m = 1
 	try{
-		const m1 = await navigator.mediaDevices.getUserMedia({audio: true})
+		const m1 = await navigator.mediaDevices.getUserMedia({audio: {noiseSuppression: ideal, echoCancellation: ideal}})
 		if(!voice) return voiceOff()
 		let node
 		if(!ctx){
