@@ -122,26 +122,22 @@ drawLayer('world', 400, c => {
 		}
 	}else px -= bpx - bx, py -= bpy - by
 	let up,down,left,right; up=down=left=right=Blocks.air
-	if(bpx == bpx){
-		if(getblock(bpx, bpy).targettable) bpx = bpy = NaN
-		else up = getblock(bpx, bpy + 1), down = getblock(bpx, bpy - 1), left = getblock(bpx - 1, bpy), right = getblock(bpx + 1, bpy)
-	}
+	if(bpx != bpx) return
+	const b = getblock(bpx, bpy)
+	if(b.targettable){ bpx = bpy = NaN; return }
+	else up = getblock(bpx, bpy + 1), down = getblock(bpx, bpy - 1), left = getblock(bpx - 1, bpy), right = getblock(bpx + 1, bpy)
 	blockPlacing = perms >= 2 && (bx != bx || !getblock(bx, by).interactible || (me.state&2)) ? item?.places?.(px, py, bpx, bpy, bx, by) : undefined
 	if(interactFluid ?
 		up.flows === false && down.flows === false && left.flows === false && right.flows === false
 		: !(up.targettable||up.solid) && !(down.targettable||down.solid) && !(left.targettable||left.solid) && !(right.targettable||right.solid)
-	){
-		bpx = bpy = NaN
-	}else{
-		let x = bpx - 32 >>> 6, y = bpy - 32 >>> 6, x1 = x + 1 & 0x3FFFFFF, y1 = y + 1 & 0x3FFFFFF
-		a: for(const ch of [map.get(x+y*0x4000000), map.get(x1+y*0x4000000), map.get(x+y1*0x4000000), map.get(x1+y1*0x4000000)])
-			if(ch) for(const e of ch.entities)
-				if(e.y < bpy + 1 && e.y + e.height > bpy && e.x - e.width < bpx + 1 && e.x + e.width > bpx){
-					//Don't allow placing because there is an entity in the way
-					if(blockPlacing?.solid===true && !interactFluid) blockPlacing = null, bpx = bpy = NaN
-					break a
-				}
-	}
+	){ bpx = bpy = NaN; return }
+	if(!b.replaceable || (interactFluid && b.flows === false)){ bpx = bpy = NaN; return }
+	let x0 = bpx - 32 >>> 6, y0 = bpy - 32 >>> 6, x1 = x0 + 1 & 0x3FFFFFF, y1 = y0 + 1 & 0x3FFFFFF
+	if(blockPlacing?.solid===true && !interactFluid) for(const ch of [map.get(x0+y0*0x4000000), map.get(x1+y0*0x4000000), map.get(x0+y1*0x4000000), map.get(x1+y1*0x4000000)])
+		if(ch) for(const e of ch.entities) if(e.y < bpy + 1 && e.y + e.height > bpy && e.x - e.width < bpx + 1 && e.x + e.width > bpx){
+			//Don't allow placing because there is an entity in the way
+			bpx = bpy = NaN; return
+		}
 })
 
 drawLayer('world', 201, (c, w, h) => {

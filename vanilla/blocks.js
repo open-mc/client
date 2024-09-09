@@ -671,7 +671,7 @@ Blocks.command_block = class extends Stone{
 }
 
 export const barrierTex = BlockTexture(itemsPng, 5, 0)
-
+globalThis.mode = () => mode
 Blocks.barrier = class extends Block{
 	static breaktime = Infinity
 	static placeSounds = Stone.placeSounds
@@ -681,6 +681,7 @@ Blocks.barrier = class extends Block{
 		if(mode == 1 && me.inv[me.selected]?.constructor == Items.barrier) c.draw(toTex(barrierTex))
 	}
 	hover(c, itm){
+		console.log(itm)
 		return mode == 1 && itm?.constructor == Items.barrier
 	}
 }
