@@ -68,7 +68,7 @@ let flashbang = 0
 let frames = 0
 globalThis.fps = 0
 globalThis.frame = () => {
-	if(!dt) return
+	if(dt<1e-9) return
 	if(navigator.getGamepads) uptGamepads()
 	const correctT = t
 	const speed = options.speed ?? 1

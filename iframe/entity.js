@@ -223,7 +223,7 @@ function fastCollision(e){
 		e.x += dx
 	}
 	const nx0 = floor(e.x)>>>6
-	if(!ch) ch = world.get(nx0+(y0>>>6)*0x4000000)
+	if(!ch) ch = map.get(nx0+(y0>>>6)*0x4000000)
 	else if(nx0!=x0>>>6) ch = nx0==x0-64>>>6?ch.left:nx0==x0+64>>>6?ch.right:map.get(nx0+(y0>>>6)*0x4000000)
 	x0 = nx0<<6
 	let v = 0, c = false
