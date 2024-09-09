@@ -5,8 +5,15 @@ import { serverClicked, serverlist } from '../uis/serverlist.js'
 import texts from './lang.js'
 import { defaultConfig, fallback } from './worldconfig.js'
 
+let shimScript = ''
+if(!HTMLScriptElement.supports('importmap')){
+	const d = document.createElement('script')
+	d.textContent = await fetch('/img/_shim.js').then(a => a.text())
+	shimScript = d.outerHTML
+}
+
 export let iframe = document.createElement('iframe'), win = null
-iframe.srcdoc = `<html style="height:100%;cursor:pointer"><style></style><script>addEventListener('message',e=>{
+iframe.srcdoc = `<html style="height:100%;cursor:pointer"><style></style>${shimScript}<script>addEventListener('message',e=>{
 let E="data:application/javascript,export%20default%20",H=${JSON.stringify(location.origin+'/')},[d,f,F]=e.data,m={__proto__:null},R=(b,s,c=s.charCodeAt(0))=>c==47||(c==46&&((c=s.charCodeAt(1))==47||(c==46&&s.charCodeAt(2)==47)))?new URL(s,b).href:s.startsWith(H)?'data:application/javascript,':c==c?s:b;(globalThis.__import__=(b,s='')=>import(R(b,s))).meta=u=>m[u]??=Object.freeze({url:u,resolve:s=>R(u,s)});for(let{0:k,1:v}of __import__.map=d){
 if(!v){m[k]='data:application/javascript,';continue};if(v.type=='application/javascript'){m[k]=URL.createObjectURL(v);continue}
 let c=v.type,R="__import__.map.get("+encodeURI(JSON.stringify(k))+")"
@@ -231,6 +238,11 @@ export function fwPacket({data:a}){
 	win.postMessage(a, '*', typeof a == 'string' ? undefined : [a])
 }
 
+// Microphone stuff
+
+// Partial credit to https://github.com/felix307253927/resampler/blob/master/Resampler.js
+let E=new Float32Array,resampler=(r,e,$=1,f)=>{if(r==e)return r=>r;let o=r/e,t=+(r<e),l=new Float32Array(Math.ceil(f*e/r/$*1.0000004768371582)+2*$),n=new Float32Array($);if(t)return r=>{let e=r.length,f=t,i=0,s=0,a=0,_=0,h=0;if(e<=0)return E;for(;f<1;f+=o)for(h=0,i=1-(s=f%1),t=f%1;h<$;++h)l[_++]=n[h]*i+r[h]*s;for(f--,e-=$,a=Math.floor(f)*$;_<l.length&&a<e;){for(h=0,i=1-(s=f%1);h<$;++h)l[_++]=r[a+(h>0?h:0)]*i+r[a+($+h)]*s;f+=o,a=Math.floor(f)*$}for(h=0;h<$;++h)n[h]=r[a++];return l.subarray(0,_)};{let i=!1;return r=>{i=!1;let e=r.length,f,s=0,a=0,_=0,h=0,u,w=0,c=0;if(e<=0)return E;for(a=0,f=[],u=!i,i=!1;a<$;++a)f[a]=0;do{if(u)for(a=0,s=o;a<$;++a)f[a]=0;else{for(a=0,s=t;a<$;++a)f[a]=n[a];u=!0}for(;s>0&&_<e;)if(s>=(h=1+_-c)){for(a=0;a<$;++a)f[a]+=r[_++]*h;c=_,s-=h}else{for(a=0;a<$;++a)f[a]+=r[_+(a>0?a:0)]*s;c+=s,s=0;break}if(0===s)for(a=0;a<$;++a)l[w++]=f[a]/o;else{for(a=0,t=s;a<$;++a)n[a]=f[a];i=!0;break}}while(_<e&&w<l.length);return l.subarray(0,w)}}}
+
 const TARGET_SAMPLE_RATE = 22050
 let ctx, sampleRate = 0, bufferSize = 2048, r = null, proc
 let m = null, voice = false
@@ -251,7 +263,6 @@ async function microphone(){
 			bufferSize = 2048
 			if(sampleRate !== TARGET_SAMPLE_RATE){
 				bufferSize = 1<<Math.round(Math.log2(sampleRate/10))
-				const {resampler} = await import('/img/_resampler.js')
 				r = resampler(sampleRate, TARGET_SAMPLE_RATE, 1, bufferSize)
 			}
 			proc = ctx.createScriptProcessor(bufferSize, 1, 1) // Blink/webkit bug, node requires output

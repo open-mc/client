@@ -117,7 +117,7 @@ drawSkin()
 let list, selectSkinBtn, logoutBtn, addRow, nameLabel, input = Input('text', texts.serverlist.add_server.placeholder())
 input.on('keypress', e => {
 	if(e.keyCode != 13) return
-	addServer(input.value)
+	if(input.value&&input.value[0]!='@') addServer(input.value)
 	input.value='', input.blur()
 }).on('blur', () => {input.replaceWith(addRow)}).css({margin: '9rem auto'})
 const serverList = UI('dirtbg serverlist',

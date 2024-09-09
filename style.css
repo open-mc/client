@@ -249,7 +249,7 @@ column{
 	box-shadow: inset 0 0 10rem black;
 	background: #0004;
 	--padding: 7rem;
-	width: 100vw;
+	width: 100%;
 	flex-grow: 10;
 	min-height: 200px;
 	overflow-y: auto;

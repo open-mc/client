@@ -5,6 +5,8 @@ import { serverlist } from './serverlist.js'
 import texts from '../js/lang.js'
 import { worldoptions } from './worldoptions.js'
 import { iframe } from '../js/iframe.js'
+import { creditsUI } from './credits.js'
+
 
 const spage = Btn(texts.pause.server_page(), () => {
 	if(ws.opts) return worldoptions(ws)
@@ -22,7 +24,7 @@ const pauseui = UI('menu',
 		Row(Btn(texts.options.controls(), controlsScreen, 'small'), Btn(texts.keybinds(), null, 'small disabled')),
 		Btn(texts.connection.disconnect(), serverlist),
 		Div('',
-			Label(texts.pause.credits()).css({height:'unset',cursor:'pointer',lineHeight:'unset'}).attr('onclick', "window.open('https://github.com/open-mc/client/blob/main/CREDITS.md','_blank')"),
+			Label(texts.pause.credits()).css({height:'unset',cursor:'pointer',lineHeight:'unset'}).on('click', () => showUI(creditsUI)),
 			Label(' / ').css({height:'unset',lineHeight:'unset'}),
 			Label(texts.pause.changelog()).css({height:'unset',cursor:'pointer',lineHeight:'unset'}).attr('onclick', "window.open('https://github.com/open-mc/client/blob/main/CHANGELOG.md','_blank')")
 		).css({position: 'absolute', bottom: '2rem', display: 'flex', right: '2rem', opacity: '0.4', fontSize: '8rem', cursor: 'pointer'})
