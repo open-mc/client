@@ -4,7 +4,7 @@ import { DataWriter } from '/server/modules/dataproto.js'
 import { mePhysics, stepEntity } from './entity.js'
 import { getblock, entityMap, map, cam, onPlayerLoad, world, me, W2, H2, SCALE } from 'world'
 import * as pointer from './pointer.js'
-import { options, _renderPhases, renderBoxes, send, download, copy, setPlaying, drawText, calcText, _networkUsage, listen, _tickPhases, renderUI, _cbs, onmousemove, onwheel, _optionListeners, _onvoice, voice, _onPacket, onfocus, onblur, onkey, ongesture, onpress, playing, paused, ptrlock, exitPtrlock, movementScale, gl } from 'api'
+import { options, _renderPhases, renderBoxes, send, download, copy, setPlaying, drawText, calcText, _networkUsage, listen, _tickPhases, renderUI, _cbs, onmousemove, onwheel, _optionListeners, _onvoice, voice, _onPacket, onfocus, onblur, onkey, ongesture, onpress, playing, paused, ptrlock, exitPtrlock, movementScale, gl, actx } from 'api'
 import { _recalcDimensions, Blocks, Items, Entities, BlockIDs, ItemIDs, EntityIDs, Block, Item, Entity, Classes } from 'definitions'
 import { jsonToType } from '/server/modules/dataproto.js'
 import { onChat } from './chat.js'
@@ -178,7 +178,7 @@ const timestamp = (d = new Date()) => `${d.getYear()+1900}-${('0'+d.getMonth()).
 gl.canvas.style.outlineOffset = '-1px'
 onkey(KEYS.F6, () => {
 	if(!rec){
-		audioOut = _actx.createMediaStreamDestination()
+		audioOut = actx.createMediaStreamDestination()
 		bgGain.connect(audioOut)
 		const s = gl.canvas.captureStream()
 		s.addTrack(audioOut.stream.getTracks()[0])
