@@ -25,7 +25,7 @@ iframe.sandbox = 'allow-scripts allow-pointer-lock allow-downloads'
 iframe.allow = 'cross-origin-isolated; autoplay; fullscreen'
 iframe.allowfullscreen = true
 document.body.append(iframe)
-export let iReady = false
+export let iReady = 0
 export const skin = new Uint8Array(1008)
 const sw = navigator.serviceWorker
 let cbq = []
@@ -35,7 +35,8 @@ sw.onmessage = ({data, source}) => {
 }
 const queue = []
 export function gameIframe(f, base){
-	iReady = true
+	if(iReady) return
+	iReady = 1
 	let maps = f.pop(), files = f.pop()
 	sw.controller.postMessage({base, files: files = files?files.split('\n'):[], maps})
 	cbq.push(data => {
@@ -176,7 +177,20 @@ globalThis.parentPort = null
 const tra=[null]
 onmessage = ({data, source}) => {
 	if((source??0) !== iframe.contentWindow) return
-	if(!iReady){ serverClicked(data); return }
+	if(iReady<2){ 
+		if(!iReady) serverClicked(data)
+		else if(data === null){
+			iReady = 2
+			win = iframe.contentWindow
+			if(!win) return
+			if(!m && voice) microphone()
+			for(const k in options) win.postMessage([k, options[k]], '*')
+			for(const a of queue) win.postMessage(a, '*', typeof a == 'string' ? undefined : [a])
+			queue.length = 0
+			showUI(null)
+		}
+		return
+	}
 	if(data instanceof ArrayBuffer || typeof data == 'string') ws?.send(data)
 	if(typeof data != 'object'){
 		if(data === true) pause()
@@ -187,15 +201,7 @@ onmessage = ({data, source}) => {
 		else if(data === undefined) notif()
 		return
 	}
-	if(data === null){
-		win = iframe.contentWindow
-		if(!win) return
-		if(!m && voice) microphone()
-		for(const k in options) win.postMessage([k, options[k]], '*')
-		for(const a of queue) win.postMessage(a, '*', typeof a == 'string' ? undefined : [a])
-		queue.length = 0
-		showUI(null)
-	}else if(data instanceof Blob) download(data)
+	if(data instanceof Blob) download(data)
 	else if(Array.isArray(data)){
 		if(data.length == 1 && data[0] instanceof Blob) navigator.clipboard.write([new ClipboardItem({[data[0].type]: data[0]})])
 		else; //onerror(undefined,''+data[1],+data[2],+data[3],data[0])
@@ -215,7 +221,7 @@ export function destroyIframe(){
 	cbq.fill(undefined)
 	voiceOff(); if(m && typeof m == 'object') m.source.disconnect(), m = null
 	win = null; queue.length = 0
-	iReady = false
+	iReady = 0
 }
 
 listen((a,b) => win?.postMessage([a, b], '*'))
@@ -226,7 +232,7 @@ export function fwPacket({data:a}){
 }
 
 const TARGET_SAMPLE_RATE = 22050
-let node, ctx, sampleRate = 0, bufferSize = 2048, r = null, proc
+let ctx, sampleRate = 0, bufferSize = 2048, r = null, proc
 let m = null, voice = false
 async function microphone(){
 	m = 1

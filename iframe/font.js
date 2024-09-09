@@ -38,7 +38,7 @@ export function drawText(c, t, x=0, y=0, size=1, alpha = 1){
 	tint = colors[15]; tint2 = shadowColors[15]
 	if(typeof t=='string') t = [t]
 	for(const v of t){
-		if(typeof v == 'number' && v<65536){ style = style&-65536|v; continue }
+		if(typeof v == 'number' && v<65536){ style = style<<16|v; continue }
 		if((style^(style>>16))&15) tint = colors[style&15], tint2 = shadowColors[style&15]
 		if((style^(style>>16))&32) ctx.skew(style&32?.2:-.2,0),ctx.translate(style&32?-.0625:.0625,0)
 		if(typeof v == 'number') drawGlyph(v)
@@ -140,7 +140,6 @@ function pushStrings(arr, len = Infinity){
 	if(ls == 271) strings.splice(0, x)
 	else if(x) strings.splice(0, x-1), strings[0]=style
 	else strings.unshift(style)
-	return arr = strings, strings = [], arr
 }
 export function calcText(txt, maxW = undefined, s = 271, ts = defaultTs){
 	text = txt; style = ls = s; i = 0; cs0 = 0
@@ -165,30 +164,34 @@ export function calcText(txt, maxW = undefined, s = 271, ts = defaultTs){
 			res.width = w-LETTER_SPACING-tokenWidth
 			line++; lineWidth = (typeof maxW == 'number' ? maxW : typeof maxW == 'function' ? maxW(line) : Array.isArray(maxW) ? maxW[line] : Infinity) + LETTER_SPACING; w = 0
 			if((f&4)){
-				res = pushStrings(res, count-chars.length)
+				pushStrings(res, count-chars.length)
+				results.push(res = [])
 				for(const x of strings) if(typeof x == 'number' && x < 65536) res.push(x)
-				cs0 = j; strings.length = 0
-				results.push(res = []); count = 0
+				cs0 = j; strings.length = 0; count = 0
 				break
 			}
 			if(tokenWidth < lineWidth){
-				results.push(res = pushStrings(res, count-chars.length)); w = tokenWidth
+				pushStrings(res, count-chars.length)
+				results.push(res = []); w = tokenWidth
 				count = chars.length
 				break
 			}
 			let c = 0
-			while(excess > 0){ const cw = chars.pop(); if(cw===undefined) break; excess -= cw; w += cw; c++; tokenWidth -= cw }
-			const r = res
-			results.push(res = pushStrings(res, count-c)); count = c
+			while(excess > 0){ const cw = chars.pop(); if(cw===undefined) break; excess -= cw; w += cw; c++ }
+			tokenWidth -= w
+			pushStrings(res, count-c)
 			if(chars.length>0){
-				r.width += tokenWidth
-				tokenMatch.sep && r.push(tokenMatch.sep)
+				res.width += tokenWidth
+				tokenMatch.sep && res.push(tokenMatch.sep)
 			}
+			results.push(res = []); count = c
+			tokenWidth = w
 		}
 		if(f&2){
 			res.width = w-LETTER_SPACING
 			pushStrings(res); results.push(res = [])
-			line++; lineWidth = (typeof maxW == 'number' ? maxW : typeof maxW == 'function' ? maxW(line) : Array.isArray(maxW) ? maxW[line] : Infinity) + LETTER_SPACING; w = count = 0
+			line++; lineWidth = (typeof maxW == 'number' ? maxW : typeof maxW == 'function' ? maxW(line) : Array.isArray(maxW) ? maxW[line] : Infinity) + LETTER_SPACING
+			w = count = 0
 		}
 		chars.length = 0; tokenWidth = 0; tokenMatch = null
 	}
