@@ -681,7 +681,6 @@ Blocks.barrier = class extends Block{
 		if(mode == 1 && me.inv[me.selected]?.constructor == Items.barrier) c.draw(toTex(barrierTex))
 	}
 	hover(c, itm){
-		console.log(itm)
 		return mode == 1 && itm?.constructor == Items.barrier
 	}
 }
