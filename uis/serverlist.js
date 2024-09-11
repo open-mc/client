@@ -79,14 +79,27 @@ async function getSkin(){
 		ctx.drawImage(img, 40, 20, 4, 12, 4, 0, 4, 12)
 		ctx.drawImage(img, 40, 36, 4, 12, 4, 0, 4, 12)
 		//left (front) leg
-		ctx.drawImage(img, 16, 52, 4, 12, 12, 0, 4, 12)
-		ctx.drawImage(img, 0, 52, 4, 12, 12, 0, 4, 12)
+		ctx.drawImage(img, 0, 20, 4, 12, 12, 0, 4, 12)
+		ctx.drawImage(img, 0, 36, 4, 12, 12, 0, 4, 12)
 		//right (back) leg
-		ctx.drawImage(img, 0, 20, 4, 12, 16, 0, 4, 12)
-		ctx.drawImage(img, 0, 36, 4, 12, 16, 0, 4, 12)
+		ctx.drawImage(img, 16, 52, 4, 12, 16, 0, 4, 12)
+		ctx.drawImage(img, 0, 52, 4, 12, 16, 0, 4, 12)
 		//head
 		ctx.drawImage(img, 0, 8, 8, 8, 20, 4, 8, 8)
 		ctx.drawImage(img, 32, 8, 8, 8, 20, 4, 8, 8)
+	}else if(img.width == 64 && img.height == 32){
+		//body
+		ctx.drawImage(img, 16, 20, 4, 12, 0, 0, 4, 12)
+		//left (front) arm
+		ctx.drawImage(img, 32, 20, 4, 12, 4, 0, 4, 12)
+		//right (back) arm
+		ctx.drawImage(img, 40, 20, 4, 12, 4, 0, 4, 12)
+		//left (front) leg
+		ctx.drawImage(img, 0, 20, 4, 12, 16, 0, 4, 12)
+		//right (back) leg
+		ctx.drawImage(img, 8, 20, 4, 12, 16, 0, 4, 12)
+		//head
+		ctx.drawImage(img, 0, 8, 8, 8, 20, 4, 8, 8)
 	}else if(img.width == 28 && img.height == 12){
 		ctx.drawImage(img, 0, 0)
 	}else return texts.serverlist.skin.wrong_size()
