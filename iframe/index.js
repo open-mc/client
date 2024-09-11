@@ -297,14 +297,14 @@ document.onkeyup = e => {
 	buttons.unset(n); changed.set(n)
 }
 document.onmousedown = e => {
-	if(paused) return
+	if(paused || document.activeElement != document.body) return
 	e.preventDefault()
 	const n = e.button
 	buttons.set(n); changed.set(n)
 	if(_cbs[n]) for(const f of _cbs[n]) f()
 }
 document.onmouseup = e => {
-	if(paused) return
+	if(paused || document.activeElement != document.body) return
 	e.preventDefault()
 	const n = e.button
 	buttons.pop(n) && changed.set(n)

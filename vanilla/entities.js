@@ -351,18 +351,17 @@ Entities.end_crystal = class extends Entity{
 	static gx = 0
 	static gy = 0
 }
-
-export let lightningBoltCount = 0
+let flashTime = 0
 drawLayer('none', 50, c => {
-	if(lightningBoltCount)
-		c.draw(vec4((1-0.8**lightningBoltCount)*(t%.4<.2)))
+	if((flashTime-=dt) > 0)
+		c.draw(vec4(.25*(flashTime%.4<.2)))
+	else flashTime = 0
 })
 const quarterAlpha = vec4(.25), halfAlpha = vec4(.5), fullAlpha = vec4(1)
 Entities.lightning_bolt = class extends Entity{
 	static gx = 0
 	static gy = 0
 	seed = randint()
-	place(){ if(super.place()) lightningBoltCount++ }
 	_fillRect(c, h = 32){
 		c.drawRect(-1, 0, 2, h, quarterAlpha)
 		c.drawRect(-2/3, 0, 4/3, h, halfAlpha)
@@ -387,6 +386,5 @@ Entities.lightning_bolt = class extends Entity{
 		c2.skew(x, 0)
 		this._fillRect(c2, 192)
 	}
-	1(){ this.sound(explode, 2) }
-	remove(){ if(super.remove()) lightningBoltCount-- }
+	1(){ this.sound(explode, 2); flashTime = .7 }
 }

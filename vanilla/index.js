@@ -132,6 +132,7 @@ drawLayer('world', 150, c => {
 })
 
 import hotbar from "./hotbar.png"
+globalThis.hotbar = hotbar
 import selected from "./slot.png"
 import inventory from "./inv.png"
 
