@@ -469,7 +469,7 @@ let ready = LOCAL ? caches.open('').then(a => {
 	})
 	upt = upt ? upt.then(() => p) : p
 })()
-const BLOBS_DIRS = ['/vanilla/', '/iframe/', '/server/']
+const BLOBS_DIRS = ['/vanilla/', '/iframe/', '/server/', '/localserver/']
 async function update(latest, ver, old){
 	const _idx = ver?await ver.text():''
 	const hashes = new Map
@@ -491,34 +491,38 @@ async function update(latest, ver, old){
 		let res = []
 		let total = hashes.size*1.25+1.25, done = 0
 		const traverse = (hash, api, url) => fetch(api+hash+'?recursive=true').then(a => a.json()).then(async a => {
-			if(a.truncated || !a.tree) return void r(1)
+			if(a.truncated || !a.tree) return void r('truncated / no tree')
 			for(const {path='', type='', sha=''} of a.tree){
 				const p = url + path, isBlob = type == 'blob'
 				if(!isBlob){ if(type == 'commit'){
 					if(hashes.get(p) == sha){ for(const h of hashes.keys()) if(h.startsWith(p)&&h[p.length]=='/') hashes.delete(h)&&(total-=1.25) }
-					else todo++, fetch(api.slice(0, -10) + 'contents/' + path).then(a => a.json()).then(({git_url}) => git_url?traverse(sha, git_url.slice(0,-40), p+'/'):r(1))
+					else{
+						todo++; const url = api.slice(0, -10) + 'contents/' + path
+						fetch(url).then(a => a.json()).then(({git_url}) => git_url?traverse(sha, git_url.slice(0,-40), p+'/'):r(url))
+					}
 					hashes.delete(p)&&(total-=1.25); res.push(p+' '+sha)
 				} continue }
 				res.push(p+' '+sha)
 				if(hashes.get(p) == sha){hashes.delete(p);total-=1.25;continue}
 				hashes.delete(p)||(total+=1.25); todo++
 				a: { for(const pat of BLOBS_DIRS) if(p.startsWith(pat)){
-					download(new URL(p, HOST).href, {version: 0, expire: 0, pins: 1, imports: null}, u).then(b => (b&&k.push(p),progress(++done/total)), () => r(1))
+					download(new URL(p, HOST).href, {version: 0, expire: 0, pins: 1, imports: null}, u).then(b => (b&&k.push(p),progress(++done/total)), e => r(p))
 					break a
 				}
 					fetch(p).then(res => {
 						k.push(p)
 						if(res.redirected) res = new Response(res.body,res)
 						return u.put(p, res)
-					}).then(() => progress(++done/total), () => r(1))
+					}).then(() => progress(++done/total), e => r(p))
 				}
 				
 			}
 			--todo||r(0)
 		})
 		traverse(latest, 'https://api.github.com/repos/'+REPO+'/git/trees/', '/')
-		if(await({then:a=>r=a})){
-			console.info('Download aborted!')
+		let err = await({then:a=>r=a})
+		if(err){
+			console.error(err)
 			await caches.delete('updates')
 			progress(-1)
 			areListening.length = 0
