@@ -40,7 +40,7 @@
 <script>
 	const sw = navigator.serviceWorker
 	if(!sw) b.textContent = 'Unsupported device',a.remove()
-	else if(!sw.controller&&matchMedia('(display-mode: browser) or (display-mode: fullscreen)').matches && navigator.vendor.startsWith('Apple')){
+	else if(!sw.controller && matchMedia('(display-mode: browser)').matches && navigator.vendor.startsWith('Apple')){
 		fetch('langs/'+navigator.language.split('-',1)[0]+'.lang').then(a => a.status == 200 && a.headers.get('content-type').startsWith('text/html') ? fetch('langs/en.lang').then(a=>a.text()) : a.text(), e => fetch('langs/en.lang').then(a => a.text())).then(str => {
 			let lang={}
 			for(let line of str.split('\n')){
@@ -64,7 +64,7 @@
 		}
 	}else install()
 	function install(){
-		navigator.wakeLock.request('screen').catch(e => null)
+		navigator.wakeLock?.request('screen').catch(e => null)
 		if(sw.controller) sw.controller.postMessage(null)
 		else sw.register('./sw.js', {type: 'module', updateViaCache: 'all'}).then(r => (r.active??r.installing).postMessage(null))
 		sw.onmessage = ({data}) => {
