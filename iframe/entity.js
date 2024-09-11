@@ -31,21 +31,6 @@ export let mePhysics = {
 
 export const EPS = .000002
 
-function solidCheck(x0, y0, x1, y1){
-	const ex = floor(x1), ey = floor(y1), sx = floor(x0), sy = floor(y0)
-	for(let x = sx; x <= ex; x++) for(let y = sy; y <= ey; y++){
-		const {solid, blockShape} = getblock(x, y)
-		if(!solid) continue
-		if(!blockShape) return true
-		for(let i = 0; i < blockShape.length; i += 4){
-			if(blockShape[i]+x>=x1 | blockShape[i+2]+x<=x0) continue
-			if(blockShape[i+1]+y>=y1 | blockShape[i+3]+y<=y0) continue
-			return true
-		}
-	}
-	return false
-}
-
 function fastCollision(e){
 	const dx = e.dx * dt, dy = e.dy * dt
 	const CLIMB = e.impactDy < 0 ? e.stepHeight ?? 0.01 : 0.01
