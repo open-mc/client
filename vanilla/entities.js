@@ -33,7 +33,7 @@ export class LivingEntity extends Entity{
 				else this.hitTimer = 1, this.flags = this.flags & -2 | (this.dx>=0)
 			}
 		}
-		const d = damageSounds[fields >> 2]
+		const d = mode ? 0 : damageSounds[fields >> 2]
 		if(d) this.sound(d,0.5,2)
 	}
 	render(c){

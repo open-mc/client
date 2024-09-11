@@ -71,7 +71,6 @@ let config = null
 let id = ''
 
 function showConfig(config){
-	console.log(config)
 	inputs.name.placeholder = id
 	inputs.name.value = config.name
 	inputs.seed.value = config.world.seed
