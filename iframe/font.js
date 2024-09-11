@@ -128,7 +128,7 @@ let ls = 271
 function pushStrings(arr, len = Infinity){
 	let x = 0
 	if(cs0<j) strings.push(text.slice(cs0,j)), cs0 = j
-	if(arr.length==0&&ls!=271) arr.push(ls)
+	if(ls!=271) arr.push(ls)
 	while(x<strings.length&&len>0){
 		const i = strings[x++]
 		if(typeof i=='string'){
@@ -137,9 +137,7 @@ function pushStrings(arr, len = Infinity){
 		}else i>65535?len--:ls=i,arr.push(i)
 	}
 	if(len==Infinity) return void(strings.length = 0)
-	if(ls == 271) strings.splice(0, x)
-	else if(x) strings.splice(0, x-1), strings[0]=style
-	else strings.unshift(style)
+	strings.splice(0, x)
 }
 export function calcText(txt, maxW = undefined, s = 271, ts = defaultTs){
 	text = txt; style = ls = s; i = 0; cs0 = 0
