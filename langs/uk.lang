@@ -1,0 +1,121 @@
+
+# Some environments may not support processing microphone input via javascript due to a poorly designed web standard
+warning.unsupported_microphone_api=Будь ласка, перейдіть на Chrome або Safari, ваш браузер не підтримує обробку вводу мікрофона
+
+# App name when installed as a PWA
+misc.app_name=Paper MC
+misc.app_name_short=Paper MC
+misc.add_to_home_screen=Додати на головний екран
+misc.continue_in_browser=Продовжити у браузері
+misc.save_app=Зберегти додаток на робочому столі?
+misc.title.menu=Paper MC
+misc.title.playing=\1 | pMC
+misc.title.notification=(🔴 \2) \1 | pMC
+misc.ok=Ок
+misc.menu_back=Назад
+misc.landscape_notice=Переключіться в альбомний режим
+misc.discard=Відхилити
+misc.save=Зберегти
+
+connection.refused=З’єднання відхилено
+connection.lost=З’єднання втрачено
+connection.invalid_ip=Недійсна IP-адреса
+connection.authenticating=Аутентифікація...
+connection.connecting=Підключення...
+connection.disconnect=Відключитися
+connection.reconnect=Перепідключитися
+
+# Warning about certain environment caveats
+warnings.safari=Схоже, ви використовуєте Safari, який неодноразово показав себе як непрофесійний браузер для розробників, не підтримуючи технології, що є стандартом майже всюди, та пропонуючи посередню якість і продуктивність для графічних додатків.\nМи рекомендуємо вам, будь ласка, перейти на інший браузер.
+# Soon
+
+serverlist.skin.not_an_image=Це не зображення!
+serverlist.skin.wrong_size=Неправильний розмір!
+serverlist.skin.successful=Готово!
+serverlist.welcome=Ласкаво просимо,\s
+serverlist.select_skin=Завантажити скін
+serverlist.logout=Вийти
+serverlist.select=Грати у світі:
+serverlist.hosting_info=Хостинг сервера
+serverlist.refresh=Оновити
+serverlist.add_server=Додати сервер
+serverlist.add_server.placeholder=IP сервера
+serverlist.new_world=Новий світ
+serverlist.import=Імпортувати .map
+
+worldoptions=Налаштування світу
+worldoptions.world_name=Назва світу:
+worldoptions.world_seed=Ключ генератора світу:
+worldoptions.loading_range=Обсяг завантаження: \1
+worldoptions.delete=ВИДАЛИТИ СВІТ
+worldoptions.delete_undo=Скасувати (\1s)
+
+pause.name=Меню паузи
+pause.resume=Повернутися до гри
+pause.server_page=Сторінка сервера
+# Shown on bottom right, faint
+pause.credits=Автори
+pause.changelog=Журнал змін
+
+# Translations shared in common between more than one options screen
+options.common.sensitivity.fast=ГІПЕРШВИДКІСТЬ!!!
+options.common.sensitivity.slow=*позіхання*
+options.common.volume.loud=ГОЛОСНО
+options.common.volume.quiet=тихо
+options.common.percentage=\1%
+
+# options.abc = кнопка
+# options.abc.name = назва екрану
+options.general=Опції
+options.general.name=Опції
+options.general.gui_scale=Масштаб інтерфейсу: \1
+options.general.zoom=Приближення: \1
+options.general.zoom.super=СУПЕР
+options.general.sound=Звук: \1
+options.general.music=Музика: \1
+options.general.chat_notifications.0=Сповіщення чату: Немає
+options.general.chat_notifications.1=Сповіщення чату: Згадки
+options.general.chat_notifications.2=Сповіщення чату: Всі
+options.general.max_fps=Макс FPS: \1
+options.general.max_fps.auto=Макс FPS: Авто
+options.general.max_fps.unlimited=Макс FPS: Без обмежень
+
+options.controller=Контролер
+options.controller.name=Опції контролера
+options.controller.joystick_mode=Режим джойстика: \1
+options.controller.sensitivity=Чутливість контролера: \1
+
+options.controls=Керування
+options.controls.name=Керування
+options.controls.left_click.place=Ліва кнопка: розмістити
+options.controls.left_click.break=Ліва кнопка: зламати
+options.controls.zoom_fx.0=Ефект масштабу: Немає
+options.controls.zoom_fx.1=Ефект масштабу: Звичайний
+options.controls.zoom_fx.2=Ефект масштабу: 3x
+options.controls.zoom_fx.3=Ефект масштабу: БОЖЕВІЛЛЯ!!!
+options.controls.sensitivity=Чутливість: \1
+options.controls.camera.0=Камера: Динамічна
+options.controls.camera.1=Камера: Слідувати плавно
+options.controls.camera.2=Камера: Слідувати за курсором
+options.controls.camera.3=Камера: Слідувати за гравцем
+options.controls.camera.4=Камера: Ступінчата
+options.controls.fullscreen.0=Повноекранний режим: ВКЛ
+options.controls.fullscreen.1=Повноекранний режим: ВИКЛ
+
+options.advanced=Додатково
+options.advanced.name=Додаткові опції
+options.advanced.experts_only=Тільки для експертів!
+options.advanced.speed=Швидкість: \1x
+options.advanced.speed.paused=Швидкість: Призупинено
+options.advanced.max_particles=Максимум часток: \1
+options.advanced.supersampling=Суперсемплінг: \1
+options.advanced.default_debug.0=Режим налагодження: НІ
+options.advanced.default_debug.1=Режим налагодження: МІНІМАЛЬНЕ
+options.advanced.default_debug.2=Режим налагодження: ДЕТАЛЬНЕ
+options.advanced.default_debug.3=Режим налагодження: ВСЕ
+options.advanced.gamma=Гамма: \1
+options.advanced.gamma.0=Гамма: Похмуро
+options.advanced.gamma.1=Гамма: ЯСКРАВО
+
+keybinds=Клавіші
+keybinds.name=Клавіші
