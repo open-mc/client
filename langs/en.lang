@@ -27,7 +27,6 @@ connection.reconnect=Reconnect
 
 # Warning about certain environment caveats
 warnings.safari=You seem to be using safari, which has proven multiple times to be an incompetent browser for developers, not supporting technologies that are standard almost anywhere else and offering mediocre quality and performance for graphical applications\nWe urge you, please, to switch to a different browser.
-# Soon
 
 serverlist.skin.not_an_image=Not an image!
 serverlist.skin.wrong_size=Wrong size!

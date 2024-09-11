@@ -1,0 +1,120 @@
+
+# Some environments may not support processing microphone input via javascript due to a poorly designed web standard
+warning.unsupported_microphone_api=Switch to chrome or safari, yer browser does not support processin' microphone input
+
+# App name when installed as a PWA
+misc.app_name=Paper MC
+misc.app_name_short=Paper MC
+misc.add_to_home_screen=Add to 'ome screen
+misc.continue_in_browser=Continue in-browser instead
+misc.save_app=Save app to Desktop?
+misc.title.menu=Paper MC
+misc.title.playing=\1 | pMC
+misc.title.notification=(🔴 \2) \1 | pMC
+misc.ok=Ok
+misc.menu_back=Back
+misc.landscape_notice=Switch to Landscape
+misc.discard=Discard
+misc.save=Save
+
+connection.refused=Arrr! The ship won't let ye board!
+connection.lost=Blasted! We've lost the wind in our sails!
+connection.invalid_ip=Ye be sailin' with a cursed map!
+connection.authenticating=Provin' yer worth, ye scallywag...
+connection.connecting=Castin' the lines, tryin' to make port...
+connection.disconnect=Cut the anchor!
+connection.reconnect=Reanchor!
+
+# Warning about certain environment caveats
+warnings.safari=Arrr, ye be usin' Safari, a leaky vessel! Swap to a sturdier ship for smoother sailin'!
+
+serverlist.skin.not_an_image=That ain't no image!
+serverlist.skin.wrong_size=Blimey, that be too small a sail! Hoist a bigger one!
+serverlist.skin.successful=Ahoy!
+serverlist.welcome=Ahoy,\s
+serverlist.select_skin=Choose yer colors
+serverlist.logout=Walk the plank
+serverlist.select=Set sail for:
+serverlist.hosting_info=Build-a-ship
+serverlist.refresh=Try again
+serverlist.add_server=Chart a new course
+serverlist.add_server.placeholder=coordinates
+serverlist.new_world=Forge a new land!
+serverlist.import=Bring aboard a .map
+
+worldoptions=Land settings!
+worldoptions.world_name=Name yer land:
+worldoptions.world_seed=Yer land seed:
+worldoptions.loading_range=Haulin' in the range: \1
+worldoptions.delete=SEND TO THE DEPTHS
+worldoptions.delete_undo=Ye want to Undo? (\1s)
+
+pause.name=Captain's quarters!
+pause.resume=Return to the high seas!
+pause.server_page=Server Page
+# Shown on bottom right, faint
+pause.credits=Honor the crew!
+pause.changelog=Log of the latest adventures!
+
+# Translations shared in common between more than one options screen
+options.common.sensitivity.fast=Warp speed ahead!!!
+options.common.sensitivity.slow=*yawn*
+options.common.volume.loud=Blastin'
+options.common.volume.quiet=soft
+options.common.percentage=\1%
+
+# options.abc = button label
+# options.abc.name = title of screen
+options.general=Ship Settings
+options.general.name=Ship Settings
+options.general.gui_scale=Map size: \1
+options.general.zoom=Spyglass: \1
+options.general.zoom.super=EXTRA
+options.general.sound=Sound: \1
+options.general.music=Tunes: \1
+options.general.chat_notifications.0=Chat alerts: None
+options.general.chat_notifications.1=Chat alerts: Mentions
+options.general.chat_notifications.2=Chat alerts: All
+options.general.max_fps=Top speed: \1 FPS
+options.general.max_fps.auto=Top speed: As the wind
+options.general.max_fps.unlimited=Top speed: As the ship
+
+options.controller=Deck device
+options.controller.name=Deck device settings
+options.controller.joystick_mode=Joystick style: \1
+options.controller.sensitivity=Deck device sway: \1
+
+options.controls=Steerin'
+options.controls.name=Steerin'
+options.controls.left_click.place=Left click: put
+options.controls.left_click.break=Left click: smash
+options.controls.zoom_fx.0=Zoom FX: None
+options.controls.zoom_fx.1=Zoom FX: Normal
+options.controls.zoom_fx.2=Zoom FX: 3x
+options.controls.zoom_fx.3=Zoom FX: CRAZY!!!
+options.controls.sensitivity=Sway: \1
+options.controls.camera.0=Eye: Dynamic
+options.controls.camera.1=Eye: Tracks smooth
+options.controls.camera.2=Eye: Tracks pointer
+options.controls.camera.3=Eye: Tracks player
+options.controls.camera.4=Eye: Pages
+options.controls.fullscreen.0=Full deck: NO
+options.controls.fullscreen.1=Full deck: YES
+
+options.advanced=Advanced
+options.advanced.name=Advanced options
+options.advanced.experts_only=Experts only!
+options.advanced.speed=Speed: \1x
+options.advanced.speed.paused=Speed: Paused
+options.advanced.max_particles=Max particles: \1
+options.advanced.supersampling=Supersample: \1
+options.advanced.default_debug.0=Default debug: NO
+options.advanced.default_debug.1=Default debug: MINIMAL
+options.advanced.default_debug.2=Default debug: DETAILED
+options.advanced.default_debug.3=Default debug: EVERYTHING
+options.advanced.gamma=Gamma: \1
+options.advanced.gamma.0=Gamma: Moody
+options.advanced.gamma.1=Gamma: BRIGHT
+
+keybinds=Ship keys
+keybinds.name=Ship keys
