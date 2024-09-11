@@ -188,7 +188,7 @@ drawLayer('ui', 1000, (c, w, h) => {
 		if(voice.active) proximityChatTooltip = 0
 		if(proximityChatTooltip > 0){
 			proximityChatTooltip -= dt
-			drawText(c2, [265, 'Press Enter to talk with proximity chat'], 5, 5, 8, min(1, proximityChatTooltip/5))
+			drawText(c2, [265, 'Hold Enter to talk with proximity chat'], 5, 5, 8, min(1, proximityChatTooltip/5))
 		}
 	}
 	if(me.health <= 0){
