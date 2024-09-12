@@ -53,8 +53,20 @@ function chunkPacket(buf){
 		if(lightI>-2) for(let i = 4032; i < 4096; i++) if(light[i]) _add(d, i)
 	}else if(ex=exposureMap.get(x))(chunk.exposure=ex).ref++
 	else{
-		exposureMap.set(x,chunk.exposure=ex=new Int32Array(64))
-		ex.ref=1; ex.fill(chunk.y+1<<6)
+		exposureMap.set(x,chunk.exposure=ex=new Int32Array(64).fill(chunk.y<<6))
+		ex.ref=1
+	}
+	if(ex.ref > 1){
+		const top = chunk.y+1<<6
+		for(let i = 0; i < 64; i++){
+			if((top-ex[i]|0)<0) continue
+			let i2 = i+4096
+			while(true){
+				if(i2 < 64){ if(ex[i] == top) ex[i] = chunk.y<<6; break }
+				const b = chunk[i2-=64], {solid} = b==65535?chunk.tileData.get(i2):BlockIDs[b]
+				if(solid){ ex[i] = (chunk.y<<6|i2>>6)+1; break }
+			}
+		}
 	}
 	const l = map.get((x-1&0x3FFFFFF)+ky)
 	if(l){

@@ -126,7 +126,7 @@ drawLayer('world', 150, c => {
 			const off = ((x ^ x>>2 ^ x>>4 ^ x>>6) & 3)
 			let off2 = imul(x, 0x13F255A7) >> 16
 			off2 = ((off2 ^ off2 >> 2 ^ off2 >> 4 ^ off2 >> 6) & 3) << 2
-			c.drawRect(ifloat(x-cam.x), exp, 1, H2*2-exp, rain.sub(off/4,(rainOff+off2+cam.y%16)/16,.25,(H2*2-exp)/16), col)
+			c.drawRect(ifloat(x-cam.x), exp, 1, H2*2-exp, rain.sub(off/4,(rainOff+off2+exp+cam.y%16)/16,.25,(H2*2-exp)/16), col)
 		}
 	}
 })
