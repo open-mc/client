@@ -3,6 +3,8 @@ import { _add, _addDark } from './lighting.js'
 
 const texturePool = []
 const chunkUVData = new Uint16Array(8192)
+let awaitingIds = []
+let awI = 0
 export class Chunk extends Uint16Array{
 	constructor(buf){
 		super(4096)
@@ -27,13 +29,13 @@ export class Chunk extends Uint16Array{
 			const e = new EntityIDs[id]()
 			e.x = buf.short() / 1024 + (this.x << 6)
 			e.y = buf.short() / 1024 + (this.y << 6)
-			e.netId = buf.uint32() + buf.uint16() * 4294967296
+			buf.i += 6
 			e.name = buf.string(); e.state = buf.short()
 			e.dx = buf.float(); e.dy = buf.float()
 			e.f = buf.float(); e.age = buf.double()
 			e.chunk = this
 			if(e.savedata) buf.read(e.savedatahistory[buf.flint()] || e.savedata, e)
-			e.place()
+			awaitingIds.push(e)
 			this.entities.add(e)
 		}
 		this.biomes = [buf.byte(), buf.byte(), buf.byte(), buf.byte(), buf.byte(), buf.byte(), buf.byte(), buf.byte(), buf.byte(), buf.byte()]
@@ -189,9 +191,15 @@ const ctxWriteShader = Shader(`void main(){
 
 Classes[1] = Chunk
 
-setTimeout(() => {
+setInterval(() => {
 	if(texturePool.length > 10){
 		for(const s of texturePool) s.delete()
 		texturePool.length = 0
 	}
 }, 10e3)
+export function gotId(id){
+	const e = awaitingIds[awI++]
+	if(e) e.netId = id, e.place()
+	if(awI == awaitingIds.length) awaitingIds.length = 0, awI = 0
+	else if(awI > 15 && awI > (awaitingIds.length>>1)) awaitingIds = awaitingIds.slice(awI), awI = 0
+}

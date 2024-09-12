@@ -1,5 +1,5 @@
 import { getblock, setblock, gridEventMap, gridEvents, map, entityMap, server, world, CONFIG, bigintOffset, configLoaded, me, foundMe, _setPerms, worldEvents, exposureMap } from 'world'
-import { Chunk } from './chunk.js'
+import { Chunk, gotId } from './chunk.js'
 import { queue } from './sounds.js'
 import { moveEntity } from './entity.js'
 import { BlockIDs, EntityIDs, Classes, Entity } from 'definitions'
@@ -140,7 +140,7 @@ function entityPacket(buf){
 		let mv = buf.byte()
 		const id = buf.uint32() + buf.uint16() * 4294967296
 		let e = entityMap.get(id)
-		if(!mv){ if(e) e.remove(),recentlyDeleted.set(id, e); continue }
+		if(!mv){ if(e) e.remove(),recentlyDeleted.set(id, e); else gotId(id); continue }
 		if(!e){
 			if(mv & 64){
 				mv |= 256
