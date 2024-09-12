@@ -228,7 +228,7 @@ export function destroyIframe(){
 	iframe.remove()
 	document.body.append(iframe)
 	cbq.fill(undefined)
-	voiceOff(); proc = null
+	voiceOff(); proc?.disconnect(); proc = null
 	win = null; queue.length = 0
 	iReady = 0
 }
@@ -246,7 +246,7 @@ export function fwPacket({data:a}){
 let E=new Float32Array,resampler=(r,e,$=1,f)=>{if(r==e)return r=>r;let o=r/e,t=+(r<e),l=new Float32Array(Math.ceil(f*e/r/$*1.0000004768371582)+2*$),n=new Float32Array($);if(t)return r=>{let e=r.length,f=t,i=0,s=0,a=0,_=0,h=0;if(e<=0)return E;for(;f<1;f+=o)for(h=0,i=1-(s=f%1),t=f%1;h<$;++h)l[_++]=n[h]*i+r[h]*s;for(f--,e-=$,a=Math.floor(f)*$;_<l.length&&a<e;){for(h=0,i=1-(s=f%1);h<$;++h)l[_++]=r[a+(h>0?h:0)]*i+r[a+($+h)]*s;f+=o,a=Math.floor(f)*$}for(h=0;h<$;++h)n[h]=r[a++];return l.subarray(0,_)};{let i=!1;return r=>{i=!1;let e=r.length,f,s=0,a=0,_=0,h=0,u,w=0,c=0;if(e<=0)return E;for(a=0,f=[],u=!i,i=!1;a<$;++a)f[a]=0;do{if(u)for(a=0,s=o;a<$;++a)f[a]=0;else{for(a=0,s=t;a<$;++a)f[a]=n[a];u=!0}for(;s>0&&_<e;)if(s>=(h=1+_-c)){for(a=0;a<$;++a)f[a]+=r[_++]*h;c=_,s-=h}else{for(a=0;a<$;++a)f[a]+=r[_+(a>0?a:0)]*s;c+=s,s=0;break}if(0===s)for(a=0;a<$;++a)l[w++]=f[a]/o;else{for(a=0,t=s;a<$;++a)n[a]=f[a];i=!0;break}}while(_<e&&w<l.length);return l.subarray(0,w)}}}
 
 const TARGET_SAMPLE_RATE = 22050
-let ctx, sampleRate = 0, bufferSize = 2048, r = null, proc = null
+let ctx, bufferSize = 2048, r = null, proc = null
 let m = null, voice = false
 async function microphone(){
 	m = 1
@@ -257,6 +257,7 @@ async function microphone(){
 		if(!proc){
 			// Firefox, wtf??? https://bugzilla.mozilla.org/show_bug.cgi?id=1388586
 			if(!ctx){
+				let sampleRate = 0
 				for(sampleRate of [TARGET_SAMPLE_RATE, 8000, 16000, 32000, 44100, 48000]) try{
 					ctx = new AudioContext({sampleRate})
 					node = ctx.createMediaStreamSource(m1)

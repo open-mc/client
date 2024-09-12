@@ -172,13 +172,14 @@ function serverPacket(buf){
 	if(!buf.left) return
 	let l = buf.flint()
 	server.players.length = 0
+	const skins = Texture(8, 8, l, 0, Formats.RGB)
+	let i = 0
 	while(l--){
 		const name = buf.string()
 		const skinBuf = buf.uint8array(192)
 		const health = buf.byte(), ping = buf.short()
-		const skin = Texture(8, 8, 1, 0, Formats.RGB)
-		skin.pasteData(skinBuf)
-		server.players.push({name, health, ping, skin})
+		skins.pasteData(skinBuf, 0, 0, i, 8, 8, 1)
+		server.players.push({name, health, ping, skin: skins.sub(0, 0, 1, 1, i++)})
 	}
 }
 

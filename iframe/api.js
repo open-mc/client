@@ -80,7 +80,7 @@ export const _onPacket = data => {
 		console.warn(packet, packet.i)
 	}
 }
-export const send = buf => void(parent.postMessage(buf = (buf.build ? buf.build().buffer : buf.buffer || buf), '*'), bytes += buf.byteLength)
+export const send = buf => void(parent.postMessage(buf = (buf.build ? buf.build().buffer : buf.buffer || buf), '*'), bytes += buf.byteLength ?? buf.length)
 
 export const download = blob => parent.postMessage(blob, '*')
 export const copy = blob => parent.postMessage(globalThis.ClipboardItem ? [blob] : blob, '*')

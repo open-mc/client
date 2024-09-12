@@ -395,9 +395,13 @@ class img{
 	}
 	static auto(t,i=0){
 		if((t.f[3]>>31)!=i) return -2
-		if(t.i>=0) return (boundUsed|=-2147483648>>>(i?(t.i-maxTex+shfCount):t.i),t.i)
+		if(t.i>=0){
+			const sl = -2147483648>>>t.i-(maxTex-shfCount&i)
+			if(!(sl&i^shfMask)) return (boundUsed|=sl,t.i)
+			bound[t.i]=null,t.i=-1
+		}
 		if(!t.tex) return img.load(t), -2
-		const {fMask} = sh, j = Math.clz32(~(boundUsed|i^fMask))
+		const j = Math.clz32(~(boundUsed|i^shfMask))
 		if(j>=maxTex) return -1
 		boundUsed |= -2147483648>>>j
 		i = i?maxTex+j-shfCount:j
@@ -728,12 +732,12 @@ function draw(b=shuniBind){
 	gl.drawArraysInstanced(type, s, l, i)
 	i = 0; boundUsed = b
 }
-let sh=null,ca=null,fbTex=null,fbSte=null,fbLayer=0,shfCount=0
+let sh=null,ca=null,fbTex=null,fbSte=null,fbLayer=0,shfCount=0,shfMask=0
 const fb = gl.createFramebuffer()
 const buf = gl.createBuffer()
 gl.bindBuffer(34962, buf)
 const maxTex = Math.min(32, gl.getParameter(34930))
-const bound = []; for(let i=maxTex<<1;i>=0;i--) bound.push(null)
+const bound = []; for(let i=maxTex<<1;i>0;i--) bound.push(null)
 globalThis.Geometry = (type, points) => {
 	if(points.length%1) throw 'points.length is not even'
 	if(!(points instanceof Float32Array)){
@@ -807,7 +811,7 @@ globalThis.Shader = (src, inputs, uniforms, output=4, defaults, uDefaults, frat=
 		id++
 	}
 	id = 0; let j2 = 0, j3 = 0
-	const fn2Params = [], fn2Body = ['fd+=j2;if(sh!=s){i&&draw(0);shfCount=fCount;gl.useProgram((sh=s).program);gl.bindVertexArray(s.vao)}'], fn3Body = []
+	const fn2Params = [], fn2Body = ['fd+=j2;if(sh!=s){i&&draw(0);shfCount=fCount;shfMask=fMask;gl.useProgram((sh=s).program);gl.bindVertexArray(s.vao)}'], fn3Body = []
 	const uniTex = [], uniLocs = []
 	for(const t of uniforms){
 		let c = (t&3)+1, n = names[t&3|t>>4<<2]
@@ -856,12 +860,12 @@ globalThis.Shader = (src, inputs, uniforms, output=4, defaults, uDefaults, frat=
 		+(o&16?`highp vec4 fGetPixel(int u,ivec3 p,int l){${T||treeIf(0,fCount)}}`:'')
 		+(o&8?`uvec4 uGetPixel(int u,ivec3 p,int l){${g=i=>'return texelFetch(GL_i['+i+'],p,l);',treeIf(0,maxTex-fCount,maxTex)}}`:'')
 		+(o&28?`ivec3 getSize(int u,int l){${g=i=>'return textureSize(GL_'+(i<fCount?'f['+i:'i['+(i-fCount))+'],l);',T=treeIf(0,maxTex)}}`:'')
-	fnBody[0] = '}){if(sh!=s){i&&draw(0);shfCount=fCount;gl.useProgram((sh=s).program);gl.bindVertexArray(s.vao);bindUniTex()}if(shp!=this.s){i&&draw();shp=this.s}if(s.geometry!=this.s.b){gl.bindBuffer(34962,s.geometry=this.s.b);gl.vertexAttribPointer(0,2,5126,0,0,0);gl.bindBuffer(34962,buf)}const b=boundUsed^shuniBind;'+texCheck.join(';')+';const j=i;if((i=j+'+j+')>arr.length)'+(ArrayBuffer.prototype.transfer?'(arr=gtArr||new Float32Array(arr.buffer.transfer(i*8))),iarr=new Int32Array(arr.buffer)':'{const oa=arr;(arr=gtArr||new Float32Array(i*2)).set(oa,0);iarr=new Int32Array(arr.buffer)}')
+	fnBody[0] = '}){if(sh!=s){i&&draw(0);shfCount=fCount;shfMask=fMask;gl.useProgram((sh=s).program);gl.bindVertexArray(s.vao);bindUniTex()}if(shp!=this.s){i&&draw();shp=this.s}if(s.geometry!=this.s.b){gl.bindBuffer(34962,s.geometry=this.s.b);gl.vertexAttribPointer(0,2,5126,0,0,0);gl.bindBuffer(34962,buf)}const b=boundUsed^shuniBind;'+texCheck.join(';')+';const j=i;if((i=j+'+j+')>arr.length)'+(ArrayBuffer.prototype.transfer?'(arr=gtArr||new Float32Array(arr.buffer.transfer(i*8))),iarr=new Int32Array(arr.buffer)':'{const oa=arr;(arr=gtArr||new Float32Array(i*2)).set(oa,0);iarr=new Int32Array(arr.buffer)}')
 	fnBody.push('return j})')
 	const s = eval(fnParams.join('')+fnBody.join(';')), p = s.program = gl.createProgram()
 	s.uniforms = eval(`(function(${fn2Params}){${fn2Body.join(';')};bindUniTex()})`)
 	const bindUniTex = eval(`(function(){${fn3Body.join(';')};shuniBind=boundUsed})`)
-	s.fMask = 32-fCount&&(-1>>>fCount)
+	const fMask = 32-fCount&&(-1>>>fCount)
 	s.outInt = (output==16||output==32)<<31
 	s.uniBind = 0
 	const v=gl.createShader(35633), f=gl.createShader(35632)
