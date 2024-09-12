@@ -397,7 +397,7 @@ class img{
 		if((t.f[3]>>31)!=i) return -2
 		if(t.i>=0){
 			const sl = -2147483648>>>t.i-(maxTex-shfCount&i)
-			if(!(sl&i^shfMask)) return (boundUsed|=sl,t.i)
+			if(!(sl&(i^shfMask))) return (boundUsed|=sl,t.i)
 			bound[t.i]=null,t.i=-1
 		}
 		if(!t.tex) return img.load(t), -2
