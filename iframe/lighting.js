@@ -136,7 +136,7 @@ export function performLightUpdates(shouldSkylight = true){
 				const {down, light} = ch
 				if(down) for(let x = 0; x < 64; x++){
 					const b = ch[x], {opacity} = b==65535?ch.tileData.get(x):BlockIDs[b]
-					if(opacity||light[x]<240) addDark(down, x|4032)
+					if(opacity||light[x]<240) _addDark(down, x|4032)
 				}
 			}
 			newChunks.length = 0
