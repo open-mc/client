@@ -49,7 +49,7 @@ const categories = [
 		Items.acacia_planks_slab, Items.jungle_planks_slab,
 	),
 
-	Category('Natural', Items.oak_sapling,
+	Category('Natural', Items.grass,
 		Items.grass, Items.dirt,
 		Items.stone, Items.netherrack,
 		Items.endstone, Items.obsidian, Items.bedrock,
