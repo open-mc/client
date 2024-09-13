@@ -50,7 +50,7 @@ function chunkPacket(buf){
 		d.up = chunk, chunk.down = d
 		chunk.exposure = ex = d.exposure, ex.ref++
 		const {light,lightI} = d
-		if(lightI>-2) for(let i = 4032; i < 4096; i++) if(light[i]) _addDark(d, i)
+		if(lightI>-2) for(let i = 4032; i < 4096; i++) if(light[i]) _add(d, i)
 	}else if(ex=exposureMap.get(x))(chunk.exposure=ex).ref++
 	else{
 		exposureMap.set(x,chunk.exposure=ex=new Int32Array(64).fill(chunk.y<<6))
