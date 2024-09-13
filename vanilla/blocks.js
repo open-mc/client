@@ -594,7 +594,7 @@ Blocks.furnace = class extends Stone{
 		if(holding || !this.output) return holding
 		const o = this.output
 		if(!--this.output.count) this.output = null
-		return new o.constructor(1)
+		return o.copy(1)
 	}
 	parsed(){
 		if(this.fuelTime) return this.brightness = 13, this.texture = furnaceLitTex, 0

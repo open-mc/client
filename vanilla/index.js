@@ -183,7 +183,7 @@ drawLayer('ui', 1000, (c, w, h) => {
 			const item = me.inv[me.selected]
 			if(!item) break a
 			const name = item.name || item.defaultName || '~'+item.className
-			const arr = calcText(name, _, item.name ? 79 : 15)
+			const arr = calcText(name, _, item.name ? 47 : 15)
 			drawText(c2, arr, hotBarLeft + hotbar.width / 2 - arr.width*4, hotbar.height + 24, 8, min(1, max(0, hotbarTooltipAlpha)))
 		}
 		if(voice.active) proximityChatTooltip = 0

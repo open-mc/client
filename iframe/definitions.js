@@ -19,7 +19,7 @@ export class EphemeralInterface{
 		const t = this.getItem(id, slot)
 		if(t === undefined) return holding
 		if(!t && !holding) return
-		if(t&&holding&&(t.constructor!==holding.constructor||t.savedata)){
+		if(t&&holding&&!t.stackableWith(holding)){
 			this.setItem(id, slot, holding)
 		}else if(t && !holding){
 			this.setItem(id, slot, null)
@@ -28,7 +28,7 @@ export class EphemeralInterface{
 				this.setItem(id, slot, holding)
 				return null
 			}
-			if(t.constructor !== holding.constructor || t.savedata) return holding
+			if(!t.stackableWith(holding)) return holding
 			const c = min(holding.count, t.maxStack - t.count)
 			holding.count -= c
 			t.count += c
@@ -45,15 +45,15 @@ export class EphemeralInterface{
 			if(!count) return null
 			t.count -= count
 			if(!t.count) this.setItem(id, slot, null)
-			return new t.constructor(count)
-		}else if(t&&holding&&(t.constructor!==holding.constructor||t.savedata)){
+			return t.copy(count)
+		}else if(t&&holding&&!t.stackableWith(holding)){
 			this.setItem(id, slot, holding)
 			return t
 		}else{
 			if(!t){
-				const stack = new holding.constructor(1)
+				const stack = holding.copy(1)
 				this.setItem(id, slot, stack)
-			}else if(t.constructor === holding.constructor && !t.savedata && t.count < t.maxStack){
+			}else if(t.stackableWith(holding) && t.count < t.maxStack){
 				t.count++
 			}else return holding
 			return --holding.count ? holding : null
@@ -131,6 +131,39 @@ export class Item{
 		buf.cur.setUint16(buf.i, v.id); buf.i += 2
 		buf.string(v.name)
 		if(v.savedata) buf.write(v.savedatahistory[buf.flint()] || v.savedata, v)
+	}
+	stackableWith(other){
+		if(this.constructor != other.constructor || this.name != other.name) return false
+		if(!this.savedata) return true
+		deepCompare(this.savedata, this, other)
+	}
+	copy(count = this.count, name = this.name){
+		const other = new this.constructor(count, name)
+		if(this.savedata) deepAssign(this.savedata, this, other)
+		return other
+	}
+}
+function deepCompare(T, a, b){
+	for(const k in T){
+		const v1 = a[k], v2 = b[k]
+		if(v1 instanceof Item || Array.isArray(v1)) return false
+		if(v1 == null) return v2 == null
+		if(v2 == null) return false
+		if(typeof v1 == 'object'){ if(!deepCompare(T[k], v1, v2)) return false }
+		else if(v1 != v2) return false
+	}
+	return true
+}
+function deepAssign(T, a, b){
+	if(Array.isArray(T)){let i=0;for(const v of a){
+		if(v instanceof Item) b[i++] = v.copy()
+		else if(typeof v == 'object' && v) deepAssign(T[0], v, b[i++] ??= Array.isArray(v) ? [] : {})
+		else b[i++] = v
+	}}else for(const k in T){
+		const v = a[k]
+		if(v instanceof Item) b[k] = v.copy()
+		else if(typeof v == 'object' && v) deepAssign(T[k], v, b[k] ??= Array.isArray(v) ? [] : {})
+		else b[k] = v
 	}
 }
 registerTypes({Item})

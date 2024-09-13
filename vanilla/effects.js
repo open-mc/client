@@ -102,7 +102,7 @@ export function renderSlot(c, e, i, id=0){
 }
 export function renderTooltip(c, item){
 	if(!item) return
-	const lines = [item.name || item.defaultName || '~'+item.className]
+	const lines = [item.name ? '\\2+' + item.name : item.defaultName || '~'+item.className]
 	if(renderF3) lines.push(`\\+8${item.className}${item.count?'*'+item.count:''}${(item.savedata?'+NBT':'')} (${item.id})`)
 	renderGenericTooltip(c, lines)
 }
