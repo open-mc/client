@@ -4,7 +4,7 @@ import { queue } from './sounds.js'
 import { moveEntity } from './entity.js'
 import { BlockIDs, EntityIDs, Classes, Entity } from 'definitions'
 import { codes } from 'api'
-import { _add, newChunks } from './lighting.js'
+import { _add, _addDark, newChunks } from './lighting.js'
 
 function rubberPacket(data){
 	Entity.meid = data.uint32() + data.uint16() * 4294967296
@@ -50,7 +50,7 @@ function chunkPacket(buf){
 		d.up = chunk, chunk.down = d
 		chunk.exposure = ex = d.exposure, ex.ref++
 		const {light,lightI} = d
-		if(lightI>-2) for(let i = 4032; i < 4096; i++) if(light[i]) _add(d, i)
+		if(lightI>-2) for(let i = 4032; i < 4096; i++) if(light[i]) _addDark(d, i)
 	}else if(ex=exposureMap.get(x))(chunk.exposure=ex).ref++
 	else{
 		exposureMap.set(x,chunk.exposure=ex=new Int32Array(64).fill(chunk.y<<6))
