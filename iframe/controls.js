@@ -1,6 +1,7 @@
 import { onkey, onwheel, playing } from 'api'
 import { mePhysics } from './entity.js'
-import { getblock, me, mode } from 'world'
+import { me, mode } from 'world'
+import { getblock } from 'ant'
 import { send } from './api.js'
 let R=false,L=false,U=false,D=false
 let lastPressUp = 0, lastPressRight = 0, lastPressLeft = 0

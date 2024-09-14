@@ -1,8 +1,9 @@
 import './gamma.js'
 import { playerControls } from './controls.js'
 import { DataWriter } from '/server/modules/dataproto.js'
-import { mePhysics, stepEntity } from './entity.js'
-import { getblock, entityMap, map, cam, onPlayerLoad, world, me, W2, H2, SCALE } from 'world'
+import { mePhysics, fastCollision } from './entity.js'
+import { entityMap, map, cam, onPlayerLoad, world, me, W2, H2, SCALE } from 'world'
+import { goto, peek } from 'ant'
 import * as pointer from './pointer.js'
 import { options, _renderPhases, renderBoxes, send, download, copy, setPlaying, drawText, calcText, _networkUsage, listen, _tickPhases, renderUI, _cbs, onmousemove, onwheel, _optionListeners, _onvoice, voice, _onPacket, onfocus, onblur, onkey, ongesture, onpress, playing, paused, ptrlock, exitPtrlock, movementScale, gl, actx } from 'api'
 import { _recalcDimensions, Blocks, Items, Entities, BlockIDs, ItemIDs, EntityIDs, Block, Item, Entity, Classes } from 'definitions'
@@ -45,15 +46,14 @@ function tick(){
 	else world.weather = 0
 	if(world.weatherFade) world.weatherFade--
 	const x = floor(me.x + random() * 16 - 8), y = floor(me.y + random() * 16 - 8)
-	const randomBlock = getblock(x, y)
-	if(randomBlock.random) randomBlock.random(x, y)
+	goto(x, y); peek().random?.()
 	for(const e of entityMap.values()) if(e.tick) e.tick()
 	for(const ch of map.values()){
 		if(!ch.ticks.size) continue
-		const x = ch.x<<6, y = ch.y<<6
 		for(const {0:i,1:v} of ch.ticks){
 			const id=ch[i],b=id==65535?ch.tileData.get(i):BlockIDs[i]
-			const v1 = b.update?.(v, x|i&63, y|i>>6)
+			goto(ch, i)
+			const v1 = b.update?.(v)
 			if(v1 === undefined) ch.ticks.delete(i)
 			else if(v1!=v) ch.ticks.set(i, v1)
 		}
@@ -86,7 +86,7 @@ globalThis.frame = () => {
 	}
 	setPlaying(true)
 	playerControls()
-	for(const entity of entityMap.values()) stepEntity(entity)
+	for(const entity of entityMap.values()) fastCollision(entity)
 	const tzoom = (me.state & 4 ? -0.13 : 0) * ((1 << options.ffx * (options.camera != 4)) - 1) + 1
 	cam.minZoom = max(innerWidth,innerHeight)/(ceil(sqrt(map.size))-1.375)/(2048>>!renderBoxes)
 	cam.z = cam.z**.75 * max(cam.minZoom, 2 ** (options.zoom * 8 - 4) * tzoom * 2**cam.baseZ)**.25

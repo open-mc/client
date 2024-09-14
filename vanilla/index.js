@@ -2,7 +2,8 @@ import { uiButtons, renderItem, renderItemCount, renderSlot, renderTooltip, rese
 import click from "../img/click.mp3"
 import './entities.js'
 import { onkey, drawLayer, setPlaying, renderUI, quit, onpacket, send, voice, drawText, calcText, tickPhase } from 'api'
-import { getblock, gridEvents, sound, entityMap, pointer, cam, world, configLoaded, me, W2, H2, exposureMap, mode } from 'world'
+import { gridEvents, entityMap, pointer, cam, world, configLoaded, me, W2, H2, exposureMap, mode, WorldType } from 'world'
+import { getblock, peek, sound, goto } from 'ant'
 import { Item, BlockParticle, addParticle, blockBreak, ephemeralInterfaces } from 'definitions'
 import { AshParticle, BlastParticle, explode } from './defs.js'
 import blocksPng from "./blocks.png"
@@ -47,7 +48,7 @@ tickPhase(-1000, now => {
 })
 drawLayer('none', -100, c => {
 	const w = c.width/pixelRatio, h = c.height/pixelRatio
-	if(world.id == 'overworld'){
+	if(world.type == WorldType.overworld){
 		const rainyness = min(world.weather&&(1-world.weatherFade/40), 1, (world.weather&0x0FFFFFFF)/40)
 		const time = world.tick % 24000
 		const light = time < 1800 ? time / 1800 : time < 13800 ? 1 : time < 15600 ? (15600 - time) / 1800 : 0
@@ -81,18 +82,18 @@ drawLayer('none', -100, c => {
 			c.drawRect(wspan * progress - 128 - pointer.REACH/4 - effx, h/2 - 32 + h/3 * sin(progress * PI) - effy, 128, 128, moons[world.tick / 24000 & 7], vec4(1-rainyness))
 		}
 		c.blend = 0
-	}else if(world.id == 'nether'){
+	}else if(world.type == WorldType.nether){
 		c.clear(.14, .025, .025, 1)
-	}else if(world.id == 'end'){
+	}else if(world.type == WorldType.end){
 		c.draw(endSky.sub(0, 0, w/64, h/64), vec4(.25, .25, .25, 1))
 	}
 })
-/*drawLayer('none', 500, (c, w, h) => {
-	if(world.id == 'nether'){
+drawLayer('none', 500, (c, w, h) => {
+	if(world.type == WorldType.nether){
 		c.draw(vec4(.05, 0, 0, .2))
 		return
 	}
-})*/
+})
 
 const cloudLayers = [
 	{y: 64, h: 4, s: 1, a: 1},
@@ -107,7 +108,7 @@ const cloudLayers = [
 ]
 const cloudBlend = Blend(ONE, ADD, ONE_MINUS_SRC_ALPHA)
 drawLayer('world', 150, c => {
-	if(world.id != 'overworld') return
+	if(world.type != WorldType.overworld) return
 	c.blend = cloudBlend
 	for(const {y, h, s, a} of cloudLayers){
 		const x = (t * s - cam.x) % (h*128)
@@ -349,7 +350,8 @@ gridEvents[4] = (buf, x, y) => {
 	let lastParticle = t
 	return c => {
 		if(!toBreak) return
-		const block = getblock(x, y)
+		goto(x, y)
+		const block = peek()
 		if(t - lastParticle > .1){
 			addParticle(new BlockParticle(block, floor(random() * 16), x, y))
 			lastParticle = t
@@ -362,27 +364,27 @@ gridEvents[4] = (buf, x, y) => {
 			c.blend = 0
 		}
 		if(floor(time * 5) != floor((time += dt) * 5))
-			if(block.punch) block.punch(x, y)
+			if(block.punch) block.punch()
 	}
 }
 
-gridEvents[1] = (buf, x, y) => {
-	const b = getblock(x, y)
+gridEvents[1] = () => {
+	const b = peek()
 	if(b.placeSounds.length)
-		sound(b.placeSounds, x, y, 1, 0.8)
+		sound(b.placeSounds, 1, 0.8)
 }
-gridEvents[2] = (buf, x, y) => {
-	const b = getblock(x, y)
-	if(b.destroyed) return void b.destroyed?.(x, y)
+gridEvents[2] = () => {
+	const b = peek()
+	if(b.destroyed) return void b.destroyed()
 	const p = b.breakSounds ?? b.placeSounds
 	if(p.length)
-		sound(p, x, y, 1, 0.8)
-	blockBreak(b, x, y)
+		sound(p, 1, 0.8)
+	blockBreak(b)
 }
 
 gridEvents[3] = (_, x, y) => {
 	x += .5; y += .5
-	sound(explode, x, y)
+	sound(explode)
 	for(let i = 0; i < 15; i++) addParticle(new BlastParticle(x, y))
 	for(let i = 0; i < 30; i++) addParticle(new AshParticle(x, y))
 }

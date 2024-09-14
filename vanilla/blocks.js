@@ -1,10 +1,11 @@
 import { uiButtons, audioSet, lava, renderSlot, water, renderGenericTooltip } from './effects.js'
 import click from "../img/click.mp3"
-import { sound, cam, world, updateblock, redrawblock, mode } from 'world'
+import { cam, world, mode } from 'world'
 import { Blocks, Block, Items, BlockTexture, toTex } from 'definitions'
 import { BlockShape, blockShaped, fluidify } from './blockshapes.js'
 import { closeInterface } from './interfaces.js'
 import { uiButton, drawLayer, drawText } from 'api'
+import { sound, update, redraw } from 'ant'
 
 import blocksPng from "./blocks.png"
 import itemsPng from "./items.png"
@@ -149,18 +150,18 @@ class Water extends Block{
 	static replaceable = true
 	static climbable = true
 	static viscosity = 0.15
-	random(x, y){
+	random(){
 		if(this.flows){
 			const r = random()
 			if(r < .05)
-				sound(water.ambient[0], x, y, 1, 1)
+				sound(water.ambient[0], 1, 1)
 			else if(r < .1)
-				sound(water.ambient[1], x, y, 1, 1)
+				sound(water.ambient[1], 1, 1)
 		}
 	}
-	32(buf, x, y){ sound(fireExtinguish, x, y, 0.7, random()*.8+1.2) }
-	33(buf, x, y){ sound(bucketSounds.emptyWater, x, y) }
-	34(buf, x, y){ sound(bucketSounds.fillWater, x, y) }
+	32(){ sound(fireExtinguish, 0.7, random()*.8+1.2) }
+	33(){ sound(bucketSounds.emptyWater) }
+	34(){ sound(bucketSounds.fillWater) }
 }
 void({
 	filled: Blocks.water,
@@ -176,16 +177,16 @@ class Lava extends Block{
 	static climbable = true
 	static viscosity = 0.5
 	static brightness = 15
-	random(x, y){
+	random(){
 		const r = random()
 		if(r < .015)
-			sound(lava.ambient, x, y, 1, 1)
+			sound(lava.ambient, 1, 1)
 		else if(r < .25)
-			sound(lava.pop, x, y, 1, 1)
+			sound(lava.pop, 1, 1)
 	}
-	32(buf, x, y){ sound(fireExtinguish, x, y, 0.7, random()*.8+1.2) }
-	33(buf, x, y){ sound(bucketSounds.emptyLava, x, y) }
-	34(buf, x, y){ sound(bucketSounds.fillLava, x, y) }
+	32(){ sound(fireExtinguish, 0.7, random()*.8+1.2) }
+	33(){ sound(bucketSounds.emptyLava) }
+	34(){ sound(bucketSounds.fillLava) }
 }
 void({
 	filled: Blocks.lava,
@@ -281,12 +282,12 @@ Blocks.chest = class extends Block{
 	name = ''
 	state = 0
 	opening = 0
-	1(buf, x, y){
+	1(buf){
 		const old = this.state
 		this.state = buf.byte()
 		if((this.state^old)&2){
 			this.opening = 1
-			sound(this.state&2 ? chestOpen : chestClose, x, y, 0.5, 1 - random()*.1)
+			sound(this.state&2 ? chestOpen : chestClose, 0.5, 1 - random()*.1)
 		}
 	}
 	render(c, tint){
@@ -359,11 +360,11 @@ Blocks.fire = class extends Block{
 	static placeSounds = [flintIgnite]
 	static opacity = 0
 	static brightness = 14
-	random(x, y){
-		sound(fireAmbient, x, y, random() + 1, random() * 0.7 + 0.3)
+	random(){
+		sound(fireAmbient, random() + 1, random() * 0.7 + 0.3)
 	}
-	destroyed(x, y){
-		sound(fireExtinguish, x, y, 0.5, random() * 1.6 + 1.8)
+	destroyed(){
+		sound(fireExtinguish, 0.5, random() * 1.6 + 1.8)
 	}
 }
 let portalEffect = 0, inPortal = false
@@ -373,8 +374,8 @@ Blocks.portal = class extends Block{
 	static texture = BlockTexture(animatedPng, 0, 0, 32)
 	static opacity = 0
 	static brightness = 11
-	random(x, y){
-		sound(portalAmbient, x, y, 0.5, random() * 0.4 + 0.8)
+	random(){
+		sound(portalAmbient, 0.5, random() * 0.4 + 0.8)
 	}
 	touched(e){
 		if(e == me && !inPortal){
@@ -556,17 +557,17 @@ Blocks.furnace = class extends Stone{
 		c2.drawRect(-32, 29, 14, h, fuelIndicator.sub(0, 0, 1, h/14))
 		drawInv(0, 0)
 	}
-	10(buf, x, y){
+	10(buf){
 		this.cookTime = buf.byte()
 		this._fuelTime = buf.short()
 		const cap = buf.short()
 		if(cap) this._fuelCap = cap
-		if(!this.brightness&&this._fuelTime) this.brightness = 13, this.texture = furnaceLitTex, updateblock(x, y), redrawblock(x, y, this)
+		if(!this.brightness&&this._fuelTime) this.brightness = 13, this.texture = furnaceLitTex, update(), redraw(this)
 	}
-	update(_, x, y){
+	update(){
 		if(this.cookTime) this.cookTime--
 		if(this._fuelTime>-10){
-			if(--this._fuelTime<=-10) this.brightness = 0, this.texture = furnaceTex, redrawblock(x, y, this)
+			if(--this._fuelTime<=-10) this.brightness = 0, this.texture = furnaceTex, redraw(this)
 			else return 0
 		}
 	}

@@ -1,10 +1,11 @@
-import { getblock, setblock, gridEventMap, gridEvents, map, entityMap, server, world, CONFIG, bigintOffset, configLoaded, me, foundMe, _setPerms, worldEvents, exposureMap } from 'world'
+import { gridEventMap, gridEvents, map, entityMap, server, world, CONFIG, bigintOffset, configLoaded, me, foundMe, _setPerms, worldEvents, exposureMap } from 'world'
 import { Chunk, gotId } from './chunk.js'
 import { queue } from './sounds.js'
 import { moveEntity } from './entity.js'
 import { BlockIDs, EntityIDs, Classes, Entity } from 'definitions'
 import { codes } from 'api'
 import { _add, _addDark, newChunks } from './lighting.js'
+import { goto, place, getblock } from 'ant'
 
 function rubberPacket(data){
 	Entity.meid = data.uint32() + data.uint16() * 4294967296
@@ -18,8 +19,8 @@ export let loadingChunks = true
 function dimensionPacket(data){
 	if(!data.left) return void (loadingChunks = false)
 	loadingChunks = true
-	if(world.id != (world.id = data.string())){
-		queue(world.id)
+	if(world.type != (world.type = data.byte())){
+		queue(world.type)
 		gridEventMap.clear()
 	}
 	world.gx = data.float()
@@ -125,6 +126,7 @@ function blockSetPacket(buf){
 				const x = buf.int(), y = buf.int()
 				const id = buf.uint32()
 				if(!gridEvents[type2]) continue
+				goto(x, y)
 				const v = gridEvents[type2](buf, x, y)
 				if(v){
 					v.x = x; v.y = y; v.i = id
@@ -135,12 +137,12 @@ function blockSetPacket(buf){
 		}
 		if(type > 0){
 			const x = buf.int(), y = buf.int()
-			const bl = getblock(x, y)
+			const bl = getblock()
+			goto(x, y)
 			if(type in bl) bl[type](buf, x, y)
 		}else{
-			const x = buf.int(), y = buf.int()
-			const id = buf.short()
-			const block = setblock(x, y, BlockIDs[id])
+			goto(buf.int(), buf.int())
+			const block = place(BlockIDs[buf.short()])
 			if(block.savedata) buf.read(block.savedata, block)
 		}
 	}

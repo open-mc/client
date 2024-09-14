@@ -1,26 +1,6 @@
-import { getblock, map, world, me } from 'world'
+import { map, world, me } from 'world'
+import { gotopos } from 'ant'
 
-const groundDrag = .0000244
-const airDrag = 0.06
-const yDrag = 0.667
-
-export function stepEntity(e){
-	if(!e.shouldSimulate()) return
-	e.preupdate?.()
-	e.state = (e.state & 0xfffeffff) | (e.impactDy<0)<<16
-	fastCollision(e)
-	if(!e.shouldSimulate()) return
-	if(e.state & 1) e.dy = 0
-	else{
-		e.dy += dt * world.gy * e.gy
-		e.dy = e.dy * yDrag ** dt
-		e.dx += dt * world.gx * e.gx
-	}
-	e.dx = e.dx * (e.impactDy < 0 ? groundDrag : airDrag) ** dt
-	moveEntity(e)
-	e.age += dt * world.tps
-	e.update?.()
-}
 export function moveEntity(e){
 	const ch = map.get((floor(e.x) >>> 6) + (floor(e.y) >>> 6) * 0x4000000) || null
 	if(ch != e.chunk) e.chunk&&e.chunk.entities.delete(e), e.chunk = ch, ch&&ch.entities.add(e)
@@ -31,7 +11,10 @@ export let mePhysics = {
 
 export const EPS = .000002
 
-function fastCollision(e){
+export function fastCollision(e){
+	if(!e.shouldSimulate()) return
+	e.preupdate?.()
+	e.state = (e.state & 0xfffeffff) | (e.impactDy<0)<<16
 	const dx = e.dx * dt, dy = e.dy * dt
 	const CLIMB = e.impactDy < 0 ? e.stepHeight ?? 0.01 : 0.01
 	e.impactDx = e.impactDy = 0
@@ -217,11 +200,13 @@ function fastCollision(e){
 	ch = x<x0?ch?.left:x>(x0|63)?ch?.right:ch
 	ch = ys<y0?ch?.down:ys>(y0|63)?ch?.up:ch
 	let i = x&63|ys<<6&4032
+	let px0 = 0, px1 = 0, py0 = 0, py1 = 0
 	a: for(;ch&&x<ex;x++,(++i&63)||(i-=64,ch=ch.right)){
 		let c1 = ch, j = i
 		b: for(let y = 0; c1&&y<yh; y++,(j+=64)>=4096&&(j&=63,c1=c1.up)){
+			gotopos(c1, j)
 			const id = c1[j], b = id==65535?c1.tileData.get(j):BlockIDs[id]
-			const {blockShape, viscosity, climbable} = b
+			const {blockShape, viscosity, climbable, pushX = 0, pushY = 0} = b
 			let touchingBottom = 1 - (e.y - y - ys)
 			if(blockShape){
 				const bx0 = e.x - e.width - x, bx1 = e.x + e.width - x
@@ -232,6 +217,10 @@ function fastCollision(e){
 					if((bx0 > blockShape[i+2] | bx1 < blockShape[i]) || (y < 0 | by1 < blockShape[i+1])) continue b
 				}
 			}
+			if(pushX){ if(pushX < 0){ if(pushX < px0) px0 = pushX }
+			else if(pushX > px1) px1 = pushX }
+			if(pushY){ if(pushY < 0){ if(pushY < py0) py0 = pushY }
+			else if(pushY > py1) py1 = pushY }
 			if(viscosity > v) v = viscosity
 			if(climbable & !c)
 				c = touchingBottom > (e.impactDx ? 0 : dy > 0 ? .125 : .375) * e.height
@@ -249,4 +238,16 @@ function fastCollision(e){
 	}
 	e.dx *= v ** dt; e.dy *= v ** (dt*60)
 	e.x = ifloat(e.x); e.y = ifloat(e.y)
+
+	if(e.state & 1) e.dy = 0
+	else{
+		e.dy += dt * world.gy * e.gy
+		e.dy = e.dy * e.yDrag ** dt
+		e.dx += dt * world.gx * e.gx
+	}
+	e.dx = e.dx * (e.impactDy < 0 ? e.groundDrag : e.airDrag) ** dt
+	e.dx += (px0+px1)*dt; e.dy += (py0+py1)*dt
+	e.age += dt * world.tps
+	e.update?.()
+	moveEntity(e)
 }

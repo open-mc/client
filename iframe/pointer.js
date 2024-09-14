@@ -1,4 +1,5 @@
-import { setblock, getblock, map, cam, me, onPlayerLoad, perms, pointer, W2, H2, toBlockExact, mode } from 'world'
+import { map, cam, me, onPlayerLoad, perms, pointer, W2, H2, toBlockExact, mode } from 'world'
+import { getblock, goto, place, peek, peekup, peekdown, peekleft, peekright } from 'ant'
 import './controls.js'
 import { onkey, options, playing, renderUI, drawLayer, onpress } from 'api'
 import { Entity, TEX_SIZE, BlockIDs } from 'definitions'
@@ -106,11 +107,13 @@ drawLayer('world', 400, c => {
 			if(ix >= 0 && ix <= 1){by--; d += -py / dy; py = 1; px = ix; continue}
 		}
 	}
+	goto(bpx, bpy)
 	if(d >= reach){
-		const {targettable, solid} = getblock(bpx, bpy)
+		const {targettable, solid} = peek()
 		if(targettable && !solid){
 			px -= bpx - bx; py -= bpy - by
 			bx = bpx; by = bpy; bpx = bppx; bpy = bppy
+			goto(bpx, bpy)
 			if(bpx > bx) px = 1
 			else if(bpx < bx) px = 0
 			else if(bpy > by) py = 1
@@ -123,10 +126,10 @@ drawLayer('world', 400, c => {
 	}else px -= bpx - bx, py -= bpy - by
 	let up,down,left,right; up=down=left=right=Blocks.air
 	if(bpx != bpx) return
-	const b = getblock(bpx, bpy)
+	const b = peek()
 	if(b.targettable){ bpx = bpy = NaN; return }
-	else up = getblock(bpx, bpy + 1), down = getblock(bpx, bpy - 1), left = getblock(bpx - 1, bpy), right = getblock(bpx + 1, bpy)
-	blockPlacing = perms >= 2 && (bx != bx || !getblock(bx, by).interactible || (me.state&2)) ? item?.places?.(px, py, bpx, bpy, bx, by) : undefined
+	else up = peekup(), down = peekdown(), left = peekleft(), right = peekright()
+	blockPlacing = perms >= 2 && (bx != bx || !getblock(bx, by).interactible || (me.state&2)) ? item?.places?.(px, py, bx, by) : undefined
 	if(interactFluid ?
 		up.flows === false && down.flows === false && left.flows === false && right.flows === false
 		: !(up.targettable||up.solid) && !(down.targettable||down.solid) && !(left.targettable||left.solid) && !(right.targettable||right.solid)
@@ -184,7 +187,7 @@ export function checkBlockPlacing(buf){
 	touchPlace = false
 	const hasB = buttons.has(options.click ? RBUTTON : LBUTTON) || buttons.has(options.click ? GAMEPAD.RT : GAMEPAD.LT)
 	if(hasP && ((mode == 1 && buttons.has(KEYS.ALT)) || t > lastPlace + .12) && playing && bpx == bpx){
-		if(blockPlacing) setblock(bpx, bpy, blockPlacing)
+		if(blockPlacing) goto(bpx, bpy), place(blockPlacing)
 		buf.byte(me.selected)
 		buf.float(x); buf.float(y)
 		buf.int(bpx); buf.int(bpy)
@@ -251,5 +254,4 @@ export const set = (_x, _y) => {
 	x = _x; y = _y
 }
 import * as p from './pointer.js'
-import { ongesture } from './api.js'
 pointer(p)

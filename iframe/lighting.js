@@ -1,4 +1,4 @@
-import { world } from 'world'
+import { world, WorldType } from 'world'
 import { BlockIDs } from 'definitions'
 
 const uptChunks = []
@@ -19,7 +19,7 @@ export const _addDark = (ch, i=0) => {
 export const newChunks = []
 export function performLightUpdates(shouldSkylight = true){
 	if(newChunks.length){
-		shouldSkylight = world.id!='end'&&world.id!='nether'
+		shouldSkylight = world.type!=WorldType.nether&&world.type!=WorldType.end
 		if(shouldSkylight) for(const ch of newChunks){
 			const {light} = ch
 			if(!ch.up) for(let x = 0; x < 64; x++) light[x&63|4032] = 240, _add(ch, x|4032)

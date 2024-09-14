@@ -1,5 +1,6 @@
 import { drawLayer, options } from 'api'
-import { getblock, sound, entityMap, cam, world, me, foundMe, BlockIDs, _setDims, getTint } from 'world'
+import { soundAt, entityMap, cam, world, me, foundMe, BlockIDs, _setDims, getTint } from 'world'
+import { goto, peek, right, up, left, down, sound, getX, getY } from 'ant'
 import { registerTypes } from '/server/modules/dataproto.js'
 import * as pointer from './pointer.js'
 import {EPS} from './entity.js'
@@ -75,20 +76,20 @@ export class Block{
 	static breaktime = 3
 	static opacity = 2
 	static brightness = 0
-	punch(x, y){
+	punch(){
 		if(this.stepSounds.length)
-			sound(this.stepSounds, x, y, 0.1375, 0.5)
-		punchParticles(this, x, y)
+			sound(this.stepSounds, 0.1375, 0.5)
+		punchParticles(this)
 	}
-	walk(x, y, e){
+	walk(e){
 		if(!e.alive || !this.solid) return
 		if(this.stepSounds.length)
-			sound(this.stepSounds, x, y, 0.15, 1)
+			sound(this.stepSounds, 0.15, 1)
 		if((e.impactDy < 0 && !(e.state & 0x10000)) || (e.state & 4)) stepParticles(this, e)
 	}
-	fall(x, y){
+	fall(){
 		if(this.stepSounds.length)
-			sound(this.stepSounds[Math.floor(Math.random() * this.stepSounds.length)], x, y, 0.5, 0.75)
+			sound(this.stepSounds[Math.floor(Math.random() * this.stepSounds.length)], 0.5, 0.75)
 	}
 	trace(c){
 		let {blockShape} = this
@@ -204,13 +205,16 @@ export class Entity{
 		if(this.chunk) this.chunk.entities.delete(this)
 		return a
 	}
-	sound(a,b=1,c=1){ sound(a, this.ix-.5, this.iy-.5+this.head, b, c) }
+	sound(a,b=1,c=1){ soundAt(a, this.ix-.5, this.iy-.5+this.head, b, c) }
 	static width = 0.5
 	static height = 1
 	static head = .5
 	static gx = 1
 	static gy = 1
 	static alive = false
+	static groundDrag = .0000244
+	static airDrag = 0.06
+	static yDrag = 0.667
 	getItem(id, slot){}
 	setItem(id, slot, item){}
 	static slotClicked = EphemeralInterface.prototype.slotClicked
@@ -236,70 +240,71 @@ export class Particle{
 		this.dx += this.ddx * dt; this.dy += this.ddy * dt
 		this.lifetime -= dt
 		if(this.lifetime < 0) return void particles.delete(this)
-			let dx = this.dx * dt, dy = this.dy * dt
-		const x = floor(this.x)
+		let dx = this.dx * dt, dy = this.dy * dt
+		let x = floor(this.x), y = floor(this.y)
+		goto(x, y)
 		y: if(dy > 0){
 			const ey = ceil(this.y + dy)
-			for(let y = floor(this.y); y < ey; y++){
-				const {solid, blockShape} = getblock(x, y)
+			for(let y1 = y; y1 < ey; y1++, up()){
+				const {solid, blockShape} = peek()
 				if(!solid) continue
 				let ys = 2
 				if(blockShape) for(let i = 0; i < blockShape.length; i += 4){
 					if(blockShape[i]+x > this.x | blockShape[i+2]+x < this.x) continue
 					if(blockShape[i+1] <= ys) ys = blockShape[i+1]
 				}else ys = 0
-				if((y === ey - 1 ? ys + y >= this.y + dy + EPS : ys > 1) || ys + y < this.y - EPS) continue
-				this.y = ys + y - EPS
+				if((y1 === ey - 1 ? ys + y1 >= this.y + dy + EPS : ys > 1) || ys + y1 < this.y - EPS) continue
+				this.y = ys + y1 - EPS
 				this.dy = 0
 				break y
 			}
 			this.y += dy
 		}else if(dy < 0){
 			const ey = floor(this.y + dy) - 1
-			for(let y = floor(this.y); y > ey; y--){
-				const {solid, blockShape} = getblock(x, y)
+			for(let y1 = y; y1 > ey; y1--, down()){
+				const {solid, blockShape} = peek()
 				if(!solid) continue
 				let ys = -1
 				if(blockShape) for(let i = 0; i < blockShape.length; i += 4){
 					if(blockShape[i]+x > this.x | blockShape[i+2]+x < this.x) continue
 					if(blockShape[i+3] > ys) ys = blockShape[i+3]
 				}else ys = 1
-				if((y === ey + 1 ? ys + y <= this.y + dy - EPS : ys < 0) || ys + y > this.y + EPS) continue
-				this.y = ys + y + EPS
+				if((y1 === ey + 1 ? ys + y1 <= this.y + dy - EPS : ys < 0) || ys + y1 > this.y + EPS) continue
+				this.y = ys + y1 + EPS
 				this.dy = 0
 				break y
 			}
 			this.y += dy
 		}
-		const y = floor(this.y)
+		goto(x, y = floor(this.y))
 		x: if(dx > 0){
 			const ex = ceil(this.x + dx)
-			for(let x = floor(this.x); x < ex; x++){
-				const {solid, blockShape} = getblock(x, y)
+			for(let x1 = floor(this.x1); x1 < ex; x1++, right()){
+				const {solid, blockShape} = peek()
 				if(!solid) continue
 				let xs = 2
 				if(blockShape) for(let i = 0; i < blockShape.length; i += 4){
 					if(blockShape[i+1]+y > this.y | blockShape[i+3]+y < this.y) continue
 					if(blockShape[i] <= xs) xs = blockShape[i]
 				}else xs = 0
-				if((x === ex - 1 ? xs + x >= this.x + dx + EPS : xs > 1) || xs + x < this.x - EPS) continue
-				this.x = xs + x - EPS
+				if((x1 === ex - 1 ? xs + x1 >= this.x + dx + EPS : xs > 1) || xs + x1 < this.x - EPS) continue
+				this.x = xs + x1 - EPS
 				this.dx = 0
 				break x
 			}
 			this.x += dx
 		}else if(dx < 0){
 			const ex = floor(this.x + dx) - 1
-			for(let x = floor(this.x); x > ex; x--){
-				const {solid, blockShape} = getblock(x, y)
+			for(let x1 = floor(this.x1); x1 > ex; x1--, left()){
+				const {solid, blockShape} = peek()
 				if(!solid) continue
 				let xs = -1
 				if(blockShape) for(let i = 0; i < blockShape.length; i += 4){
 					if(blockShape[i+1]+y > this.y | blockShape[i+3]+y < this.y) continue
 					if(blockShape[i+2] > xs) xs = blockShape[i+2]
 				}else xs = 1
-				if((x === ex + 1 ? xs + x <= this.x + dx - EPS : xs < 0) || xs + x > this.x + EPS) continue
-				this.x = xs + x + EPS
+				if((x1 === ex + 1 ? xs + x1 <= this.x + dx - EPS : xs < 0) || xs + x1 > this.x + EPS) continue
+				this.x = xs + x1 + EPS
 				this.dx = 0
 				break x
 			}
@@ -342,7 +347,8 @@ export class BlockParticle extends Particle{
 		c.drawRect(-w, -h, w*2, h*2, this.tex, tint)
 	}
 }
-export function blockBreak(block, x, y){
+export function blockBreak(block){
+	const x = getX(), y = getY()
 	for(let i = 0; i < 16; i++)
 		addParticle(new BlockParticle(block, i, x, y))
 }
@@ -355,7 +361,8 @@ export function stepParticles(block, e){
 	}
 }
 
-export function punchParticles(block, x, y){
+export function punchParticles(block){
+	const x = getX(), y = getY()
 	const s = (random() * 256) | 0
 	let particle = new BlockParticle(block, s&15, x, y)
 	particle.dy /= 2; particle.lifetime /= 2; particle.physical = false; particle.ddy /= 2

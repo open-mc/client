@@ -2,7 +2,8 @@ import { explode, AshParticle, BlastParticle, hurt } from './defs.js'
 import { audioSet, renderItem, renderItemCount, renderSlot } from './effects.js'
 import { Entities, Entity, Item, Blocks, BlockIDs, toTex, addParticle } from 'definitions'
 import { renderF3, renderUI, drawLayer, drawText, calcText } from 'api'
-import { getblock, cam, worldEvents, world, me, mode } from 'world'
+import { cam, worldEvents, world, me, mode } from 'world'
+import { getblock, goto, peek } from 'ant'
 import { renderLeft, renderRight } from './creativeInventory.js'
 
 const src = loader(import.meta)
@@ -61,8 +62,8 @@ export class LivingEntity extends Entity{
 			if(this.blocksWalked >= 1.7){
 				this.blocksWalked = 0
 				const x = floor(this.x + this.dx * dt), y = ceil(this.y) - 1
-				const block = getblock(x, y)
-				if(block.walk) block.walk(x, y, this)
+				goto(x, y)
+				peek().walk?.(this)
 			}
 		}else this.blocksWalked = this.dy < -10 ? 1.7 : 1.68
 

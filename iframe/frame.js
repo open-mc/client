@@ -1,4 +1,5 @@
-import { gridEventMap, getblock, entityMap, map, cam, world, bigintOffset, me, genLightmap, lightTint, lightTex, lightArr, setGamma, getTint, getLightValue, W2, H2, SCALE, toBlockExact } from 'world'
+import { entityMap, map, cam, world, WorldType, WorldTypeStrings, bigintOffset, me, genLightmap, lightTint, lightTex, lightArr, setGamma, getTint, getLightValue, W2, H2, SCALE } from 'world'
+import { getblock, gotopos } from 'ant'
 import * as pointer from './pointer.js'
 import { drawLayer, options, _renderPhases, renderBoxes, renderF3, drawText, calcText, textShadeCol, _networkUsage, networkUsage, listen, _tickPhases, renderUI } from 'api'
 import { particles, blockAtlas, _recalcDimensions, prep, BlockIDs } from 'definitions'
@@ -37,7 +38,7 @@ const chunkLineCol = vec4(0, .4, 1, 1)
 const axisLineCol = vec4(.5, 0, 1, 1)
 let visibleChunks = 0
 const day = vec3(.93), night = vec3(.11,.11,.22)
-const block = vec3(2, 1.8, 1.5), netherBase = vec3(.424,.364,.265), endBase = vec3(.185,.243,.21)
+const block = vec3(2, 1.8, 1.5), netherBase = vec3(.05,.04,.03), endBase = vec3(.18,.24,.21)
 listen('gamma', () => setGamma(.8+options.gamma/10))
 drawLayer('none', 200, (ctx, w, h) => {
 	performLightUpdates()
@@ -48,15 +49,15 @@ drawLayer('none', 200, (ctx, w, h) => {
 	ctx.shader = chunkShader
 	prep()
 	const mipmap = max(0, min(4, 4-round(log2(SCALE)+.05)))
-	if(world.id == 'overworld'){
+	if(world.type == WorldType.overworld){
 		const time = world.tick % 24000, light = time < 1800 ? time / 1800 : time < 13800 ? 1 : time < 15600 ? (15600 - time) / 1800 : 0
 		genLightmap(light, block, night, day, light)
-	}else if(world.id == 'nether'){
+	}else if(world.type == WorldType.nether){
 		genLightmap(-1, block, day, vec3.zero, 0, netherBase)
-	}else if(world.id == 'end'){
+	}else if(world.type == WorldType.end){
 		genLightmap(-2, block, day, vec3.zero, 0, endBase)
 	}else genLightmap(1, block, vec3.zero, day, 1)
-	chunkShader.uniforms(blockAtlas, vec4(world.animTick, mipmap, world.id == 'overworld' ? 240 : 0, (t%1)*1e6), lightTex)
+	chunkShader.uniforms(blockAtlas, vec4(world.animTick, mipmap, world.type == WorldType.overworld ? 240 : 0, (t%1)*1e6), lightTex)
 	const sr = sin(cam.f), cr = cos(cam.f)
 	const limX = (abs(ctx.width*cr)+abs(ctx.height*sr)+(cam.nausea*.333*ctx.height))/2, limY = (abs(ctx.width*sr)+abs(ctx.height*cr)+(cam.nausea*.333*ctx.width))/2
 	const S = 64*SCALE
@@ -86,7 +87,8 @@ drawLayer('none', 200, (ctx, w, h) => {
 			const b = chunk[i]
 			const j = chunk.light[i]<<2
 			lightTint.x = lightArr[j]*.003921568627451; lightTint.y = lightArr[j|1]*.003921568627451; lightTint.z = lightArr[j|2]*.003921568627451; lightTint.w = 1
-			void(b==65535?chunk.tileData.get(i):BlockIDs[b]).render(l, lightTint, cxs|(i&63),cys|(i>>6))
+			gotopos(chunk, i)
+			void(b==65535?chunk.tileData.get(i):BlockIDs[b]).render(l, lightTint)
 			l.resetTo(a)
 		}
 		if(chunk.flags&1) a.draw(b)
@@ -115,12 +117,6 @@ drawLayer('none', 200, (ctx, w, h) => {
 			ctx.drawRect(ifloat(-cam.x+2147483648-lineWidth2*.5),-H2,lineWidth2,H2*2, axisLineCol)
 		if(abs(ifloat(cam.y + 2147483648)) <= H2 + lineWidth2*.5)
 			ctx.drawRect(-W2,ifloat(-cam.y+2147483648-lineWidth2*.5),W2*2,lineWidth2, axisLineCol)
-	}
-})
-drawLayer('none', 300, ctx => {
-	for(const ev of gridEventMap.values()){
-		toBlockExact(ctx, ev.x, ev.y)
-		if(!map.has((ev.x>>>6)+(ev.y>>>6)*0x4000000) || ev(ctx)) gridEventMap.delete(ev.i)
 	}
 })
 const entityHitboxCol = vec4(1), entityHitboxHeadCol = vec4(.8,0,0,1), entityHitboxFacingCol = vec4(.8, .64, 0, 1)
@@ -211,7 +207,7 @@ XY: \\4+${trueX} / ${trueY}\\0+
 ChXY: ${(mei&63).toString().padStart(2,'\u2007')} ${(mei>>6).toString().padStart(2,'\u2007')} in ${toString(bigintOffset.x>>6n,floor(me.x) >> 6, 0)} ${toString(bigintOffset.y>>6n,floor(me.y) >> 6, 0)}
 ChKey: ${mei} in ${mek}
 Facing: ${(me.f >= 0 ? 'R' : 'L') + (90 - abs(me.f / PI2 * 360)).toFixed(1).padStart(5, '\u2007')} (${me.f.toFixed(3)})`,`Tick ${world.tick}, Day ${day}, Time ${time}
-Dimension: ${world.id}
+Dimension: ${WorldTypeStrings[world.type]}
 Biome: ${me.chunk ? round(me.chunk.biomes[mex] * (1 - mexi) + me.chunk.biomes[mex+2] * mexi) : 0}/${me.chunk ? round(me.chunk.biomes[mex+1] * (1 - mexi) + me.chunk.biomes[mex+3] * mexi) : 0}
 Looking at: \\4+${toString(bigintOffset.x, pointX, 0)} ${toString(bigintOffset.y, pointY, 0)}\\0+
 Light: 0x${light.toHex().slice(6)}, sky=${light>>4}, block=${light&15}

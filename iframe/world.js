@@ -47,79 +47,10 @@ export function toBlockExact(c, bx, by){
 	c.box(xa0, ya0, round(x0+SCALE)-xa0, round(y0+SCALE)-ya0)
 }
 
-function variant(ch, i, x, y){
-	if(!ch) return
-	const id = ch[i], b = id==65535?ch.tileData.get(i):BlockIDs[id]
-	if(b.variant){
-		const b2 = b.variant(x, y)
-		if(!b2 || b2 == b) return
-		if(b2.savedata){
-			ch[i] = 65535
-			ch.tileData.set(i, b2=b2===b2.constructor?new b2:b2)
-		}else{ ch[i] = b2.id; if(b.savedata) ch.tileData.delete(i) }
-		ch.updateDrawn(i, b2, b)
-	}
-}
-
-export function updateblock(x, y, a=0){
-	const k = (x>>>6)+(y>>>6)*0x4000000
-	const ch = map.get(k)
-	if(!ch) return
-	const i = (x & 63) | (y & 63) << 6
-	ch.ticks.set(i, a)
-}
-
-export function redrawblock(x, y, b=null){
-	const k = (x>>>6)+(y>>>6)*0x4000000
-	const ch = map.get(k)
-	if(!ch) return
-	const i = (x & 63) | (y & 63) << 6
-	if(!b){ const id = ch[i]; b = id==65535?ch.tileData.get(i):BlockIDs[id] }
-	ch.redrawBlock(i, b)
-}
-
-export function setblock(x, y, b){
-	b = b.savedata&&b===b.constructor?new b:b
-	const k = (x>>>6)+(y>>>6)*0x4000000
-	const ch = map.get(k)
-	if(!ch) return b
-	const i = (x & 63) | (y & 63) << 6
-	const id = ch[i], old = id==65535?ch.tileData.get(i):BlockIDs[id]
-	if(b.savedata){
-		ch[i] = 65535
-		ch.tileData.set(i, b)
-	}else{ ch[i] = b.id; if(old.savedata) ch.tileData.delete(i) }
-	if(b.variant){
-		const old = b
-		if(!(b = b.variant(x, y))) b = old
-		else if(b.savedata){
-			ch[i] = 65535
-			ch.tileData.set(i, b)
-		}else{ ch[i] = b.id; if(old.savedata) ch.tileData.delete(i) }
-	}
-	ch.updateDrawn(i, b, old)
-	if((i&63) == 63) variant(map.get((x+1>>>6)+(y>>>6)*0x4000000), i&0b111111000000, x+1, y)
-	else variant(ch, i+1, x+1, y)
-	if((i&63) == 0) variant(map.get((x-1>>>6)+(y>>>6)*0x4000000), i|0b000000111111, x-1, y)
-	else variant(ch, i-1, x-1, y)
-	if((i>>6) == 63) variant(map.get((x>>>6)+(y+1>>>6)*0x4000000), i&0b000000111111, x, y+1)
-	else variant(ch, i+64, x, y+1)
-	if((i>>6) == 0) variant(map.get((x>>>6)+(y-1>>>6)*0x4000000), i|0b111111000000, x, y-1)
-	else variant(ch, i-64, x, y-1)
-	return b
-}
-export function getblock(x, y){
-	const k = (x>>>6)+(y>>>6)*0x4000000
-	const ch = map.get(k)
-	const i = (x & 63) + ((y & 63) << 6)
-	const b = ch?ch[i]:0
-	return b==65535?ch.tileData.get(i):BlockIDs[b]
-}
-
 const playerLoadCb = []
 export const onPlayerLoad = cb => playerLoadCb.push(cb)
 const SPEEDOFSOUND = 340
-export function sound(fn, x, y, vol = 1, pitch = 1){
+export function soundAt(fn, x, y, vol = 1, pitch = 1){
 	if(!Number.isFinite(vol)) vol = 1
 	if(!Number.isFinite(pitch)) pitch = 1
 	if(Array.isArray(fn)) fn = fn[floor(random() * fn.length)]
@@ -144,9 +75,11 @@ export const music = (theme, ...audios) => {
 	arr.push(...audios)
 }
 
-
+export const WorldType = {}
+export const WorldTypeStrings = ['overworld', 'nether', 'end', 'void']
+for(let i = 0; i < WorldTypeStrings.length; i++) WorldType[WorldTypeStrings[i]] = i
 export const world = globalThis.world = {
-	id: '',
+	type: 0,
 	tick: 0, animTick: 0,
 	gx: 0, gy: 0,
 	weather: 0,

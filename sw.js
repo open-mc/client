@@ -194,6 +194,7 @@ const CORE = HOST + 'iframe/index.js'
 const IMPORT_MAP = new Map().set('core', CORE)
 	.set('vanilla', HOST + 'vanilla/index.js')
 	.set('world', HOST + 'iframe/world.js')
+	.set('ant', HOST + 'iframe/ant.js')
 	.set('api', HOST + 'iframe/api.js')
 	.set('definitions', HOST + 'iframe/definitions.js')
 

@@ -25,7 +25,7 @@ else if(c.startsWith('audio/'))m[k]=E+"Wave("+R+")"
 else if(c.startsWith('text/'))m[k]=E+"await%20new%20Response("+R+").text()"
 else if(c.startsWith('font/'))m[k]=E+"await%20new%20FontFace('font',"+encodeURI(JSON.stringify('url('+URL.createObjectURL(v)+')'))+").load()"
 else m[k]=E+R
-}m.vanilla=m[H+'vanilla/index.js'],m.core=m[H+'iframe/index.js'],m.world=m[H+'iframe/world.js'],m.api=m[H+'iframe/api.js'],m.definitions=m[H+'iframe/definitions.js']
+}m.vanilla=m[H+'vanilla/index.js'],m.ant=m[H+'iframe/ant.js'],m.core=m[H+'iframe/index.js'],m.world=m[H+'iframe/world.js'],m.api=m[H+'iframe/api.js'],m.definitions=m[H+'iframe/definitions.js']
 d=document.createElement('script');d.type='importmap';d.textContent=JSON.stringify({imports:m});document.head.append(d);m={__proto__:null}
 __import__.loadAll=async ()=>{__import__.loadAll=null;let i=0;while(i<f.length)f[i]=import(f[i++]);for(const n of f)await n;return F};import('core')
 onpointermove=onpointerup=onpointerout=null
@@ -174,6 +174,7 @@ globalThis.parentPort = null
 		close: {enumerable:false,value(code, reason){
 			if(this.readyState > 1) return
 			this.postMessage(null)
+			MessagePort.prototype.close.call(this)
 			this.readyState = 2
 			setTimeout(() => this._finish(code, reason), 30e3)
 		}},
