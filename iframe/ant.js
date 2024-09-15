@@ -58,13 +58,11 @@ export function place(bl, safe = false){
 			const p = pos&4032
 			const id = c[p]; let b = id === 65535 ? c.tileData.get(p) : BlockIDs[id], _b = b
 			if(b.variant){pos=p,chunk=c;b=b.variant()??b;pos=_pos;chunk=_chunk;if(b.savedata) c[p]=65535,c.tileData.set(p,b=b===b.constructor?new b:b);else{if(id==65535) c.tileData.delete(p);c[p]=b.id}c.updateDrawn(p, b, _b)}
-			if(b.update && !c.blockupdates.has(p)) c.blockupdates.set(p, 0)
 		}
 	}else{
 		const p = pos+1
 		const id = _chunk[p]; let b = id === 65535 ? _chunk.tileData.get(p) : BlockIDs[id], _b = b
 		if(b.variant){pos=p;b=b.variant()??b;pos=_pos;chunk=_chunk;if(b.savedata) chunk[p]=65535,chunk.tileData.set(p,b=b===b.constructor?new b:b);else{if(id==65535) chunk.tileData.delete(p);chunk[p]=b.id}chunk.updateDrawn(p, b, _b)}
-		if(b.update && !chunk.blockupdates.has(pos+1)) chunk.blockupdates.set(pos+1, 0)
 	}
 	if((pos & 63) === 0){
 		const c = _chunk.left
@@ -72,13 +70,11 @@ export function place(bl, safe = false){
 			const p = pos|63
 			const id = c[p]; let b = id === 65535 ? c.tileData.get(p) : BlockIDs[id], _b = b
 			if(b.variant){pos=p,chunk=c;b=b.variant()??b;pos=_pos;chunk=_chunk;if(b.savedata) c[p]=65535,c.tileData.set(p,b=b===b.constructor?new b:b);else{if(id==65535) c.tileData.delete(p);c[p]=b.id}c.updateDrawn(p, b, _b)}
-			if(b.update && !c.blockupdates.has(p)) c.blockupdates.set(p, 0)
 		}
 	}else{
 		const p = pos-1
 		const id = _chunk[p]; let b = id === 65535 ? _chunk.tileData.get(p) : BlockIDs[id], _b = b
 		if(b.variant){pos=p;b=b.variant()??b;pos=_pos;chunk=_chunk;if(b.savedata) chunk[p]=65535,chunk.tileData.set(p,b=b===b.constructor?new b:b);else{if(id==65535) chunk.tileData.delete(p);chunk[p]=b.id}chunk.updateDrawn(p, b, _b)}
-		if(b.update && !chunk.blockupdates.has(pos-1)) chunk.blockupdates.set(pos-1, 0)
 	}
 	if((pos >> 6) === 0b111111){
 		const c = _chunk.up
@@ -86,13 +82,11 @@ export function place(bl, safe = false){
 			const p = pos&63
 			const id = c[p]; let b = id === 65535 ? c.tileData.get(p) : BlockIDs[id], _b = b
 			if(b.variant){pos=p,chunk=c;b=b.variant()??b;pos=_pos;chunk=_chunk;if(b.savedata) c[p]=65535,c.tileData.set(p,b=b===b.constructor?new b:b);else{if(id==65535) c.tileData.delete(p);c[p]=b.id}c.updateDrawn(p, b, _b)}
-			if(b.update && !c.blockupdates.has(p)) c.blockupdates.set(p, 0)
 		}
 	}else{
 		const p = pos+64
 		const id = _chunk[p]; let b = id === 65535 ? _chunk.tileData.get(p) : BlockIDs[id], _b = b
 		if(b.variant){pos=p;b=b.variant()??b;pos=_pos;chunk=_chunk;if(b.savedata) chunk[p]=65535,chunk.tileData.set(p,b=b===b.constructor?new b:b);else{if(id==65535) chunk.tileData.delete(p);chunk[p]=b.id}chunk.updateDrawn(p, b, _b)}
-		if(b.update && !chunk.blockupdates.has(pos+64)) chunk.blockupdates.set(pos+64, 0)
 	}
 	if((pos >> 6) === 0){
 		const c = _chunk.down
@@ -100,17 +94,14 @@ export function place(bl, safe = false){
 			const p = pos|4032
 			const id = c[p]; let b = id === 65535 ? c.tileData.get(p) : BlockIDs[id], _b = b
 			if(b.variant){pos=p,chunk=c;b=b.variant()??b;pos=_pos;chunk=_chunk;if(b.savedata) c[p]=65535,c.tileData.set(p,b=b===b.constructor?new b:b);else{if(id==65535) c.tileData.delete(p);c[p]=b.id}c.updateDrawn(p, b, _b)}
-			if(b.update && !c.blockupdates.has(p)) c.blockupdates.set(p, 0)
 		}
 	}else{
 		const p = pos-64
 		const id = _chunk[p]; let b = id === 65535 ? _chunk.tileData.get(p) : BlockIDs[id], _b = b
 		if(b.variant){pos=p;b=b.variant()??b;pos=_pos;chunk=_chunk;if(b.savedata) chunk[p]=65535,chunk.tileData.set(p,b=b===b.constructor?new b:b);else{if(id==65535) chunk.tileData.delete(p);chunk[p]=b.id}chunk.updateDrawn(p, b, _b)}
-		if(b.update && !chunk.blockupdates.has(pos-64)) chunk.blockupdates.set(pos-64, 0)
 	}
 	if(bl.variant){bl=bl.variant()??bl;pos=_pos;chunk=_chunk;if(bl.savedata) chunk[pos]=65535,chunk.tileData.set(pos,bl=bl===bl.constructor?new bl:bl);else{if(_id==65535) chunk.tileData.delete(pos);chunk[pos]=bl.id}}
-	chunk.updateDrawn(pos, bl, _b)
-	if(bl.update && !chunk.blockupdates.has(pos)) chunk.blockupdates.set(pos, 0)
+	_chunk.updateDrawn(pos, bl, _b)
 	return bl
 }
 
