@@ -40,6 +40,7 @@ const sw = navigator.serviceWorker
 let cbq = []
 sw.onmessage = ({data, source}) => {
 	if(source != sw.controller) return
+	if(typeof data == 'number') location.reload()
 	cbq.shift()?.(data)
 }
 const queue = []

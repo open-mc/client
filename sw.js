@@ -420,6 +420,13 @@ self.addEventListener('message', e => {
 				cache.match(url).then(a => a?a.blob():null).then(r)
 			}
 		}else done()
+	}else if(data === 0){
+		if(LOCAL) return
+		let l = fetch('/.gitversion').then(a => a.text(),()=>'{"error":"network"}')
+		cache.match('/.git').then(ver => l.then(latest => {
+			const our = ver?ver.headers.get('commit'):'null'
+			if(latest[0] != '{' && our != latest) ready='', upt = update(latest, ver, our), e.source.postMessage(0)
+		}))
 	}else if(ready == null) e.source.postMessage(1)
 	else areListening.push(e.source)
 })
@@ -461,6 +468,7 @@ let ready = LOCAL ? caches.open('').then(a => {
 			let il = v[i+16]<<24|v[i+17]<<16|v[i+18]<<8|v[i+19]; i += 20
 			const imports = il ? [] : null
 			while(il--) imports.push(files[v[i]<<24|v[i+1]<<16|v[i+2]<<8|v[i+3]]), i += 4
+			if(cacheMeta.has(files[id])) continue
 			if(expire <= now && !pins){
 				cache.delete(files[id])
 				continue

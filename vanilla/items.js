@@ -2,7 +2,7 @@ import { Blocks, Items, Item, BlockTexture } from 'definitions'
 import { itemify, slabifyItem } from './blockshapes.js'
 import { chestTop, commandBlockTexs, barrierTex } from './blocks.js'
 import itemsPng from "./items.png"
-import { getblock, peekleft, peekright, peek, peekdown } from 'ant'
+import { getblock, peekleft, peekright, peek, peekdown, down } from 'ant'
 
 Items.oak_log = itemify(Blocks.oak_log, 'Oak log')
 Items.birch_log = itemify(Blocks.birch_log, 'Birch log')
