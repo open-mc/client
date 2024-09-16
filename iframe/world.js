@@ -110,15 +110,15 @@ export function getTint(x, y, a = 1){
 }
 
 export let lightTint = vec4(0)
-export const lightTex = Texture(256, 1, 1, _, Formats.RGBA), lightArr = new Uint8Array(1024)
+export const lightTex = Texture(256, 1, 1, _, Formats.RGBA), lightArr = new Uint8ClampedArray(1024)
 export function genLightmap(id, b1, s1, s2, sx, base = vec3.zero){
 	if(lastLm==(lastLm=id)) return
 	const sr = s1.x*(1-sx)+s2.x*sx, sg = s1.y*(1-sx)+s2.y*sx, sb = s1.z*(1-sx)+s2.z*sx
 	for(let i = 0, j = 0; i < 256; i++, j+=4){
 		const a = powTable[i&15], b = powTable[i>>4]
-		lightArr[j] = round(max(0, min(1, b1.x*a + sr*b + base.x))*255)
-		lightArr[j+1] = round(max(0, min(1, b1.y*a + sg*b + base.y))*255)
-		lightArr[j+2] = round(max(0, min(1, b1.z*a + sb*b + base.z))*255)
+		lightArr[j] = (b1.x*a + sr*b + base.x)*255
+		lightArr[j+1] = (b1.y*a + sg*b + base.y)*255
+		lightArr[j+2] = (b1.z*a + sb*b + base.z)*255
 		lightArr[j+3] = 255
 	}
 	lightTex.pasteData(lightArr)
@@ -126,7 +126,9 @@ export function genLightmap(id, b1, s1, s2, sx, base = vec3.zero){
 let lastLm = NaN
 const powTable = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
 export function setGamma(p){
-	for(let i = 0; i < 16; i++) powTable[i] = p**(~i&15)
+	p = .9-(p=1-p)*p*.2
+	const beta = -(p**15), gamma = 1-beta
+	for(let i = 0; i < 16; i++) powTable[i] = (p**(~i&15)+beta)*gamma
 	lastLm = NaN
 }
 

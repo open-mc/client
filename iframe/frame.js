@@ -12,7 +12,7 @@ const chunkShader = Shader(`void main(){
 	uint light = uGetPixel(arg1, ivec3(ipos>>4u,0), 0).x;
 	if(a.y>=65535u){
 		if(light>=uni1.z) discard;
-		color = vec4(0,0,0,.9-float(light>>4u)*.06);
+		color = vec4(0,0,0,1.-float(light>>4u)*.066666666);
 	}else{
 		if(a.y>255u){
 			a.x += uni1.x%((a.y>>8u)+1u);
@@ -23,7 +23,7 @@ const chunkShader = Shader(`void main(){
 		p.xy >>= uni1.y;
 		color = getPixel(uni0, p, int(uni1.y)) * getPixel(uni2, ivec3(light, 0, 0), 0);
 		if(color.a < 1. && light < uni1.z){
-			color += vec4(0,0,0,.9-float(light>>4u)*.06)*(1.-color.a);
+			color += vec4(0,0,0,1.-float(light>>4u)*.066666666)*(1.-color.a);
 		}
 	}
 }`, [UTEXTURE, UTEXTURE], [TEXTURE, UVEC4, TEXTURE], FIXED)
@@ -37,9 +37,9 @@ borderTex.pasteData(a); a=null
 const chunkLineCol = vec4(0, .4, 1, 1)
 const axisLineCol = vec4(.5, 0, 1, 1)
 let visibleChunks = 0
-const day = vec3(.93), night = vec3(.11,.11,.22)
-const block = vec3(2, 1.8, 1.5), netherBase = vec3(.05,.04,.03), endBase = vec3(.18,.24,.21)
-listen('gamma', () => setGamma(.8+options.gamma/10))
+const day = vec3(.93), night = vec3(.28,.26,.35)
+const block = vec3(2, 1.8, 1.5), netherBase = vec3(.45,.39,.30), endBase = vec3(.35,.39,.34)
+listen('gamma', () => setGamma(options.gamma))
 drawLayer('none', 200, (ctx, w, h) => {
 	performLightUpdates()
 	const a = cam.z / 12

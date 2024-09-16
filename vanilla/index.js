@@ -83,15 +83,9 @@ drawLayer('none', -100, c => {
 		}
 		c.blend = 0
 	}else if(world.type == WorldType.nether){
-		c.clear(.14, .025, .025, 1)
+		c.clear(.11, .02, .02, 1)
 	}else if(world.type == WorldType.end){
 		c.draw(endSky.sub(0, 0, w/64, h/64), vec4(.25, .25, .25, 1))
-	}
-})
-drawLayer('none', 500, (c, w, h) => {
-	if(world.type == WorldType.nether){
-		c.draw(vec4(.05, 0, 0, .2))
-		return
 	}
 })
 
