@@ -420,7 +420,7 @@ self.addEventListener('message', e => {
 				cache.match(url).then(a => a?a.blob():null).then(r)
 			}
 		}else done()
-	}else if(data === 0){
+	}else if(e.data === 0){
 		if(LOCAL) return
 		let l = fetch('/.gitversion').then(a => a.text(),()=>'{"error":"network"}')
 		cache.match('/.git').then(ver => l.then(latest => {
