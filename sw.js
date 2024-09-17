@@ -385,7 +385,7 @@ self.addEventListener('message', e => {
 		let mappings = new Map, tot = 0
 		const now = Math.floor(Date.now()/1000)
 		const r = map => e.source.postMessage(map), done = () => (upt ? upt.then(() => getBlobs(files, r, now, mappings)) : getBlobs(files, r, now, mappings))
-		if(maps) for(let url of maps.split('\n')){
+		if(maps) for(let url of maps){
 			tot++
 			let i = url.indexOf(' ')
 			let base1 = ''
@@ -430,7 +430,7 @@ self.addEventListener('message', e => {
 	}else if(ready == null) e.source.postMessage(1)
 	else areListening.push(e.source)
 })
-self.addEventListener('install', e => e.waitUntil(ready ? ready.then(() => upt) : upt))
+self.addEventListener('install', e => (self.skipWaiting(), e.waitUntil(ready ? ready.then(() => upt) : upt)))
 let cache, upt = null
 let ready = LOCAL ? caches.open('').then(a => {
 	cache = a

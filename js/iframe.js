@@ -48,7 +48,11 @@ export function gameIframe(f, base){
 	if(iReady) return
 	iReady = 1
 	let maps = f.pop(), files = f.pop()
-	sw.controller.postMessage({base, files: files = files?files.split('\n'):[], maps})
+	maps = maps?maps.split('\n'):[]
+	files = files?files.split('\n'):[]
+	if(storage.files) for(const f of storage.files.split('\n')) files.push(f)
+	if(storage.maps) for(const f of storage.maps.split('\n')) maps.push(f)
+	sw.controller.postMessage({base, files, maps})
 	cbq.push(data => {
 		iframe.contentWindow.postMessage([data,files,f], '*')
 	})
@@ -101,7 +105,7 @@ d=document.createElement('script');d.type='importmap';d.textContent=JSON.stringi
 import(H+'localserver/index.js')
 globalThis.parentPort = null
 },{once:true})</script>`
-		sw.controller.postMessage({base: '', files: ['/server/worldgen/genprocess.js', '/server/worldgen/util/biomes.png'], maps: ''})
+		sw.controller.postMessage({base: '', files: ['/server/worldgen/genprocess.js', '/server/worldgen/util/biomes.png'], maps: null})
 		cbq.push(data => {
 			dat.cache = data
 			P?--P||ifr.contentWindow.postMessage(dat, '*', [dat.port,dat.dbport]):port._finish()

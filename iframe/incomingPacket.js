@@ -1,4 +1,4 @@
-import { gridEventMap, gridEvents, map, entityMap, server, world, CONFIG, bigintOffset, configLoaded, me, foundMe, _setPerms, worldEvents, exposureMap } from 'world'
+import { gridEventMap, gridEvents, map, entityMap, server, world, CONFIG, bigintOffset, configLoaded, me, foundMe, _setPerms, worldEvents, exposureMap, cam } from 'world'
 import { Chunk, gotId } from './chunk.js'
 import { queue } from './sounds.js'
 import { moveEntity } from './entity.js'
@@ -252,6 +252,16 @@ function chunkInfoPacket(buf){
 	ch.flags = buf.byte()
 }
 
+function cameraPacket(buf){
+	let flags = buf.byte()
+	if((flags & 3) == 1) cam.staticX = buf.double()
+	else if((flags & 3) == 2) cam.baseX = buf.float() || 0, cam.staticX = NaN
+	if((flags & 12) == 4) cam.staticY = buf.double()
+	else if((flags & 12) == 8) cam.baseY = buf.float() || 0, cam.staticY = NaN
+	if(flags&16) cam.baseF = ((cam.baseF = buf.float())%PI2+(cam.baseF<0)*PI2)||0, cam.f<cam.baseF-PI?cam.f+=PI2:cam.f>cam.baseF+PI?cam.f-=PI2:0
+	if(flags&32) cam.baseZ = buf.float()||0
+}
+
 Object.assign(codes, {
 	1: rubberPacket,
 	2: dimensionPacket,
@@ -259,10 +269,11 @@ Object.assign(codes, {
 	4: serverPacket,
 	5: configPacket,
 	8: blockSetPacket,
-	19: worldPacket,
 	16: chunkPacket,
 	17: chunkDeletePacket,
 	18: chunkInfoPacket,
+	19: worldPacket,
 	20: entityPacket,
+	21: cameraPacket,
 	64: setBigintOffset
 })
