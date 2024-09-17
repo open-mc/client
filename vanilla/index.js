@@ -1,7 +1,7 @@
 import { uiButtons, renderItem, renderItemCount, renderSlot, renderTooltip, resetSlot, slotI, audioSet } from './effects.js'
 import click from "../img/click.mp3"
 import './entities.js'
-import { onkey, drawLayer, setPlaying, renderUI, quit, onpacket, send, voice, drawText, calcText, tickPhase } from 'api'
+import { onkey, drawLayer, setPlaying, renderUI, quit, packets, send, voice, drawText, calcText, tickPhase } from 'api'
 import { gridEvents, entityMap, pointer, cam, world, configLoaded, me, W2, H2, exposureMap, mode, WorldType } from 'world'
 import { getblock, peek, sound, goto } from 'ant'
 import { Item, BlockParticle, addParticle, blockBreak, ephemeralInterfaces } from 'definitions'
@@ -68,6 +68,7 @@ drawLayer('none', -100, c => {
 			if(light) c.draw(rainGradient, vec4(light))
 			if(a) c.draw(rainNightGradient, vec4(a))
 		}else if(a) c.draw(rainGradient, vec4(a))
+		else if(rainyness >= 1) c.draw(vec4.zero)
 
 		if(orangeness) c.draw(sunsetGradient, vec4(orangeness))
 
@@ -293,29 +294,29 @@ function openInventory(){
 	send(buf)
 }
 
-onpacket(12, buf => {
+packets[12] = buf => {
 	const kind = buf.short()
 	interfaceId = buf.byte()
 	invInterface = new ephemeralInterfaces[kind](buf)
 	setPlaying(false)
-})
-onpacket(13, buf => {
+}
+packets[13] = buf => {
 	const e = entityMap.get(buf.uint32() + buf.short() * 4294967296)
 	if(!e) return
 	invInterface = e
 	interfaceId = buf.byte()
 	setPlaying(false)
-})
-onpacket(14, buf => {
+}
+packets[14] = buf => {
 	const b = getblock(buf.int(), buf.int())
 	if(!b) return
 	invInterface = b
 	interfaceId = buf.byte()
 	setPlaying(false)
-})
-onpacket(15, () => { invInterface = null })
+}
+packets[15] = () => { invInterface = null }
 
-onpacket(32, buf => {
+packets[32] = buf => {
 	let i = buf.byte()
 	while(buf.left){
 		const e = i&2 ? i & 1 ? me : invInterface : i&1 ? getblock(buf.int(), buf.int()) : entityMap.get(buf.uint32() + buf.uint16() * 4294967296)
@@ -325,7 +326,7 @@ onpacket(32, buf => {
 			e?.setItem?.(id, i, itm)
 		}
 	}
-})
+}
 
 onkey(KEYS.E, GAMEPAD.X, () => {
 	if(invInterface) return closeInterface()

@@ -1,4 +1,4 @@
-import { entityMap, map, cam, world, WorldType, WorldTypeStrings, bigintOffset, me, genLightmap, lightTint, lightTex, lightArr, setGamma, getTint, getLightValue, W2, H2, SCALE } from 'world'
+import { entityMap, map, cam, world, WorldType, WorldTypeStrings, bigintOffset, me, genLightmap, lightTint, lightTex, lightArr, setGamma, getTint, getLightValue, W2, H2, SCALE, toBlockExact, gridEventMap } from 'world'
 import { getblock, gotopos } from 'ant'
 import * as pointer from './pointer.js'
 import { drawLayer, options, _renderPhases, renderBoxes, renderF3, drawText, calcText, textShadeCol, _networkUsage, networkUsage, listen, _tickPhases, renderUI } from 'api'
@@ -44,7 +44,7 @@ drawLayer('none', 200, (ctx, w, h) => {
 	performLightUpdates()
 	const a = cam.z / 12
 	const chunkSublineCol = vec4(0, .53*a, a, a)
-	const hitboxes = renderBoxes + buttons.has(KEYS.SYMBOL)
+	const hitboxes = renderBoxes + buttons.has(KEYS.LEFT_OF_1)
 	cam.transform(ctx)
 	ctx.shader = chunkShader
 	prep()
@@ -119,10 +119,16 @@ drawLayer('none', 200, (ctx, w, h) => {
 			ctx.drawRect(-W2,ifloat(-cam.y+2147483648-lineWidth2*.5),W2*2,lineWidth2, axisLineCol)
 	}
 })
+drawLayer('none', 300, ctx => {
+	for(const ev of gridEventMap.values()){
+		toBlockExact(ctx, ev.x, ev.y)
+		if(!map.has((ev.x>>>6)+(ev.y>>>6)*0x4000000) || ev(ctx)) gridEventMap.delete(ev.i)
+	}
+})
 const entityHitboxCol = vec4(1), entityHitboxHeadCol = vec4(.8,0,0,1), entityHitboxFacingCol = vec4(.8, .64, 0, 1)
 function renderEntity(ctx, entity, a=1){
 	if(!entity.render) return
-	const hitboxes = buttons.has(KEYS.SYMBOL) + renderBoxes
+	const hitboxes = buttons.has(KEYS.LEFT_OF_1) + renderBoxes
 	if(entity == me || dt > 1/30) entity.ix = entity.x, entity.iy = entity.y
 	else{
 		entity.ix += ifloat(entity.x - entity.ix) * dt * 20
@@ -217,7 +223,7 @@ Item.texture: 0x${holding?.texture>=0?`${holding.texture.toHex().slice(2)}[${(ho
 }
 
 drawLayer('ui', 999, (ctx, w, h) => {
-	const f3 = min(renderF3+buttons.has(KEYS.SYMBOL), 2)
+	const f3 = min(renderF3+buttons.has(KEYS.LEFT_OF_1), 2)
 	if(!f3) return
 	ctx.translate(0, h)
 	let text = buttons.has(KEYS.CTRL)?f3<2?minif3Info:w<5?t%6<3?f3LeftInfo:['',f3RightInfo]:[f3LeftInfo,f3RightInfo]:f3Text(f3)

@@ -22,6 +22,7 @@ export class LivingEntity extends Entity{
 	hurtTextures = null
 	textures = null
 	static stepHeight = 0.5
+	static living = true
 	99(buf){
 		const oldHealth = this.health
 		this.health = buf.byte()

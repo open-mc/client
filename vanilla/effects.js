@@ -1,4 +1,4 @@
-import { music, me, server } from 'world'
+import { music, me, server, WorldType } from 'world'
 import { renderF3, drawText, calcText, drawLayer } from 'api'
 import { toTex } from 'definitions'
 import "./sound/contents.cache"
@@ -17,7 +17,7 @@ export const uiButtons = {
 	tinyDisabled: btns.crop(8,0,20,20),
 }
 
-music('overworld',
+music(WorldType.overworld,
 	Wave(src`sound/calm1.mp3`),
 	Wave(src`sound/calm2.mp3`),
 	Wave(src`sound/calm3.mp3`),
@@ -31,16 +31,16 @@ music('overworld',
 	Wave(src`sound/piano2.mp3`),
 	Wave(src`sound/piano3.mp3`)
 )
-music('nether',
+music(WorldType.nether,
 	Wave(src`sound/nether1.mp3`),
 	Wave(src`sound/nether2.mp3`),
 	Wave(src`sound/nether3.mp3`),
 	Wave(src`sound/nether4.mp3`)
 )
 
-music('end', Wave(src`sound/end.mp3`))
+music(WorldType.end, Wave(src`sound/end.mp3`))
 
-music('void', Wave(src`sound/deep1.mp3`))
+music(WorldType.void, Wave(src`sound/deep1.mp3`))
 
 export const lava = {
 	ambient: Wave(src`sound/lava/ambient.mp3`),

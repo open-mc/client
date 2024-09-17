@@ -3,7 +3,7 @@ import { Chunk, gotId } from './chunk.js'
 import { queue } from './sounds.js'
 import { moveEntity } from './entity.js'
 import { BlockIDs, EntityIDs, Classes, Entity } from 'definitions'
-import { codes } from 'api'
+import { packets } from 'api'
 import { _add, _addDark, newChunks } from './lighting.js'
 import { goto, place, getblock } from 'ant'
 
@@ -137,7 +137,7 @@ function blockSetPacket(buf){
 		}
 		if(type > 0){
 			const x = buf.int(), y = buf.int()
-			const bl = getblock()
+			const bl = getblock(x, y)
 			goto(x, y)
 			if(type in bl) bl[type](buf, x, y)
 		}else{
@@ -262,7 +262,7 @@ function cameraPacket(buf){
 	if(flags&32) cam.baseZ = buf.float()||0
 }
 
-Object.assign(codes, {
+Object.assign(packets, {
 	1: rubberPacket,
 	2: dimensionPacket,
 	3: clockPacket,

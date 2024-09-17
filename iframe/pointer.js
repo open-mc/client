@@ -40,20 +40,7 @@ drawLayer('none', -1000, () => {
 })
 export const DEFAULT_BLOCKSHAPE = [0, 0, 1, 1]
 let blockPlacing = null
-const invertBlend = Blend(ONE_MINUS_DST, ADD, ONE_MINUS_SRC)
-drawLayer('world', 400, c => {
-	if(!playing) return
-	if(cursor.mx||cursor.my) pointerMoved(cursor.mx, cursor.my), pointerOpacity = 1
-	if(gesture.dx||gesture.dy) pointerMoved(gesture.dx*W2, gesture.dy*H2, 4), pointerOpacity = 0
-	if(renderUI && me.health){
-		c.blend = invertBlend
-		const v = me.linked ? pointerOpacity : 0.2
-		const pX = ifloat(x + me.x - cam.x), pY = ifloat(y + me.head + me.y - cam.y)
-		c.drawRect(pX - .3, pY - .03125, .6, .0625, vec4(v,v,v,0))
-		c.drawRect(pX - .03125, pY - .3, .0625, .26875, vec4(v,v,v,0))
-		c.drawRect(pX - .03125, pY + .03125, .0625, .26875, vec4(v,v,v,0))
-		c.blend = null
-	}
+function raycastPointer(){
 	bx = floor(me.x)
 	by = floor(me.y + me.head)
 	bpx = NaN, bpy = NaN
@@ -141,6 +128,22 @@ drawLayer('world', 400, c => {
 			//Don't allow placing because there is an entity in the way
 			bpx = bpy = NaN; return
 		}
+}
+const invertBlend = Blend(ONE_MINUS_DST, ADD, ONE_MINUS_SRC)
+drawLayer('world', 400, c => {
+	if(!playing) return
+	if(cursor.mx||cursor.my) pointerMoved(cursor.mx, cursor.my), pointerOpacity = 1
+	if(gesture.dx||gesture.dy) pointerMoved(gesture.dx*W2, gesture.dy*H2, 4), pointerOpacity = 0
+	if(renderUI && me.health){
+		c.blend = invertBlend
+		const v = me.linked ? pointerOpacity : 0.2
+		const pX = ifloat(x + me.x - cam.x), pY = ifloat(y + me.head + me.y - cam.y)
+		c.drawRect(pX - .3, pY - .03125, .6, .0625, vec4(v,v,v,0))
+		c.drawRect(pX - .03125, pY - .3, .0625, .26875, vec4(v,v,v,0))
+		c.drawRect(pX - .03125, pY + .03125, .0625, .26875, vec4(v,v,v,0))
+		c.blend = null
+	}
+	raycastPointer()
 })
 
 drawLayer('world', 201, (c, w, h) => {
@@ -182,17 +185,27 @@ drawLayer('world', 201, (c, w, h) => {
 	}
 })
 let didHit = false
+
+export function lookAt(px, py){
+	x = px-me.x; y = py-(me.y+me.head); me.f = atan2(x, y)
+	const d = hypot(x, y) / REACH
+	if(d > 1) x /= d, y /= d
+	raycastPointer()
+}
+
+export function click(){ oncePlace = true }
+
 export function checkBlockPlacing(buf){
-	const hasP = buttons.has(options.click ? LBUTTON : RBUTTON) || buttons.has(options.click ? GAMEPAD.LT : GAMEPAD.RT) || touchPlace
-	touchPlace = false
-	const hasB = buttons.has(options.click ? RBUTTON : LBUTTON) || buttons.has(options.click ? GAMEPAD.RT : GAMEPAD.LT)
-	if(hasP && ((mode == 1 && buttons.has(KEYS.ALT)) || t > lastPlace + .12) && playing && bpx == bpx){
+	const hasP = ((buttons.has(options.click ? LBUTTON : RBUTTON) || buttons.has(options.click ? GAMEPAD.LT : GAMEPAD.RT)) && ((mode == 1 && buttons.has(KEYS.ALT)) || t > lastPlace + .12)) || oncePlace
+	oncePlace = false
+	const hasB = (buttons.has(options.click ? RBUTTON : LBUTTON) || buttons.has(options.click ? GAMEPAD.RT : GAMEPAD.LT)) && !(mode == 1 && !buttons.has(KEYS.ALT) && t <= lastPlace + .12)
+	if(hasP && playing && bpx == bpx){
 		if(blockPlacing) goto(bpx, bpy), place(blockPlacing)
 		buf.byte(me.selected)
 		buf.float(x); buf.float(y)
 		buf.int(bpx); buf.int(bpy)
 		lastPlace = t
-	}else if(hasB && bx == bx && playing && !(mode == 1 && !buttons.has(KEYS.ALT) && t <= lastPlace + .12)){
+	}else if(hasB && bx == bx && playing){
 		buf.byte(me.selected | 128)
 		buf.float(x); buf.float(y)
 		blockbreakx = bx; blockbreaky = by
@@ -238,12 +251,12 @@ export function pointerMoved(dx, dy, sens = 9 ** options.sensitivity / 3 / cam.z
 		y *= vec
 	}
 }
-let touchPlace = false
+let oncePlace = false
 onpress.bind((tx, ty) => {
 	tx = tx*W2*2-W2+cam.x-me.x
 	ty = ty*H2*2-H2+cam.y-me.y-me.head
 	if(tx*tx+ty*ty>REACH*REACH) return
-	x = tx; y = ty; touchPlace = true
+	x = tx; y = ty; oncePlace = true
 })
 export const reset = (f) => {
 	let r = min(4, REACH)

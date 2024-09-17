@@ -238,7 +238,8 @@ export function fastCollision(e){
 	}
 	e.dx *= v ** dt; e.dy *= v ** (dt*60)
 	e.x = ifloat(e.x); e.y = ifloat(e.y)
-
+	if(e.dx > -.00390625 && e.dx < .00390625) e.dx = 0
+	if(e.dy > -.00390625 && e.dy < .00390625) e.dy = 0
 	if(e.state & 1) e.dy = 0
 	else{
 		e.dy += dt * world.gy * e.gy

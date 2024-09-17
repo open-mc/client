@@ -1,16 +1,16 @@
-import { send, onpacket, voice, drawLayer, onkey } from 'api'
+import { send, packets, voice, drawLayer, onkey } from 'api'
 import { entityMap, CONFIG, me } from 'world'
 import '../img/_pako.js'
 
 const actx = new AudioContext({latencyHint: 'interactive', sampleRate: 22050})
 
-onpacket(96, buf => {
+packets[96] = buf => {
 	if(!pako) return
 	const e = CONFIG.proximity_chat == Infinity ? buf.uint32() + buf.uint16()*4294967296 : entityMap.get(buf.uint32() + buf.uint16()*4294967296)
 	const sampleRate = buf.uint32()
 	const arr = pako.inflateRaw(new Uint8Array(buf.buffer, buf.byteOffset + buf.i, buf.left))
 	queuePlay(e, sampleRate, arr)
-})
+}
 
 let bufferEnds = new Map()
 function queuePlay(e, sampleRate, data){

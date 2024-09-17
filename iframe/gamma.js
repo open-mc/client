@@ -1,15 +1,6 @@
 document.head.insertAdjacentHTML('beforeend', `<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">`)
 onerror=(_,a,b,c,d)=>parent.postMessage([''+d,a,b,c], '*')
 onunhandledrejection=({reason})=>parent.postMessage([''+reason,'',0,0], '*')
-Array.prototype.bind = Array.prototype.push
-Array.prototype.fire = function(...v){
-	for(const r of this) try{r(...v)}catch(e){Promise.reject(e)}
-}
-Array.prototype.mapFire = function(...v){
-	const res = new Array(this.length)
-	for(const r of this) try{res.push(r(...v))}catch(e){Promise.reject(e);res.push(undefined)}
-	return res
-}
 globalThis.BitField = class BitField extends Array{
 	static parse(a){
 		if(!Array.isArray(a)) return new BitField 
@@ -135,12 +126,15 @@ Object.assign(globalThis, {
 		A: 65, B: 66, C: 67, D: 68, E: 69, F: 70, G: 71, H: 72, I: 73, J: 74, K: 75, L: 76,
 		M: 77, N: 78, O: 79, P: 80, Q: 81, R: 82, S: 83, T: 84, U: 85, V: 86, W: 87, X: 88,
 		Y: 89, Z: 90, NUM_0: 48, NUM_1: 49, NUM_2: 50, NUM_3: 51, NUM_4: 52, NUM_5: 53, NUM_6: 54,
-		NUM_7: 55, NUM_8: 56, NUM_9: 57, SPACE: 32, SYMBOL: _mac ? 192 : 223, TAB: 9, BACK: 8,
+		NUM_7: 55, NUM_8: 56, NUM_9: 57, SPACE: 32, LEFT_OF_1: _mac ? 192 : 223, TAB: 9, BACK: 8,
 		SHIFT: 16, CTRL: 17, ALT: 18, ESC: 27, META: 91, METARIGHT: 93, CAPSLOCK: 20, UP: 38,
 		RIGHT: 39, DOWN: 40, LEFT: 37, MOD: _mac ? 91 : 17, F1: 112, F2: 113, F3: 114, F4: 115,
 		F5: 116, F6: 117, F7: 118, F8: 119, F9: 120, F10: 121, F11: 122, F12: 123, MINUS: 189,
-		PLUS: 187, OPENBR: 219, CLOSEBR: 221, SEMICOLON: 186, APOS: 222, BACKSLASH: 220, COMMA: 188,
-		DOT: 190, SLASH: 191, ENTER: 13
+		PLUS: 187, OPENBR: 219, CLOSEBR: 221, SEMICOLON: 186, APOS_HASH: 222, BACKSLASH: 220,
+		COMMA: 188, DOT: 190, SLASH: 191, ENTER: 13, CLEAR: 12, HOME: 36, END: 35, PAGE_UP: 33,
+		PAGE_DOWN: 34, INS: 45, DEL: 46, CTX_MENU: 93, PAD_0: 96, PAD_1: 97, PAD_2: 98, PAD_3: 99,
+		PAD_4: 100, PAD_5: 101, PAD_6: 102, PAD_7: 103, PAD_8: 104, PAD_9: 105, SCROLL_LOCK: 145,
+		PAUSE: 19, PAD_DIV: 111, PAD_MULT: 106, PAD_SUB: 109, PAD_ADD: 107, AT: 192
 	}),
 	GAMEPAD: Object.freeze({ A: 256, B: 257, X: 258, Y: 259, LB: 260, RB: 261, LT: 262, RT: 263, UP: 268, DOWN: 269, LEFT: 270, RIGHT: 271, MENU: 300 })
 })
@@ -192,6 +186,17 @@ Object.defineProperties(Array.prototype, {
 		for(let i = 0; i < len; i++)
 			this[i] = fn(this[i])
 		return this
+	}},
+	bind: {enumerable: false, value(fn,idx=-1){
+		if((idx>>>=0)>=this.length)return this.push(fn);let a;while(idx<this.length)a=this[idx],this[idx++]=fn,fn=a;return this.push(a)
+	}},
+	fire: {enumerable: false, value(...v){
+		for(const r of this) try{r(...v)}catch(e){Promise.reject(e)}
+	}},
+	mapFire: {enumerable: false, value(...v){
+		const res = new Array(this.length)
+		for(const r of this) try{res.push(r(...v))}catch(e){Promise.reject(e);res.push(undefined)}
+		return res
 	}}
 })
 const nul = new Array(100).fill(null)

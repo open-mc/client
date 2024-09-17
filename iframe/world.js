@@ -55,7 +55,7 @@ export function soundAt(fn, x, y, vol = 1, pitch = 1){
 	if(!Number.isFinite(pitch)) pitch = 1
 	if(Array.isArray(fn)) fn = fn[floor(random() * fn.length)]
 	if(!me) return
-	x = ifloat(x - me.x + .5); y = ifloat(y - me.y + me.head + .5)
+	x = ifloat(x - me.x); y = ifloat(y - me.y + me.head)
 	const dist = hypot(x, y)
 	// Let's see if I can get the physics right from the top of my head
 	// The speed of sound is 340m/s. This means a sound approaching at a speed of
@@ -124,8 +124,9 @@ export function genLightmap(id, b1, s1, s2, sx, base = vec3.zero){
 	lightTex.pasteData(lightArr)
 }
 let lastLm = NaN
-const powTable = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+export const powTable = new Float32Array(16)
 export function setGamma(p){
+	if(Array.isArray(p)){for(let i=0;i<16;i++)powTable[i]=p[i];lastLm = NaN;return}
 	p = .9-(p=1-p)*p*.2
 	const beta = -(p**15), gamma = 1-beta
 	for(let i = 0; i < 16; i++) powTable[i] = (p**(~i&15)+beta)*gamma

@@ -1,4 +1,4 @@
-export const _cbs = []
+export const _cbs = [], _cbs1 = []
 export const _renderPhases = [], _tickPhases = []
 export const _optionListeners = {}
 export const ongesture = [], onpress = []
@@ -30,6 +30,11 @@ export const onkey = (...keys) => {
 	for(const key of keys)
 		(_cbs[key] || (_cbs[key] = [])).push(cb)
 }
+export const onrelease = (...keys) => {
+	const cb = keys.pop()
+	for(const key of keys)
+		(_cbs1[key] || (_cbs1[key] = [])).push(cb)
+}
 
 export const options = {}
 globalThis.options = options
@@ -47,6 +52,7 @@ export const quit = () => parent.postMessage(NaN, '*')
 
 export const onfocus = []
 export const onblur = []
+export const preframe = []
 
 
 export let renderF3 = 0, renderBoxes = 0, renderUI = true
@@ -59,9 +65,8 @@ onkey(KEYS.F3, GAMEPAD.UP, () => {
 	else renderF3 = (renderF3+1)%3
 })
 
-export const codes = new Array(256)
+export const packets = new Array(256)
 
-export const onpacket = (c, cb) => codes[c] = cb
 let bytes = 0
 export let networkUsage = 0
 export const _networkUsage = () => {
@@ -72,9 +77,9 @@ export const _onPacket = data => {
 	bytes += data.byteLength
 	const packet = new DataReader(data)
 	const code = packet.byte()
-	if(!codes[code]) return
+	if(!packets[code]) return
 	try{
-		codes[code](packet)
+		packets[code](packet)
 	}catch(e){
 		Promise.reject(e)
 		console.warn(packet, packet.i)

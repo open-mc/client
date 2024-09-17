@@ -1,4 +1,4 @@
-export const musicdict = {}
+export const musicdict = {__proto__: null}
 
 function choose(theme){
 	if(!theme || !(theme in musicdict)) return null

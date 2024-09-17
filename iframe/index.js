@@ -5,12 +5,14 @@ import { mePhysics, fastCollision } from './entity.js'
 import { entityMap, map, cam, onPlayerLoad, world, me, W2, H2, SCALE } from 'world'
 import { goto, peek } from 'ant'
 import * as pointer from './pointer.js'
-import { options, _renderPhases, renderBoxes, send, download, copy, setPlaying, drawText, calcText, _networkUsage, listen, _tickPhases, renderUI, _cbs, onmousemove, onwheel, _optionListeners, _onvoice, voice, _onPacket, onfocus, onblur, onkey, ongesture, onpress, playing, paused, ptrlock, exitPtrlock, movementScale, gl, actx } from 'api'
+import { options, _renderPhases, renderBoxes, send, download, copy, setPlaying, drawText, calcText, _networkUsage, listen, _tickPhases, renderUI, _cbs, _cbs1, onmousemove, onwheel, _optionListeners, _onvoice, voice, _onPacket, onfocus, onblur, onkey, ongesture, onpress, playing, paused, ptrlock, exitPtrlock, movementScale, gl, actx, preframe } from 'api'
 import { _recalcDimensions, Blocks, Items, Entities, BlockIDs, ItemIDs, EntityIDs, Block, Item, Entity, Classes } from 'definitions'
 import { jsonToType } from '/server/modules/dataproto.js'
 import { onChat } from './chat.js'
 import { loadingChunks } from './incomingPacket.js'
 import './frame.js'
+
+preframe.bind(playerControls)
 
 let last = performance.now()
 globalThis.step = () => {
@@ -85,10 +87,10 @@ globalThis.frame = () => {
 		return
 	}
 	setPlaying(true)
-	playerControls()
+	cam.minZoom = max(innerWidth,innerHeight)/(ceil(sqrt(map.size))-1.375)/(2048>>!renderBoxes)
+	preframe.fire()
 	for(const entity of entityMap.values()) fastCollision(entity)
 	const tzoom = (me.state & 4 ? -0.13 : 0) * ((1 << options.ffx * (options.camera != 4)) - 1) + 1
-	cam.minZoom = max(innerWidth,innerHeight)/(ceil(sqrt(map.size))-1.375)/(2048>>!renderBoxes)
 	cam.z = cam.z**.75 * max(cam.minZoom, 2 ** (options.zoom * 8 - 4) * tzoom * 2**cam.baseZ)**.25
 	_recalcDimensions(cam.z)
 	if(!me.linked && !renderUI && !(me.health <= 0)) cam.x = me.ix = me.x, cam.y = me.iy = me.y
@@ -289,25 +291,27 @@ document.onkeydown = e => {
 	if(e.repeat) return
 	const n = e.keyCode
 	buttons.set(n); changed.set(n)
-	if(_cbs[n]) for(const f of _cbs[n]) f()
+	if(_cbs[n]) for(const f of _cbs[n]) f(n)
 }
 document.onkeyup = e => {
 	e.preventDefault()
 	const n = e.keyCode
 	buttons.unset(n); changed.set(n)
+	if(_cbs1[n]) for(const f of _cbs1[n]) f(n)
 }
 document.onmousedown = e => {
 	if(paused || document.activeElement != document.body) return
 	e.preventDefault()
 	const n = e.button
 	buttons.set(n); changed.set(n)
-	if(_cbs[n]) for(const f of _cbs[n]) f()
+	if(_cbs[n]) for(const f of _cbs[n]) f(n)
 }
 document.onmouseup = e => {
 	if(paused || document.activeElement != document.body) return
 	e.preventDefault()
 	const n = e.button
 	buttons.pop(n) && changed.set(n)
+	if(_cbs1[n]) for(const f of _cbs1[n]) f(n)
 }
 document.oncontextmenu = e => e.preventDefault()
 addEventListener('wheel', e => {
@@ -363,11 +367,13 @@ function uptGamepads(){
 			if(b.pressed || b == 1){
 				if(!buttons.has(i)){
 					buttons.set(i); changed.set(i)
-					if(_cbs[i]) for(const f of _cbs[i]) f()
+					if(_cbs[i]) for(const f of _cbs[i]) f(i)
 					if(i===320) document.exitPointerLock?.()
 				}
-			}else if(buttons.has(i))
+			}else if(buttons.has(i)){
 				buttons.unset(i), changed.set(i)
+				if(_cbs1[i]) for(const f of _cbs1[i]) f(i)
+			}
 			i++
 		}
 		let x = d.axes[0], y = d.axes[1]
