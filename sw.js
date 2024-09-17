@@ -250,6 +250,8 @@ mimes.woff = 'font/woff'; mimes.woff2 = 'font/woff2'
 const download = (url, m, cache) => fetch(url).then(res => {
 	let ex = url.slice(url.lastIndexOf('.')+1)
 	if(ex.includes('/')) ex = ''
+	let i = ex.indexOf('?'); if(i >= 0) ex = ex.slice(0, i)
+	i = ex.indexOf('#'); if(i >= 0) ex = ex.slice(0, i)
 	const mime = mimes[ex.toLowerCase()] ?? 'application/octet-stream'
 	if(mime == 'application/cache-list') return res.text().then(txt => {
 		m.imports = []
@@ -303,8 +305,8 @@ function getBlobs(entries, cb, now = Math.floor(Date.now()/1000), mappings){
 			else m = {version: v, expire: now + INIT_LIFETIME, pins: 0, imports: null}
 			pending++
 			download(url1, m, cache).then(blob => {
-				for(const f of arr) f(blob)
 				if(m.imports) gather(m.imports, v)
+				for(const f of arr) f(blob)
 			}, err => {
 				console.warn(err)
 				if(!LOCAL) cacheMeta.set(url1, m)
