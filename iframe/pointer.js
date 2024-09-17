@@ -223,7 +223,7 @@ let oldx = 0, oldy = 0
 let pointerOpacity = 1
 export function pointerMoved(dx, dy, sens = 9 ** options.sensitivity / 3 / cam.z / TEX_SIZE / 2){
 	pointerOpacity = 1
-	const _dx = dx, sr = sin(cam.f), cr = cos(cam.f)
+	const _dx = dx, sr = -sin(cam.f), cr = cos(cam.f)
 	dx = dx*cr-dy*sr; dy = _dx*sr+dy*cr
 	jrx = jry = 0
 	const s = min(REACH, hypot(x, y))
