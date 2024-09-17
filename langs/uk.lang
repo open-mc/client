@@ -42,6 +42,7 @@ serverlist.add_server=Додати сервер
 serverlist.add_server.placeholder=IP сервера
 serverlist.new_world=Новий світ
 serverlist.import=Імпортувати .map
+serverlist.mods=Моди клієнта
 
 worldoptions=Налаштування світу
 worldoptions.world_name=Назва світу:

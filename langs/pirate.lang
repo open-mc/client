@@ -41,6 +41,7 @@ serverlist.add_server=Chart a new course
 serverlist.add_server.placeholder=coordinates
 serverlist.new_world=Forge a new land!
 serverlist.import=Bring aboard a .map
+serverlist.mods=Ship upgrades
 
 worldoptions=Land settings!
 worldoptions.world_name=Name yer land:

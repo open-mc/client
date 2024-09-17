@@ -48,10 +48,11 @@ export function gameIframe(f, base){
 	if(iReady) return
 	iReady = 1
 	let maps = f.pop(), files = f.pop()
-	maps = maps?maps.split('\n'):null
+	maps = maps?maps.split('\n'):[]
 	files = files?files.split('\n'):[]
 	if(storage.files) for(const f of storage.files.split('\n')) files.push(f)
 	if(storage.maps) for(const f of storage.maps.split('\n')) maps.push(f)
+	if(!maps.length) maps = null
 	sw.controller.postMessage({base, files, maps})
 	cbq.push(data => {
 		iframe.contentWindow.postMessage([data,files,f], '*')

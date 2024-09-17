@@ -257,9 +257,6 @@ css(`*{
 	height: 20rem;
 	overflow: hidden;
 }`,
-`in.tall{
-	height: 5em;
-}`,
 `in div, in input{
 	position: absolute;
 	top: 0; height: 100%;

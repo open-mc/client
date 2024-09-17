@@ -41,6 +41,7 @@ serverlist.add_server=Añadir servidor
 serverlist.add_server.placeholder=ip del servidor
 serverlist.new_world=Nuevo mundo
 serverlist.import=Importar .map
+serverlist.mods=Mods de cliente
 
 worldoptions=Opciones del mundo
 worldoptions.world_name=Nombre del mundo:
