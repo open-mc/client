@@ -31,6 +31,8 @@ Todo: Terrain generation overhaul
 
 Todo: Creating accounts (deprecating account keys)
 
+Todo: Hotlink vanilla assets as a partial workaround to license issue
+
 ## Alpha 10 (current version)
 
 - **WebGL2 rewrite**

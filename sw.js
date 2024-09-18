@@ -190,13 +190,13 @@ function parse(end = 125){
 }
 const cacheMeta = globalThis.cacheMeta = new Map
 const enc = new TextEncoder(), dec = new TextDecoder()
-const CORE = HOST + 'iframe/index.js'
+const CORE = HOST + 'core/index.js'
 const IMPORT_MAP = new Map().set('core', CORE)
 	.set('vanilla', HOST + 'vanilla/index.js')
-	.set('world', HOST + 'iframe/world.js')
-	.set('ant', HOST + 'iframe/ant.js')
-	.set('api', HOST + 'iframe/api.js')
-	.set('definitions', HOST + 'iframe/definitions.js')
+	.set('world', HOST + 'core/world.js')
+	.set('ant', HOST + 'core/ant.js')
+	.set('api', HOST + 'core/api.js')
+	.set('definitions', HOST + 'core/definitions.js')
 
 let vS = '', vI = 0
 const resolve = (path, base) => {
@@ -483,7 +483,7 @@ let ready = LOCAL ? caches.open('').then(a => {
 	})
 	upt = upt ? upt.then(() => p) : p
 })()
-const BLOBS_DIRS = ['/vanilla/', '/iframe/', '/server/', '/localserver/']
+const BLOBS_DIRS = ['/vanilla/', '/core/', '/server/', '/localserver/']
 async function update(latest, ver, old){
 	const _idx = ver?await ver.text():''
 	const hashes = new Map
