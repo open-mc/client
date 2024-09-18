@@ -386,24 +386,27 @@ self.addEventListener('message', e => {
 		}
 		let mappings = new Map, tot = 0
 		const now = Math.floor(Date.now()/1000)
-		const r = map => e.source.postMessage(map), done = () => (upt ? upt.then(() => getBlobs(files, r, now, mappings)) : getBlobs(files, r, now, mappings))
+		const r = map => e.source.postMessage(map), done = m => {
+			if(m) for(const arr of m) for(let i=0; i<arr.length; i+=2) mappings.set(arr[i], arr[i+1])
+			upt ? upt.then(() => getBlobs(files, r, now, mappings)) : getBlobs(files, r, now, mappings)
+		}
 		if(maps) for(let url of maps){
-			tot++
+			const j = tot++; maps[j] = []
 			let i = url.indexOf(' ')
 			let base1 = ''
 			if(i >= 0){ base1 = resolve(url.slice(0, i), base || 'file:'), url = resolve(url.slice(i+1), base || 'file:') }
 			else url = resolve(url, base || 'file:')
 			let m = cacheMeta.get(url)
-			const r = v => v ? v.text().then(txt => {
+			const r = v => v ? v.text().then(txt=>{
 				for(let l of txt.split('\n')){
 					l = l.trim()
 					if(l[0] == '#') continue
 					let j = l.indexOf(' '), key = l
 					if(j >= 0) key = l.slice(0, j), l = l.slice(j+1)
-					mappings.set(new URL(key, base1).href, resolve(l, base)+vS)
+					maps[j].push(new URL(key, base1).href, resolve(l, url)+vS)
 				}
-				--tot||done()
-			}) : --tot||done()
+				--tot||done(maps)
+			}): --tot||done(maps)
 			if(Array.isArray(m)){ m.push(r); continue }
 			if(m === undefined || m.version < vI){
 				const arr = [r]
@@ -421,7 +424,7 @@ self.addEventListener('message', e => {
 				m.expire = Math.min(m.expire + ACCESS_LIFETIME, now + MAX_LIFETIME)
 				cache.match(url).then(a => a?a.blob():null).then(r)
 			}
-		}else done()
+		}else done(null)
 	}else if(e.data === 0){
 		if(LOCAL) return
 		let l = fetch('/.gitversion').then(a => a.text(),()=>'{"error":"network"}')
