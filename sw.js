@@ -398,7 +398,7 @@ self.addEventListener('message', e => {
 				for(let l of txt.split('\n')){
 					l = l.trim()
 					if(l[0] == '#') continue
-					let j = l.indexOf(' '), key = ''
+					let j = l.indexOf(' '), key = l
 					if(j >= 0) key = l.slice(0, j), l = l.slice(j+1)
 					mappings.set(new URL(key, base1).href, resolve(l, base)+vS)
 				}
