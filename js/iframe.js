@@ -55,6 +55,10 @@ export function gameIframe(f, base){
 	if(!maps.length) maps = null
 	sw.controller.postMessage({base, files, maps})
 	cbq.push(data => {
+		for(let i=0;i<files.length;i++){
+			const j = files[i].lastIndexOf('^')
+			if(j >= 0) files[i] = files[i].slice(0, j)
+		}
 		iframe.contentWindow.postMessage([data,files,f], '*')
 	})
 	return true
