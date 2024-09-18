@@ -395,14 +395,14 @@ self.addEventListener('message', e => {
 			let i = url.indexOf(' ')
 			let base1 = ''
 			if(i >= 0){ base1 = resolve(url.slice(0, i), base || 'file:'), url = resolve(url.slice(i+1), base || 'file:') }
-			else url = resolve(url, base || 'file:')
+			else base1 = url = resolve(url, base || 'file:')
 			let m = cacheMeta.get(url)
 			const r = v => v ? v.text().then(txt=>{
 				for(let l of txt.split('\n')){
 					l = l.trim()
 					if(l[0] == '#') continue
-					let j = l.indexOf(' '), key = l
-					if(j >= 0) key = l.slice(0, j), l = l.slice(j+1)
+					let k = l.indexOf(' '), key = l
+					if(k >= 0) key = l.slice(0, k), l = l.slice(k+1)
 					maps[j].push(new URL(key, base1).href, resolve(l, url)+vS)
 				}
 				--tot||done(maps)
