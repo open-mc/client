@@ -8,10 +8,11 @@ import { renderLeft, renderRight } from './creativeInventory.js'
 
 const src = loader(import.meta)
 
-import meInterface from "./meint.png"
+import meInterface from './meint.png'
+import extinguish from './sound/fire/extinguish.mp3'
 
 const damageSounds = [
-	null, Wave(src`sound/fire/extinguish.mp3`)
+	null, extinguish
 ]
 
 const enterWaterSounds = audioSet('water/enter', 3), exitWaterSounds = audioSet('water/exit', 3), splashSounds = audioSet('water/splash', 2)

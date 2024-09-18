@@ -1,19 +1,18 @@
 import { uiButtons, renderItem, renderItemCount, renderSlot, renderTooltip, resetSlot, slotI, audioSet } from './effects.js'
-import click from "../img/click.mp3"
-import './entities.js'
+import click from '../img/click.mp3'
 import { onkey, drawLayer, setPlaying, renderUI, quit, packets, send, voice, drawText, calcText, tickPhase } from 'api'
 import { gridEvents, entityMap, pointer, cam, world, configLoaded, me, W2, H2, exposureMap, mode, WorldType } from 'world'
 import { getblock, peek, sound, goto } from 'ant'
 import { Item, BlockParticle, addParticle, blockBreak, ephemeralInterfaces } from 'definitions'
 import { AshParticle, BlastParticle, explode } from './defs.js'
-import blocksPng from "./blocks.png"
-import icons from "./icons.png"
+import blocksPng from './blocks.png'
+import icons from './icons.png'
 import { closeInterface } from './interfaces.js'
 import './voice.js'
 
 const BREAKING = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].mmap(x => blocksPng.sub(x/16, 0, 1/16, 1/16))
-import skyPng from "./sky.png"
-import stars from "./stars.png"
+import skyPng from './sky.png'
+import stars from './stars.png'
 stars.setOptions(REPEAT)
 const sun = skyPng.crop(128, 64, 32, 32), moons = [
 	skyPng.crop(128, 0, 32, 32),
@@ -127,10 +126,10 @@ drawLayer('world', 150, c => {
 	}
 })
 
-import hotbar from "./hotbar.png"
+import hotbar from './hotbar.png'
 globalThis.hotbar = hotbar
-import selected from "./slot.png"
-import inventory from "./inv.png"
+import selected from './slot.png'
+import inventory from './inv.png'
 
 const heart = icons.crop(52,0,9,9), halfHeart = icons.crop(61,0,9,9)
 const heartEmpty = icons.crop(16,0,9,9)

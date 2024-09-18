@@ -1,7 +1,8 @@
 import { Particle } from 'definitions'
-import './items.js'
 import './blocks.js'
-import particlePng from "./particles.png"
+import './items.js'
+import './entities.js'
+import particlePng from './particles.png'
 
 const src = loader(import.meta)
 

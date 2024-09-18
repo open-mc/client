@@ -1,12 +1,11 @@
 import { music, me, server, WorldType } from 'world'
 import { renderF3, drawText, calcText, drawLayer } from 'api'
 import { toTex } from 'definitions'
-import "./sound/contents.cache"
+import './sound/contents.cache'
 const src = loader(import.meta)
 export const audioSet = (path, count) => Array.from({length: count}, (_, i) => Wave(src`sound/${path+(i+1)}.mp3`))
 
-import icons from "./icons.png"
-import btns from "../img/button.png"
+import btns from '../img/button.png'
 
 export const uiButtons = {
 	large: btns.crop(124,20,200,20),
@@ -130,6 +129,7 @@ export function renderGenericTooltip(c, lines){
 	for(const l of arrs) drawText(c, l, 3, -11, 8), c.translate(0,-12)
 }
 
+import icons from "./icons.png"
 const pingIcons = [0,1,2,3,4].map(i => icons.crop(0,16+i*8,10,7))
 const tabMenuBg = vec4(0, 0, 0, .25), tabMenuEntryBg = vec4(.1, .1, .1, 0)
 drawLayer('ui', 999, (ctx, w, h) => {

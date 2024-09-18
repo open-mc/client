@@ -1,7 +1,7 @@
 import { Blocks, Items, Item, BlockTexture } from 'definitions'
 import { itemify, slabifyItem } from './blockshapes.js'
 import { chestTop, commandBlockTexs, barrierTex } from './blocks.js'
-import itemsPng from "./items.png"
+import itemsPng from './items.png'
 import { getblock, peekleft, peekright, peek, peekdown, down } from 'ant'
 
 Items.oak_log = itemify(Blocks.oak_log, 'Oak log')
@@ -221,7 +221,7 @@ Items.stick = class extends Item{
 }
 
 const leavesItem = (B, B2, n) => class extends itemify(B, n){
-	places(_ , _2, x, y){
+	places(_, _2, x, y){
 		if(getblock(x, y) === B2) return
 		return B
 	}

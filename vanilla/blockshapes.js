@@ -79,10 +79,12 @@ export const fluidify = (B, type, tex, flowingTex) => {
 		static fluidLevel = 8
 		static flows = false
 	}
-	const top = class extends filled{
+	const top = class extends B{
 		variant(){ return peekup().fluidLevel ? filled : undefined }
 		static blockShape = BlockShape.TWO_SHORT
 		static texture = -1
+		static fluidLevel = 8
+		static flows = false
 		render(c, tint){
 			const tx = toTex(peekdown() == flowing ? flowingTex : tex)
 			tx.h *= .875

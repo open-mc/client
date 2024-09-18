@@ -1,4 +1,4 @@
-import { send, packets, voice, drawLayer, onkey } from 'api'
+import { send, packets, voice, preframe, onkey } from 'api'
 import { entityMap, CONFIG, me } from 'world'
 import '../img/_pako.js'
 
@@ -43,7 +43,7 @@ function setVol(e, obj){
 	obj.pan.pan.value = tanh(dx/sqrt(CONFIG.proximity_chat)/4)
 }
 
-drawLayer('none', -10000, () => {
+preframe.bind(() => {
 	for(const [e, obj] of bufferEnds){
 		if(obj.ends < actx.currentTime - 10000){ bufferEnds.delete(e); continue }
 		if(typeof e === 'object') setVol(e, obj)
@@ -51,6 +51,7 @@ drawLayer('none', -10000, () => {
 	if(voice.active && (!buttons.has(KEYS.ENTER)^voiceToggle)) voice.stop(), me.state &= ~0x100
 	else if(!voice.active && (buttons.has(KEYS.ENTER)^voiceToggle) && CONFIG.proximity_chat) voice(sendVoice), me.state |= 0x100
 })
+
 let voiceToggle = false
 onkey(KEYS.P, () => voiceToggle = !voiceToggle)
 function sendVoice(f32){

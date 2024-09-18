@@ -1,5 +1,5 @@
 import { uiButtons, audioSet, lava, renderSlot, water, renderGenericTooltip } from './effects.js'
-import click from "../img/click.mp3"
+import click from '../img/click.mp3'
 import { cam, world, mode } from 'world'
 import { Blocks, Block, Items, BlockTexture, toTex } from 'definitions'
 import { BlockShape, blockShaped, fluidify } from './blockshapes.js'
@@ -7,9 +7,9 @@ import { closeInterface } from './interfaces.js'
 import { uiButton, drawLayer, drawText } from 'api'
 import { sound, update, redraw } from 'ant'
 
-import blocksPng from "./blocks.png"
-import itemsPng from "./items.png"
-import animatedPng from "./animated.png"
+import blocksPng from './blocks.png'
+import itemsPng from './items.png'
+import animatedPng from './animated.png'
 
 Blocks.air = class extends Block{
 	static solid = false
@@ -144,7 +144,7 @@ const bucketSounds = {
 	emptyWater: audioSet('bucket/empty_water', 3)
 }
 
-class Water extends Block{
+export class Water extends Block{
 	static opacity = 1
 	static solid = false
 	static replaceable = true
@@ -170,7 +170,7 @@ void({
 	levels: [, Blocks.waterFlowing1, Blocks.waterFlowing2, Blocks.waterFlowing3, Blocks.waterFlowing4, Blocks.waterFlowing5, Blocks.waterFlowing6, Blocks.waterFlowing7]
 } = fluidify(Water, 'water', BlockTexture(animatedPng, 2, 0, 32), BlockTexture(animatedPng, 5, 0, 64)))
 
-class Lava extends Block{
+export class Lava extends Block{
 	static opacity = 0
 	static solid = false
 	static replaceable = true
@@ -248,9 +248,9 @@ Blocks.endstone = class extends Block{
 	static stepSounds = Blocks.stone.stepSounds
 }
 export const chestTop = blocksPng.crop(9*16, 3*16, 16, 16)
-import chestOpen from "./sound/containers/open_chest.mp3"
-import chestClose from "./sound/containers/close_chest.mp3"
-import containerInterface from "./container.png"
+import chestOpen from './sound/containers/open_chest.mp3'
+import chestClose from './sound/containers/close_chest.mp3'
+import containerInterface from './container.png'
 Blocks.chest = class extends Block{
 	static blockShape = [1/16, 0, 15/16, 7/8]
 	static texture = BlockTexture(blocksPng, 10, 3)
@@ -347,11 +347,11 @@ Blocks.gold_block = MineralBlock
 Blocks.emerald_block = MineralBlock
 Blocks.diamond_block = MineralBlock
 
-import fireAmbient from "./sound/fire/ambient.mp3"
-import portalAmbient from "./sound/portal/ambient.mp3"
-import fireExtinguish from "./sound/fire/extinguish.mp3"
-import flintIgnite from "./sound/fire/ignite.mp3"
-import portalEnter from "./sound/portal/enter.mp3"
+import fireAmbient from './sound/fire/ambient.mp3'
+import portalAmbient from './sound/portal/ambient.mp3'
+import fireExtinguish from './sound/fire/extinguish.mp3'
+import flintIgnite from './sound/fire/ignite.mp3'
+import portalEnter from './sound/portal/enter.mp3'
 
 Blocks.fire = class extends Block{
 	static solid = false
@@ -385,8 +385,8 @@ Blocks.portal = class extends Block{
 		}
 	}
 }
-import portalOverlay from "./portal.png"
-import endPortalOverlay from "./endportaloverlay.png"
+import portalOverlay from './portal.png'
+import endPortalOverlay from './endportaloverlay.png'
 
 drawLayer('none', 400, c => {
 	if(!inPortal){ portalEffect = 0; if(!cam.nausea) return }
@@ -532,7 +532,7 @@ Blocks.crafting_table = class extends Planks{
 	static texture = BlockTexture(blocksPng, 12, 3)
 	static interactible = true
 }
-import furnaceInterface from "./furnace.png"
+import furnaceInterface from './furnace.png'
 const furnaceUI = furnaceInterface.crop(0, 0, 176, 80), cookArrow = furnaceInterface.crop(176, 14, 24, 17), fuelIndicator = furnaceInterface.crop(176, 0, 14, 14)
 const furnaceTex = BlockTexture(blocksPng, 12, 2), furnaceLitTex = BlockTexture(blocksPng, 13, 3)
 Blocks.furnace = class extends Stone{
@@ -608,7 +608,7 @@ Blocks.glowstone = class extends Blocks.glass{
 	static texture = BlockTexture(blocksPng, 9, 6)
 }
 
-import commandBlockTex from "./command_blocks.png"
+import commandBlockTex from './command_blocks.png'
 export const commandBlockTexs = [0,1,2,3,4,5].mmap(a => commandBlockTex.crop(a<<4,0,16,64))
 const commandBlockNames = ['Impulse','Impulse (inversed)','Repeating','Repeating (needs redstone)','Callable','Callable (once per tick)']
 const btnW = uiButtons.large.w

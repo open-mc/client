@@ -1,7 +1,7 @@
-import { ephemeralInterfaces, EphemeralInterface } from "definitions"
+import { ephemeralInterfaces, EphemeralInterface } from 'definitions'
 import { send } from 'api'
-import { renderSlot } from "./effects.js"
-import craftingInterface from "./crafting.png"
+import { renderSlot } from './effects.js'
+import craftingInterface from './crafting.png'
 
 export function closeInterface(){
 	const buf = new DataWriter()
