@@ -1,6 +1,4 @@
 document.head.insertAdjacentHTML('beforeend', `<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">`)
-onerror=(_,a,b,c,d)=>parent.postMessage([''+d,a,b,c], '*')
-onunhandledrejection=({reason})=>parent.postMessage([''+reason,'',0,0], '*')
 globalThis.BitField = class BitField extends Array{
 	static parse(a){
 		if(!Array.isArray(a)) return new BitField 
