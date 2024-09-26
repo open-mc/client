@@ -69,7 +69,7 @@ const { CAMERA_DYNAMIC, CAMERA_FOLLOW_SMOOTH, CAMERA_FOLLOW_POINTER,
 let flashbang = 0
 let frames = 0
 globalThis.fps = 0
-globalThis.frame = () => {
+globalThis.render = () => {
 	if(navigator.getGamepads) uptGamepads()
 	const correctT = t
 	const speed = options.speed ?? 1

@@ -1,4 +1,3 @@
-document.head.insertAdjacentHTML('beforeend', `<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">`)
 globalThis.BitField = class BitField extends Array{
 	static parse(a){
 		if(!Array.isArray(a)) return new BitField 
@@ -960,7 +959,7 @@ $.loop = (render = null) => {
 		dt = max(.01/$.ctxFramerate, -($.t-($.t=now)))
 		frameDrawCalls = fdc; frameSprites = fs; frameData = fd*4+fdc*24; fdc = fs = fd = 0
 		ctx.clear(); ctx.reset()
-		try{frame?.(dt)}catch(e){Promise.reject(e)}; i&&draw()
+		try{$.render?.(dt)}catch(e){Promise.reject(e)}; i&&draw()
 		if((now=performance.now()/1000) >= (nextF+=1/$.ctxFramerate)) setImmediate(g)
 		timeToFrame = now-$.t
 	}, 0)
