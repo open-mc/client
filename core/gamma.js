@@ -152,15 +152,10 @@ Uint8Array.fromHex = function(hex){
 const h = '0123456789abcdef'
 Number.prototype.toHex = function(){return h[this>>>28]+h[this>>24&15]+h[this>>20&15]+h[this>>16&15]+h[this>>12&15]+h[this>>8&15]+h[this>>4&15]+h[this&15]}
 Number.formatData = bytes => bytes < 512 ? bytes.toFixed(0)+'B' : bytes < 524288 ? (bytes/1024).toFixed(1)+'KiB' : bytes < 536870912 ? (bytes/1048576).toFixed(1)+'MiB' : bytes < 549755813888 ? (bytes/1073741824).toFixed(1)+'GiB' : (bytes/1099511627776).toFixed(1)+'TiB'
-{let i=0,m=new MessageChannel,c=new Map;m.port1.onmessage=({data:i},j=c.get(i))=>(c.delete(i)&&j());m=m.port2;globalThis.setImmediate=(f,...a)=>(c.set(++i,a.length?f.bind(undefined,...a):f),m.postMessage(i),i);globalThis.clearImmediate=i=>c.delete(i)}
-Math.fclamp = (a, b = 1) => a < 0 ? 0 : (a > b ? b : a)
 Math.ifloat = x => {
 	let f = Math.floor(x)
 	return (f >> 0) + (x - f)
 }
-Math.randint = () => Math.random() * 4294967296 | 0
-Math.PI2 = Math.PI*2
-Object.defineProperties(globalThis, Object.getOwnPropertyDescriptors(Math))
 Object.defineProperties(Array.prototype, {
 	best: {enumerable: false, value(pred, best = -Infinity){
 		let el = undefined
@@ -204,23 +199,75 @@ Array.null = len => {
 	while(len > 0) a[--len] = null
 	return a
 }
-globalThis.ctxSupersample = 1
-globalThis.ctxFramerate = -1
-globalThis.pixelRatio = 1
-globalThis.t = performance.now()/1000; globalThis.dt = 0
-let T=document.body
-T.parentElement.style.overflow='hidden'
-T.append(T=document.createElement('canvas'))
-T.style = 'position:fixed;inset:0;width:100%;height:100%;background:#000'
-T.width = T.height = 0
-/** @type WebGL2RenderingContext */
-export const gl = T.getContext('webgl2', {preserveDrawingBuffer: false, antialias: false, depth: false, premultipliedAlpha: true, stencil: true})
-function glLost(){
-	parent.postMessage(false, '*')
-	document.body.textContent = 'WebGL2 context lost :('
-	document.body.style = 'color:white;background:#000;text-align:center;line-height:90vh;font-size:32px;font-family:monospace;'
+
+export const actx = new AudioContext({latencyHint: 'interactive'})
+globalThis.bgGain = actx.createGain()
+bgGain.connect(actx.destination)
+globalThis.masterVolume = 1
+globalThis.audioOut = null
+globalThis.Wave = src => {
+	let buf = null
+	return function play(vol = 1, pitch = 1, pan = 0, start = 0, end = NaN, ends = true, bg = false){
+		if(buf === null){
+			buf = []
+			void (typeof src == 'string' ? (__import__.map.get(src)?.arrayBuffer() ?? fetch(src, {credentials: 'omit', priority: 'high'}).then(a => a.arrayBuffer())) : src.arrayBuffer()).then(a => actx.decodeAudioData(a, b => {
+				const l = buf; buf = b
+				for(let i = 0; i < l.length; i++) l[i][0] = play(...l[i]), l[i].length = 1
+			}))
+		}
+		if(Array.isArray(buf)){
+			const a = [vol,pitch,pan,start,end,ends,bg]
+			buf.push(a)
+			return () => {
+				if(Array.isArray(buf)){
+					const i = buf.indexOf(a)
+					if(i > -1) buf.splice(i, 1)
+				}else a[0]()
+			}
+		}
+		const source = actx.createBufferSource()
+		source.buffer = buf
+		if(bg) source.connect(bgGain)
+		else{
+			let s = source
+			const volume = masterVolume * vol
+			source.playbackRate.value = pitch
+			if(volume != 1){
+				const gain = actx.createGain()
+				gain.gain.value = volume
+				s.connect(gain)
+				s = gain
+			}
+			if(pan != 0){
+				const panner = actx.createStereoPanner()
+				panner.pan.value = min(1, max(-1, pan))
+				s.connect(panner)
+				s = panner
+			}
+			if(audioOut) s.connect(audioOut)
+			s.connect(actx.destination)
+		}
+		if(source.loop = !ends){
+			source.loopStart = start
+			if(end == end) source.loopEnd = end
+			source.start(0, start)
+		}else{
+			source.start(0, start, end == end ? end - start : buf.duration)
+			if(typeof ends == 'function') source.onended = ends
+		}
+		return (fire=false) => (fire || (source.onended = null), source.stop())
+	}
 }
-if(!gl) throw glLost(), 'Please reload app'
+
+Math.randint ??= () => Math.random() * 4294967296 | 0
+Math.PI2 ??= Math.PI*2
+const $ = globalThis
+if(!('setImmediate'in $)){let i=0,m=new MessageChannel,c=new Map;m.port1.onmessage=({data:i},j=c.get(i))=>(c.delete(i)&&j());m=m.port2;$.setImmediate=(f,...a)=>(c.set(++i,a.length?f.bind(undefined,...a):f),m.postMessage(i),i);$.clearImmediate=i=>c.delete(i)}
+if(!('sin'in $))Object.defineProperties($,Object.getOwnPropertyDescriptors(Math))
+$.Gamma=($={})=>{
+let T = $.canvas = document.createElement('canvas')
+/** @type WebGL2RenderingContext */
+const gl = T.getContext('webgl2', {preserveDrawingBuffer: false, antialias: false, depth: false, premultipliedAlpha: true, stencil: true})
 gl.pixelStorei(37440,1) // unpack flip-y
 gl.stencilMask(1)
 gl.clearStencil(0)
@@ -231,6 +278,7 @@ gl.pixelStorei(3317, 1)
 gl.pixelStorei(3333, 1)
 let pma = 1
 const ibo = {imageOrientation: 'flipY', premultiplyAlpha: 'none'}
+const resolveData = (a, cb, err) => typeof a == 'string' ? fetch(a).then(a=>a.blob()).then(a=>createImageBitmap(a, ibo)).then(cb, err) : a instanceof Blob ? createImageBitmap(a, ibo).then(cb, err) : a instanceof ImageBitmap ? cb(a) : Promise.reject(new TypeError('Invalid src')).then(undefined,err)
 class img{
 	get format(){return this.t.f}
 	get width(){return this.t.w}
@@ -243,10 +291,8 @@ class img{
 		this.t = t; this.x = x; this.y = y
 		this.w = w; this.h = h; this.l = l
 	}
-	get src(){return this.t.src}
-	set src(a){ if(this.t.src===null) return; this.t.src=a?Array.isArray(a)?a:[a]:[];if(this.t.tex) this.delete() }
-	get loaded(){return this.t.d!=0}
-	get then(){return this.t.d==0?this.#then:null}
+	get loaded(){return !!this.t.tex}
+	get then(){return !this.t.tex?this.#then:null}
 	load(){if(!this.t.tex) img.load(this.t)}
 	sub(x=0, y=0, w=1, h=1, l=this.l){
 		return new img(this.t, this.x+x*this.w, this.y+y*this.h, this.w*w, this.h*h, l)
@@ -257,76 +303,63 @@ class img{
 	}
 	crop(x=0, y=0, w=1, h=1, l=this.l){
 		const {t,x:X,y:Y,h:H}=this
-		if(t.d!=0) return new img(t, X+x/t.w, Y+H-(y+h)/t.h, w/t.w, h/t.h, l)
+		if(t.tex) return new img(t, X+x/t.w, Y+H-(y+h)/t.h, w/t.w, h/t.h, l)
 		const i = new img(t, 0, 0, 0, 0, l)
-		;(t.cbs??=[]).push(() => {
+		img.load(t)
+		t.src.push(i => {
 			i.x = X+x/t.w
 			i.y = Y+H-(y+h)/t.h
 			i.w = w/t.w; i.h = h/t.h
-		},undefined,undefined)
-		if(!t.tex) img.load(t)
+		},undefined,i)
 		return i
 	}
 	layer(l=this.l){return new img(this.t, this.x, this.y, this.w, this.h, l)}
-	#then(cb, rj){
-		const {t}=this
-		if(t.d) return void cb(this)
-		;(t.cbs??=[]).push(cb,rj,this)
-		if(!t.tex) img.load(t)
+	#then(r, j){
+		if(typeof r != 'function') r = Function.prototype
+		if(this.t.tex) r(this)
+		else img.load(this.t),this.t.src.push(r,j,this)
 	}
 	static load(t){
-		t.tex = gl.createTexture()
-		if(!t.src.length){
-			img.fakeBind(t)
-			gl.texStorage3D(35866, 1, t.f[0], t.w=1, t.h=1, t.d=1)
-			if(t.i<0) gl.bindTexture(35866, null)
-			if(t.cbs) for(let i = 0; i < t.cbs.length; i+=3) t.cbs[i]?.(t.cbs[i+2])
-			t.cbs = null
-			return
-		}
-		let toLoad = t.src.length
+		if(!t.src.length || typeof t.src[0] == 'function') return
+		let src = t.src, loaded = 0
+		t.src = []
 		let w=0, h=0
 		const rj = e => {
-			toLoad = -1
-			oU=-2; this.options = t.o; oU=0
-			gl.texStorage3D(35866, t.m||1, t.f[0], t.w=w=1, t.h=h=1, t.d=imgs.length)
+			loaded = -1
+			t.tex = gl.createTexture()
+			img.setOptions(t)
+			gl.texStorage3D(35866, t.m||1, t.f[0], t.w=w=1, t.h=h=1, t.d=src.length)
 			if(!pma) gl.pixelStorei(37440,1),gl.pixelStorei(37441,pma=1)
 			if(t.m) gl.generateMipmap(35866)
 			if(t.i<0) gl.bindTexture(35866, null)
-			if(t.cbs) for(let i = 1; i < t.cbs.length; i+=3) t.cbs[i]?.(t.cbs[i+1])
-			t.cbs = null
+			for(let i = 1; i < t.src.length; i+=3) t.src[i]?.(t.src[i+1])
+			t.src = null
 		}
-		let p
-		const imgs = t.src.map((a,i)=>(typeof a=='string'?(p=__import__.map.get(a))?createImageBitmap(p, ibo):fetch(a).then(a=>a.blob()).then(a=>createImageBitmap(a, ibo)):a instanceof Blob?createImageBitmap(a, ibo):a).then(bmp => {
-			imgs[i] = bmp
-			if(toLoad==imgs.length) w=bmp.width, h=bmp.height
-			else if(w!=bmp.width||h!=bmp.height) return gl.deleteTexture(t.tex), rj('Failed to load image: all layers must be the same size')
-			if(--toLoad) return
-			oU=-2; this.options = t.o; oU=0
-			gl.texStorage3D(35866, t.m||1, t.f[0], t.w=w, t.h=h, t.d=imgs.length)
+		for(let i=0;i<src.length;i++) resolveData(src[i], data => {
+			if(!loaded) w=data.width, h=data.height
+			else if(w!=data.width||h!=data.height) return rj('Failed to load image: all layers must be the same size')
+			src[i] = data
+			if(++loaded<src.length) return
+			t.tex = gl.createTexture()
+			img.setOptions(t)
+			console.log(w,h,loaded)
+			gl.texStorage3D(35866, t.m||1, t.f[0], t.w=w, t.h=h, t.d=loaded)
 			if(!pma) gl.pixelStorei(37440,1),gl.pixelStorei(37441,pma=1)
-			for(let l = 0; l < imgs.length; l++)
-				gl.texSubImage3D(35866, 0, 0, 0, l, w, h, 1, t.f[1], t.f[2], imgs[l])
+			for(let l = 0; l < loaded; l++)
+				gl.texSubImage3D(35866, 0, 0, 0, l, w, h, 1, t.f[1], t.f[2], src[l])
 			if(t.m) gl.generateMipmap(35866)
 			if(t.i<0) gl.bindTexture(35866, null)
-			if(t.cbs) for(let i = 0; i < t.cbs.length; i+=3) t.cbs[i](t.cbs[i+2])
-			t.cbs = null
-		}, e => rj('Failed to load image')))
+			for(let i = 0; i < t.src.length; i+=3) t.src[i](t.src[i+2])
+			t.src = null
+		}, rj)
 	}
 	paste(tex, x=0, y=0, l=0, srcX=0, srcY=0, srcL=0, srcW=0, srcH=0, srcD=0){
 		const {t}=this; if(t.src) return this
-		if(typeof tex=='string') return new Promise((cb, rj) => {
-			const i = new Image()
-			i.onerror = () => rj('Failed to load image')
-			i.onload = () => {
-				img.fakeBind(t)
-				if(!pma) gl.pixelStorei(37440,1),gl.pixelStorei(37441,pma=1)
-				gl.texSubImage3D(35866, 0, x, y, l, i.naturalWidth, i.naturalHeight, 1, t.f[1], t.f[2], i)
-				if(t.i<0) gl.bindTexture(35866, null)
-				cb?.(this)
-			}
-			i.crossOrigin = 'anonymous'
-			i.src = tex
+		if(!(tex instanceof img)) return resolveData(tex, i => {
+			img.fakeBind(t)
+			if(!pma) gl.pixelStorei(37440,1),gl.pixelStorei(37441,pma=1)
+			gl.texSubImage3D(35866, 0, x, y, l, i.width, i.height, 1, t.f[1], t.f[2], i)
+			if(t.i<0) gl.bindTexture(35866, null)
 			return this
 		})
 		const {t:t2}=tex
@@ -407,11 +440,9 @@ class img{
 		}
 	}
 	get options(){return this.t.o}
-	set options(o){
-		const {t}=this
-		t.o=o
-		if(!t.tex) return
+	static setOptions(t){
 		img.fakeBind(t)
+		const {o} = t
 		if(t.f[3]>>31)
 			gl.texParameterf(35866, 10240, 9728),
 			gl.texParameterf(35866, 10241, 9728)
@@ -420,7 +451,20 @@ class img{
 			gl.texParameterf(35866, 10241, t.m?9984+(o>>1&3):9728+(o>>1&1))
 		gl.texParameterf(35866, 10242, o&8?10497:o&16?33648:33071)
 		gl.texParameterf(35866, 10243, o&32?10497:o&64?33648:33071)
-		if(t.i<oU) gl.bindTexture(35866, null)
+	}
+	set options(o){
+		const {t}=this
+		img.fakeBind(t)
+		t.o=o
+		if(t.f[3]>>31)
+			gl.texParameterf(35866, 10240, 9728),
+			gl.texParameterf(35866, 10241, 9728)
+		else
+			gl.texParameterf(35866, 10240, 9728+(o&1)),
+			gl.texParameterf(35866, 10241, t.m?9984+(o>>1&3):9728+(o>>1&1))
+		gl.texParameterf(35866, 10242, o&8?10497:o&16?33648:33071)
+		gl.texParameterf(35866, 10243, o&32?10497:o&64?33648:33071)
+		if(t.i<0) gl.bindTexture(35866, null)
 	}
 	drawable(l=this.l,stencil=false){
 		const {t}=this
@@ -434,24 +478,23 @@ class img{
 	}
 	genMipmaps(){
 		const {t}=this
-		if(!t.tex||!t.m) return
+		if(!t.m) return
 		img.fakeBind(t)
 		gl.generateMipmap(35866)
 		if(t.i<0) gl.bindTexture(35866, null)
 	}
 }
-let oU=0
 let arr = new Float32Array(16), iarr = new Int32Array(arr.buffer), i = 0
-globalThis.Texture = (w=0, h=0, d=0, o=0, f=Formats.RGBA, mips=0) => {
-	const t = {tex: gl.createTexture(), i: -1, o: 0, src: null, f, w, h, d: +d||1,cbs:null,m:0}, tx = new img(t)
-	oU=-2; tx.options = o; oU=0
+$.Texture = (w=0, h=0, d=0, o=0, f=Formats.RGBA, mips=0) => {
+	const t = {tex: gl.createTexture(), i: -1, o, src: null, f, w, h, d: +d||1,m:0}, tx = new img(t)
+	img.setOptions(t)
 	if(w&&h) gl.texStorage3D(35866, (t.m = mips)||1, t.f[0], t.w=w, t.h=h, t.d=+d||1)
 	else gl.texStorage3D(35866, (t.m = mips)||1, t.f[0], t.w=1, t.h=1, t.d=1)
 	gl.bindTexture(35866, null)
 	return tx
 }
-globalThis.Img = (src, o=0, fmt=Formats.RGBA, mips=0) => new img({tex:null,i:-1,f:fmt,o,src:src?Array.isArray(src)?src:[src]:[],w:0,h:0,d:0,cbs:null,m:mips})
-Object.assign(globalThis, {
+$.Img = (src, o=0, fmt=Formats.RGBA, mips=0) => new img({tex:null,i:-1,f:fmt,o,src:src?Array.isArray(src)?src:[src]:[],w:0,h:0,d:0,m:mips})
+Object.assign($, {
 	UPSCALE_SMOOTH: 1, DOWNSCALE_SMOOTH: 2, MIPMAP_SMOOTH: 4, SMOOTH: 7, REPEAT_X: 8, REPEAT_MIRRORED_X: 16, REPEAT_Y: 32, REPEAT_MIRRORED_Y: 64, REPEAT: 40, REPEAT_MIRRORED: 80,
 	R: 1, G: 2, B: 4, A: 8,
 	RGB: 7, RGBA: 15,
@@ -553,28 +596,31 @@ const V=class vec2{
 	get yzw(){return new W(this.y,this.z,this.w)}
 	get wzyx(){return new X(this.w,this.z,this.y,this.x)}
 }
-T = globalThis.vec2 = (x=0,y=x)=>new V(x,y)
+T = $.vec2 = (x=0,y=x)=>new V(x,y)
 T.one = T(1); const v2z = T.zero = T(0)
-T = globalThis.vec3 = (x=0,y=x,z=x)=>new W(x,y,z)
+T = $.vec3 = (x=0,y=x,z=x)=>new W(x,y,z)
 T.one = T(1); const v3z = T.zero = T(0)
-T = globalThis.vec4 = (x=0,y=x,z=x,w=x)=>new X(x,y,z,w)
+T = $.vec4 = (x=0,y=x,z=x,w=x)=>new X(x,y,z,w)
 T.one = T(1); const v4z = T.zero = T(0)
-globalThis.Formats={R:[33321,6403,5121],RG:[33323,33319,5121],RGB:[32849,6407,5121],RGBA:[32856,T=6408,5121],RGB565:[36194,6407,33635],R11F_G11F_B10F:[35898,6407,35899],RGB5_A1:[32855,T,32820],RGB10_A2:[32857,T,33640],RGBA4:[32854,T,32819],RGB9_E5:[35901,6407,35902],R8:[33330,T=36244,5121,1<<31],RG8:[33336,33320,5121,1<<31],RGB8:[36221,36248,5121,1<<31],RGBA8:[36220,36249,5121,1<<31],R16:[33332,T,5123,1<<31],RG16:[33338,33320,5123,1<<31],RGB16:[36215,36248,5123,1<<31],RGBA16:[36214,36249,5123,1<<31],R32:[33334,T,5125,1<<31],RG32:[33340,33320,5125,1<<31],RGB32:[36209,36248,5125,1<<31],RGBA32:[36208,36249,5125,1<<31],R16F:[33325,6403,5131],RG16F:[33327,33319,5131],RGB16F:[34843,6407,5131],RGBA16F:[34842,6408,5131],R16F_32F:[33325,6403,5126],RG16F_32F:[33327,33319,5126],RGB16F_32F:[34843,6407,5126],RGBA16F_32F:[34842,6408,5126],R32F:[33326,6403,5126],RG32F:[33328,33319,5126],RGB32F:[34837,6407,5126],RGBA32F:[34836,6408,5126]}
-globalThis.loader=({url}) => (...src) => {
-	if(src[0].raw){
-		const a = [src[0][0]]
-		for(let i = 1; i <= src.length; i++) a.push(src[i], src[0][i])
-		const s = new URL(a.join(''), url).href
-		return __import__.map.get(s)??s
+$.Formats={R:[33321,6403,5121],RG:[33323,33319,5121],RGB:[32849,6407,5121],RGBA:[32856,T=6408,5121],RGB565:[36194,6407,33635],R11F_G11F_B10F:[35898,6407,35899],RGB5_A1:[32855,T,32820],RGB10_A2:[32857,T,33640],RGBA4:[32854,T,32819],RGB9_E5:[35901,6407,35902],R8:[33330,T=36244,5121,1<<31],RG8:[33336,33320,5121,1<<31],RGB8:[36221,36248,5121,1<<31],RGBA8:[36220,36249,5121,1<<31],R16:[33332,T,5123,1<<31],RG16:[33338,33320,5123,1<<31],RGB16:[36215,36248,5123,1<<31],RGBA16:[36214,36249,5123,1<<31],R32:[33334,T,5125,1<<31],RG32:[33340,33320,5125,1<<31],RGB32:[36209,36248,5125,1<<31],RGBA32:[36208,36249,5125,1<<31],R16F:[33325,6403,5131],RG16F:[33327,33319,5131],RGB16F:[34843,6407,5131],RGBA16F:[34842,6408,5131],R16F_32F:[33325,6403,5126],RG16F_32F:[33327,33319,5126],RGB16F_32F:[34843,6407,5126],RGBA16F_32F:[34842,6408,5126],R32F:[33326,6403,5126],RG32F:[33328,33319,5126],RGB32F:[34837,6407,5126],RGBA32F:[34836,6408,5126]}
+$.loader=({url})=>{
+	url = url.slice(0,url.lastIndexOf('/')+1)
+	return (...src) => {
+		if(src[0].raw){
+			const a = [src[0][0]]
+			for(let i = 1; i <= src.length; i++) a.push(src[i], src[0][i])
+			const s = a.join('')
+			return s[0]=='/'?s:url+s
+		}
+		return src.length==1?src[0][0]=='/'?src[0]:url+src[0]:src.map(src=>src[0]=='/'?src:url+src)
 	}
-	return src.length==1?__import__.map.get(src=new URL(src[0],url).href)??src:src.map(a=>__import__.map.get(a=new URL(a,url).href)??a)
 }
 class can{
 	t;#a;#b;#c;#d;#e;#f;#m;#shader;s
 	get width(){return this.t.w}
 	get height(){return this.t.h}
 	get texture(){return this.t.img}
-	constructor(t,a=1,b=0,c=0,d=1,e=0,f=0,m=290787599,s=Shader.DEFAULT,sp=defaultShape){this.t=t;this.#a=a;this.#b=b;this.#c=c;this.#d=d;this.#e=e;this.#f=f;this.#m=m;this.#shader=s;this.s=sp}
+	constructor(t,a=1,b=0,c=0,d=1,e=0,f=0,m=290787599,s=$.Shader.DEFAULT,sp=defaultShape){this.t=t;this.#a=a;this.#b=b;this.#c=c;this.#d=d;this.#e=e;this.#f=f;this.#m=m;this.#shader=s;this.s=sp}
 	translate(x=0,y=0){ this.#e+=x*this.#a+y*this.#c;this.#f+=x*this.#b+y*this.#d }
 	scale(x=1,y=x){ this.#a*=x; this.#b*=x; this.#c*=y; this.#d*=y }
 	rotate(r=0){
@@ -600,16 +646,16 @@ class can{
 	}
 	getTransform(){ return {a: this.#a, b: this.#b, c: this.#c, d: this.#d, e: this.#e, f: this.#f} }
 	new(a=1,b=0,c=0,d=1,e=0,f=0){return new can(this.t,a,b,c,d,e,f,this.#m,this.#shader,this.s)}
-	reset(a=1,b=0,c=0,d=1,e=0,f=0){this.#a=a;this.#b=b;this.#c=c;this.#d=d;this.#e=e;this.#f=f;this.#m=290787599;this.#shader=Shader.DEFAULT;this.s=defaultShape}
+	reset(a=1,b=0,c=0,d=1,e=0,f=0){this.#a=a;this.#b=b;this.#c=c;this.#d=d;this.#e=e;this.#f=f;this.#m=290787599;this.#shader=$.Shader.DEFAULT;this.s=defaultShape}
 	box(x=0,y=0,w=1,h=w){ this.#e+=x*this.#a+y*this.#c; this.#f+=x*this.#b+y*this.#d; this.#a*=w; this.#b*=w; this.#c*=h; this.#d*=h }
-	to(x=0, y=0){if(typeof x=='object')({x,y}=x);return{x:this.#a*x+this.#c*y+this.#e,y:this.#b*x+this.#d*y+this.#f}}
+	to(x=0, y=0){if(typeof x=='object')({x,y}=x);return new V(this.#a*x+this.#c*y+this.#e,this.#b*x+this.#d*y+this.#f)}
 	from(x=0, y=0){
 		if(typeof x=='object')({x,y}=x)
 		const a=this.#a,b=this.#b,c=this.#c,d=this.#d, det = a*d-b*c
-		return {
-			x: (x*d - x*c + c*this.#f - d*this.#e)/det,
-			y: (y*a - y*b + b*this.#e - a*this.#f)/det
-		}
+		return new V(
+			(x*d - x*c + c*this.#f - d*this.#e)/det,
+			(y*a - y*b + b*this.#e - a*this.#f)/det
+		)
 	}
 	toDelta(dx=0, dy=0){if(typeof dx=='object')({dx,dy}=dx);return{dx:this.#a*dx+this.#c*dy,dy:this.#b*dx+this.#d*dy}}
 	fromDelta(dx=0, dy=0){
@@ -619,7 +665,7 @@ class can{
 	}
 	sub(){ return new can(this.t,this.#a,this.#b,this.#c,this.#d,this.#e,this.#f,this.#m,this.#shader,this.s) }
 	resetTo(m){ this.#a=m.#a;this.#b=m.#b;this.#c=m.#c;this.#d=m.#d;this.#e=m.#e;this.#f=m.#f;this.#m=m.#m;this.#shader=m.#shader;this.s=m.s }
-	set shader(sh){ this.#shader=typeof sh=='function'?sh:Shader.DEFAULT }
+	set shader(sh){ this.#shader=typeof sh=='function'?sh:$.Shader.DEFAULT }
 	get shader(){return this.#shader}
 	set mask(m){this.#m=this.#m&-256|m&255}
 	get mask(){return this.#m&255}
@@ -643,7 +689,8 @@ class can{
 		arr[i  ] = ta*a+tc*b; arr[i+1] = ta*c+tc*d; arr[i+2] = ta*e+tc*f+te
 		arr[i+3] = tb*a+td*b; arr[i+4] = tb*c+td*d; arr[i+5] = tb*e+td*f+tf
 	}
-	clear(r = 0, g = 0, b = 0, a = 0){
+	clear(r = 0, g = r, b = r, a = g){
+		if(typeof r=='object')a=r.w??0,b=r.z??0,g=r.y,r=r.x
 		if(i) draw()
 		setv(this.t, this.#m)
 		gl.clearColor(r, g, b, a)
@@ -661,7 +708,7 @@ class can{
 }
 let pmask=285217039
 
-globalThis.Blend = T = (src = 17, combine = 17, dst = 0, dither=false) => src|dst<<8|combine<<16|dither<<23
+$.Blend = T = (src = 17, combine = 17, dst = 0, dither=false) => src|dst<<8|combine<<16|dither<<23
 Object.assign(T, {
 	REPLACE: 1114129,
 	DEFAULT: 1135889,
@@ -672,7 +719,6 @@ Object.assign(T, {
 	MIN: 2232593, MAX: 3346705,
 	BEHIND: 1118583
 })
-globalThis.PI2 = PI*2
 function setv(t,m){
 	const s = t.stencil
 	let d = pmask^m
@@ -717,13 +763,13 @@ function draw(b=shuniBind){
 	gl.drawArraysInstanced(type, s, l, i)
 	i = 0; boundUsed = b
 }
-let sh=null,ca=null,fbTex=null,fbSte=null,fbLayer=0,shfCount=0,shfMask=0
+let sh=null,ca=null,fbTex=null,fbSte=null,fbLayer=0,shfCount=0,shfMask=0;
 const fb = gl.createFramebuffer()
 const buf = gl.createBuffer()
 gl.bindBuffer(34962, buf)
 const maxTex = Math.min(32, gl.getParameter(34930))
 const bound = []; for(let i=maxTex<<1;i>0;i--) bound.push(null)
-globalThis.Geometry = (type, points) => {
+T = $.Geometry = (type, points) => {
 	if(points.length%1) throw 'points.length is not even'
 	if(!(points instanceof Float32Array)){
 		T = new Float32Array(points.length)
@@ -739,7 +785,7 @@ globalThis.Geometry = (type, points) => {
 const shapeSub = function sub(s=0,l=this.l-s, type=this.type){
 	return {type, b: this.b, s: this.s+s, l, sub}
 }
-let gtArr = null, maxLen=0, boundUsed = 0, shp = Geometry(TRIANGLE_STRIP, [0, 0, 0, 1, 1, 0, 1, 1]), shuniBind = 0
+let gtArr = null, boundUsed = 0, shp = T($.TRIANGLE_STRIP, [0, 0, 0, 1, 1, 0, 1, 1]), shuniBind = 0
 const defaultShape = shp
 let g
 const treeIf = (s=0, e=maxTex,o=0) => {
@@ -748,7 +794,7 @@ const treeIf = (s=0, e=maxTex,o=0) => {
 	return `if(u<${m+o}){${treeIf(s,m,o)}}else{${treeIf(m,e,o)}}`
 }
 const names = ['float','vec2','vec3','vec4','int','ivec2','ivec3','ivec4','uint','uvec2','uvec3','uvec4']
-globalThis.Shader = (src, inputs, uniforms, output=4, defaults, uDefaults, frat=0.5) => {
+T = $.Shader = (src, inputs, uniforms, output=4, defaults, uDefaults, frat=0.5) => {
 	const fnParams = ['(function({'], fnBody = ['',''], shaderHead = ['#version 300 es\nprecision mediump float;precision highp int;in vec2 _pos;out vec2 pos,xy;in mat2x3 m;',''], shaderBody = ['void main(){gl_PointSize=1.0;gl_Position=vec4((xy=vec3(pos=_pos,1.)*m)*2.-1.,0.,1.);'], shaderHead2 = ['#version 300 es\nprecision mediump float;precision highp int;in vec2 pos,xy;uniform vec2 viewport;out '+(output==0?'highp vec4 color;':output==16||output==32?'uvec4 color;':'lowp vec4 color;'),'']
 	let j = 6, o = 0, fCount = 0, iCount = 0
 	const types = [3,3]
@@ -833,7 +879,7 @@ globalThis.Shader = (src, inputs, uniforms, output=4, defaults, uDefaults, frat=
 	if(fCount+iCount>16) throw 'Shaders cannot use more than 16 textures/colors'
 	fCount = fCount?iCount?fCount+Math.round(frat * (maxTex-fCount-iCount)):maxTex:0
 	iCount = iCount && maxTex - fCount
-	g=i=>'return texture(GL_f['+i+'],p);'; T=null
+	g=i=>'return texture(GL_f['+i+'],p);'; let T=null
 	shaderHead2[1] =
 		(o&20?'uniform '+(o&2?'highp':'lowp')+' sampler2DArray GL_f['+fCount+'];':'')
 		+(o&8?'uniform highp usampler2DArray GL_i['+iCount+'];':'')
@@ -884,103 +930,63 @@ globalThis.Shader = (src, inputs, uniforms, output=4, defaults, uDefaults, frat=
 	if(sh) gl.useProgram(sh.program||sh), gl.bindVertexArray(sh.vao)
 	return s
 }
-globalThis.frameDrawCalls = 0
-globalThis.frameSprites = 0
-globalThis.frameData = 0
 let fdc = 0, fs = 0, fd = 0
-Shader.DEFAULT = sh = Shader(`void main(){color=arg0()*arg1;}`, [COLOR, VEC4], _, _, [_, vec4.one])
-Shader.UINT = Shader(`void main(){color=arg0();}`, UCOLOR, _, UINT)
-Shader.NONE = Shader(`void main(){color=vec4(0,0,0,1);}`)
+T.DEFAULT = sh = T(`void main(){color=arg0()*arg1;}`, [$.COLOR, $.VEC4], void 0, void 0, [void 0, $.vec4.one])
+T.UINT = T(`void main(){color=arg0();}`, $.UCOLOR, void 0, $.UINT)
+T.NONE = T(`void main(){color=vec4(0,0,0,1);}`)
 gl.useProgram(sh.program)
 gl.bindVertexArray(sh.vao)
-globalThis.ctx = new can(ca={tex:gl.canvas,img:null,layer:0,stencil:0,stencilBuf:null,w:0,h:0})
-
-export const actx = new AudioContext({latencyHint: 'interactive'})
-globalThis.bgGain = actx.createGain()
-bgGain.connect(actx.destination)
-globalThis.masterVolume = 1
-globalThis.audioOut = null
-globalThis.Wave = src => {
-	let buf = null
-	return function play(vol = 1, pitch = 1, pan = 0, start = 0, end = NaN, ends = true, bg = false){
-		if(buf === null){
-			buf = []
-			void (typeof src == 'string' ? (__import__.map.get(src)?.arrayBuffer() ?? fetch(src, {credentials: 'omit', priority: 'high'}).then(a => a.arrayBuffer())) : src.arrayBuffer()).then(a => actx.decodeAudioData(a, b => {
-				const l = buf; buf = b
-				for(let i = 0; i < l.length; i++) l[i][0] = play(...l[i]), l[i].length = 1
-			}))
-		}
-		if(Array.isArray(buf)){
-			const a = [vol,pitch,pan,start,end,ends,bg]
-			buf.push(a)
-			return () => {
-				if(Array.isArray(buf)){
-					const i = buf.indexOf(a)
-					if(i > -1) buf.splice(i, 1)
-				}else a[0]()
-			}
-		}
-		const source = actx.createBufferSource()
-		source.buffer = buf
-		if(bg) source.connect(bgGain)
-		else{
-			let s = source
-			const volume = masterVolume * vol
-			source.playbackRate.value = pitch
-			if(volume != 1){
-				const gain = actx.createGain()
-				gain.gain.value = volume
-				s.connect(gain)
-				s = gain
-			}
-			if(pan != 0){
-				const panner = actx.createStereoPanner()
-				panner.pan.value = min(1, max(-1, pan))
-				s.connect(panner)
-				s = panner
-			}
-			if(audioOut) s.connect(audioOut)
-			s.connect(actx.destination)
-		}
-		if(source.loop = !ends){
-			source.loopStart = start
-			if(end == end) source.loopEnd = end
-			source.start(0, start)
-		}else{
-			source.start(0, start, end == end ? end - start : buf.duration)
-			if(typeof ends == 'function') source.onended = ends
-		}
-		return (fire=false) => (fire || (source.onended = null), source.stop())
-	}
+$.flush = () => i&&draw()
+$.gl = gl
+$.ctx = new can(ca={tex:gl.canvas,img:null,layer:0,stencil:0,stencilBuf:null,w:0,h:0})
+$.loop = (render = null) => {
+	if('t'in $) return $.render = render, $
+	$.render = render
+	$.frameDrawCalls = 0
+	$.frameSprites = 0
+	$.frameData = 0
+	$.t = performance.now()/1000; $.dt = 0
+	$.ctxSupersample = 1
+	$.ctxFramerate = -1
+	$.pixelRatio = 1
+	$.timeToFrame = 0
+	$.glLost = null
+	let nextF = 0
+	setInterval(function g(){
+		if($.ctxFramerate<0||!gl) return
+		if(gl.isContextLost?.()) return $.glLost?.(),$.glLost=null
+		let now = performance.now()/1000
+		if(now < nextF) return
+		dt = max(.01/$.ctxFramerate, -($.t-($.t=now)))
+		frameDrawCalls = fdc; frameSprites = fs; frameData = fd*4+fdc*24; fdc = fs = fd = 0
+		ctx.clear(); ctx.reset()
+		try{frame?.(dt)}catch(e){Promise.reject(e)}; i&&draw()
+		if((now=performance.now()/1000) >= (nextF+=1/$.ctxFramerate)) setImmediate(g)
+		timeToFrame = now-$.t
+	}, 0)
+	requestAnimationFrame(function f(){
+		if(gl.isContextLost?.()) return $.glLost?.(),$.glLost=null
+		requestAnimationFrame(f)
+		i&&draw()
+		pixelRatio = devicePixelRatio * $.ctxSupersample
+		gl.canvas.style.imageRendering = $.ctxSupersample > 1 ? 'auto' : 'pixelated'
+		gl.viewport(0, 0, ctx.t.w = gl.canvas.width = round(gl.canvas.offsetWidth*pixelRatio), ctx.t.h = gl.canvas.height = round(gl.canvas.offsetHeight*pixelRatio))
+		gl.bindFramebuffer(36160,null); ca=ctx.t
+		if($.ctxFramerate>=0) return
+		dt = max(.001, min(-($.t-($.t=performance.now()/1000)), .5))
+		$.frameDrawCalls = fdc; $.frameSprites = fs; $.frameData = fd*4+fdc*24; fdc = fs = fd = 0
+		ctx.reset(); try{$.render?.(dt)}catch(e){Promise.reject(e)}; i&&draw()
+		timeToFrame = performance.now()/1000-$.t
+	})
+	return gl.canvas
 }
-globalThis.step = null
-globalThis.frame = null
-let nextF = 0
-globalThis.timeToFrame = 0
-setInterval(function g(j){
-	if(j) step?.()
-	if(ctxFramerate<0||!gl) return
-	if(gl.isContextLost?.()) return glLost()
-	let now = performance.now()/1000
-	if(now < nextF) return
-	dt = max(.01/ctxFramerate, -(globalThis.t-(globalThis.t=now)))
-	frameDrawCalls = fdc; frameSprites = fs; frameData = fd*4+fdc*24; fdc = fs = fd = 0
-	ctx.clear(); ctx.reset()
-	try{frame?.(dt)}catch(e){Promise.reject(e)}; i&&draw()
-	if((now=performance.now()/1000) >= (nextF+=1/ctxFramerate)) setImmediate(g, 0)
-	timeToFrame = now-t
-}, 0, 1)
-requestAnimationFrame(function f(){
-	if(gl.isContextLost?.()) return glLost()
-	requestAnimationFrame(f)
-	i&&draw()
-	pixelRatio = devicePixelRatio * ctxSupersample
-	gl.canvas.style.imageRendering = ctxSupersample > 1 ? 'auto' : 'pixelated'
-	gl.viewport(0, 0, ctx.t.w = gl.canvas.width = round(innerWidth*pixelRatio), ctx.t.h = gl.canvas.height = round(innerHeight*pixelRatio))
-	gl.bindFramebuffer(36160,null); ca=ctx.t
-	if(ctxFramerate>=0) return
-	dt = max(.001, min(-(globalThis.t-(globalThis.t=performance.now()/1000)), .5))
-	frameDrawCalls = fdc; frameSprites = fs; frameData = fd*4+fdc*24; fdc = fs = fd = 0
-	ctx.reset(); try{frame?.(dt)}catch(e){Promise.reject(e)}; i&&draw()
-	timeToFrame = performance.now()/1000-t
-})
+return $}
+Gamma(globalThis).loop()
+document.head.insertAdjacentHTML('beforeend', `<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">`)
+glLost = () => {
+	document.body.textContent = 'WebGL2 context lost :('
+	document.body.style = 'color:white;background:#000;text-align:center;line-height:90vh;font-size:32px;font-family:monospace;'
+}
+if(!gl) throw glLost(), 'Please reload app'
+document.documentElement.append(canvas)
+canvas.style = `position: fixed; inset: 0; width: 100%; height: 100%; touch-action: none; background: #000; user-select: none; -webkit-user-select: none;`

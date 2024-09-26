@@ -15,7 +15,7 @@ import './frame.js'
 preframe.bind(playerControls)
 
 let last = performance.now()
-globalThis.step = () => {
+setInterval(() => {
 	const now = performance.now()
 	const update = 1000 / world.tps
 	let dt = now - last
@@ -25,7 +25,7 @@ globalThis.step = () => {
 	dt -= tickcount*update
 	while(tickcount--) tick()
 	last -= dt
-}
+})
 
 const sendDelay = 1 //send packet every tick
 function tick(){
