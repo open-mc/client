@@ -342,7 +342,6 @@ class img{
 			if(++loaded<src.length) return
 			t.tex = gl.createTexture()
 			img.setOptions(t)
-			console.log(w,h,loaded)
 			gl.texStorage3D(35866, t.m||1, t.f[0], t.w=w, t.h=h, t.d=loaded)
 			if(!pma) gl.pixelStorei(37440,1),gl.pixelStorei(37441,pma=1)
 			for(let l = 0; l < loaded; l++)
@@ -354,7 +353,7 @@ class img{
 		}, rj)
 	}
 	paste(tex, x=0, y=0, l=0, srcX=0, srcY=0, srcL=0, srcW=0, srcH=0, srcD=0){
-		const {t}=this; if(t.src) return this
+		const {t}=this; if(!t.tex) return this
 		if(!(tex instanceof img)) return resolveData(tex, i => {
 			img.fakeBind(t)
 			if(!pma) gl.pixelStorei(37440,1),gl.pixelStorei(37441,pma=1)
@@ -381,7 +380,8 @@ class img{
 		return this
 	}
 	pasteData(data, x=0, y=0, l=0, w=0, h=0, d=0){
-		const {t}=this; w = w||t.w; h = h||t.h; d = d||t.d
+		const {t}=this; if(!t.tex) return null
+		w = w||t.w; h = h||t.h; d = d||t.d
 		img.fakeBind(t)
 		if(pma) gl.pixelStorei(37440,0),gl.pixelStorei(37441,pma=0)
 		gl.texSubImage3D(35866, 0, x, y, l, w, h, d, t.f[1], t.f[2], data)
@@ -389,8 +389,8 @@ class img{
 		if(t.i<0) gl.bindTexture(35866, null)
 	}
 	readData(x=0, y=0, l=0, w=0, h=0, d=0, arr=null){
-		const {t}=this; w = w||t.w; h = h||t.h; d = d||t.d
-		if(!t.d) return null
+		const {t}=this; if(!t.tex) return null
+		w = w||t.w; h = h||t.h; d = d||t.d
 		i&&draw()
 		if(!ca.img) gl.bindFramebuffer(36160,fb)
 		if(fbSte) gl.framebufferRenderbuffer(36160,36128,36161,null)
@@ -453,9 +453,9 @@ class img{
 		gl.texParameterf(35866, 10243, o&32?10497:o&64?33648:33071)
 	}
 	set options(o){
-		const {t}=this
+		const {t}=this; t.o=o
+		if(!t.tex) return
 		img.fakeBind(t)
-		t.o=o
 		if(t.f[3]>>31)
 			gl.texParameterf(35866, 10240, 9728),
 			gl.texParameterf(35866, 10241, 9728)
@@ -468,7 +468,7 @@ class img{
 	}
 	drawable(l=this.l,stencil=false){
 		const {t}=this
-		if(t.src) return null
+		if(!t.tex) return null
 		let stencilBuf = null
 		if(stencil){
 			gl.bindRenderbuffer(36161, stencilBuf = gl.createRenderbuffer())
