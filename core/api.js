@@ -137,9 +137,6 @@ document.onpointerlockerror = document.onpointerlockchange = function(e){
 	}
 }
 
-import { gl, actx } from './gamma.js'
-export { gl, actx }
-
 const selchange = new Set
 document.onselectionchange = () => {
 	for(const c of selchange){

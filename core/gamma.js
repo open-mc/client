@@ -200,7 +200,7 @@ Array.null = len => {
 	return a
 }
 
-export const actx = new AudioContext({latencyHint: 'interactive'})
+const actx = globalThis.actx = new AudioContext({latencyHint: 'interactive'})
 globalThis.bgGain = actx.createGain()
 bgGain.connect(actx.destination)
 globalThis.masterVolume = 1
