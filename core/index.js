@@ -266,7 +266,7 @@ __import__.loadAll().then(packs => {
 	if(!--loading) loaded()
 })
 
-import click from "../img/click.mp3"
+import click from "/core/img/click.mp3"
 import { uptElements } from './api.js'
 
 document.onclick = e => {

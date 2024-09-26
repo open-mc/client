@@ -16,8 +16,8 @@ const Sound = src => {
 		a.play().catch(a.onended)
 	}
 }
-export const click = Sound('./img/click.mp3')
-export const ping = Sound('./img/ping.mp3')
+export const click = Sound('/core/img/click.mp3')
+export const ping = Sound('/core/img/ping.mp3')
 
 HTMLElement.prototype.attr = function(a, b=''){this.setAttribute(a, b); return this}
 HTMLElement.prototype.css = function(b){Object.assign(this.style, b); return this}

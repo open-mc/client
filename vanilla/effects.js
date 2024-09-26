@@ -5,7 +5,7 @@ import './sound/contents.cache'
 const src = loader(import.meta)
 export const audioSet = (path, count) => Array.from({length: count}, (_, i) => Wave(src`sound/${path+(i+1)}.mp3`))
 
-import btns from '../img/button.png'
+import btns from '/core/img/button.png'
 
 export const uiButtons = {
 	large: btns.crop(124,20,200,20),

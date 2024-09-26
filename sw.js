@@ -209,7 +209,6 @@ const resolve = (path, base) => {
 	// Self import (import * as thisModule from "")
 	if(c != c) return base
 	// Import maps
-	if(path.startsWith(HOST)) return 'data:'
 	return (IMPORT_MAP.get(path) ?? path)
 }
 // 1d, 2d, 30d
@@ -247,7 +246,7 @@ mimes.oga = mimes.ogg = mimes.opus = 'audio/ogg'
 mimes.ttf = 'font/ttf'; mimes.otf = 'font/otf'
 mimes.woff = 'font/woff'; mimes.woff2 = 'font/woff2'
 
-const download = (url, m, cache) => fetch(url).then(res => {
+const download = (url, m, cache) => {a:if(url.startsWith(HOST)){for(const n of BLOBS_DIRS)if(url.slice(HOST.length-1).startsWith(n))break a;return Promise.reject('Disallowed prefix')}return fetch(url).then(res => {
 	let ex = url.slice(url.lastIndexOf('.')+1)
 	if(ex.includes('/')) ex = ''
 	let i = ex.indexOf('?'); if(i >= 0) ex = ex.slice(0, i)
@@ -273,7 +272,7 @@ const download = (url, m, cache) => fetch(url).then(res => {
 		if(!LOCAL) return cache.put(url, new Response(blob)).then(()=>(cacheMeta.set(url, m), blob))
 		else return cacheMeta.delete(url), blob
 	})
-})
+})}
 function getBlobs(entries, cb, now = Math.floor(Date.now()/1000), mappings){
 	const files = new Map()
 	let pending = 0
@@ -309,8 +308,7 @@ function getBlobs(entries, cb, now = Math.floor(Date.now()/1000), mappings){
 				for(const f of arr) f(blob)
 			}, err => {
 				console.warn(err)
-				if(!LOCAL) cacheMeta.set(url1, m)
-				else cacheMeta.delete(url1)
+				cacheMeta.delete(url1)
 				for(const f of arr) f(null)
 			})
 			continue
@@ -381,7 +379,7 @@ self.addEventListener('message', e => {
 			const l = files.push(CORE)-1
 			for(let i=0;i<l;i++) files[i] = resolve(files[i], base)+vS
 		}else{
-			const l = files.push(HOST + 'localserver/index.js')-1
+			const l = files.push(HOST + 'core/localserver.js')-1
 			for(let i=0;i<l;i++) files[i] = new URL(files[i], HOST).href
 		}
 		let mappings = new Map, tot = 0
@@ -415,8 +413,7 @@ self.addEventListener('message', e => {
 				else m = {version: vI, expire: now + INIT_LIFETIME, pins: 0, imports: null}
 				download(url, m, cache).then(blob => { for(const f of arr) f(blob) }, err => {
 					console.warn(err)
-					if(!LOCAL) cacheMeta.set(url, m)
-					else cacheMeta.delete(url)
+					cacheMeta.delete(url)
 					for(const f of arr) f(null)
 				})
 				continue
@@ -483,7 +480,7 @@ let ready = LOCAL ? caches.open('').then(a => {
 	})
 	upt = upt ? upt.then(() => p) : p
 })()
-const BLOBS_DIRS = ['/vanilla/', '/core/', '/server/', '/localserver/']
+const BLOBS_DIRS = ['/vanilla/', '/core/', '/server/']
 async function update(latest, ver, old){
 	const _idx = ver?await ver.text():''
 	const hashes = new Map
@@ -520,7 +517,7 @@ async function update(latest, ver, old){
 				if(hashes.get(p) == sha){hashes.delete(p);total-=1.25;continue}
 				hashes.delete(p)||(total+=1.25); todo++
 				a: { for(const pat of BLOBS_DIRS) if(p.startsWith(pat)){
-					download(new URL(p, HOST).href, {version: 0, expire: 0, pins: 1, imports: null}, u).then(b => (b&&k.push(p),progress(++done/total)), e => r(p))
+					download(HOST.slice(0,-1)+p, {version: 0, expire: 0, pins: 1, imports: null}, u).then(b => (b&&k.push(p),progress(++done/total)), e => r(p))
 					break a
 				}
 					fetch(p).then(res => {

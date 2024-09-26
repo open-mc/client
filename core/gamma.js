@@ -280,23 +280,16 @@ class img{
 			img.fakeBind(t)
 			gl.texStorage3D(35866, 1, t.f[0], t.w=1, t.h=1, t.d=1)
 			if(t.i<0) gl.bindTexture(35866, null)
+			if(t.cbs) for(let i = 0; i < t.cbs.length; i+=3) t.cbs[i]?.(t.cbs[i+2])
+			t.cbs = null
 			return
 		}
 		let toLoad = t.src.length
 		let w=0, h=0
 		const rj = e => {
 			toLoad = -1
-			const {o} = t
-			img.fakeBind(t)
-			if(t.f[3]>>31)
-				gl.texParameterf(35866, 10240, 9728),
-				gl.texParameterf(35866, 10241, 9728)
-			else
-				gl.texParameterf(35866, 10240, 9728+(o&1)),
-				gl.texParameterf(35866, 10241, t.m?9984+(o>>1&3):9728+(o>>1&1))
-			gl.texParameterf(35866, 10242, o&8?10497:o&16?33648:33071)
-			gl.texParameterf(35866, 10243, o&32?10497:o&64?33648:33071)
-			gl.texStorage3D(35866, t.m||1, t.f[0], t.w=1, t.h=h=1, t.d=imgs.length)
+			oU=-2; this.options = t.o; oU=0
+			gl.texStorage3D(35866, t.m||1, t.f[0], t.w=w=1, t.h=h=1, t.d=imgs.length)
 			if(!pma) gl.pixelStorei(37440,1),gl.pixelStorei(37441,pma=1)
 			if(t.m) gl.generateMipmap(35866)
 			if(t.i<0) gl.bindTexture(35866, null)
@@ -309,16 +302,7 @@ class img{
 			if(toLoad==imgs.length) w=bmp.width, h=bmp.height
 			else if(w!=bmp.width||h!=bmp.height) return gl.deleteTexture(t.tex), rj('Failed to load image: all layers must be the same size')
 			if(--toLoad) return
-			const {o} = t
-			img.fakeBind(t)
-			if(t.f[3]>>31)
-				gl.texParameterf(35866, 10240, 9728),
-				gl.texParameterf(35866, 10241, 9728)
-			else
-				gl.texParameterf(35866, 10240, 9728+(o&1)),
-				gl.texParameterf(35866, 10241, t.m?9984+(o>>1&3):9728+(o>>1&1))
-			gl.texParameterf(35866, 10242, o&8?10497:o&16?33648:33071)
-			gl.texParameterf(35866, 10243, o&32?10497:o&64?33648:33071)
+			oU=-2; this.options = t.o; oU=0
 			gl.texStorage3D(35866, t.m||1, t.f[0], t.w=w, t.h=h, t.d=imgs.length)
 			if(!pma) gl.pixelStorei(37440,1),gl.pixelStorei(37441,pma=1)
 			for(let l = 0; l < imgs.length; l++)
@@ -422,7 +406,8 @@ class img{
 			gl.bindTexture(35866, t.tex)
 		}
 	}
-	setOptions(o){
+	get options(){return this.t.o}
+	set options(o){
 		const {t}=this
 		t.o=o
 		if(!t.tex) return
@@ -459,13 +444,10 @@ let oU=0
 let arr = new Float32Array(16), iarr = new Int32Array(arr.buffer), i = 0
 globalThis.Texture = (w=0, h=0, d=0, o=0, f=Formats.RGBA, mips=0) => {
 	const t = {tex: gl.createTexture(), i: -1, o: 0, src: null, f, w, h, d: +d||1,cbs:null,m:0}, tx = new img(t)
-	oU=-2
-	tx.setOptions(o)
+	oU=-2; tx.options = o; oU=0
 	if(w&&h) gl.texStorage3D(35866, (t.m = mips)||1, t.f[0], t.w=w, t.h=h, t.d=+d||1)
 	else gl.texStorage3D(35866, (t.m = mips)||1, t.f[0], t.w=1, t.h=1, t.d=1)
-	gl.texParameterf(35866, 10241, mips?9984+(t.o>>1&3):9728+(t.o>>1&1))
 	gl.bindTexture(35866, null)
-	oU=0
 	return tx
 }
 globalThis.Img = (src, o=0, fmt=Formats.RGBA, mips=0) => new img({tex:null,i:-1,f:fmt,o,src:src?Array.isArray(src)?src:[src]:[],w:0,h:0,d:0,cbs:null,m:mips})
@@ -629,8 +611,8 @@ class can{
 			y: (y*a - y*b + b*this.#e - a*this.#f)/det
 		}
 	}
-	toRel(dx=0, dy=0){if(typeof dx=='object')({dx,dy}=dx);return{dx:this.#a*dx+this.#c*dy,dy:this.#b*dx+this.#d*dy}}
-	fromRel(dx=0, dy=0){
+	toDelta(dx=0, dy=0){if(typeof dx=='object')({dx,dy}=dx);return{dx:this.#a*dx+this.#c*dy,dy:this.#b*dx+this.#d*dy}}
+	fromDelta(dx=0, dy=0){
 		if(typeof dx=='object')({dx,dy}=dx)
 		const a=this.#a,b=this.#b,c=this.#c,d=this.#d, det = a*d-b*c
 		return { dx: (dx*d-dx*c)/det, dy: (dy*a-dy*b)/det }

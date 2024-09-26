@@ -1,6 +1,6 @@
 @font-face {
 	font-family: mc;
-	src: url('./img/font.woff') format('woff');
+	src: url('/core/img/font.woff') format('woff');
 	font-weight: normal;
 	font-style: normal;
 }
@@ -116,21 +116,21 @@ btn{
 	height: 20rem;
 	width: 200rem;
 	line-height: 20rem;
-	background: url('./img/button.png') right center/324rem no-repeat;
+	background: url('/core/img/button.png') right center/324rem no-repeat;
 	cursor: pointer;
 	flex-shrink: 0;
 }
 btn.small{
 	width: 96rem;
-	background: url('./img/button.png') -28rem center/324rem;
+	background: url('/core/img/button.png') -28rem center/324rem;
 }
 btn.tiny{
 	width: 20rem;
-	background: url('./img/button.png') -8rem center/324rem;
+	background: url('/core/img/button.png') -8rem center/324rem;
 }
 btn.thumb{
 	width: 8rem;
-	background: url('./img/button.png') left center/324rem;
+	background: url('/core/img/button.png') left center/324rem;
 	position: absolute;
 	--value: 0;
 	top: 0;

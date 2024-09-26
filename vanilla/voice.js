@@ -1,6 +1,6 @@
 import { send, packets, voice, preframe, onkey } from 'api'
 import { entityMap, CONFIG, me } from 'world'
-import '../img/_pako.js'
+import '/core/img/_pako.js'
 
 const actx = new AudioContext({latencyHint: 'interactive', sampleRate: 22050})
 

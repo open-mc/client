@@ -1,5 +1,5 @@
 import { uiButtons, renderItem, renderItemCount, renderSlot, renderTooltip, resetSlot, slotI, audioSet } from './effects.js'
-import click from '../img/click.mp3'
+import click from '/core/img/click.mp3'
 import { onkey, drawLayer, setPlaying, renderUI, quit, packets, send, voice, drawText, calcText, tickPhase } from 'api'
 import { gridEvents, entityMap, pointer, cam, world, configLoaded, me, W2, H2, exposureMap, mode, WorldType } from 'world'
 import { getblock, peek, sound, goto } from 'ant'
@@ -13,7 +13,7 @@ import './voice.js'
 const BREAKING = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].mmap(x => blocksPng.sub(x/16, 0, 1/16, 1/16))
 import skyPng from './sky.png'
 import stars from './stars.png'
-stars.setOptions(REPEAT)
+stars.options = REPEAT
 const sun = skyPng.crop(128, 64, 32, 32), moons = [
 	skyPng.crop(128, 0, 32, 32),
 	skyPng.crop(160, 0, 32, 32),

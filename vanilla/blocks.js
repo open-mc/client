@@ -1,5 +1,5 @@
 import { uiButtons, audioSet, lava, renderSlot, water, renderGenericTooltip } from './effects.js'
-import click from '../img/click.mp3'
+import click from '/core/img/click.mp3'
 import { cam, world, mode } from 'world'
 import { Blocks, Block, Items, BlockTexture, toTex } from 'definitions'
 import { BlockShape, blockShaped, fluidify } from './blockshapes.js'

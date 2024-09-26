@@ -104,10 +104,10 @@ export class LocalSocket extends MessageChannel{
 		ifr.srcdoc = `<script>addEventListener('message',e=>{
 onerror=(_,f,l,c,e)=>parent.postMessage([e+'',__import__.rmap.get(f)??f,l,c],'*')
 onunhandledrejection=e=>parent.postMessage([e.reason,'',0,0],'*')
-let E="data:application/javascript,export%20default%20",H=${JSON.stringify(location.origin+'/')},d=(globalThis.__data__=e.data).cache,m={__proto__:null},R=(b,s,i=s.indexOf('^'),c=(i>=0?s=s.slice(0,i):s).charCodeAt(0))=>c==47||(c==46&&((c=s.charCodeAt(1))==47||(c==46&&s.charCodeAt(2)==47)))?new URL(s,b).href:s.startsWith(H)?'data:application/javascript,':c==c?s:b;(globalThis.__import__=(b,s='')=>import(R(b,s))).meta=u=>m[u]??=Object.freeze({url:u,resolve:s=>R(u,s)});__import__.origin=H;__import__.rmap=new Map;for(let{0:k,1:v}of __import__.map=d){
+let E="data:application/javascript,export%20default%20",H=${JSON.stringify(location.origin+'/')},d=(globalThis.__data__=e.data).cache,m={__proto__:null},R=(b,s,i=s.indexOf('^'),c=(i>=0?s=s.slice(0,i):s).charCodeAt(0))=>c==47||(c==46&&((c=s.charCodeAt(1))==47||(c==46&&s.charCodeAt(2)==47)))?new URL(s,b).href:c==c?s:b;(globalThis.__import__=(b,s='')=>import(R(b,s))).meta=u=>m[u]??=Object.freeze({url:u,resolve:s=>R(u,s)});__import__.origin=H;__import__.rmap=new Map;for(let{0:k,1:v}of __import__.map=d){
 if(!v){m[k]='data:application/javascript,';continue};if(v.type=='application/javascript'){__import__.rmap.set(m[k]=URL.createObjectURL(v),k);continue}}
 d=document.createElement('script');d.type='importmap';d.textContent=JSON.stringify({imports:m});document.head.append(d);m={__proto__:null}
-import(H+'localserver/index.js')
+import(H+'core/localserver.js')
 globalThis.parentPort = null
 },{once:true})</script>`
 		sw.controller.postMessage({base: '', files: ['/server/worldgen/genprocess.js', '/server/worldgen/util/biomes.png'], maps: null})

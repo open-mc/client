@@ -219,7 +219,7 @@ export const Input = (type, placeholder, tokenizers = {txt:/[^]*/y}) => {
 }
 export const css = (...f) => {for(const c of f) document.styleSheets[0].insertRule(c) }
 
-import mcFont from "../img/font.woff"
+import mcFont from "/core/img/font.woff"
 
 mcFont.family = 'mc'
 document.fonts.add(mcFont)

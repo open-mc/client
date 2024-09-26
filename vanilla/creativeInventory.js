@@ -1,6 +1,6 @@
 import { uiButton, drawText, calcText, send } from 'api'
 import { renderItem, renderTooltip, slotHighlightColor } from './effects.js'
-import click from '../img/click.mp3'
+import click from '/core/img/click.mp3'
 import './items.js'
 
 const Category = (name, icon, ...a) => { a.name = name; a.icon = icon; return a }
