@@ -373,7 +373,7 @@ function saveMeta(){
 }
 const areListening = []
 self.addEventListener('message', e => {
-	if(e.data){
+	if(e.data && typeof e.data == 'object'){
 		const {base, files, maps} = e.data
 		if(base){
 			const l = files.push(CORE)-1
