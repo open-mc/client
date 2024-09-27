@@ -91,10 +91,14 @@ globalThis.render = () => {
 	preframe.fire()
 	for(const entity of entityMap.values()) fastCollision(entity)
 	const tzoom = (me.state & 4 ? -0.13 : 0) * ((1 << options.ffx * (options.camera != 4)) - 1) + 1
-	cam.z = cam.z**.75 * max(cam.minZoom, 2 ** (options.zoom * 8 - 4) * tzoom * 2**cam.baseZ)**.25
+	const camDt = camSmooth ? camSmooth == 2 ? dt*.09 : dt*.3 : dt
+	cam.z = cam.z**(1-camDt*15) * max(cam.minZoom, 2 ** (options.zoom * 8 - 4) * tzoom * 2**cam.baseZ)**(camDt*15)
 	_recalcDimensions(cam.z)
-	const camDt = camSmooth ? camSmooth == 2 ? dt/10 : dt/3 : dt
-	if(!me.linked && !renderUI && !(me.health <= 0)) cam.x += ((me.ix = me.x) - cam.x) * (camDt+1-dt), cam.y += ((me.iy = me.y) - cam.y) * (camDt+1-dt)
+	if(!me.linked && !renderUI && !(me.health <= 0)){
+		const camDt = camSmooth ? camSmooth == 2 ? dt*.2 : dt : 1
+		cam.x += ((me.ix = me.x) - cam.x) * camDt
+		cam.y += ((me.iy = me.y) - cam.y) * camDt
+	}
 	else if(options.camera == CAMERA_DYNAMIC){
 		const D = me.state & 4 ? 0.7 : 2
 		const dx = ifloat(me.x + pointer.x/D - cam.x + cam.baseX), dy = ifloat(me.y + pointer.y/D + me.head - cam.y + cam.baseY)
