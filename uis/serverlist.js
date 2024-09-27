@@ -14,7 +14,7 @@ if(!storage.skin) storage.skin = Math.random() > .5 ? "缀\x7f罿缀\x7f孛缀\x
 export const servers = (storage.servers || 
 	(/.github.io$|.pages.dev$/.test(location.hostname) ? 'blobk.at' : /(.|^)localhost$|^127.0.0.1$|^[::1]$/.test(location.hostname) ? 'localhost' : location.hostname)).split('\n')
 
-indexedDB.databases().then(arr => {for(const s of arr) if(s.name[0]=='@'&&!servers.includes(s.name)) addServer(s.name)})
+indexedDB.databases?.().then(arr => {for(const s of arr) if(s.name[0]=='@') addServer(s.name)})
 
 const bc = globalThis.BroadcastChannel ? new BroadcastChannel('servers') : null
 bc && (bc.onmessage = ({data}) => {
