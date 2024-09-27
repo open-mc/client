@@ -422,8 +422,9 @@ self.addEventListener('message', e => {
 				cache.match(url).then(a => a?a.blob():null).then(r)
 			}
 		}else done(null)
-	}else if(e.data === 0){
+	}else if(e.data){
 		if(LOCAL) return
+		if(e.data == 2) caches.delete(''), cacheMeta.clear()
 		let l = fetch('/.gitversion').then(a => a.text(),()=>'{"error":"network"}')
 		cache.match('/.git').then(ver => l.then(latest => {
 			const our = ver?ver.headers.get('commit'):'null'

@@ -35,6 +35,8 @@ document.body.append(iframe)
 export let iReady = 0
 export const skin = new Uint8Array(1008)
 const sw = navigator.serviceWorker
+globalThis.update = () => sw.controller.postMessage(1)
+globalThis.reset = () => sw.controller.postMessage(2)
 let cbq = []
 sw.onmessage = ({data, source}) => {
 	if(source != sw.controller) return
