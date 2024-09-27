@@ -93,7 +93,8 @@ globalThis.render = () => {
 	const tzoom = (me.state & 4 ? -0.13 : 0) * ((1 << options.ffx * (options.camera != 4)) - 1) + 1
 	cam.z = cam.z**.75 * max(cam.minZoom, 2 ** (options.zoom * 8 - 4) * tzoom * 2**cam.baseZ)**.25
 	_recalcDimensions(cam.z)
-	if(!me.linked && !renderUI && !(me.health <= 0)) cam.x = me.ix = me.x, cam.y = me.iy = me.y
+	const camDt = camSmooth ? camSmooth == 2 ? dt/10 : dt/3 : dt
+	if(!me.linked && !renderUI && !(me.health <= 0)) cam.x += ((me.ix = me.x) - cam.x) * (camDt+1-dt), cam.y += ((me.iy = me.y) - cam.y) * (camDt+1-dt)
 	else if(options.camera == CAMERA_DYNAMIC){
 		const D = me.state & 4 ? 0.7 : 2
 		const dx = ifloat(me.x + pointer.x/D - cam.x + cam.baseX), dy = ifloat(me.y + pointer.y/D + me.head - cam.y + cam.baseY)
@@ -101,20 +102,20 @@ globalThis.render = () => {
 		else{
 			if(!camMovingX && abs(dx) > pointer.REACH / 2) camMovingX = true
 			else if(camMovingX && abs(dx) < pointer.REACH / 4) camMovingX = false
-			if(camMovingX) cam.x = ifloat(cam.x + (dx - sign(dx)*(pointer.REACH/4+0.25)) * dt * 4)
+			if(camMovingX) cam.x = ifloat(cam.x + (dx - sign(dx)*(pointer.REACH/4+0.25)) * camDt * 4)
 		}
 		if(abs(dy) > 64) cam.y += dy
 		else{
 			if(!camMovingY && abs(dy) > pointer.REACH / 2) camMovingY = true
 			else if(camMovingY && abs(dy) < pointer.REACH / 4) camMovingY = false
-			if(camMovingY) cam.y = ifloat(cam.y + (dy - sign(dy)*(pointer.REACH/4+0.25)) * dt * 7)
+			if(camMovingY) cam.y = ifloat(cam.y + (dy - sign(dy)*(pointer.REACH/4+0.25)) * camDt * 7)
 		}
 	}else if(options.camera == CAMERA_FOLLOW_SMOOTH){
 		const dx = ifloat(me.x + pointer.x - cam.x + cam.baseX), dy = ifloat(me.y + pointer.y + me.head - cam.y + cam.baseY)
 		if(abs(dx) > 64) cam.x += dx
-		else cam.x += dx * dt
+		else cam.x += dx * camDt
 		if(abs(dy) > 64) cam.y += dy
-		else cam.y += dy * dt
+		else cam.y += dy * camDt
 	}else if(options.camera == CAMERA_FOLLOW_POINTER){
 		cam.x = me.x + pointer.x + cam.baseX
 		cam.y = me.y + me.head + pointer.y + cam.baseY
@@ -132,7 +133,7 @@ globalThis.render = () => {
 	}
 	if(cam.staticX === cam.staticX) cam.x = cam.staticX
 	if(cam.staticY === cam.staticY) cam.y = cam.staticY
-	if(cam.f!=cam.baseF) cam.f += (cam.baseF - cam.f) * min(1, dt*4/sqrt(abs(cam.baseF - cam.f)))
+	if(cam.f!=cam.baseF) cam.f += (cam.baseF - cam.f) * min(1, camDt*4/sqrt(abs(cam.baseF - cam.f)))
 	for(const phase of _renderPhases){
 		try{
 			switch(phase.coordSpace){
@@ -169,6 +170,8 @@ globalThis.render = () => {
 }
 globalThis.cam = cam
 
+let camSmooth = 0
+onkey(KEYS.F4, () => {camSmooth = camSmooth == 2 ? 0 : camSmooth+1})
 
 onkey(KEYS.F2, () => requestAnimationFrame(() => gl.canvas.toBlob(blob => {
 	const f = new File([blob], 'screenshot-'+timestamp(), blob)
