@@ -66,14 +66,15 @@ globalThis.Worker = class Worker extends MessageChannel{
 		let {port1, port2} = super()
 		port1._oncl = null
 		const ifr = port1.ifr = document.createElement('iframe')
-		ifr.srcdoc = `<script>addEventListener('message',e=>{
+		ifr.srcdoc = `${__import__.shim}<script>addEventListener('message',function x(e){
+if(typeof e.data[0]=='boolean')return;removeEventListener('message',x)
 onerror=(_,f,l,c,e)=>parent.postMessage([e+'',__import__.rmap.get(f)??f,l,c],'*')
 onunhandledrejection=e=>parent.postMessage([e.reason,'',0,0],'*')
-let E="data:application/javascript,export%20default%20",H=${JSON.stringify(__import__.origin)},d=(globalThis.__data__=e.data).cache,m={__proto__:null},R=(b,s,i=s.indexOf('^'),c=(i>=0?s=s.slice(0,i):s).charCodeAt(0))=>c==47||(c==46&&((c=s.charCodeAt(1))==47||(c==46&&s.charCodeAt(2)==47)))?new URL(s,b).href:c==c?s:b;(globalThis.__import__=(b,s='')=>import(R(b,s))).meta=u=>m[u]??=Object.freeze({url:u,resolve:s=>R(u,s)});__import__.origin=H;for(let{0:k,1:v}of __import__.map=d){
+let E="data:application/javascript,export%20default%20",H=${JSON.stringify(__import__.origin)},d=(globalThis.__data__=e.data).cache,m={__proto__:null},R=(b,s,i=s.indexOf('^'),c=(i>=0?s=s.slice(0,i):s).charCodeAt(0))=>c==47||(c==46&&((c=s.charCodeAt(1))==47||(c==46&&s.charCodeAt(2)==47)))?new URL(s,b).href:c==c?s:b;(globalThis.__import__=(b,s='')=>import(R(b,s))).meta=u=>m[u]??=Object.freeze({url:u,resolve:s=>R(u,s)});__import__.shim=document.currentScript.previousSibling?.outerHTML??'';__import__.origin=H;for(let{0:k,1:v}of __import__.map=d){
 if(!v){m[k]='data:application/javascript,';continue};if(v.type=='application/javascript'){m[k]=URL.createObjectURL(v);continue}}
 d=document.createElement('script');d.type='importmap';d.textContent=JSON.stringify({imports:m});document.head.append(d);m={__proto__:null}
 import(H+'core/localserver.js').then(()=>import(e.data.path))
-},{once:true})</script>` + encodeURIComponent(src)
+})</script>` + encodeURIComponent(src)
 		ifr.onload = () => {
 			if(port2) return void(ifr.contentWindow.postMessage({parent: port2, cache: __import__.map, path: new URL(src, __import__.origin+'server/').href}, '*', [port2]), port2=null)
 			Worker._workers.delete(ifr.contentWindow)
