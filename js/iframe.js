@@ -25,7 +25,7 @@ else if(c.startsWith('font/'))m[k]=E+"await%20new%20FontFace('font',"+encodeURI(
 else m[k]=E+R
 }m.vanilla=m[H+'vanilla/index.js'],m.ant=m[H+'core/ant.js'],m.core=m[H+'core/index.js'],m.world=m[H+'core/world.js'],m.api=m[H+'core/api.js'],m.definitions=m[H+'core/definitions.js']
 d=document.createElement('script');d.type='importmap';d.textContent=JSON.stringify({imports:m});document.head.append(d);m={__proto__:null}
-__import__.loadAll=async ()=>{__import__.loadAll=null;let i=0;while(i<f.length)f[i]=import(f[i++]);for(const n of f)await n;return F};import('core');onpointermove=onpointerup=onpointerout=null
+__import__.loadAll=async ()=>{__import__.loadAll=null;let i=0;while(i<f.length)f[i]=import(f[i++]);for(const n of f)await n;return F};import('core');onpointermove=onpointerup=onpointerout=null;
 ${shimScript}
 });onpointermove=e=>parent.postMessage(e.clientY,'*');onpointerup=e=>parent.postMessage(-1-e.clientY,'*');onpointerout=e=>parent.postMessage(NaN,'*')</script></html>`
 iframe.sandbox = 'allow-scripts allow-pointer-lock allow-downloads'
