@@ -15,14 +15,12 @@ import texts from '../js/lang.js'
  * Mediocre pointerlock and fullscreen support
  * Not adequately performant in many common tasks
  * Only very recently supports import maps, OffscreenCanvas, etc...
+ * Missing important sandbox and allow attributes on iframes
  */
 export let safari = false
 
 // Fuck you, safari!
 try{const a=new ReadableStream();structuredClone(a,{transfer:[a]})}catch{safari = true}
-
-// OffscreenCanvas doesn't support webgl2 until iOS 17.0
-if(safari && !('popover' in HTMLElement.prototype)) OffscreenCanvas = null
 
 export function start(){
 	document.getElementById('loading')?.remove()
