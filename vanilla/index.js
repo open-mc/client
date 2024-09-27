@@ -300,7 +300,7 @@ packets[12] = buf => {
 	setPlaying(false)
 }
 packets[13] = buf => {
-	const e = entityMap.get(buf.uint32() + buf.short() * 4294967296)
+	const e = entityMap.get(buf.uint32())
 	if(!e) return
 	invInterface = e
 	interfaceId = buf.byte()
@@ -318,7 +318,7 @@ packets[15] = () => { invInterface = null }
 packets[32] = buf => {
 	let i = buf.byte()
 	while(buf.left){
-		const e = i&2 ? i & 1 ? me : invInterface : i&1 ? getblock(buf.int(), buf.int()) : entityMap.get(buf.uint32() + buf.uint16() * 4294967296)
+		const e = i&2 ? i & 1 ? me : invInterface : i&1 ? getblock(buf.int(), buf.int()) : entityMap.get(buf.uint32())
 		const id = buf.byte()
 		while(buf.left&&(i=buf.byte())<128){
 			const itm = Item.decode(buf)

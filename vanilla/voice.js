@@ -6,7 +6,7 @@ const actx = new AudioContext({latencyHint: 'interactive', sampleRate: 22050})
 
 packets[96] = buf => {
 	if(!pako) return
-	const e = CONFIG.proximity_chat == Infinity ? buf.uint32() + buf.uint16()*4294967296 : entityMap.get(buf.uint32() + buf.uint16()*4294967296)
+	const e = CONFIG.proximity_chat == Infinity ? buf.uint32() : entityMap.get(buf.uint32())
 	const sampleRate = buf.uint32()
 	const arr = pako.inflateRaw(new Uint8Array(buf.buffer, buf.byteOffset + buf.i, buf.left))
 	queuePlay(e, sampleRate, arr)

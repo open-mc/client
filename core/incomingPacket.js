@@ -8,7 +8,7 @@ import { _add, _addDark, newChunks } from './lighting.js'
 import { goto, place, getblock } from 'ant'
 
 function rubberPacket(data){
-	Entity.meid = data.uint32() + data.uint16() * 4294967296
+	Entity.meid = data.uint32()
 	const e = entityMap.get(Entity.meid)??recentlyDeleted.get(Entity.meid)
 	if(e && (e != me)) foundMe(e)
 	world.r = data.byte()
@@ -152,7 +152,7 @@ function entityPacket(buf){
 	recentlyDeleted.clear()
 	while(buf.left){
 		let mv = buf.byte()
-		const id = buf.uint32() + buf.uint16() * 4294967296
+		const id = buf.uint32()
 		let e = entityMap.get(id)
 		if(!mv){ if(e) e.remove(),recentlyDeleted.set(id, e); else gotId(id); continue }
 		if(!e){

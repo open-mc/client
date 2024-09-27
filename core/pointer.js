@@ -225,7 +225,7 @@ export function checkBlockPlacing(buf){
 				}
 			didHit = true
 		}else if(!hitBtnDown) didHit = false
-		buf.uint32(id|0), buf.short(id/4294967296|0)
+		buf.uint32(id)
 		blockbreakx = blockbreaky = NaN
 		me.state &= -9
 	}
