@@ -300,7 +300,7 @@ function getBlobs(entries, cb, now = Math.floor(Date.now()/1000), mappings){
 				if(!--pending) saveMeta(), cb(files)
 			}]
 			cacheMeta.set(url1, arr)
-			if(m) m.version = v
+			if(m) m.version = v, m.imports = null, m.expire = now + INIT_LIFETIME
 			else m = {version: v, expire: now + INIT_LIFETIME, pins: 0, imports: null}
 			pending++
 			download(url1, m, cache).then(blob => {
@@ -409,7 +409,7 @@ self.addEventListener('message', e => {
 			if(m === undefined || m.version < vI){
 				const arr = [r]
 				cacheMeta.set(url, arr)
-				if(m) m.version = vI
+				if(m) m.version = vI, m.imports = null, m.expire = now + INIT_LIFETIME
 				else m = {version: vI, expire: now + INIT_LIFETIME, pins: 0, imports: null}
 				download(url, m, cache).then(blob => { for(const f of arr) f(blob) }, err => {
 					console.warn(err)
@@ -472,11 +472,8 @@ let ready = LOCAL ? caches.open('').then(a => {
 			const imports = il ? [] : null
 			while(il--) imports.push(files[v[i]<<24|v[i+1]<<16|v[i+2]<<8|v[i+3]]), i += 4
 			if(cacheMeta.has(files[id])) continue
-			if(expire <= now && !pins){
-				cache.delete(files[id])
-				continue
-			}
-			cacheMeta.set(files[id], {version, expire, pins, imports})
+			if(expire <= now && !pins) cache.delete(files[id])
+			else cacheMeta.set(files[id], {version, expire, pins, imports})
 		}
 	})
 	upt = upt ? upt.then(() => p) : p
@@ -495,6 +492,7 @@ async function update(latest, ver, old){
 	let todo = 1, r
 	const progress = a => {for(const l of areListening) l.postMessage(a); --todo||r()}
 	fetch: {
+		const now = Math.floor(Date.now()/1000)
 		if(k.length){
 			if(k[k.length-1].url == '/.git') break fetch
 			else await caches.delete('updates'),u=await caches.open('updates'),k.length=0
@@ -518,7 +516,7 @@ async function update(latest, ver, old){
 				if(hashes.get(p) == sha){hashes.delete(p);total-=1.25;continue}
 				hashes.delete(p)||(total+=1.25); todo++
 				a: { for(const pat of BLOBS_DIRS) if(p.startsWith(pat)){
-					download(HOST.slice(0,-1)+p, {version: 0, expire: 0, pins: 1, imports: null}, u).then(b => (b&&k.push(p),progress(++done/total)), e => r(p))
+					download(HOST.slice(0,-1)+p, {version: 0, expire: now + INIT_LIFETIME, pins: 1, imports: null}, u).then(b => (b&&k.push(p),progress(++done/total)), e => r(p))
 					break a
 				}
 					fetch(p).then(res => {
@@ -527,7 +525,6 @@ async function update(latest, ver, old){
 						return u.put(p, res)
 					}).then(() => progress(++done/total), e => r(p))
 				}
-				
 			}
 			--todo||r(0)
 		})
