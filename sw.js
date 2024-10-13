@@ -369,7 +369,7 @@ function saveMeta(){
 	i += 6
 	for(const e of entries) total.set(e, i), i += e.length
 	entries.length = 0
-	cache.put('/.packs', new Response(total))
+	return cache.put('/.packs', new Response(total))
 }
 const areListening = []
 self.addEventListener('message', e => {
@@ -462,13 +462,13 @@ let ready = LOCAL ? caches.open('').then(a => {
 			const l = v[i]<<24|v[i+1]<<16|v[i+2]<<8|v[i+3]
 			files.push(dec.decode(v.subarray(i += 4, i += l)))
 		}
-		const t = (v[i]<<8|v[i+1])*4294967296+(v[i+2]<<24|v[i+3]<<16|v[i+4]<<8|v[i+5]); i += 6
+		const t = (v[i]<<8|v[i+1])*4294967296+((v[i+2]<<24|v[i+3]<<16|v[i+4]<<8|v[i+5])>>>0); i += 6
 		while(i < v.length){
-			const id = v[i]<<24|v[i+1]<<16|v[i+2]<<8|v[i+3]
-			const version = v[i+4]<<24|v[i+5]<<16|v[i+6]<<8|v[i+7]
-			const expire = t + (v[i+8]<<24|v[i+9]<<16|v[i+10]<<8|v[i+11])
-			const pins = v[i+12]<<24|v[i+13]<<16|v[i+14]<<8|v[i+15]
-			let il = v[i+16]<<24|v[i+17]<<16|v[i+18]<<8|v[i+19]; i += 20
+			const id = (v[i]<<24|v[i+1]<<16|v[i+2]<<8|v[i+3])>>>0
+			const version = (v[i+4]<<24|v[i+5]<<16|v[i+6]<<8|v[i+7])>>>0
+			const expire = t + ((v[i+8]<<24|v[i+9]<<16|v[i+10]<<8|v[i+11])>>>0)
+			const pins = (v[i+12]<<24|v[i+13]<<16|v[i+14]<<8|v[i+15])>>>0
+			let il = (v[i+16]<<24|v[i+17]<<16|v[i+18]<<8|v[i+19])>>>0; i += 20
 			const imports = il ? [] : null
 			while(il--) imports.push(files[v[i]<<24|v[i+1]<<16|v[i+2]<<8|v[i+3]]), i += 4
 			if(cacheMeta.has(files[id])) continue
@@ -494,7 +494,7 @@ async function update(latest, ver, old){
 	fetch: {
 		const now = Math.floor(Date.now()/1000)
 		if(k.length){
-			if(k[k.length-1].url == '/.git') break fetch
+			if(k[k.length-1].url == '/.git'){ for(let i=0;i<k.length;i++) k[i] = k[i].url; break fetch }
 			else await caches.delete('updates'),u=await caches.open('updates'),k.length=0
 		}
 		console.info('Downloading diffs for %s', latest.slice(0,7))
@@ -515,11 +515,11 @@ async function update(latest, ver, old){
 				res.push(p+' '+sha)
 				if(hashes.get(p) == sha){hashes.delete(p);total-=1.25;continue}
 				hashes.delete(p)||(total+=1.25); todo++
-				k.push(p)
 				a: { for(const pat of BLOBS_DIRS) if(p.startsWith(pat)){
-					download(HOST.slice(0,-1)+p, {version: 0, expire: now + INIT_LIFETIME, pins: 1, imports: null}, u).then(b => (b&&k.push(p),progress(++done/total)), e => r(p))
+					download(HOST.slice(0,-1)+p, {version: 4294967295, expire: now + INIT_LIFETIME, pins: 1, imports: null}, u).then(b => (b&&k.push(p),progress(++done/total)), e => r(p))
 					break a
 				}
+					k.push(p)
 					fetch(p).then(res => u.put(p, res.redirected ? new Response(res.body,res) : res)).then(() => progress(++done/total), e => r(p))
 				}
 			}
@@ -549,8 +549,7 @@ async function update(latest, ver, old){
 	}
 	console.info('Committing diffs over %s', old)
 	const total = (todo = k.length)*5
-	for(const req of k){
-		const url = typeof req=='object'?req.url:req
+	for(const url of k){
 		if(url.startsWith('https://.del') && url.length > 13){
 			const u = url.slice(12)
 			cache.delete(u).then(()=>progress(1-todo/total))
@@ -558,6 +557,7 @@ async function update(latest, ver, old){
 		}else u.match(req).then(a => cache.put(req, a)).then(()=>progress(1-todo/total))
 	}
 	await({then:a=>r=a})
+	await saveMeta()
 	await caches.delete('updates')
 	progress(1)
 	console.info('Update complete!')
