@@ -1,11 +1,5 @@
 <details> <summary> <h1 style="display:inline-block"> The Future </h1> </summary>
 
-# Beta 1.2
-
-Todo: Bossfight
-
-Todo: Hostile mobs
-
 # Beta 1.1
 
 Todo: Farm & crops
@@ -14,11 +8,25 @@ Todo: Fishing
 
 Todo: End terrain generation
 
-Todo: Passive mobs
+Todo: hostile mobs
+
+Todo: Bossfight
+
+Beta 1.0
+
+Todo: Caves, ravines, ponds, ...
+
+Todo: passive mobs
+
+Todo: more crafting and smelting recipes
+
+Todo: Creating accounts (deprecating account keys)
+
+Todo: Hotlink vanilla assets as a partial workaround to license issue
 
 </details>
 
-## Beta 1.0
+## Alpha 11
 
 - **Offline support**
 - Lots and lots of internal changes
@@ -27,11 +35,9 @@ Todo: Passive mobs
 
 Todo: More blocks and items
 
+Todo: Mobile controls
+
 Todo: Terrain generation overhaul
-
-Todo: Creating accounts (deprecating account keys)
-
-Todo: Hotlink vanilla assets as a partial workaround to license issue
 
 ## Alpha 10 (current version)
 
@@ -117,7 +123,7 @@ Todo: Hotlink vanilla assets as a partial workaround to license issue
 
 - **Canvas2D + iframe rewrite**
 - Nicer server menu
-- Account authentification
+- Account authentication
 
 ## Alpha 2
 
