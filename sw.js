@@ -515,15 +515,12 @@ async function update(latest, ver, old){
 				res.push(p+' '+sha)
 				if(hashes.get(p) == sha){hashes.delete(p);total-=1.25;continue}
 				hashes.delete(p)||(total+=1.25); todo++
+				k.push(p)
 				a: { for(const pat of BLOBS_DIRS) if(p.startsWith(pat)){
 					download(HOST.slice(0,-1)+p, {version: 0, expire: now + INIT_LIFETIME, pins: 1, imports: null}, u).then(b => (b&&k.push(p),progress(++done/total)), e => r(p))
 					break a
 				}
-					fetch(p).then(res => {
-						k.push(p)
-						if(res.redirected) res = new Response(res.body,res)
-						return u.put(p, res)
-					}).then(() => progress(++done/total), e => r(p))
+					fetch(p).then(res => u.put(p, res.redirected ? new Response(res.body,res) : res)).then(() => progress(++done/total), e => r(p))
 				}
 			}
 			--todo||r(0)
