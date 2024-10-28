@@ -553,7 +553,7 @@ async function update(latest, ver, old){
 			const u = url.slice(12)
 			cache.delete(u).then(()=>progress(1-todo/total))
 			cacheMeta.delete(u)
-		}else u.match(req).then(a => cache.put(req, a)).then(()=>progress(1-todo/total))
+		}else u.match(url).then(a => cache.put(url, a)).then(()=>progress(1-todo/total))
 	}
 	await({then:a=>r=a})
 	await saveMeta()
