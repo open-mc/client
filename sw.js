@@ -281,43 +281,42 @@ function getBlobs(entries, cb, now = Math.floor(Date.now()/1000), mappings){
 		const sep = url.lastIndexOf('^')
 		if(sep >= 0) v = url.slice(sep+1)>>>0 || v, url = url.slice(0, sep)
 		if(files.has(url)) continue
-		const M = mappings?.get(url)
-		let url1 = url
-		if(M){
-			url1 = M
-			v = version
-			const sep = url1.lastIndexOf('^')
-			if(sep >= 0) v = url1.slice(sep+1)>>>0 || v, url1 = url1.slice(0, sep)
+		const url2 = url
+		const mapped = mappings?.get(url)
+		if(mapped){
+			url = mapped; v = version
+			const sep = url.lastIndexOf('^')
+			if(sep >= 0) v = url.slice(sep+1)>>>0 || v, url = url.slice(0, sep)
 		}
 		let m = cacheMeta.get(url)
 		if(Array.isArray(m)){ pending++; m.push(v => {
-			files.set(url, v)
+			files.set(url2, v)
 			if(!--pending) saveMeta(), cb(files)
 		}); continue }
 		if(m === undefined || m.version < v){
 			const arr = [v => {
-				files.set(url, v)
+				files.set(url2, v)
 				if(!--pending) saveMeta(), cb(files)
 			}]
-			cacheMeta.set(url1, arr)
+			cacheMeta.set(url, arr)
 			if(m) m.version = v, m.imports = null, m.expire = now + INIT_LIFETIME
 			else m = {version: v, expire: now + INIT_LIFETIME, pins: 0, imports: null}
 			pending++
-			download(url1, m, cache).then(blob => {
+			download(url, m, cache).then(blob => {
 				if(m.imports) gather(m.imports, v)
 				for(const f of arr) f(blob)
 			}, err => {
 				console.warn(err)
-				cacheMeta.delete(url1)
+				cacheMeta.delete(url)
 				for(const f of arr) f(null)
 			})
 			continue
 		}else{
 			pending++
-			files.set(url, null)
+			files.set(url2, null)
 			m.expire = Math.min(m.expire + ACCESS_LIFETIME, now + MAX_LIFETIME)
-			cache.match(url1).then(a => a?a.blob():null).then(blob => {
-				files.set(url, blob)
+			cache.match(url).then(a => a?a.blob():null).then(blob => {
+				files.set(url2, blob)
 				if(!--pending) saveMeta(), cb(files)
 			})
 		}
