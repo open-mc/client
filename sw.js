@@ -546,7 +546,7 @@ async function update(latest, ver, old){
 		k.push('/.git')
 		await u.put('/.git', new Response(res.join('\n'), {headers: {commit: latest}}))
 	}
-	console.info('Committing diffs over %s', old.slice(0, 7))
+	console.info('Committing diffs over %s', old?.slice(0, 7) ?? 'null')
 	const total = (todo = k.length)*5
 	for(const url of k){
 		if(url.startsWith('https://.del') && url.length > 13){

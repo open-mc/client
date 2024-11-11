@@ -283,7 +283,7 @@ onFrame.push(() => {
 	iframe.style.inset = `${box.top}px 0 0 ${box.left}px`
 	iframe.style.width = box.width+'px'
 	const n = list.children[list.children.length-1]
-	iframe.style.height = (n.offsetTop - list.firstChild.offsetTop)+'px'
+	iframe.style.height = (n.offsetTop - list.firstChild.offsetTop - parseFloat(document.documentElement.style.fontSize)*4)+'px'
 })
 let serverNode = null
 export function serverClicked(n){
