@@ -504,7 +504,7 @@ async function update(latest, ver, old){
 			for(const {path='', type='', sha=''} of a.tree){
 				const p = url + path, isBlob = type == 'blob'
 				if(!isBlob){ if(type == 'commit'){
-					if(hashes.get(p) == sha){ for(const h of hashes.keys()) if(h.startsWith(p)&&h[p.length]=='/') hashes.delete(h)&&(total-=1.25) }
+					if(hashes.get(p) == sha){ for(const h of hashes.keys()) if(h.startsWith(p)&&h[p.length]=='/') hashes.delete(h),total-=1.25 }
 					else{
 						todo++; const url = api.slice(0, -10) + 'contents/' + path
 						fetch(url).then(a => a.json()).then(({git_url}) => git_url?traverse(sha, git_url.slice(0,-40), p+'/'):r(url))
@@ -546,7 +546,7 @@ async function update(latest, ver, old){
 		k.push('/.git')
 		await u.put('/.git', new Response(res.join('\n'), {headers: {commit: latest}}))
 	}
-	console.info('Committing diffs over %s', old)
+	console.info('Committing diffs over %s', old.slice(0, 7))
 	const total = (todo = k.length)*5
 	for(const url of k){
 		if(url.startsWith('https://.del') && url.length > 13){
