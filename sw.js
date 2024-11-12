@@ -504,10 +504,11 @@ async function update(latest, ver, old){
 			for(const {path='', type='', sha=''} of a.tree){
 				const p = url + path, isBlob = type == 'blob'
 				if(!isBlob){ if(type == 'commit'){
-					if(hashes.get(p) == sha){ for(const h of hashes.keys()) if(h.startsWith(p)&&h[p.length]=='/') hashes.delete(h),total-=1.25 }
+					const f = p+'/'
+					if(hashes.get(p) == sha){ for(const h of hashes.keys()) if(h.startsWith(f)) hashes.delete(h),total-=1.25 }
 					else{
 						todo++; const url = api.slice(0, -10) + 'contents/' + path
-						fetch(url).then(a => a.json()).then(({git_url}) => git_url?traverse(sha, git_url.slice(0,-40), p+'/'):r(url))
+						fetch(url).then(a => a.json()).then(({git_url}) => git_url?traverse(sha, git_url.slice(0,-40), f):r(url))
 					}
 					hashes.delete(p)&&(total-=1.25); res.push(p+' '+sha)
 				} continue }
@@ -522,7 +523,7 @@ async function update(latest, ver, old){
 					fetch(p).then(res => u.put(p, res.redirected ? new Response(res.body,res) : res)).then(() => progress(++done/total), e => r(p))
 				}
 			}
-			--todo||r(0)
+			--todo||r()
 		})
 		traverse(latest, 'https://api.github.com/repos/'+REPO+'/git/trees/', '/')
 		let err = await({then:a=>r=a})
