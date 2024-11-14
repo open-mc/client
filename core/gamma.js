@@ -753,7 +753,7 @@ function setv(t,m){
 function draw(b=shuniBind){
 	//if((ca?ca.img.t.f[3]:0)!=sh.outInt) return console.warn('Texture drawn to and shader output type must be of the same kind (integer/float)')
 	gl.bufferData(34962, iarr.subarray(0, i), 35040)
-	const {type,s,l}=shp
+	const {type,start:s,length:l}=shp
 	fd += i; i /= sh.count; fdc++; fs += i
 	gl.drawArraysInstanced(type, s, l, i)
 	i = 0; boundUsed = b
@@ -765,7 +765,7 @@ gl.bindBuffer(34962, buf)
 const maxTex = Math.min(32, gl.getParameter(34930))
 const bound = []; for(let i=maxTex<<1;i>0;i--) bound.push(null)
 T = $.Geometry = (type, points) => {
-	if(points.length%1) throw 'points.length is not even'
+	if(points.length&3) throw 'points.length is not a multiple of 4'
 	if(!(points instanceof Float32Array)){
 		T = new Float32Array(points.length)
 		T.set(points, 0); points = T
@@ -775,12 +775,12 @@ T = $.Geometry = (type, points) => {
 	gl.bufferData(34962, points, 35044)
 	b.type = type
 	gl.bindBuffer(34962, buf)
-	return {type, b, s: 0, l: points.length>>1, sub: shapeSub}
+	return {type, b, start: 0, length: points.length>>2, sub}
 }
-const shapeSub = function sub(s=0,l=this.l-s, type=this.type){
-	return {type, b: this.b, s: this.s+s, l, sub}
+function sub(s=0,l=this.length-s, type=this.type){
+	return {type, b: this.b, start: this.start+s, length: l, sub}
 }
-let gtArr = null, boundUsed = 0, shp = T($.TRIANGLE_STRIP, [0, 0, 0, 1, 1, 0, 1, 1]), shuniBind = 0
+let boundUsed = 0, shp = T.DEFAULT = T($.TRIANGLE_STRIP, [0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 1, 1, 1, 1]), shuniBind = 0
 const defaultShape = shp
 let g
 const treeIf = (s=0, e=maxTex,o=0) => {
@@ -790,7 +790,7 @@ const treeIf = (s=0, e=maxTex,o=0) => {
 }
 const names = ['float','vec2','vec3','vec4','int','ivec2','ivec3','ivec4','uint','uvec2','uvec3','uvec4']
 T = $.Shader = (src, inputs, uniforms, output=4, defaults, uDefaults, frat=0.5) => {
-	const fnParams = ['(function({'], fnBody = ['',''], shaderHead = ['#version 300 es\nprecision mediump float;precision highp int;in vec2 _pos;out vec2 pos,xy;in mat2x3 m;',''], shaderBody = ['void main(){gl_PointSize=1.0;gl_Position=vec4((xy=vec3(pos=_pos,1.)*m)*2.-1.,0.,1.);'], shaderHead2 = ['#version 300 es\nprecision mediump float;precision highp int;in vec2 pos,xy;uniform vec2 viewport;out '+(output==0?'highp vec4 color;':output==16||output==32?'uvec4 color;':'lowp vec4 color;'),'']
+	const fnParams = ['(function({'], fnBody = ['',''], shaderHead = ['#version 300 es\nprecision mediump float;precision highp int;layout(location=0)in vec4 _pos;out vec2 uv,xy;layout(location=1)in mat2x3 m;',''], shaderBody = ['void main(){gl_PointSize=1.0;uv=_pos.zw;gl_Position=vec4((xy=vec3(_pos.xy,1.)*m)*2.-1.,0.,1.);'], shaderHead2 = ['#version 300 es\nprecision mediump float;precision highp int;in vec2 uv,xy;uniform vec2 viewport;out '+(output==0?'highp vec4 color;':output==16||output==32?'uvec4 color;':'lowp vec4 color;'),'']
 	let j = 6, o = 0, fCount = 0, iCount = 0
 	const types = [3,3]
 	const texCheck = []
@@ -816,8 +816,8 @@ T = $.Shader = (src, inputs, uniforms, output=4, defaults, uDefaults, frat=0.5) 
 			texCheck.push(`let a${j+1}=${t==4?`-1;if(a${j}.t&&(a${j+1}=img.auto(a${j}.t,0))==-1)`:`img.auto(a${j+(t==8?'.t,-1':'.t,0')});if(a${j+1}==-1)`}{i&&draw(b^boundUsed);a${j+1}=img.auto(a${j+(t==8?'.t,-1':'.t,0')})}`)
 			fCount++
 			const n = `arg${id}raw`
-			shaderHead.push(`in int i${j};in vec4 i${j+1};centroid out vec4 ${n};`)
-			shaderBody.push(t!=4?`${n}=vec4(i${j+1}.xy+pos*i${j+1}.zw,i${j}&255,i${j}>>8);`:`if(i${j}<0){${n}=i${j+1};${n}.w=max(-15856.,${n}.w);}else{${n}=vec4(i${j+1}.xy+pos*i${j+1}.zw,i${j}&255,i${j}<256?-15872:(i${j}>>8<<4)-16384);}`)
+			shaderHead.push(`layout(location=${types.length+1})in int i${j};layout(location=${types.length+2})in vec4 i${j+1};centroid out vec4 ${n};`)
+			shaderBody.push(t!=4?`${n}=vec4(i${j+1}.xy+uv*i${j+1}.zw,i${j}&255,i${j}>>8);`:`if(i${j}<0){${n}=i${j+1};${n}.w=max(-15856.,${n}.w);}else{${n}=vec4(i${j+1}.xy+uv*i${j+1}.zw,i${j}&255,i${j}<256?-15872:(i${j}>>8<<4)-16384);}`)
 			shaderHead2.push(`centroid in vec4 ${n};${t==4?'lowp ':t==8?'u':'highp '}vec4 arg${id}(){`+(t==4?`if(${n}.w>-15872.)return ${n};return getCol(int(${n}.w)>>4&31,${n}.xyz);}`:t==8?`return uGetCol(int(${n}.w),${n}.xyz);}`:`return fGetCol(int(${n}.w),${n}.xyz);}`))
 			o|=(1<<(t>>2)+1)
 			types.push(17,4)
@@ -826,7 +826,7 @@ T = $.Shader = (src, inputs, uniforms, output=4, defaults, uDefaults, frat=0.5) 
 			fnBody.push(`if(a${j+1}>=0)${A+(j+3)}]=a${j}.w,${A+(j+4)}]=a${j}.h;else ${A+(j+3)}]=a${j}.z,${A+(j+4)}]=a${j}.w`)
 			c=5
 		}else{
-			shaderHead.push('in '+n+' i'+j+';flat out '+n+' arg'+id+';')
+			shaderHead.push('layout(location='+(types.length+1)+')in '+n+' i'+j+';flat out '+n+' arg'+id+';')
 			shaderBody.push('arg'+id+'=i'+j+';')
 			shaderHead2.push('flat in '+n+' arg'+id+';')
 			types.push(c|t&48)
@@ -837,7 +837,7 @@ T = $.Shader = (src, inputs, uniforms, output=4, defaults, uDefaults, frat=0.5) 
 		id++
 	}
 	id = 0; let j2 = 0, j3 = 0
-	const fn2Params = [], fn2Body = ['fd+=j2;if(sh!=s){i&&draw(0);shfCount=fCount;shfMask=fMask;gl.useProgram((sh=s).program);gl.bindVertexArray(s.vao)}'], fn3Body = []
+	const fn2Params = [], fn2Body = ['fd+=j2;i&&draw(0);if(sh!=s){shfCount=fCount;shfMask=fMask;gl.useProgram((sh=s).program);gl.bindVertexArray(s.vao)}'], fn3Body = []
 	const uniTex = [], uniLocs = []
 	for(const t of uniforms){
 		let c = (t&3)+1, n = names[t&3|t>>4<<2]
@@ -857,7 +857,7 @@ T = $.Shader = (src, inputs, uniforms, output=4, defaults, uDefaults, frat=0.5) 
 			fCount++
 			const n = `uni${id}raw`
 			shaderHead.push(`uniform int u${j2};uniform vec4 u${j2+1};centroid out vec4 ${n};`)
-			shaderBody.push(t!=4?`${n}=vec4(u${j2+1}.xy+pos*u${j2+1}.zw,u${j2}&255,u${j2}>>8);`:`if(u${j2}<0){${n}=u${j2+1};${n}.w=max(-15856.,${n}.w);}else{${n}=vec4(u${j2+1}.xy+pos*u${j2+1}.zw,u${j2}&255,u${j2}<256?-15872:(u${j2}>>8<<4)-16384);}`)
+			shaderBody.push(t!=4?`${n}=vec4(u${j2+1}.xy+uv*u${j2+1}.zw,u${j2}&255,u${j2}>>8);`:`if(u${j2}<0){${n}=u${j2+1};${n}.w=max(-15856.,${n}.w);}else{${n}=vec4(u${j2+1}.xy+uv*u${j2+1}.zw,u${j2}&255,u${j2}<256?-15872:(u${j2}>>8<<4)-16384);}`)
 			shaderHead2.push(`centroid in vec4 ${n};${t==4?'lowp ':t==8?'u':'highp '}vec4 uni${id}(){`+(t==4?`if(${n}.w>-15872.)return ${n};return getCol(int(${n}.w)>>4&31,${n}.xyz);}`:t==8?`return uGetCol(int(${n}.w),${n}.xyz);}`:`return fGetCol(int(${n}.w),${n}.xyz);}`))
 			o|=(1<<(t>>2)+1)
 			fn2Body.push(`uniTex[${uniTex.length-1}]=a${j2}.t;gl.uniform4f(uniLocs[${j3}],a${j2}.x,a${j2}.y,a${j2}.w,a${j2}.h)`)
@@ -886,23 +886,22 @@ T = $.Shader = (src, inputs, uniforms, output=4, defaults, uDefaults, frat=0.5) 
 		+(o&16?`highp vec4 fGetPixel(int u,ivec3 p,int l){${T||treeIf(0,fCount)}}`:'')
 		+(o&8?`uvec4 uGetPixel(int u,ivec3 p,int l){${g=i=>'return texelFetch(GL_i['+i+'],p,l);',treeIf(0,maxTex-fCount,maxTex)}}`:'')
 		+(o&28?`ivec3 getSize(int u,int l){${g=i=>'return textureSize(GL_'+(i<fCount?'f['+i:'i['+(i-fCount))+'],l);',T=treeIf(0,maxTex)}}`:'')
-	fnBody[0] = '}){if(sh!=s){i&&draw(0);shfCount=fCount;shfMask=fMask;gl.useProgram((sh=s).program);gl.bindVertexArray(s.vao);bindUniTex()}if(shp!=this.s){i&&draw();shp=this.s}if(s.geometry!=this.s.b){gl.bindBuffer(34962,s.geometry=this.s.b);gl.vertexAttribPointer(0,2,5126,0,0,0);gl.bindBuffer(34962,buf)}const b=boundUsed^shuniBind;'+texCheck.join(';')+';const j=i;if((i=j+'+j+')>arr.length)'+(ArrayBuffer.prototype.transfer?'(arr=gtArr||new Float32Array(arr.buffer.transfer(i*8))),iarr=new Int32Array(arr.buffer)':'{const oa=arr;(arr=gtArr||new Float32Array(i*2)).set(oa,0);iarr=new Int32Array(arr.buffer)}')
+	fnBody[0] = '}){if(sh!=s){i&&draw(0);shfCount=fCount;shfMask=fMask;gl.useProgram((sh=s).program);gl.bindVertexArray(s.vao);bindUniTex()}if(shp!=this.s){i&&draw();shp=this.s}if(s.geometry!=this.s.b){gl.bindBuffer(34962,s.geometry=this.s.b);gl.vertexAttribPointer(0,4,5126,0,0,0);gl.bindBuffer(34962,buf)}const b=boundUsed^shuniBind;'+texCheck.join(';')+';const j=i;if((i=j+'+j+')>arr.length)'+(ArrayBuffer.prototype.transfer?'arr=new Float32Array(arr.buffer.transfer(i*8)),iarr=new Int32Array(arr.buffer)':'{const oa=arr;(arr=new Float32Array(i*2)).set(oa,0);iarr=new Int32Array(arr.buffer)}')
 	fnBody.push('return j})')
 	const s = eval(fnParams.join('')+fnBody.join(';')), p = s.program = gl.createProgram()
 	s.uniforms = eval(`(function(${fn2Params}){${fn2Body.join(';')};bindUniTex()})`)
 	const bindUniTex = eval(`(function(){${fn3Body.join(';')};shuniBind=boundUsed})`)
 	const fMask = 32-fCount&&(-1>>>fCount)
 	s.outInt = (output==16||output==32)<<31
-	s.uniBind = 0
 	const v=gl.createShader(35633), f=gl.createShader(35632)
 	shaderBody.push('}')
 	gl.shaderSource(v, shaderHead.join('')+shaderBody.join(''))
 	gl.compileShader(v)
-	gl.shaderSource(f, src = shaderHead2.join('')+'\n'+src)
+	gl.shaderSource(f, shaderHead2.join('')+'\n'+src)
 	gl.compileShader(f)
 	gl.attachShader(p, v)
 	gl.attachShader(p, f)
-	if(T=gl.getShaderInfoLog(f)) console.warn('GLSL Error:\n'+T+'\n'+src+'\n\n'+shaderHead.join('')+shaderBody.join(''))
+	if(T=gl.getShaderInfoLog(f)) console.warn('GLSL Error:\n'+T)
 	gl.linkProgram(p)
 	gl.useProgram(p)
 	while(j3--) uniLocs.push(gl.getUniformLocation(p, 'uni'+uniLocs.length))
@@ -913,7 +912,7 @@ T = $.Shader = (src, inputs, uniforms, output=4, defaults, uDefaults, frat=0.5) 
 	let i1 = 1, i2 = 0
 	gl.bindBuffer(34962, s.geometry = defaultShape.b)
 	gl.enableVertexAttribArray(0)
-	gl.vertexAttribPointer(0, 2, 5126, 0, 0, 0)
+	gl.vertexAttribPointer(0, 4, 5126, 0, 0, 0)
 	gl.bindBuffer(34962, buf)
 	for(const t of types){
 		gl.enableVertexAttribArray(i1)
@@ -922,7 +921,7 @@ T = $.Shader = (src, inputs, uniforms, output=4, defaults, uDefaults, frat=0.5) 
 		gl.vertexAttribDivisor(i1++, 1)
 		i2 += (t&15)<<2
 	}
-	if(sh) gl.useProgram(sh.program||sh), gl.bindVertexArray(sh.vao)
+	if(sh) gl.useProgram(sh.program), gl.bindVertexArray(sh.vao)
 	return s
 }
 let fdc = 0, fs = 0, fd = 0

@@ -56,17 +56,17 @@ export const itemify = (B, n) => class extends Item{
 }
 let fluidGeometry
 {
-	const arr = new Float32Array(488)
+	const arr = new Float32Array(976)
 	for(let i = 0; i < 82; i++){
-		const j = i*6
-		arr[j+1] = i%9/8
-		arr[j+2] = 1
-		arr[j+3] = floor(i/9)/8
-		arr[j+6] = 1
+		const j = i*12
+		arr[j+1] = arr[j+3] = i%9*.125
+		arr[j+4] = arr[j+6] = 1
+		arr[j+5] = arr[j+7] = floor(i/9)*.125
+		arr[j+12] = arr[j+14] = 1
 		i++
-		arr[j+9] = i%9/8
-		arr[j+10] = 1
-		arr[j+11] = floor(i/9)/8
+		arr[j+17] = arr[j+19] = i%9*.125
+		arr[j+20] = arr[j+22] = 1
+		arr[j+21] = arr[j+23] = floor(i/9)*.125
 	}
 	fluidGeometry = Geometry(TRIANGLE_STRIP, arr)
 }

@@ -184,7 +184,7 @@ export class Chunk extends Uint16Array{
 	}
 	changed = 0
 }
-const pointGeometry = Geometry(POINTS, [0, 0])
+const pointGeometry = Geometry(POINTS, [0, 0, 0, 0])
 const ctxWriteShader = Shader(`void main(){
 	color.xy = uvec2(arg0&0xffffu, arg0>>16);
 }`, [UINT], _, UINT)
