@@ -7,7 +7,7 @@ import { VERSION } from '../server/version.js'
 import { performLightUpdates } from './lighting.js'
 
 const chunkShader = Shader(`void main(){
-	ivec2 ipos = ivec2(pos*1024.);
+	ivec2 ipos = ivec2(uv*1024.);
 	uvec2 a = uGetPixel(arg0, ivec3(ipos>>4u,0), 0).xy;
 	uint light = uGetPixel(arg1, ivec3(ipos>>4u,0), 0).x;
 	if(a.y>=65535u){
