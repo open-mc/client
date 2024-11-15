@@ -546,12 +546,12 @@ async function update(latest, ver, old){
 		await u.put('/.git', new Response(res.join('\n'), {headers: {commit: latest}}))
 	}
 	console.info('Committing diffs over %s', old?.slice(0, 7) ?? 'null')
-	const total = (todo = k.length)*5
-	for(const url of k) if(url != HOST + '.git') u.match(url).then(a =>
+	progress(0.8)
+	for(const url of k) if(url != HOST + '.git') todo++, u.match(url).then(a =>
 		a.status == 350 ? (cacheMeta.delete(url),cache.delete(url)) : cache.put(url, a)
-	).then(()=>progress(1-todo/total))
+	).then(()=>progress(1-todo/k.length*.2))
 	await({then:a=>r=a})
-	await u.match('/.git').then(a => cache.put(url, a)).then(()=>progress(1-todo/total))
+	await u.match('/.git').then(a => cache.put(url, a)).then(()=>progress())
 	await saveMeta()
 	await caches.delete('updates')
 	progress(1)
