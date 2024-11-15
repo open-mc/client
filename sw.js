@@ -442,15 +442,6 @@ let ready = LOCAL ? caches.open('').then(a => {
 }) : (async () => {
 	let latest = fetch('/.gitversion').then(a => a.text(),()=>'{"error":"network"}')
 	cache = await caches.open('')
-	const ver = await cache.match('/.git')
-	latest = await latest
-	const our = ver?ver.headers.get('commit'):'null'
-	if(latest[0] != '{' && our != latest) ready='', upt = update(latest, ver, our)
-	else{
-		if(!ver) upt = Promise.reject('Install failed')
-		for(const l of areListening) l.postMessage(ver?1:-1)
-		areListening.length=0
-	}
 	const p = cache.match('/.packs').then(a => a?.arrayBuffer()).then(b => {
 		if(!b) return
 		const v = new Uint8Array(b)
@@ -475,7 +466,15 @@ let ready = LOCAL ? caches.open('').then(a => {
 			else cacheMeta.set(files[id], {version, expire, pins, imports})
 		}
 	})
-	upt = upt ? upt.then(() => p) : p
+	const ver = await cache.match('/.git')
+	latest = await latest
+	const our = ver?ver.headers.get('commit'):'null'
+	if(latest[0] != '{' && our != latest) ready='', upt = p.then(() => update(latest, ver, our))
+	else{
+		if(!ver) upt = Promise.reject('Install failed')
+		for(const l of areListening) l.postMessage(ver?1:-1)
+		areListening.length=0
+	}
 })()
 const BLOBS_DIRS = ['/vanilla/', '/core/', '/server/']
 async function update(latest, ver, old){
@@ -532,31 +531,27 @@ async function update(latest, ver, old){
 			await caches.delete('updates')
 			progress(-1)
 			areListening.length = 0
-			return upt = Promise.reject('Install failed')
+			throw 'Install failed'
 		}
 		if(hashes.size){
-			let e
+			const e = new Response(null, {status: 350})
 			todo = hashes.size
 			for(const file of hashes.keys()){
-				const req = 'https://.del' + file
-				k.push(req)
-				u.put(req,e||(e=new Response())).then(() => progress(++done/total))
+				k.push(file)
+				u.put(file, e).then(() => progress(++done/total))
 			}
 			await({then:a=>r=a})
 		}
-		k.push('/.git')
+		k.push(HOST + '.git')
 		await u.put('/.git', new Response(res.join('\n'), {headers: {commit: latest}}))
 	}
 	console.info('Committing diffs over %s', old?.slice(0, 7) ?? 'null')
 	const total = (todo = k.length)*5
-	for(const url of k){
-		if(url.startsWith('https://.del') && url.length > 13){
-			const u = url.slice(12)
-			cache.delete(u).then(()=>progress(1-todo/total))
-			cacheMeta.delete(u)
-		}else u.match(url).then(a => cache.put(url, a)).then(()=>progress(1-todo/total))
-	}
+	for(const url of k) if(url != HOST + '.git') u.match(url).then(a =>
+		a.status == 350 ? (cacheMeta.delete(url),cache.delete(url)) : cache.put(url, a)
+	).then(()=>progress(1-todo/total))
 	await({then:a=>r=a})
+	await u.match('/.git').then(a => cache.put(url, a)).then(()=>progress(1-todo/total))
 	await saveMeta()
 	await caches.delete('updates')
 	progress(1)
