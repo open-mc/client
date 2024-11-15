@@ -492,7 +492,7 @@ async function update(latest, ver, old){
 	fetch: {
 		const now = Math.floor(Date.now()/1000)
 		if(k.length){
-			if(k[k.length-1].url == '/.git'){ for(let i=0;i<k.length;i++) k[i] = k[i].url; break fetch }
+			if(k[k.length-1].url == HOST + '.git'){ for(let i=0;i<k.length;i++) k[i] = k[i].url; break fetch }
 			else await caches.delete('updates'),u=await caches.open('updates'),k.length=0
 		}
 		console.info('Downloading diffs for %s', latest.slice(0,7))
@@ -551,7 +551,7 @@ async function update(latest, ver, old){
 		a.status == 350 ? (cacheMeta.delete(url),cache.delete(url)) : cache.put(url, a)
 	).then(()=>progress(1-todo/k.length*.2))
 	await({then:a=>r=a})
-	await u.match('/.git').then(a => cache.put(url, a)).then(()=>progress())
+	await u.match('/.git').then(a => cache.put('/.git', a)).then(()=>progress())
 	await saveMeta()
 	await caches.delete('updates')
 	progress(1)
