@@ -134,6 +134,7 @@ input.on('keypress', e => {
 	if(input.value&&input.value[0]!='@') addServer(input.value)
 	input.value='', input.blur()
 }).on('blur', () => {input.replaceWith(addRow)}).css({margin: '9rem auto'})
+const linkCss = {color: '#888', textDecoration: 'underline', cursor: 'pointer'}
 const serverList = UI('dirtbg serverlist',
 	modBtn = Label(texts.serverlist.mods()).css({color: '#888', textDecoration: 'underline', cursor: 'pointer', position: 'absolute', top: 0, right: '4rem', pointerEvents: 'all'}),
 	Spacer.grow(1),
@@ -141,8 +142,8 @@ const serverList = UI('dirtbg serverlist',
 		Label(texts.serverlist.welcome()),
 		skinCtx.canvas.css({height:'16rem',alignSelf:'center',marginLeft:'3rem'}),
 		nameLabel = Label().css({color: '#E92'}),
-		selectSkinBtn = Label(texts.serverlist.select_skin()).css({color: '#888', textDecoration: 'underline', cursor: 'pointer'}),
-		logoutBtn = Label(texts.serverlist.logout()).css({color: '#888', textDecoration: 'underline', cursor: 'pointer'})
+		selectSkinBtn = Label(texts.serverlist.select_skin()).css(linkCss),
+		logoutBtn = Label(texts.serverlist.logout()).css(linkCss)
 	).css({pointerEvents: 'all'}),
 	Spacer.grow(1),
 	Row(
@@ -245,10 +246,11 @@ addRow.lastChild.on('click', () => {click();i.accept = '.map';i.click();i.onchan
 	})
 }}).classList.add('selectable')
 selectSkinBtn.classList.add('selectable')
-selectSkinBtn.onclick = btn => getSkin().then(a => {
+selectSkinBtn.onclick = () => getSkin().then(a => {
 	if(!a) return
-	btn.textContent = a
-	setTimeout(() => btn.textContent = texts.serverlist.select_skin(), 2000)
+	selectSkinBtn.textContent = a
+	selectSkinBtn.style = 'color: red'
+	setTimeout(() => (selectSkinBtn.textContent = texts.serverlist.select_skin(), selectSkinBtn.css(linkCss)), 2000)
 })
 logoutBtn.classList.add('selectable')
 logoutBtn.onclick = () => {
