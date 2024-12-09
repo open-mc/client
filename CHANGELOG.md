@@ -12,7 +12,7 @@ Todo: hostile mobs
 
 Todo: Bossfight
 
-Beta 1.0
+# Beta 1.0
 
 Todo: Caves, ravines, ponds, ...
 
@@ -33,11 +33,11 @@ Todo: Hotlink vanilla assets as a partial workaround to license issue
 - Singleplayer
 - World export/import
 
+Todo: Terrain generation overhaul
+
 Todo: More blocks and items
 
 Todo: Mobile controls
-
-Todo: Terrain generation overhaul
 
 ## Alpha 10 (current version)
 
