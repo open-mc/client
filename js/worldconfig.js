@@ -13,10 +13,10 @@ export const defaultConfig = {
 	},
 	components: [ "vanilla" ],
 	generators: {
-		overworld: "default",
-		nether: "default",
-		end: "default",
-		void: "void"
+		overworld: 'overworld',
+		nether: 'nether',
+		end: 'end',
+		void: 'void'
 	},
 	permissions: {
 		suicide: true,
@@ -54,7 +54,7 @@ export function exportWorld(id, name = 'external-world'){
 		const def = new pako.Deflate()
 		def.onData = ch => {
 			res.push(ch)
-			if((tot+=ch.byteLength) > 67108864) blobs.push(new Blob(res)), res.length = 0
+			if((tot+=ch.byteLength) > 67108864) blobs.push(new Blob(res)), res.length = tot = 0
 		}
 		const blobs = [], res = [], done = () => {
 			def.push('', true)

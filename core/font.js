@@ -48,9 +48,9 @@ export function drawText(c, t, x=0, y=0, size=1, alpha = 1){
 	return style
 }
 export const TokenSet = (...a) => {
-	const m = new Map
+	const m = new Map()
 	m.add = (s, f=0, sep) => {
-		const set = new Set
+		const set = new Set()
 		for(let i = 0; i < s.length; i++){
 			const c = s.codePointAt(i)
 			if(c > 65535) i++

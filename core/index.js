@@ -92,7 +92,7 @@ globalThis.render = () => {
 	for(const entity of entityMap.values()) fastCollision(entity)
 	const tzoom = (me.state & 4 ? -0.13 : 0) * ((1 << options.ffx * (options.camera != 4)) - 1) + 1
 	const camDt = camSmooth ? camSmooth == 2 ? dt*.09 : dt*.3 : dt
-	cam.z = cam.z**(1-camDt*15) * max(cam.minZoom, 2 ** (options.zoom * 8 - 4) * tzoom * 2**cam.baseZ)**(camDt*15)
+	cam.z = cam.z**(1-min(1,camDt*15)) * max(cam.minZoom, 2 ** (options.zoom * 8 - 4) * tzoom * 2**cam.baseZ)**min(1,camDt*15)
 	_recalcDimensions(cam.z)
 	if(!me.linked && !renderUI && !(me.health <= 0)){
 		const camDt = camSmooth ? camSmooth == 2 ? dt*.2 : dt : 1
@@ -106,13 +106,13 @@ globalThis.render = () => {
 		else{
 			if(!camMovingX && abs(dx) > pointer.REACH / 2) camMovingX = true
 			else if(camMovingX && abs(dx) < pointer.REACH / 4) camMovingX = false
-			if(camMovingX) cam.x = ifloat(cam.x + (dx - sign(dx)*(pointer.REACH/4+0.25)) * camDt * 4)
+			if(camMovingX) cam.x = ifloat(cam.x + (dx - sign(dx)*(pointer.REACH/4+0.25)) * min(1, camDt * 4))
 		}
 		if(abs(dy) > 64) cam.y += dy
 		else{
 			if(!camMovingY && abs(dy) > pointer.REACH / 2) camMovingY = true
 			else if(camMovingY && abs(dy) < pointer.REACH / 4) camMovingY = false
-			if(camMovingY) cam.y = ifloat(cam.y + (dy - sign(dy)*(pointer.REACH/4+0.25)) * camDt * 7)
+			if(camMovingY) cam.y = ifloat(cam.y + (dy - sign(dy)*(pointer.REACH/4+0.25)) * min(1, camDt * 7))
 		}
 	}else if(options.camera == CAMERA_FOLLOW_SMOOTH){
 		const dx = ifloat(me.x + pointer.x - cam.x + cam.baseX), dy = ifloat(me.y + pointer.y + me.head - cam.y + cam.baseY)
@@ -257,7 +257,7 @@ __import__.loadAll().then(packs => {
 			proto = Object.getPrototypeOf(proto)
 		}while(proto.prototype && !Object.hasOwn(proto.prototype, 'prototype'))
 		if(Dict == Blocks && !Thing.savedata){
-			if(!Thing.savedata) Object.defineProperties(Thing.constructor, Object.getOwnPropertyDescriptors(new Thing))
+			if(!Thing.savedata) Object.defineProperties(Thing.constructor, Object.getOwnPropertyDescriptors(new Thing()))
 		}
 	}
 	const list = packs[3].split('\n')

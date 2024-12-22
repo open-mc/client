@@ -2,5 +2,5 @@
 **/package-lock.json
 **/.DS_Store
 .vscode
-server/node/static/**
+server/node/static
 server/node/index.html

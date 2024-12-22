@@ -14,7 +14,7 @@ export function foundMe(e){
 	cam.y = me.iy = me.y
 	for(const cb of playerLoadCb) try{cb(e)}catch(e){Promise.reject(e)}
 }
-export const map = globalThis.map = new Map
+export const map = globalThis.map = new Map()
 export const entityMap = globalThis.entityMap = new Map()
 export const server = {
 	title: '',
@@ -68,7 +68,7 @@ export function soundAt(fn, x, y, vol = 1, pitch = 1){
 	fn(vol * 2 / (dist + 1), pitch * max(.2, speed + 1), min(1, max(-1, x / 16)))
 }
 
-export const gridEventMap = new Map
+export const gridEventMap = new Map()
 export const gridEvents = new Array(255)
 export const music = (theme, ...audios) => {
 	const arr = musicdict[theme] || (musicdict[theme] = [])
@@ -133,5 +133,5 @@ export function setGamma(p){
 	lastLm = NaN
 }
 
-export const exposureMap = new Map
+export const exposureMap = new Map()
 globalThis.exposureMap = exposureMap

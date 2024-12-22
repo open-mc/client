@@ -249,7 +249,7 @@ selectSkinBtn.classList.add('selectable')
 selectSkinBtn.onclick = () => getSkin().then(a => {
 	if(!a) return
 	selectSkinBtn.textContent = a
-	selectSkinBtn.style = 'color: red'
+	selectSkinBtn.style = 'color: red !important'
 	setTimeout(() => (selectSkinBtn.textContent = texts.serverlist.select_skin(), selectSkinBtn.css(linkCss)), 2000)
 })
 logoutBtn.classList.add('selectable')

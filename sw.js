@@ -188,7 +188,7 @@ function parse(end = 125){
 	if(str) src.push(str)
 	return src
 }
-const cacheMeta = globalThis.cacheMeta = new Map
+const cacheMeta = globalThis.cacheMeta = new Map()
 const enc = new TextEncoder(), dec = new TextDecoder()
 const CORE = HOST + 'core/index.js'
 const IMPORT_MAP = new Map().set('core', CORE)
@@ -328,7 +328,7 @@ function getBlobs(entries, cb, now = Math.floor(Date.now()/1000), mappings){
 
 function saveMeta(){
 	const now = Math.floor(Date.now()/1000)
-	const files = [], entries = [], ids = new Map
+	const files = [], entries = [], ids = new Map()
 	let bytes = 10
 	for(const {0:k,1:v} of cacheMeta){
 		if(Array.isArray(v)) continue
@@ -381,7 +381,7 @@ self.addEventListener('message', e => {
 			const l = files.push(HOST + 'core/localserver.js')-1
 			for(let i=0;i<l;i++) files[i] = new URL(files[i], HOST).href
 		}
-		let mappings = new Map, tot = 0
+		let mappings = new Map(), tot = 0
 		const now = Math.floor(Date.now()/1000)
 		const r = map => e.source.postMessage(map), done = m => {
 			if(m) for(const arr of m) for(let i=0; i<arr.length; i+=2) mappings.set(arr[i], arr[i+1])
@@ -479,7 +479,7 @@ let ready = LOCAL ? caches.open('').then(a => {
 const BLOBS_DIRS = ['/vanilla/', '/core/', '/server/']
 async function update(latest, ver, old){
 	const _idx = ver?await ver.text():''
-	const hashes = new Map
+	const hashes = new Map()
 	if(_idx) for(const e of _idx.split('\n')){
 		const i = e.indexOf(' ')
 		if(i<0) continue

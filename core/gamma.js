@@ -117,7 +117,7 @@ globalThis.BitField = class BitField extends Array{
 }
 const _mac = navigator.platform.startsWith('Mac')
 Object.assign(globalThis, {
-	buttons: new BitField, changed: new BitField, touches: new Map, gesture: {dx: 0, dy: 0, scale: 1, rot: 0},
+	buttons: new BitField(), changed: new BitField(), touches: new Map(), gesture: {dx: 0, dy: 0, scale: 1, rot: 0},
 	cursor: {x: 0, y: 0, dx: 0, dy: 0, mx: 0, my: 0, jlx: 0, jly: 0, jrx: 0, jry: 0},
 	LBUTTON: 0, RBUTTON: 2, MBUTTON: 1, KEYS: Object.freeze({
 		A: 65, B: 66, C: 67, D: 68, E: 69, F: 70, G: 71, H: 72, I: 73, J: 74, K: 75, L: 76,
@@ -257,7 +257,7 @@ globalThis.Wave = src => {
 Math.randint ??= () => Math.random() * 4294967296 | 0
 Math.PI2 ??= Math.PI*2
 const $ = globalThis
-if(!('setImmediate'in $)){let i=0,m=new MessageChannel,c=new Map;m.port1.onmessage=({data:i},j=c.get(i))=>(c.delete(i)&&j());m=m.port2;$.setImmediate=(f,...a)=>(c.set(++i,a.length?f.bind(undefined,...a):f),m.postMessage(i),i);$.clearImmediate=i=>c.delete(i)}
+if(!('setImmediate'in $)){let i=0,m=new MessageChannel(),c=new Map();m.port1.onmessage=({data:i},j=c.get(i))=>(c.delete(i)&&j());m=m.port2;$.setImmediate=(f,...a)=>(c.set(++i,a.length?f.bind(undefined,...a):f),m.postMessage(i),i);$.clearImmediate=i=>c.delete(i)}
 if(!('sin'in $))Object.defineProperties($,Object.getOwnPropertyDescriptors(Math))
 $.Gamma=($={})=>{
 let T = $.canvas = document.createElement('canvas')
@@ -488,6 +488,8 @@ $.Texture = (w=0, h=0, d=0, o=0, f=Formats.RGBA, mips=0) => {
 	gl.bindTexture(35866, null)
 	return tx
 }
+$.Texture.MAX_WIDTH = $.Texture.MAX_HEIGHT = gl.getParameter(gl.MAX_TEXTURE_SIZE)
+$.Texture.MAX_LAYERS = gl.getParameter(gl.MAX_ARRAY_TEXTURE_LAYERS)
 $.Img = (src, o=0, fmt=Formats.RGBA, mips=0) => new img({tex:null,i:-1,f:fmt,o,src:src?Array.isArray(src)?src:[src]:[],w:0,h:0,d:0,m:mips})
 Object.assign($, {
 	UPSCALE_SMOOTH: 1, DOWNSCALE_SMOOTH: 2, MIPMAP_SMOOTH: 4, SMOOTH: 7, REPEAT_X: 8, REPEAT_MIRRORED_X: 16, REPEAT_Y: 32, REPEAT_MIRRORED_Y: 64, REPEAT: 40, REPEAT_MIRRORED: 80,
@@ -530,7 +532,7 @@ Object.assign($, {
 	UINT: 32, UVEC2: 33, UVEC3: 34, UVEC4: 35,
 	TEXTURE: 20, UTEXTURE: 24, FTEXTURE: 28, COLOR: 4, UCOLOR: 8, FCOLOR: 12,
 	FIXED: 4, _: undefined,
-	TRIANGLE_STRIP: 5, TRIANGLES: 4, TRIANGLE_FAN: 6, LINE_LOOP: 2, LINE_STRIP: 3, LINES: 1, POINTS: 0
+	TRIANGLE_STRIP: 5, TRIANGLES: 4, TRIANGLE_FAN: 6, LINE_LOOP: 2, LINE_STRIP: 3, LINES: 1, POINTS: 0,
 })
 const V=class vec2{
 	constructor(x,y){this.x=x;this.y=y}

@@ -128,6 +128,9 @@ Blocks.sand = class extends Block{
 	static placeSounds = audioSet('sand/place', 4)
 	static stepSounds = audioSet('sand/step', 5)
 }
+Blocks.gravel = class extends Blocks.sand{
+	static texture = BlockTexture(blocksPng, 3, 1)
+}
 Blocks.glass = class extends Block{
 	static opacity = 0
 	static breaktime = 0.6

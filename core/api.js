@@ -137,7 +137,7 @@ document.onpointerlockerror = document.onpointerlockchange = function(e){
 	}
 }
 
-const selchange = new Set
+const selchange = new Set()
 document.onselectionchange = () => {
 	for(const c of selchange){
 		if(!c.parentElement) selchange.delete(c)

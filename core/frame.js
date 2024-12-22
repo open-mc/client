@@ -8,8 +8,8 @@ import { performLightUpdates } from './lighting.js'
 
 const chunkShader = Shader(`void main(){
 	ivec2 ipos = ivec2(uv*1024.);
-	uvec2 a = uGetPixel(arg0, ivec3(ipos>>4u,0), 0).xy;
-	uint light = uGetPixel(arg1, ivec3(ipos>>4u,0), 0).x;
+	uvec2 a = uGetPixel(arg0, ivec3(ipos>>4u,arg2), 0).xy;
+	uint light = uGetPixel(arg1, ivec3(ipos>>4u,arg2), 0).x;
 	if(a.y>=65535u){
 		if(light>=uni1.z) discard;
 		color = vec4(0,0,0,1.-float(light>>4u)*.066666666);
@@ -26,7 +26,7 @@ const chunkShader = Shader(`void main(){
 			color += vec4(0,0,0,1.-float(light>>4u)*.066666666)*(1.-color.a);
 		}
 	}
-}`, [UTEXTURE, UTEXTURE], [TEXTURE, UVEC4, TEXTURE], FIXED)
+}`, [UTEXTURE, UTEXTURE, UINT], [TEXTURE, UVEC4, TEXTURE], FIXED)
 const borderTex = Texture(8, 8, 1, REPEAT)
 let a = new Uint8Array(256)
 for(let i = 0; i < 64; i++){
@@ -69,8 +69,8 @@ drawLayer('none', 200, (ctx, w, h) => {
 		if(x0+S <= -limX || y0+S <= -limY || x0 >= limX || y0 >= limY){ if(chunk.ctx) chunk.hide(); continue }
 		visibleChunks++
 		if(!chunk.ctx) chunk.draw()
-		if(chunk.changed&1) chunk.changed&=-2, chunk.ctx2.pasteData(chunk.light)
-		ctx.drawRect(x0, y0, S, S, chunk.ctx, chunk.ctx2)
+		if(chunk.changed&1) chunk.changed&=-2, chunk.ctx2.pasteData(chunk.light, 0, 0, chunk.layer, 64, 64, 1)
+		ctx.drawRect(x0, y0, S, S, chunk.ctx, chunk.ctx2, chunk.layer)
 	}
 	ctx.shader = null
 	const b = borderTex.sub(-t,-t,128>>mipmap,128>>mipmap)

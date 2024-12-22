@@ -113,7 +113,7 @@ drawLayer('world', 150, c => {
 	if(rainyness && cam.z > .125){
 		const col = vec4(rainyness/2)
 		const end = ceil(cam.x+W2)|0
-		const rainOff = t*30%16
+		const rainOff = t*60%16
 		let x = floor(cam.x-W2-1)|0, e = exposureMap.get(x>>>6)
 		while((x=x+1|0) != end){
 			if(!(x&63)) e = exposureMap.get(x>>>6)

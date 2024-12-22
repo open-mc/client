@@ -29,11 +29,10 @@ Todo: Hotlink vanilla assets as a partial workaround to license issue
 ## Alpha 11
 
 - **Offline support**
+- **Singleplayer**
 - Lots and lots of internal changes
-- Singleplayer
 - World export/import
-
-Todo: Terrain generation overhaul
+- Terrain generation overhaul
 
 Todo: More blocks and items
 

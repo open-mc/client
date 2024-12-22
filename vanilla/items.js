@@ -27,6 +27,7 @@ Items.jungle_planks_slab = slabifyItem(Items.jungle_planks, Blocks.jungle_planks
 
 
 Items.sand = itemify(Blocks.sand, 'Sand')
+Items.gravel = itemify(Blocks.gravel, 'Gravel')
 Items.sandstone = itemify(Blocks.sandstone, 'Sandstone')
 Items.stone = itemify(Blocks.stone, 'Stone')
 Items.cobblestone = itemify(Blocks.cobblestone, 'Cobblestone')

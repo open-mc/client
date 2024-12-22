@@ -29,6 +29,8 @@ Math.ifloat = x => {
 	return (f | 0) + (x - f)
 }
 Math.randint = () => Math.random() * 4294967296 | 0
+const h = '0123456789abcdef'
+Number.prototype.toHex = function(){return h[this>>>28]+h[this>>24&15]+h[this>>20&15]+h[this>>16&15]+h[this>>12&15]+h[this>>8&15]+h[this>>4&15]+h[this&15]}
 
 // Blazingly fast!!
 const nul = new Array(100).fill(null)
@@ -57,7 +59,7 @@ globalThis.PI2 = PI*2
 Function.optimizeImmediately = Function.prototype
 
 globalThis.Worker = class Worker extends MessageChannel{
-	static _workers = new WeakMap
+	static _workers = new WeakMap()
 	constructor(src){
 		let {port1, port2} = super()
 		port1._oncl = null
@@ -79,6 +81,7 @@ import(H+'core/localserver.js').then(()=>import(e.data.path))
 		}
 		document.body.append(ifr)
 		Worker._workers.set(ifr.contentWindow, port1)
+		port1.start()
 		return Object.setPrototypeOf(port1, Worker.proto)
 	}
 	static proto = Object.create(MessagePort.prototype, {
@@ -173,10 +176,10 @@ globalThis.configLoaded = fn => configLoaded.listeners.push(fn)
 configLoaded.listeners = []
 dbport.onmessage = ({data}) => { reqs[i](data); if(++i>(reqs.length>>1)) reqs.splice(0,i),i=0 }
 const reqs = []; let i = 0
-const e = new TextEncoder
+const e = new TextEncoder()
 globalThis.DB = new class IDBLevel{
 	prefix = ''
-	sublevel(a){const s=new IDBLevel;s.prefix=this.prefix+'!'+a+'!';return s}
+	sublevel(a){const s=new IDBLevel();s.prefix=this.prefix+'!'+a+'!';return s}
 	get(k,cb){
 		try{ return cb?(reqs.push(v=>cb(!v?'Not found:':null,new Uint8Array(v))),undefined):new Promise((a,b)=>reqs.push(v=>v?a(new Uint8Array(v)):b('Not found:'))) }finally{
 			dbport.postMessage(this.prefix+k)

@@ -316,7 +316,7 @@ export class Particle{
 export function addParticle(p){
 	if(particles.size < options.maxParticles) particles.add(p)
 }
-export const particles = new Set
+export const particles = new Set()
 "world"
 
 drawLayer('world', 300, globalThis.x=c => {
@@ -379,7 +379,7 @@ export const ephemeralInterfaces = {}
 let bai = 0, bac = 256
 export let blockAtlas = Texture(4096, min(4096, bac/16), 1, _, _, 5)
 
-const loading = new Map
+const loading = new Map()
 
 export function BlockTexture(img=0, x=0, y=0, frames = 0){
 	if(typeof img == 'number') frames = img, img = null

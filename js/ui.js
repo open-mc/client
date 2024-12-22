@@ -4,7 +4,7 @@ let defaultUI
 export function setDefaultUI(fn){defaultUI = fn}
 
 const Sound = src => {
-	const arr = [new Audio]
+	const arr = [new Audio()]
 	fetch(src).then(a => a.blob()).then(a => arr[0].src = URL.createObjectURL(a))
 	return () => {
 		let a = arr.length > 1 ? arr.pop() : arr[0].cloneNode(true)
@@ -36,7 +36,7 @@ export function showUI(a = null){
 	void (ui??NONE).replaceWith((ui = a) ?? NONE)
 }
 
-const selchange = new Set
+const selchange = new Set()
 document.onselectionchange = () => {
 	for(const c of selchange){
 		if(!c.parentElement) selchange.delete(c)

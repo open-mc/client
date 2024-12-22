@@ -1,7 +1,7 @@
 import { options }  from './save.js'
 
 let langObj = null
-const langCache = new Map
+const langCache = new Map()
 const proxHandlers = {get: (t, k) => k == Symbol.toPrimitive ? t : prox(t.path?t.path+'.'+k:k)}
 function prox(path){
 	let fn = langCache.get(path)
@@ -28,7 +28,7 @@ export const setLang = lang => {
 	nf = Intl.NumberFormat(lang)
 	df = Intl.DateTimeFormat(lang)
 	return fetch('langs/'+lang+'.lang').then(a => a.status == 404 || (a.status == 200 && a.headers.get('content-type').startsWith('text/html')) ? fetch('langs/en.lang').then(a=>a.text()) : a.text(), e => fetch('langs/en.lang').then(a => a.text())).then(str => {
-		langObj = new Map
+		langObj = new Map()
 		if(!str) return
 		for(let line of str.split('\n')){
 			let j = line.indexOf('#')

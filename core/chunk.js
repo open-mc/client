@@ -1,5 +1,6 @@
 import { BlockIDs, EntityIDs, Classes } from 'definitions'
 import { _add, _addDark } from './lighting.js'
+import { map } from 'world'
 
 const texturePool = []
 const chunkUVData = new Uint16Array(8192)
@@ -9,7 +10,7 @@ export class Chunk extends Uint16Array{
 	constructor(buf){
 		super(4096)
 		this.light = new Uint8Array(4096)
-		this.tileData = new Map
+		this.tileData = new Map()
 		this.x = buf.int()&0x3ffffff
 		this.y = buf.int()&0x3ffffff
 		this.up = this.left = this.right = this.down = null
@@ -17,7 +18,9 @@ export class Chunk extends Uint16Array{
 		this.ticks = new Map()
 		this.entities = new Set()
 		this.ctx2 = this.ctx = this.writeCtx = null
+		this.av = null
 		this.lastFrame = 0
+		this.layer = 0
 		this.flags = 0
 		const Schema = Chunk.savedatahistory[buf.flint()] || Chunk.savedata
 		const l = buf.short()
@@ -94,18 +97,26 @@ export class Chunk extends Uint16Array{
 	static savedatahistory = []
 	hide(){
 		if(!this.ctx) return
-		texturePool.push(this.ctx, this.ctx2)
+		if(this.av.push(this.layer) == 1) texturePool.push({ctx: this.ctx, ctx2: this.ctx2, av: this.av, added: Date.now()})
 		this.ctx = this.ctx2 = this.writeCtx = null
 		this.rerenders.length = 0
 	}
 	draw(){
 		if(this.ctx) return
-		// ctx2 went in last, ctx2 comes out first
-		this.ctx2 = texturePool.pop()
-		this.ctx = texturePool.pop()
-		if(!this.ctx){
-			this.ctx = Texture(64, 64, 1, 0, Formats.RG16)
-			this.ctx2 = Texture(64, 64, 1, 0, Formats.R8)
+
+		if(texturePool.length){
+			void ({av: this.av, ctx: this.ctx, ctx2: this.ctx2} = texturePool[texturePool.length-1])
+			this.layer = this.av.pop()
+			if(!this.av.length) texturePool.pop()
+		}else{
+			const layers = max(4, min(Texture.MAX_LAYERS, map.size>>3))
+			this.ctx = Texture(64, 64, layers, 0, Formats.RG16)
+			this.ctx2 = Texture(64, 64, layers, 0, Formats.R8)
+			this.av = []
+			if(layers > 1){
+				for(let i=1;i<layers;i++) this.av.push(i)
+				texturePool.push({ctx: this.ctx, ctx2: this.ctx2, av: this.av, added: Date.now()})
+			}
 		}
 		for(let i = 0; i < 4096; i++){
 			const b = this[i]
@@ -116,8 +127,8 @@ export class Chunk extends Uint16Array{
 				chunkUVData[i<<1|1] = texture>>16
 			}else chunkUVData[i<<1|1] = 65535
 		}
-		this.ctx.pasteData(chunkUVData)
-		this.ctx2.pasteData(this.light)
+		this.ctx.pasteData(chunkUVData, 0, 0, this.layer, 64, 64, 1)
+		this.ctx2.pasteData(this.light, 0, 0, this.layer, 64, 64, 1)
 		this.changed = 0
 	}
 	updateDrawn(i, b, ob){
@@ -142,7 +153,7 @@ export class Chunk extends Uint16Array{
 		if(o2<o1||b2>b1) _add(this, i)
 		if(!this.ctx) return
 		if(!this.writeCtx){
-			const ctx = this.writeCtx = this.ctx.drawable()
+			const ctx = this.writeCtx = this.ctx.drawable(this.layer)
 			ctx.box(.0078125, .0078125, .015625, .015625)
 			ctx.geometry = pointGeometry
 			ctx.shader = ctxWriteShader
@@ -172,7 +183,7 @@ export class Chunk extends Uint16Array{
 		}
 		if(!this.ctx) return
 		if(!this.writeCtx){
-			const ctx = this.writeCtx = this.ctx.drawable()
+			const ctx = this.writeCtx = this.ctx.drawable(this.layer)
 			ctx.box(.0078125, .0078125, .015625, .015625)
 			ctx.geometry = pointGeometry
 			ctx.shader = ctxWriteShader
@@ -192,9 +203,15 @@ const ctxWriteShader = Shader(`void main(){
 Classes[1] = Chunk
 
 setInterval(() => {
-	if(texturePool.length > 10){
-		for(const s of texturePool) s.delete()
-		texturePool.length = 0
+	const exp = Date.now()-30e3
+
+	for(let i = 0; i < texturePool.length; i++){
+		const o = texturePool[i]
+		if(o.added > exp) break
+		if(o.av.length < o.ctx.layers) continue
+		o.ctx.delete()
+		o.ctx2.delete()
+		texturePool.splice(i--, 1)
 	}
 }, 10e3)
 export function gotId(id){

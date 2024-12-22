@@ -19,7 +19,7 @@ export let loadingChunks = true
 function dimensionPacket(data){
 	if(!data.left) return void (loadingChunks = false)
 	loadingChunks = true
-	if(world.type != (world.type = data.byte())){
+	if(world.type != (world.type = data.flint())){
 		queue(world.type)
 		gridEventMap.clear()
 	}
@@ -147,7 +147,7 @@ function blockSetPacket(buf){
 		}
 	}
 }
-const recentlyDeleted = new Map
+const recentlyDeleted = new Map()
 function entityPacket(buf){
 	recentlyDeleted.clear()
 	while(buf.left){
