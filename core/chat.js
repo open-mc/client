@@ -1,5 +1,5 @@
 import { drawLayer, drawText, calcText, ping, renderUI, Input } from "api"
-import { element, onkey, send, setPlaying } from "./api.js"
+import { element, onkey, send, setPointerLock } from "./api.js"
 
 const chat = []
 
@@ -22,7 +22,7 @@ drawLayer('ui', 999, (ctx, w, h) => {
 		if(pinged) ctx.drawRect(-3, -1, 2, 10*data.length, vec4(alpha, alpha*75, 0, alpha*.5))
 		for(const part of data) drawText(ctx, part, 0, 0, 8, alpha), ctx.translate(0, 10)
 	}
-	if(chatFocused) element(chatbox), setPlaying(false), chatbox.focus()
+	if(chatFocused) element(chatbox), setPointerLock(false), chatbox.focus()
 })
 
 const chatbox = Input('text', '', { msg: /^[^/][^]*/y, c7: /\/\w*/y, c11: /~|~?[+-]?(\d+(\.\d*)?|\.\d+)([Ee][+-]?\d+)?/y, c13: /"(?:[^\\"]|\\.)*"/y, c14: /!|@\w|(@\w)?\[\S*\]/y, c10: /[^"\s]\S*/y, c9: /"/y}).css({

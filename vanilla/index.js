@@ -1,6 +1,6 @@
 import { uiButtons, renderItem, renderItemCount, renderSlot, renderTooltip, resetSlot, slotI, audioSet } from './effects.js'
 import click from '/core/img/click.mp3'
-import { onkey, drawLayer, setPlaying, renderUI, quit, packets, send, voice, drawText, calcText, tickPhase } from 'api'
+import { onkey, drawLayer, setPointerLock, renderUI, quit, packets, send, voice, drawText, calcText, tickPhase } from 'api'
 import { gridEvents, entityMap, pointer, cam, world, configLoaded, me, W2, H2, exposureMap, mode, WorldType } from 'world'
 import { getblock, peek, sound, goto } from 'ant'
 import { Item, BlockParticle, addParticle, blockBreak, ephemeralInterfaces } from 'definitions'
@@ -200,7 +200,7 @@ drawLayer('ui', 1000, (c, w, h) => {
 			: 0
 		: 0
 		if(!respawnClicked){
-			setPlaying(false)
+			setPointerLock(false)
 			c2.drawRect((w - btnW) / 2, h3, btnW, 20, selectedBtn == 1 ? uiButtons.largeSelected : uiButtons.large)
 			let arr = calcText('Respawn')
 			drawText(c2, arr, w / 2 - arr.width*4, h3 + 7, 8)
@@ -214,7 +214,7 @@ drawLayer('ui', 1000, (c, w, h) => {
 				const buf = new DataWriter()
 				buf.byte(5)
 				send(buf)
-				setPlaying(true)
+				setPointerLock(true)
 			}else if((changed.has(LBUTTON) && !buttons.has(LBUTTON) && selectedBtn == -1) || (changed.has(GAMEPAD.MENU) && !buttons.has(GAMEPAD.MENU) && selectedBtn == -1)){
 				respawnClicked = true
 				quit()
@@ -229,7 +229,7 @@ drawLayer('ui', 1000, (c, w, h) => {
 	const action = invAction
 	invAction = 0
 	if(!invInterface) return
-	setPlaying(false)
+	setPointerLock(false)
 	resetSlot()
 	c2.drawRect(0, 0, w, h, vec4(0, 0, 0, .4))
 	c2.translate(w / 2, h / 2)
@@ -297,21 +297,21 @@ packets[12] = buf => {
 	const kind = buf.short()
 	interfaceId = buf.byte()
 	invInterface = new ephemeralInterfaces[kind](buf)
-	setPlaying(false)
+	setPointerLock(false)
 }
 packets[13] = buf => {
 	const e = entityMap.get(buf.uint32())
 	if(!e) return
 	invInterface = e
 	interfaceId = buf.byte()
-	setPlaying(false)
+	setPointerLock(false)
 }
 packets[14] = buf => {
 	const b = getblock(buf.int(), buf.int())
 	if(!b) return
 	invInterface = b
 	interfaceId = buf.byte()
-	setPlaying(false)
+	setPointerLock(false)
 }
 packets[15] = () => { invInterface = null }
 

@@ -1,7 +1,7 @@
 import { map, cam, me, onPlayerLoad, perms, pointer, W2, H2, toBlockExact, mode } from 'world'
 import { getblock, goto, place, peek, peekup, peekdown, peekleft, peekright } from 'ant'
 import './controls.js'
-import { onkey, options, playing, renderUI, drawLayer, onpress } from 'api'
+import { onkey, options, hasLock, renderUI, drawLayer, onpress } from 'api'
 import { Entity, TEX_SIZE, BlockIDs } from 'definitions'
 
 export const CAMERA_DYNAMIC = 0, CAMERA_FOLLOW_SMOOTH = 1, CAMERA_FOLLOW_POINTER = 2,
@@ -131,7 +131,7 @@ function raycastPointer(){
 }
 const invertBlend = Blend(ONE_MINUS_DST, ADD, ONE_MINUS_SRC)
 drawLayer('world', 400, c => {
-	if(!playing) return
+	if(!hasLock) return
 	if(cursor.mx||cursor.my) pointerMoved(cursor.mx, cursor.my), pointerOpacity = 1
 	if(gesture.dx||gesture.dy) pointerMoved(gesture.dx*W2, gesture.dy*H2, 4), pointerOpacity = 0
 	if(renderUI && me.health){
@@ -199,13 +199,13 @@ export function checkBlockPlacing(buf){
 	const hasP = ((buttons.has(options.click ? LBUTTON : RBUTTON) || buttons.has(options.click ? GAMEPAD.LT : GAMEPAD.RT)) && ((mode == 1 && buttons.has(KEYS.ALT)) || t > lastPlace + .12)) || oncePlace
 	oncePlace = false
 	const hasB = (buttons.has(options.click ? RBUTTON : LBUTTON) || buttons.has(options.click ? GAMEPAD.RT : GAMEPAD.LT)) && !(mode == 1 && !buttons.has(KEYS.ALT) && t <= lastPlace + .12)
-	if(hasP && playing && bpx == bpx){
+	if(hasP && hasLock && bpx == bpx){
 		if(blockPlacing) goto(bpx, bpy), place(blockPlacing)
 		buf.byte(me.selected)
 		buf.float(x); buf.float(y)
 		buf.int(bpx); buf.int(bpy)
 		lastPlace = t
-	}else if(hasB && bx == bx && playing){
+	}else if(hasB && bx == bx && hasLock){
 		buf.byte(me.selected | 128)
 		buf.float(x); buf.float(y)
 		blockbreakx = bx; blockbreaky = by
@@ -213,7 +213,7 @@ export function checkBlockPlacing(buf){
 	}else{
 		buf.byte(me.selected); buf.float(NaN); buf.float(me.f)
 		let id = Entity.meid // -1
-		const hitBtnDown = hasB && playing
+		const hitBtnDown = hasB && hasLock
 		if(hitBtnDown && !didHit){
 			const xp = me.x + x, yp = me.y + me.head + y
 			const xa = floor(xp - 32) >>> 6, ya = floor(yp - 32) >>> 6, x1 = xa + 1 & 0x3FFFFFF, y1 = ya + 1 & 0x3FFFFFF
@@ -267,4 +267,5 @@ export const set = (_x, _y) => {
 	x = _x; y = _y
 }
 import * as p from './pointer.js'
+
 pointer(p)

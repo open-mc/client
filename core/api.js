@@ -46,8 +46,8 @@ export const listen = (...keys) => {
 		if(key in options) cb(options[key])
 	}
 }
-export let paused = true, playing = false
-export const setPlaying = (p=true) => {playing=p}
+export let paused = true, shouldLock = false, hasLock = false
+export const setPointerLock = (p=true) => {shouldLock=p}
 export const quit = () => parent.postMessage(NaN, '*')
 
 export const onfocus = []
@@ -114,27 +114,31 @@ export function uiButton(c, x0, y0, w, h){
 	return 1
 }
 
+// unadjustedMovement is supported on non-linux chromium
 const ptrLockOpts = !navigator.platform.startsWith('Linux') && Intl.v8BreakIterator ? {unadjustedMovement: true} : {}
 export const movementScale = ptrLockOpts.unadjustedMovement ? 1 : globalThis.netscape ? devicePixelRatio : /Opera|OPR\//.test(navigator.userAgent) ? 1/devicePixelRatio : 1
 export const ptrlock = () => {
 	const el = gl.canvas
-	const fs = options.fsc && !document.fullscreenElement ? document.body.requestFullscreen?.() : undefined
-	if(fs instanceof Promise) fs.catch(e=>null).then(() => el.requestPointerLock?.(ptrLockOpts)?.catch(e=>null))
-	else el.requestPointerLock?.(ptrLockOpts)?.catch(e=>null)
+	let fs = options.fsc && !document.fullscreenElement ? document.body.requestFullscreen?.() : undefined
+	if(fs instanceof Promise) fs = fs.catch(e=>null).then(() => el.requestPointerLock?.(ptrLockOpts))
+	else fs = el.requestPointerLock?.(ptrLockOpts)
+	if(fs) preventExit = true, fs.then(() => preventExit = false, () => null)
+	top.postMessage(hasLock = true, '*')
+	paused = false
 }
-let exited = false
+let preventExit = false
 export const exitPtrlock = () => {
-	exited = true
 	document.exitPointerLock?.()
+	hasLock = false
 }
-document.onpointerlockerror = document.onpointerlockchange = function(e){
-	if(e.type == 'pointerlockchange' && document.pointerLockElement){
-		top.postMessage(false, '*')
-		paused = false
-	}else{
-		if(!exited) top.postMessage(paused = true, '*'), document.fullscreenElement && document.exitFullscreen?.(), document.documentElement.style.cursor = 'pointer'
-		exited = false
-	}
+document.onpointerlockerror = e => {
+	if(!hasLock) return
+	top.postMessage(hasLock = false, '*'), document.fullscreenElement && document.exitFullscreen?.(), document.documentElement.style.cursor = 'pointer'
+	paused = true
+}
+document.onpointerlockchange = () => {
+	if(!document.pointerLockElement && !preventExit)
+		document.onpointerlockerror()
 }
 
 const selchange = new Set()

@@ -1,15 +1,15 @@
-import { onkey, onwheel, playing } from 'api'
+import { onkey, onwheel, hasLock, send } from 'api'
 import { mePhysics } from './entity.js'
 import { me, mode } from 'world'
 import { getblock } from 'ant'
-import { send } from './api.js'
+
 let R=false,L=false,U=false,D=false
 let lastPressUp = 0, lastPressRight = 0, lastPressLeft = 0
 
 let gamepadToggleCrouch = false
 onkey(GAMEPAD.B, () => gamepadToggleCrouch=!gamepadToggleCrouch)
 export const playerControls = () => {
-	if(!playing||!me) return
+	if(!hasLock||!me) return
 	if((me.state&1)&&mode<1) me.state &= -2
 	const r = buttons.has(KEYS.RIGHT) || buttons.has(KEYS.D) || cursor.jlx > 0.4
 	const l = buttons.has(KEYS.LEFT) || buttons.has(KEYS.A) || cursor.jlx < -0.4

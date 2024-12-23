@@ -15,6 +15,7 @@ Blocks.air = class extends Block{
 	static solid = false
 	static replaceable = true
 	static opacity = 0
+	static minLight = 4
 }
 Blocks.grass = class extends Block{
 	static dirt = true
@@ -149,6 +150,7 @@ const bucketSounds = {
 
 export class Water extends Block{
 	static opacity = 1
+	static minLight = 5
 	static solid = false
 	static replaceable = true
 	static climbable = true

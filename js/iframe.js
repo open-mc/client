@@ -220,8 +220,8 @@ onmessage = ({data, source}) => {
 	
 	if(data instanceof ArrayBuffer || typeof data == 'string') ws?.send(data)
 	if(typeof data != 'object'){
-		if(data === true) pause()
-		else if(data === false) showUI(null)
+		if(data === false) pause()
+		else if(data === true) showUI(null)
 		else if(data !== data) serverlist()
 		else if(data === Infinity) voiceOn()
 		else if(data === -Infinity) voiceOff()

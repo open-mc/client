@@ -5,7 +5,7 @@ import { mePhysics, fastCollision } from './entity.js'
 import { entityMap, map, cam, onPlayerLoad, world, me, W2, H2, SCALE } from 'world'
 import { goto, peek } from 'ant'
 import * as pointer from './pointer.js'
-import { options, _renderPhases, renderBoxes, send, download, copy, setPlaying, drawText, calcText, _networkUsage, listen, _tickPhases, renderUI, _cbs, _cbs1, onmousemove, onwheel, _optionListeners, _onvoice, voice, _onPacket, onfocus, onblur, onkey, ongesture, onpress, playing, paused, ptrlock, exitPtrlock, movementScale, preframe } from 'api'
+import { options, _renderPhases, renderBoxes, send, download, copy, setPointerLock, drawText, calcText, _networkUsage, listen, _tickPhases, renderUI, _cbs, _cbs1, onmousemove, onwheel, _optionListeners, _onvoice, voice, _onPacket, onfocus, onblur, onkey, ongesture, onpress, shouldLock, hasLock, paused, ptrlock, exitPtrlock, movementScale, preframe } from 'api'
 import { _recalcDimensions, Blocks, Items, Entities, BlockIDs, ItemIDs, EntityIDs, Block, Item, Entity, Classes } from 'definitions'
 import { jsonToType } from '/server/modules/dataproto.js'
 import { onChat } from './chat.js'
@@ -86,7 +86,7 @@ globalThis.render = () => {
 		drawText(ctx, arr, -arr.width*8, 0, 16)
 		return
 	}
-	setPlaying(true)
+	setPointerLock(true)
 	cam.minZoom = max(innerWidth,innerHeight)/(ceil(sqrt(map.size))-1.375)/(2048>>!renderBoxes)
 	preframe.fire()
 	for(const entity of entityMap.values()) fastCollision(entity)
@@ -169,8 +169,8 @@ globalThis.render = () => {
 	cursor.dx = cursor.dy = cursor.mx = cursor.my = 0
 	gesture.dx = gesture.dy = gesture.rot = 0
 	gesture.scale = 1
-	if(playing && !paused && !document.pointerLockElement) ptrlock()
-	else if(!playing && document.pointerLockElement) exitPtrlock()
+	if(shouldLock && !hasLock && !paused) ptrlock()
+	else if(!shouldLock && hasLock && !paused) exitPtrlock()
 }
 globalThis.cam = cam
 

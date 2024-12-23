@@ -76,6 +76,7 @@ export class Block{
 	static breaktime = 3
 	static opacity = 2
 	static brightness = 0
+	static minLight = 0
 	punch(){
 		if(this.stepSounds.length)
 			sound(this.stepSounds, 0.1375, 0.5)

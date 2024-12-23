@@ -6,13 +6,13 @@ let lI = [], dI = []
 let llI = [], ddI = []
 export const _add = (ch, i=0) => {
 	let {lightI} = ch
-	if(lightI<0) ch.lightI = lightI = (uptChunks.push(ch)-1)*4096
+	if(lightI<0) ch.lightI = lightI = (uptChunks.push(ch)-1)<<12
 	lI.push(i+lightI)
 }
 
 export const _addDark = (ch, i=0) => {
 	let {lightI} = ch
-	if(lightI<0) ch.lightI = lightI = (uptChunks.push(ch)-1)*4096
+	if(lightI<0) ch.lightI = lightI = (uptChunks.push(ch)-1)<<12
 	dI.push(i+lightI)
 }
 
@@ -32,52 +32,55 @@ export function performLightUpdates(shouldSkylight = true){
 		const a = dI
 		dI = ddI; ddI = a
 		for(let i of a){
-			const ch = uptChunks[(i/4096)|0], light = ch.light
+			const ch = uptChunks[i>>>12], light = ch.light
 			let v = light[i&=4095], v1 = v&15
 			if(!v) continue
+			let minLight = 0; v >>= 4
 			if(dark){
-				const b = ch[i], {opacity,brightness} = b==65535?ch.tileData.get(i):BlockIDs[b]
-				const v2 = v>>4; v1 = (v1>opacity?v1-opacity:0)
+				const b = ch[i], {opacity,brightness,minLight:mL} = b==65535?ch.tileData.get(i):BlockIDs[b]
+				v1 = v1>opacity?v1-opacity:0
+				minLight = mL
 				if(brightness>v1) v1=brightness
-				v = (v2>opacity?v2-opacity:0)<<4|v1
+				v = v>opacity+mL?v-opacity:v<mL?v:mL
 				if(brightness) _add(ch, i)
 			}
 			light[i] = 0
+			if(i>63){
+				const l = light[i-64]
+				if(l) if(v1>(l&15)||v>=(l>>4)) _addDark(ch, i-64)
+				else _add(ch, i-64)
+			}else{
+				const c2 = ch.down
+				if(c2){ const l = c2.light[i|4032]; if(l) if(v1>(l&15)||v>=(l>>4)) _addDark(c2, i|4032); else _add(c2, i|4032) }
+			}
+			if(v > minLight) v--
 			if(i<4032){
 				const l = light[i+64]
-				if(l) if(v1>(l&15)||v>(l|15)) _addDark(ch, i+64)
+				if(l) if(v1>(l&15)||v>=(l>>4)) _addDark(ch, i+64)
 				else _add(ch, i+64)
 			}else{
 				const c2 = ch.up
 				if(c2){
 					const l = c2.light[i&63]
-					if(l) if(v1>(l&15)||v>(l|15)) _addDark(c2, i&63)
+					if(l) if(v1>(l&15)||v>=(l>>4)) _addDark(c2, i&63)
 					else _add(c2, i&63)
 				}
 			}
-			if(i>63){
-				const l = light[i-64]
-				if(l) if(v1>(l&15)||(v>>4)>=(l>>4)) _addDark(ch, i-64)
-				else _add(ch, i-64)
-			}else{
-				const c2 = ch.down
-				if(c2){ const l = c2.light[i|4032]; if(l) if(v1>(l&15)||(v>>4)>=(l>>4)) _addDark(c2, i|4032); else _add(c2, i|4032) }
-			}
 			if(i&63){
 				const l = light[i-1]
-				if(l) if(v1>(l&15)||v>(l|15)) _addDark(ch, i-1)
+				if(l) if(v1>(l&15)||v>=(l>>4)) _addDark(ch, i-1)
 				else _add(ch, i-1)
 			}else{
 				const c2 = ch.left
-				if(c2){ const l = c2.light[i|63]; if(l) if(v1>(l&15)||v>(l|15)) _addDark(c2, i|63); else _add(c2, i|63) }
+				if(c2){ const l = c2.light[i|63]; if(l) if(v1>(l&15)||v>=(l>>4)) _addDark(c2, i|63); else _add(c2, i|63) }
 			}
 			if((i&63)!=63){
 				const l = light[i+1]
-				if(l) if(v1>(l&15)||v>(l|15)) _addDark(ch, i+1)
+				if(l) if(v1>(l&15)||v>=(l>>4)) _addDark(ch, i+1)
 				else _add(ch, i+1)
 			}else{
 				const c2 = ch.right
-				if(c2){ const l = c2.light[i&4032]; if(l) if(v1>(l&15)||v>(l|15)) _addDark(c2, i&4032); else _add(c2, i&4032) }
+				if(c2){ const l = c2.light[i&4032]; if(l) if(v1>(l&15)||v>=(l>>4)) _addDark(c2, i&4032); else _add(c2, i&4032) }
 			}
 		}
 		dark += a.length
@@ -88,13 +91,13 @@ export function performLightUpdates(shouldSkylight = true){
 		lI = llI; llI = a
 		light += a.length
 		for(let i of a){
-			const ch = uptChunks[(i/4096)|0], light = ch.light
+			const ch = uptChunks[i>>>12], light = ch.light
 			let v = light[i&=4095]
-			const b = ch[i], {opacity,brightness} = b==65535?ch.tileData.get(i):BlockIDs[b]
+			const b = ch[i], {opacity,brightness,minLight} = b==65535?ch.tileData.get(i):BlockIDs[b]
 			const v2 = v>>4; let v1 = v&15
 			v1 = (v1>opacity+1?v1-opacity-1:0)
 			if(brightness>v1) v1=brightness-1,light[i]=v&240|brightness
-			v = (v2>opacity?v2-opacity:0)<<4|v1
+			v = (v2>opacity+minLight?v2-opacity:v2<minLight?v2:minLight)<<4|v1
 			if(i>63){
 				const l = light[i-64], a = l&15, b = v&15, l2 = (a>b?a:b)|(l>v?l:v)&240
 				if(l2 != l) light[i-64] = l2, _add(ch, i-64)
@@ -102,7 +105,7 @@ export function performLightUpdates(shouldSkylight = true){
 				const c2 = ch.down
 				if(c2){ const l = c2.light[i|4032], a = l&15, b = v&15, l2 = (a>b?a:b)|(l>v?l:v)&240; if(l2 != l) c2.light[i|4032] = l2, _add(c2, i|4032) }
 			}
-			if(v&240) v -= 16
+			if((v>>4)>minLight) v -= 16
 			if(i<4032){
 				const l = light[i+64], a = l&15, b = v&15, l2 = (a>b?a:b)|(l>v?l:v)&240
 				if(l2 != l) light[i+64] = l2, _add(ch, i+64)
