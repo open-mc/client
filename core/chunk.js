@@ -113,6 +113,7 @@ export class Chunk extends Uint16Array{
 			this.ctx = Texture(64, 64, layers, 0, Formats.RG16)
 			this.ctx2 = Texture(64, 64, layers, 0, Formats.R8)
 			this.av = []
+			this.layer = 0
 			if(layers > 1){
 				for(let i=1;i<layers;i++) this.av.push(i)
 				texturePool.push({ctx: this.ctx, ctx2: this.ctx2, av: this.av, added: Date.now()})
