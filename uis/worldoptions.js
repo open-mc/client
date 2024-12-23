@@ -11,16 +11,9 @@ const wtexts = texts.worldoptions
 let delTimer = -1
 const inputs = {
 	name: Input('', '').on('change', () => {config.name = inputs.name.value}),
-	seed: Input('', '32 bit').on('change', () => {
-		let s = +inputs.seed.value
-		if(s === s) config.world.seed = s|0
-		else{
-			s = inputs.seed.value
-			let h = 0
-			for(let i=0;i<s.length;i++) h=h*31+s.charCodeAt(i)|0
-			config.world.seed = h
-		}
-	}).css({width: '100rem'}),
+	seed: Input('', 'Any text. Hashed to 256 bits').on('change', () => {
+		config.world.seed = inputs.seed.value
+	}),
 	clr: Scale(v => {
 		config.world.chunk_loading_range = (v=Math.round(v*31)+1)
 		return [wtexts.loading_range(v<<6), (v-1)/31]

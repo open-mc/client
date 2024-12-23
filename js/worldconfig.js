@@ -7,16 +7,45 @@ export const defaultConfig = {
 	banner: '',
 	motd: [ "Last played: Never" ],
 	world: {
-		get seed(){return Math.floor(Math.random()*4294967296)},
+		get seed(){return ''+Math.floor(Math.random()*4294967296)},
 		nether_scale: 16,
-		chunk_loading_range: 2
+		chunk_loading_range: 2,
+		default_mode: 0
 	},
 	components: [ "vanilla" ],
 	generators: {
-		overworld: 'overworld',
-		nether: 'nether',
-		end: 'end',
-		void: 'void'
+		overworld: {
+			shaper: 'overworld',
+			period: 128,
+			value: 1,
+			air_layers: ["bedrock", -2147483647, 4, "water", -1, "waterTop", 0, "air"],
+			ground_layers: ["bedrock", -2147483647, 4, "stone"],
+			biome: 'overworld'
+		},
+		nether: {
+			shaper: 'nether',
+			period: 32,
+			value: 2048,
+			air_layers: ["air", 1024, "lava", 1407, "lavaTop", 1408, "air"],
+			air_layers_repeat: 2048,
+			ground_layers: ["netherrack"],
+			biome: 'nether'
+		},
+		end: {
+			shaper: 'end',
+			period: 32,
+			value: 2048,
+			air_layers: ["air"],
+			ground_layers: ["endstone"],
+			biome: 'end'
+		},
+		void: {
+			shaper: 'uniform',
+			value: 0,
+			air_layers: ["air"],
+			ground_layers: ["stone"],
+			biome: 'void'
+		}
 	},
 	permissions: {
 		suicide: true,
