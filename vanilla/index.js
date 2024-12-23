@@ -105,7 +105,7 @@ drawLayer('world', 150, c => {
 	if(world.type != WorldType.overworld) return
 	c.blend = cloudBlend
 	for(const {y, h, s, a} of cloudLayers){
-		const x = (t * s - cam.x) % (s*128)
+		const x = (t * s - cam.x) % (s*h*384)
 		c.drawRect(-W2, (y - cam.y) * 0.7, W2 * 2, h, cloudMap.sup(.5+x/(W2*2), 0, 192/W2*h, 0), vec4(1-a*.75))
 	}
 	c.blend = 0
