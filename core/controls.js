@@ -58,7 +58,7 @@ export const playerControls = () => {
 	}
 	if((me.impactDy < 0) && (me.state & 2)){
 		const x = me.x + (me.dx > 0 ? -me.width + .0001 : me.width - .0001)
-		if(getblock(floor(x), floor(me.y - .001)).flags&BlockFlags.HARD_TOP && !getblock(floor(x + me.dx * dt + sign(me.dx)*.125), floor(me.y - .001)).flags&BlockFlags.HARD_TOP)
+		if((getblock(floor(x), floor(me.y - .001)).flags&BlockFlags.HARD_TOP) && !(getblock(floor(x + me.dx * dt + sign(me.dx)*.125), floor(me.y - .001)).flags&BlockFlags.HARD_TOP))
 			me.dx = 0
 	}
 }

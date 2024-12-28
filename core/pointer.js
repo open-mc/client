@@ -96,7 +96,7 @@ function raycastPointer(){
 	}
 	goto(bpx, bpy)
 	px -= bpx - bx, py -= bpy - by
-	const targetFlag = item?.interactFluid ? 1024 : 256
+	const targetFlag = item?.interactFluid ? 1280 : 256
 	if(d >= reach){
 		const {flags} = peek()
 		if(flags&targetFlag){

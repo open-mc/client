@@ -14,8 +14,6 @@ BlockShape.HORIZONTAL_THIN = [0, 0.25, 1, 0.75]
 BlockShape.ONE_SHORT = [0, 0, 1, 15/16]
 BlockShape.TWO_SHORT = [0, 0, 1, 14/16]
 
-const trimTexture = Drawable(Texture(16, 16, 1), 0, 0, true)
-trimTexture
 const trimTex = (t, s) => MapBlockTexture(t, (ctx, tex) => {
 	ctx.mask = SET
 	ctx.blend = Blend.REPLACE

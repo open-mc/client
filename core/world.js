@@ -198,10 +198,10 @@ export function BlockTexture(img=null, x=0, y=0, frames = 0, invSpeed = 1, blend
 			ba2.paste(blockAtlas2); blockAtlas2 = ba2; toMipmap |= 2
 		}
 		animated.push({ frames, speed: 1/invSpeed, id: j, id2 })
-		if(!img.loaded) loading.set(j, img.then(img => _putImg(blockAtlas2, id2, frames, img, x, y, vert)))
+		if(!img.loaded) loading.set(j, Promise.resolve(img).then(img => _putImg(blockAtlas2, id2, frames, img, x, y, vert)))
 		else _putImg(blockAtlas2, id2, frames, img, x, y, vert)
 	}else{
-		if(!img.loaded) loading.set(j, img.then(img => _putImg(blockAtlas, j, c, img, x, y, vert)))
+		if(!img.loaded) loading.set(j, Promise.resolve(img).then(img => _putImg(blockAtlas, j, c, img, x, y, vert)))
 		else _putImg(blockAtlas, j, c, img, x, y, vert)
 	}
 	return j
@@ -238,7 +238,7 @@ export function MapBlockTexture(b, cb){
 		animated.push({ frames: a.frames, speed: a.speed, id: j, id2 })
 	}
 	const ready = () => {
-		let bA = blockAtlas, id = b|0, frames = c
+		let bA = blockAtlas, id = b&4194303, frames = c
 		if(a){
 			bA = blockAtlas2; id = a.id2; frames *= a.frames
 			blockAtlas2.w = 0.00390586; blockAtlas2.h = 1/(blockAtlas2.height>>4)
@@ -247,9 +247,9 @@ export function MapBlockTexture(b, cb){
 		if(h>frames) draw1.texture = Texture(16, (h=frames)*TEX_SIZE, 1)
 		else draw1.clear()
 		h = 1/h
-		for(let y=0;y<frames;y++){
+		for(let y=0;y<frames;y++,id++){
 			bA.x = (id&255)*0.00390586
-			bA.y = (id>>8&255)*_invAtlasHeight
+			bA.y = (id>>8&255)*bA.h
 			bA.l = id>>16&63
 			draw1.reset(h, 0, 0, 1, 0, y*h)
 			cb(draw1, bA)
