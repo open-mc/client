@@ -1,268 +1,13 @@
-globalThis.BitField = class BitField extends Array{
-	static parse(a){
-		if(!Array.isArray(a)) return new BitField 
-		return Object.setPrototypeOf(a, BitField.prototype)
-	}
-	static copyFrom(a){
-		const b = new BitField
-		if(Array.isArray(a))
-			b.push(...a)
-		return b
-	}
-	of(...n){
-		const b = new BitField
-		for(const i of n) b.set(i)
-		return b
-	}
-	set(pos){
-		while((pos >> 5) >= this.length) super.push(0)
-		this[pos >> 5] |= 1 << (pos & 31)
-	}
-	unset(pos){
-		let i = this.length
-		if((pos >> 5) >= i) return
-		this[pos >> 5] &= ~(1 << (pos & 31))
-		while(i && !this[--i]) super.pop()
-	}
-	toggle(pos){
-		let i = this.length
-		while((pos >> 5) >= i) super.push(0)
-		this[pos >> 5] ^= 1 << (pos & 31)
-		while(i && !this[--i]) super.pop()
-	}
-	has(pos){
-		if((pos >> 5) >= this.length) return false
-		return !!(this[pos >> 5] & (1 << (pos & 31)))
-	}
-	pop(pos){
-		if((pos >> 5) >= this.length) return false
-		let i = pos >> 5
-		const a = !!(this[i] ^ (this[i] &= ~(1 << (pos & 31))))
-		if(i == this.length - 1) while(i >= 0 && !this[i--]) super.pop()
-		return a
-	}
-	put(pos){
-		let i = pos >> 5
-		while(i >= this.length) super.push(0)
-		return !!(this[i] ^ (this[i] |= 1 << (pos & 31)))
-	}
-	xor(other){
-		let l = this.length
-		if(l == other.length){
-			while(l && this[--l] == other[l]) super.pop()
-		}else{
-			let l2 = l; l--
-			while(l2 < other.length) super.push(other[l2++])
-		}
-		for(let i = l; i >= 0; i--) this[i] ^= other[i]
-	}
-	and(other){
-		let l = this.length
-		if(this.length > other.length) l = this.length = other.length
-		while(l && !(this[--l] & other[l])) super.pop()
-		while(l > 0) this[--l] &= other[l]
-	}
-	or(other){
-		let l = this.length - 1, l2 = l
-		while(++l2 < other.length) super.push(other[l2])
-		for(let i = l; i >= 0; i--) this[i] |= other[i]
-	}
-	firstUnset(){
-		let i = -1
-		while(++i < this.length){
-			const a = ~this[i]
-			if(a) return i<<5|31-Math.clz32(a&-a)
-		}
-		return i<<5
-	}
-	firstSet(){
-		let i = -1
-		while(++i < this.length)
-			if(this[i]) return i<<5|31-Math.clz32(this[i]&-this[i])
-		return -1
-	}
-	lastSet(){
-		let i = this.length
-		while(--i >= 0)
-			if(this[i]) return i<<5|31-Math.clz32(this[i])
-		return -1
-	}
-	popFirst(){
-		let i = -1
-		while(++i < this.length)
-			if(this[i]){
-				let s = 31-Math.clz32(this[i]&-this[i])
-				this[i] &= ~(1 << s)
-				s = i<<5|s
-				i = this.length
-				while(i && !this[--i]) super.pop()
-				return s
-			}
-		return -1
-	}
-	popLast(){
-		let i = this.length
-		while(--i >= 0)
-			if(this[i]){
-				let s = 31-Math.clz32(this[i])
-				this[i] &= ~(1 << s)
-				s = i<<5|s
-				i = this.length
-				while(i && !this[--i]) super.pop()
-				return s
-			}
-		return -1
-	}
-	clear(){ this.length = 0 }
-}
-const _mac = navigator.platform.startsWith('Mac')
-Object.assign(globalThis, {
-	buttons: new BitField(), changed: new BitField(), touches: new Map(), gesture: {dx: 0, dy: 0, scale: 1, rot: 0},
-	cursor: {x: 0, y: 0, dx: 0, dy: 0, mx: 0, my: 0, jlx: 0, jly: 0, jrx: 0, jry: 0},
-	LBUTTON: 0, RBUTTON: 2, MBUTTON: 1, KEYS: Object.freeze({
-		A: 65, B: 66, C: 67, D: 68, E: 69, F: 70, G: 71, H: 72, I: 73, J: 74, K: 75, L: 76,
-		M: 77, N: 78, O: 79, P: 80, Q: 81, R: 82, S: 83, T: 84, U: 85, V: 86, W: 87, X: 88,
-		Y: 89, Z: 90, NUM_0: 48, NUM_1: 49, NUM_2: 50, NUM_3: 51, NUM_4: 52, NUM_5: 53, NUM_6: 54,
-		NUM_7: 55, NUM_8: 56, NUM_9: 57, SPACE: 32, LEFT_OF_1: _mac ? 192 : 223, TAB: 9, BACK: 8,
-		SHIFT: 16, CTRL: 17, ALT: 18, ESC: 27, META: 91, METARIGHT: 93, CAPSLOCK: 20, UP: 38,
-		RIGHT: 39, DOWN: 40, LEFT: 37, MOD: _mac ? 91 : 17, F1: 112, F2: 113, F3: 114, F4: 115,
-		F5: 116, F6: 117, F7: 118, F8: 119, F9: 120, F10: 121, F11: 122, F12: 123, MINUS: 189,
-		PLUS: 187, OPENBR: 219, CLOSEBR: 221, SEMICOLON: 186, APOS_HASH: 222, BACKSLASH: 220,
-		COMMA: 188, DOT: 190, SLASH: 191, ENTER: 13, CLEAR: 12, HOME: 36, END: 35, PAGE_UP: 33,
-		PAGE_DOWN: 34, INS: 45, DEL: 46, CTX_MENU: 93, PAD_0: 96, PAD_1: 97, PAD_2: 98, PAD_3: 99,
-		PAD_4: 100, PAD_5: 101, PAD_6: 102, PAD_7: 103, PAD_8: 104, PAD_9: 105, SCROLL_LOCK: 145,
-		PAUSE: 19, PAD_DIV: 111, PAD_MULT: 106, PAD_SUB: 109, PAD_ADD: 107, AT: 192
-	}),
-	GAMEPAD: Object.freeze({ A: 256, B: 257, X: 258, Y: 259, LB: 260, RB: 261, LT: 262, RT: 263, UP: 268, DOWN: 269, LEFT: 270, RIGHT: 271, MENU: 300 })
-})
-touches[Symbol.iterator] = touches.values
-Uint8Array.fromHex = function(hex){
-	const res = new Uint8Array(hex.length>>>1)
-	let r = 1, i = 0
-	for(let j = 0; j < hex.length; j++){
-		const c = hex.charCodeAt(j)
-		if(c>47&&c<58) r = r<<4|c-48
-		else if(c>64&&c<71) r = r<<4|c-55
-		else if(c>96&&c<103) r = r<<4|c-87
-		if(r&256) res[i++] = r, r = 1
-	}
-	return res.slice(0, i)
-}
-const h = '0123456789abcdef'
-Number.prototype.toHex = function(){return h[this>>>28]+h[this>>24&15]+h[this>>20&15]+h[this>>16&15]+h[this>>12&15]+h[this>>8&15]+h[this>>4&15]+h[this&15]}
-Number.formatData = bytes => bytes < 512 ? bytes.toFixed(0)+'B' : bytes < 524288 ? (bytes/1024).toFixed(1)+'KiB' : bytes < 536870912 ? (bytes/1048576).toFixed(1)+'MiB' : bytes < 549755813888 ? (bytes/1073741824).toFixed(1)+'GiB' : (bytes/1099511627776).toFixed(1)+'TiB'
-Math.ifloat = x => {
-	let f = Math.floor(x)
-	return (f >> 0) + (x - f)
-}
-Object.defineProperties(Array.prototype, {
-	best: {enumerable: false, value(pred, best = -Infinity){
-		let el = undefined
-		const length = this.length
-		for(let i = 0; i < length; i++){
-			const a = this[i], score = pred(a, i, this)
-			if(score >= best) best = score, el = a
-		}
-		return el
-	}},
-	remove: {enumerable: false, value(a){
-		let i = this.indexOf(a)
-		if(i>-1){while(i<this.length)this[i]=this[++i];this.pop()}
-	}},
-	mmap: {enumerable: false, value(fn){
-		const len = this.length
-		for(let i = 0; i < len; i++)
-			this[i] = fn(this[i])
-		return this
-	}},
-	bind: {enumerable: false, value(fn,idx=-1){
-		if((idx>>>=0)>=this.length)return this.push(fn);let a;while(idx<this.length)a=this[idx],this[idx++]=fn,fn=a;return this.push(a)
-	}},
-	fire: {enumerable: false, value(...v){
-		for(const r of this) try{r(...v)}catch(e){Promise.reject(e)}
-	}},
-	mapFire: {enumerable: false, value(...v){
-		const res = new Array(this.length)
-		for(const r of this) try{res.push(r(...v))}catch(e){Promise.reject(e);res.push(undefined)}
-		return res
-	}}
-})
-const nul = new Array(100).fill(null)
-Array.null = len => {
-	if(len <= 100) return nul.slice(0, len)
-	const a = new Array(len)
-	while(len > 0) a[--len] = null
-	return a
-}
-
-const actx = globalThis.actx = new AudioContext({latencyHint: 'interactive'})
-globalThis.bgGain = actx.createGain()
-bgGain.connect(actx.destination)
-globalThis.masterVolume = 1
-globalThis.audioOut = null
-globalThis.Wave = src => {
-	let buf = null
-	return function play(vol = 1, pitch = 1, pan = 0, start = 0, end = NaN, ends = true, bg = false){
-		if(buf === null){
-			buf = []
-			void (typeof src == 'string' ? (__import__.map.get(src)?.arrayBuffer() ?? fetch(src, {credentials: 'omit', priority: 'high'}).then(a => a.arrayBuffer())) : src.arrayBuffer()).then(a => actx.decodeAudioData(a, b => {
-				const l = buf; buf = b
-				for(let i = 0; i < l.length; i++) l[i][0] = play(...l[i]), l[i].length = 1
-			}))
-		}
-		if(Array.isArray(buf)){
-			const a = [vol,pitch,pan,start,end,ends,bg]
-			buf.push(a)
-			return () => {
-				if(Array.isArray(buf)){
-					const i = buf.indexOf(a)
-					if(i > -1) buf.splice(i, 1)
-				}else a[0]()
-			}
-		}
-		const source = actx.createBufferSource()
-		source.buffer = buf
-		if(bg) source.connect(bgGain)
-		else{
-			let s = source
-			const volume = masterVolume * vol
-			source.playbackRate.value = pitch
-			if(volume != 1){
-				const gain = actx.createGain()
-				gain.gain.value = volume
-				s.connect(gain)
-				s = gain
-			}
-			if(pan != 0){
-				const panner = actx.createStereoPanner()
-				panner.pan.value = min(1, max(-1, pan))
-				s.connect(panner)
-				s = panner
-			}
-			if(audioOut) s.connect(audioOut)
-			s.connect(actx.destination)
-		}
-		if(source.loop = !ends){
-			source.loopStart = start
-			if(end == end) source.loopEnd = end
-			source.start(0, start)
-		}else{
-			source.start(0, start, end == end ? end - start : buf.duration)
-			if(typeof ends == 'function') source.onended = ends
-		}
-		return (fire=false) => (fire || (source.onended = null), source.stop())
-	}
-}
-
-Math.randint ??= () => Math.random() * 4294967296 | 0
+{Math.randint ??= () => Math.random() * 4294967296 | 0
 Math.PI2 ??= Math.PI*2
 const $ = globalThis
 if(!('setImmediate'in $)){let i=0,m=new MessageChannel(),c=new Map();m.port1.onmessage=({data:i},j=c.get(i))=>(c.delete(i)&&j());m=m.port2;$.setImmediate=(f,...a)=>(c.set(++i,a.length?f.bind(undefined,...a):f),m.postMessage(i),i);$.clearImmediate=i=>c.delete(i)}
 if(!('sin'in $))Object.defineProperties($,Object.getOwnPropertyDescriptors(Math))
-$.Gamma=($={})=>{
-let T = $.canvas = document.createElement('canvas')
+const ibo = {imageOrientation: 'flipY', premultiplyAlpha: 'premultiply'}
+const resolveData = (a, cb, err) => typeof a == 'string' ? fetch(a).then(a=>a.blob()).then(a=>createImageBitmap(a, ibo)).then(cb, err) : a instanceof Blob ? createImageBitmap(a, ibo).then(cb, err) : a instanceof ImageBitmap ? cb(a) : (err??Promise.reject)(new TypeError('Invalid src'))
+$.Gamma=(T = document.createElement('canvas'), $={})=>{
 /** @type WebGL2RenderingContext */
-const gl = T.getContext('webgl2', {preserveDrawingBuffer: false, antialias: false, depth: false, premultipliedAlpha: true, stencil: true})
+const gl = $.gl = ($.canvas = T).getContext('webgl2', {preserveDrawingBuffer: false, antialias: false, depth: false, premultipliedAlpha: true, stencil: true})
 gl.pixelStorei(37440,1) // unpack flip-y
 gl.stencilMask(1)
 gl.clearStencil(0)
@@ -271,9 +16,9 @@ gl.enable(3042) // blend
 gl.disable(3024) // dither
 gl.pixelStorei(3317, 1)
 gl.pixelStorei(3333, 1)
+const pbo = gl.createBuffer()
+gl.bindBuffer(gl.PIXEL_UNPACK_BUFFER, pbo)
 let pma = 1
-const ibo = {imageOrientation: 'flipY', premultiplyAlpha: 'none'}
-const resolveData = (a, cb, err) => typeof a == 'string' ? fetch(a).then(a=>a.blob()).then(a=>createImageBitmap(a, ibo)).then(cb, err) : a instanceof Blob ? createImageBitmap(a, ibo).then(cb, err) : a instanceof ImageBitmap ? cb(a) : Promise.reject(new TypeError('Invalid src')).then(undefined,err)
 class img{
 	get format(){return this.t.f}
 	get width(){return this.t.w}
@@ -286,8 +31,9 @@ class img{
 		this.t = t; this.x = x; this.y = y
 		this.w = w; this.h = h; this.l = l
 	}
-	get loaded(){return !!this.t.tex}
-	get then(){return !this.t.tex?this.#then:null}
+	get loaded(){return !this.t.src}
+	get waiting(){return !this.t.tex}
+	get then(){return this.t.src?this.#then:null}
 	load(){if(!this.t.tex) img.load(this.t)}
 	sub(x=0, y=0, w=1, h=1, l=this.l){
 		return new img(this.t, this.x+x*this.w, this.y+y*this.h, this.w*w, this.h*h, l)
@@ -298,9 +44,9 @@ class img{
 	}
 	crop(x=0, y=0, w=1, h=1, l=this.l){
 		const {t,x:X,y:Y,h:H}=this
-		if(t.tex) return new img(t, X+x/t.w, Y+H-(y+h)/t.h, w/t.w, h/t.h, l)
+		if(!t.src) return new img(t, X+x/t.w, Y+H-(y+h)/t.h, w/t.w, h/t.h, l)
 		const i = new img(t, 0, 0, 0, 0, l)
-		img.load(t)
+		if(!t.tex) img.load(t)
 		t.src.push(i => {
 			i.x = X+x/t.w
 			i.y = Y+H-(y+h)/t.h
@@ -311,95 +57,97 @@ class img{
 	layer(l=this.l){return new img(this.t, this.x, this.y, this.w, this.h, l)}
 	#then(r, j){
 		if(typeof r != 'function') r = Function.prototype
-		if(this.t.tex) r(this)
-		else img.load(this.t),this.t.src.push(r,j,this)
+		if(!this.t.src) r(this)
+		else this.t.tex||img.load(this.t),this.t.src.push(r,j,this)
 	}
 	static load(t){
-		if(!t.src.length || typeof t.src[0] == 'function') return
 		let src = t.src, loaded = 0
 		t.src = []
 		let w=0, h=0
+		t.tex = gl.createTexture()
 		const rj = e => {
 			loaded = -1
-			t.tex = gl.createTexture()
 			img.setOptions(t)
 			gl.texStorage3D(35866, t.m||1, t.f[0], t.w=w=1, t.h=h=1, t.d=src.length)
 			if(!pma) gl.pixelStorei(37440,1),gl.pixelStorei(37441,pma=1)
 			if(t.m) gl.generateMipmap(35866)
 			if(t.i<0) gl.bindTexture(35866, null)
-			for(let i = 1; i < t.src.length; i+=3) t.src[i]?.(t.src[i+1])
-			t.src = null
+			const l = t.src; t.src = null
+			for(let i = 1; i < l.length; i+=3) l[i]?.(l[i+1])
 		}
 		for(let i=0;i<src.length;i++) resolveData(src[i], data => {
 			if(!loaded) w=data.width, h=data.height
 			else if(w!=data.width||h!=data.height) return rj('Failed to load image: all layers must be the same size')
 			src[i] = data
 			if(++loaded<src.length) return
-			t.tex = gl.createTexture()
 			img.setOptions(t)
 			gl.texStorage3D(35866, t.m||1, t.f[0], t.w=w, t.h=h, t.d=loaded)
 			if(!pma) gl.pixelStorei(37440,1),gl.pixelStorei(37441,pma=1)
+			gl.bindBuffer(gl.PIXEL_UNPACK_BUFFER, null)
 			for(let l = 0; l < loaded; l++)
 				gl.texSubImage3D(35866, 0, 0, 0, l, w, h, 1, t.f[1], t.f[2], src[l])
+			gl.bindBuffer(gl.PIXEL_UNPACK_BUFFER, pbo)
 			if(t.m) gl.generateMipmap(35866)
 			if(t.i<0) gl.bindTexture(35866, null)
-			for(let i = 0; i < t.src.length; i+=3) t.src[i](t.src[i+2])
-			t.src = null
+			const l = t.src; t.src = null
+			for(let i = 0; i < l.length; i+=3) l[i](l[i+2])
 		}, rj)
 	}
-	paste(tex, x=0, y=0, l=0, srcX=0, srcY=0, srcL=0, srcW=0, srcH=0, srcD=0){
-		const {t}=this; if(!t.tex) return this
+	paste(tex, x=0, y=0, l=0, srcX=0, srcY=0, srcL=0, srcW=0, srcH=0, srcD=0, srcMip=0, dstMip=0){
+		const {t}=this; if(t.src) return this
 		if(!(tex instanceof img)) return resolveData(tex, i => {
 			img.fakeBind(t)
 			if(!pma) gl.pixelStorei(37440,1),gl.pixelStorei(37441,pma=1)
+			gl.bindBuffer(gl.PIXEL_UNPACK_BUFFER, null)
 			gl.texSubImage3D(35866, 0, x, y, l, i.width, i.height, 1, t.f[1], t.f[2], i)
+			gl.bindBuffer(gl.PIXEL_UNPACK_BUFFER, pbo)
 			if(t.i<0) gl.bindTexture(35866, null)
 			return this
 		})
 		const {t:t2}=tex
-		if(!t2.d) return tex.#then(()=>this.paste(tex,x,y,l,srcX,srcY,srcL,srcW,srcH,srcD)), this
+		if(t2.src) return tex.#then(()=>this.paste(tex,x,y,l,srcX,srcY,srcL,srcW,srcH,srcD,srcMip,dstMip)), this
 		if(t.tex==t2.tex) return console.warn('cannot copy from texture to itself'), this
 		i&&draw()
 		img.fakeBind(t)
-		if(!ca.img) gl.bindFramebuffer(36160,fb)
+		if(ca==ctx.t) gl.bindFramebuffer(36160,fb)
 		if(fbSte) gl.framebufferRenderbuffer(36160,36128,36161,null)
 		srcW = srcW||t2.w; srcH = srcH||t2.h; srcD = srcD||t2.d
-		while(srcD--){
-			gl.framebufferTextureLayer(36160,36064, t2.tex,0, srcL++)
-			gl.copyTexSubImage3D(35866, 0, x, y, l++, srcX, srcY, srcW, srcH)
+		if(srcD==1&&fbTex==t2.tex&&srcL==fbLayer&&srcMip==fbMip){
+			gl.copyTexSubImage3D(35866, dstMip, x, y, l, srcX, srcY, srcW, srcH)
+			if(fbSte) gl.framebufferRenderbuffer(36160,36128,36161,fbSte)
+		}else while(srcD--){
+			gl.framebufferTextureLayer(36160, 36064, t2.tex, srcMip, srcL++)
+			gl.copyTexSubImage3D(35866, dstMip, x, y, l++, srcX, srcY, srcW, srcH)
+			ca=null,fbLayer=srcL-1,fbMip=srcMip,fbTex=t2.tex,fbSte=null
 		}
 		if(t.i<0) gl.bindTexture(35866, null)
-		if(!ca.img) gl.bindFramebuffer(36160,null)
-		else if(!i) gl.bindFramebuffer(36160,null), ca=ctx.t, fbLayer=srcL-1,fbTex=t2.tex, fbSte = null
-		else gl.framebufferTextureLayer(36160,36064,fbTex,0,fbLayer), fbSte&&gl.framebufferRenderbuffer(36160,36128,36161,fbSte)
 		return this
 	}
-	pasteData(data, x=0, y=0, l=0, w=0, h=0, d=0){
-		const {t}=this; if(!t.tex) return null
+	pasteData(data, x=0, y=0, l=0, w=0, h=0, d=0, mip=0){
+		const {t}=this; if(t.src) return null
 		w = w||t.w; h = h||t.h; d = d||t.d
 		img.fakeBind(t)
 		if(pma) gl.pixelStorei(37440,0),gl.pixelStorei(37441,pma=0)
-		gl.texSubImage3D(35866, 0, x, y, l, w, h, d, t.f[1], t.f[2], data)
+		gl.bufferData(gl.PIXEL_UNPACK_BUFFER, data, gl.STREAM_COPY)
+		gl.texSubImage3D(35866, mip, x, y, l, w, h, d, t.f[1], t.f[2], 0)
 		fd += data.byteLength*.25
 		if(t.i<0) gl.bindTexture(35866, null)
 	}
-	readData(x=0, y=0, l=0, w=0, h=0, d=0, arr=null){
-		const {t}=this; if(!t.tex) return null
+	readData(x=0, y=0, l=0, w=0, h=0, d=0, arr=null,mip=0){
+		const {t}=this; if(t.src) return null
 		w = w||t.w; h = h||t.h; d = d||t.d
 		i&&draw()
-		if(!ca.img) gl.bindFramebuffer(36160,fb)
+		if(ca==ctx.t) gl.bindFramebuffer(36160,fb)
 		if(fbSte) gl.framebufferRenderbuffer(36160,36128,36161,null)
-		const a = t.f[0]
-		const S = (a==32856||a==36214||a==36208||a==34842||a==34836||a==36220?4:a==32849||a==36215||a==36209||a==34843||a==34837||a==32849||a==36221?3:a==33323||a==33338||a==33340||a==33327||a==33328||a==33336?2:1)*w*h
+		let a = t.f[0], S = (a==33323||a==33338||a==33340||a==33327||a==33328||a==33336?2:a==33321||a==33330||a==33332||a==33334||a==33325||a==33326?1:4)*w*h
+		a = S==1?6403:S==2?33319:6408
 		if(!arr || arr.length != S) arr = (t.f[2]==5121?new Uint8Array(S*d):t.f[2]==5126?new Float32Array(S*d):t.f[2]==5125||t.f[2]==35899||t.f[2]==33640||t.f[2]==35902?new Uint32Array(S*d):new Uint16Array(S*d))
 		while(d--){
-			gl.framebufferTextureLayer(36160,36064,t.tex,0,l)
-			gl.readPixels(x, y, w, h, t.f[1], t.f[2], arr.subarray(S*l, S*(++l)))
+			gl.framebufferTextureLayer(36160,36064,t.tex,mip,l)
+			gl.readPixels(x, y, w, h, a, t.f[2], arr.subarray(S*l, S*(++l)))
 		}
 		if(t.i<0) gl.bindTexture(35866, null)
-		if(!ca.img) gl.bindFramebuffer(36160,null)
-		else if(!i) gl.bindFramebuffer(36160,null), ca=ctx.t, fbLayer=l-1,fbTex=t.tex, fbSte = null
-		else gl.framebufferTextureLayer(36160,36064,fbTex,0,fbLayer), fbSte&&gl.framebufferRenderbuffer(36160,36128,36161,fbSte)
+		ca=null,fbLayer=l-1,fbMip=mip,fbTex=t.tex,fbSte=null
 		return arr
 	}
 	delete(){
@@ -415,7 +163,7 @@ class img{
 			if(!(sl&(i^shfMask))) return (boundUsed|=sl,t.i)
 			bound[t.i]=null,t.i=-1
 		}
-		if(!t.tex) return img.load(t), -2
+		t.tex||img.load(t)
 		const j = Math.clz32(~(boundUsed|i^shfMask))
 		if(j>=maxTex) return -1
 		boundUsed |= -2147483648>>>j
@@ -449,7 +197,7 @@ class img{
 	}
 	set options(o){
 		const {t}=this; t.o=o
-		if(!t.tex) return
+		if(t.src) return
 		img.fakeBind(t)
 		if(t.f[3]>>31)
 			gl.texParameterf(35866, 10240, 9728),
@@ -461,15 +209,13 @@ class img{
 		gl.texParameterf(35866, 10243, o&32?10497:o&64?33648:33071)
 		if(t.i<0) gl.bindTexture(35866, null)
 	}
-	drawable(l=this.l,stencil=false){
+	setMipmapRange(s=0, e=65535){
 		const {t}=this
-		if(!t.tex) return null
-		let stencilBuf = null
-		if(stencil){
-			gl.bindRenderbuffer(36161, stencilBuf = gl.createRenderbuffer())
-			gl.renderbufferStorage(36161, 36168, t.w, t.h)
-		}
-		return new can({tex:t.tex,img:this,layer:l,stencil:0,stencilBuf,w:t.w,h:t.h})
+		if(t.src) return
+		img.fakeBind(t)
+		gl.texParameteri(35866, 33082, s)
+		gl.texParameteri(35866, 33083, e)
+		if(t.i<0) gl.bindTexture(35866, null)
 	}
 	genMipmaps(){
 		const {t}=this
@@ -478,6 +224,16 @@ class img{
 		gl.generateMipmap(35866)
 		if(t.i<0) gl.bindTexture(35866, null)
 	}
+}
+$.Drawable=(img,l=img.l,m=0,s=false)=>{
+	const {t} = img
+	if(t.src) return null
+	let stencilBuf = null
+	if(s){
+		gl.bindRenderbuffer(36161, stencilBuf = gl.createRenderbuffer())
+		gl.renderbufferStorage(36161, 36168, t.w, t.h)
+	}
+	return new can({tex:t.tex,img,layer:l,stencil:0,mip:m,stencilBuf,w:t.w,h:t.h})
 }
 let arr = new Float32Array(16), iarr = new Int32Array(arr.buffer), i = 0
 $.Texture = (w=0, h=0, d=0, o=0, f=Formats.RGBA, mips=0) => {
@@ -519,12 +275,12 @@ Object.assign($, {
 	SRC_ALPHA_SATURATE: 170,
 	RGB_SRC_ALPHA_SATURATE: 10,
 	ADD: 17, RGB_ADD: 1, A_ADD: 16,
-	SUBTRACT: 85,
-	RGB_SUBTRACT: 5,
-	A_SUBTRACT: 80,
-	REVERSE_SUBTRACT: 102,
-	RGB_REVERSE_SUBTRACT: 6,
-	A_REVERSE_SUBTRACT: 96,
+	SUB: 85,
+	RGB_SUB: 5,
+	A_SUB: 80,
+	SUB_REV: 102,
+	RGB_SUB_REV: 6,
+	A_SUB_REV: 96,
 	MIN: 34, RGB_MIN: 2, A_MIN: 32,
 	MAX: 51, RGB_MAX: 3, A_MAX: 48,
 	FLOAT: 0, VEC2: 1, VEC3: 2, VEC4: 3,
@@ -532,7 +288,7 @@ Object.assign($, {
 	UINT: 32, UVEC2: 33, UVEC3: 34, UVEC4: 35,
 	TEXTURE: 20, UTEXTURE: 24, FTEXTURE: 28, COLOR: 4, UCOLOR: 8, FCOLOR: 12,
 	FIXED: 4, _: undefined,
-	TRIANGLE_STRIP: 5, TRIANGLES: 4, TRIANGLE_FAN: 6, LINE_LOOP: 2, LINE_STRIP: 3, LINES: 1, POINTS: 0,
+	TRIANGLE_STRIP: 5, TRIANGLES: 4, TRIANGLE_FAN: 6, LINE_LOOP: 2, LINE_STRIP: 3, LINES: 1, POINTS: 0
 })
 const V=class vec2{
 	constructor(x,y){this.x=x;this.y=y}
@@ -612,11 +368,44 @@ $.loader=({url})=>{
 		return src.length==1?src[0][0]=='/'?src[0]:url+src[0]:src.map(src=>src[0]=='/'?src:url+src)
 	}
 }
+const grow = new Function(ArrayBuffer.prototype.transfer?'arr=new Float32Array(arr.buffer.transfer(i*8)),iarr=new Int32Array(arr.buffer)':'const oa=arr;(arr=new Float32Array(i*2)).set(oa,0);iarr=new Int32Array(arr.buffer)')
 class can{
 	t;#a;#b;#c;#d;#e;#f;#m;#shader;s
 	get width(){return this.t.w}
 	get height(){return this.t.h}
 	get texture(){return this.t.img}
+	set texture(i){
+		const t = this.t
+		if(!t.img||!i) return
+		if(ca==t) i&&draw(), ca=null
+		t.img = i
+	}
+	get hasStencil(){return !this.t.img||!!this.t.stencilBuf}
+	set hasStencil(s){
+		let t = this.t, b = t.stencilBuf
+		if(!t.img) return
+		if(s){
+			if(b) return
+			if(ca==t) i&&draw(), ca=null
+			gl.bindRenderbuffer(36161, t.stencilBuf = b = gl.createRenderbuffer())
+			gl.renderbufferStorage(36161, 36168, t.w, t.h)
+		}else{
+			if(!b) return
+			if(ca==t) i&&draw(), ca=null
+			t.stencilBuf = null
+			gl.deleteRenderbuffer(b)
+		}
+	}
+	get textureLayer(){return this.t.layer}
+	get textureMipmap(){return this.t.mip}
+	set textureLayer(l=0){
+		if(ca==t) i&&draw(), ca=null
+		this.t.layer = l
+	}
+	set textureMipmap(m=0){
+		if(ca==t) i&&draw(), ca=null
+		this.t.mip = m
+	}
 	constructor(t,a=1,b=0,c=0,d=1,e=0,f=0,m=290787599,s=$.Shader.DEFAULT,sp=defaultShape){this.t=t;this.#a=a;this.#b=b;this.#c=c;this.#d=d;this.#e=e;this.#f=f;this.#m=m;this.#shader=s;this.s=sp}
 	translate(x=0,y=0){ this.#e+=x*this.#a+y*this.#c;this.#f+=x*this.#b+y*this.#d }
 	scale(x=1,y=x){ this.#a*=x; this.#b*=x; this.#c*=y; this.#d*=y }
@@ -645,21 +434,23 @@ class can{
 	new(a=1,b=0,c=0,d=1,e=0,f=0){return new can(this.t,a,b,c,d,e,f,this.#m,this.#shader,this.s)}
 	reset(a=1,b=0,c=0,d=1,e=0,f=0){this.#a=a;this.#b=b;this.#c=c;this.#d=d;this.#e=e;this.#f=f;this.#m=290787599;this.#shader=$.Shader.DEFAULT;this.s=defaultShape}
 	box(x=0,y=0,w=1,h=w){ this.#e+=x*this.#a+y*this.#c; this.#f+=x*this.#b+y*this.#d; this.#a*=w; this.#b*=w; this.#c*=h; this.#d*=h }
-	to(x=0, y=0){if(typeof x=='object')({x,y}=x);return new V(this.#a*x+this.#c*y+this.#e,this.#b*x+this.#d*y+this.#f)}
+	to(x=0, y=0){ if(typeof x=='object'){y=x.y;x=x.x} return new V(this.#a*x+this.#c*y+this.#e,this.#b*x+this.#d*y+this.#f)}
 	from(x=0, y=0){
-		if(typeof x=='object')({x,y}=x)
+		if(typeof x=='object'){y=x.y;x=x.x}
 		const a=this.#a,b=this.#b,c=this.#c,d=this.#d, det = a*d-b*c
 		return new V(
-			(x*d - x*c + c*this.#f - d*this.#e)/det,
-			(y*a - y*b + b*this.#e - a*this.#f)/det
+			(x*(d - c) + c*this.#f - d*this.#e)/det,
+			(y*(a - b) + b*this.#e - a*this.#f)/det
 		)
 	}
-	toDelta(dx=0, dy=0){if(typeof dx=='object')({dx,dy}=dx);return{dx:this.#a*dx+this.#c*dy,dy:this.#b*dx+this.#d*dy}}
+	toDelta(dx=0, dy=0){ if(typeof dx=='object'){dy=dx.y;dx=dx.x} return new V(this.#a*dx+this.#c*dy,this.#b*dx+this.#d*dy)}
 	fromDelta(dx=0, dy=0){
-		if(typeof dx=='object')({dx,dy}=dx)
+		if(typeof dx=='object'){dy=dx.y;dx=dx.x}
 		const a=this.#a,b=this.#b,c=this.#c,d=this.#d, det = a*d-b*c
-		return { dx: (dx*d-dx*c)/det, dy: (dy*a-dy*b)/det }
+		return new V(dx*(d-c)/det, dy*(a-b)/det)
 	}
+	determinant(){return this.#a*this.#d-this.#b*this.#c}
+	pixelRatio(){return sqrt((this.#a*this.#d-this.#b*this.#c)*this.t.w*this.t.h)}
 	sub(){ return new can(this.t,this.#a,this.#b,this.#c,this.#d,this.#e,this.#f,this.#m,this.#shader,this.s) }
 	resetTo(m){ this.#a=m.#a;this.#b=m.#b;this.#c=m.#c;this.#d=m.#d;this.#e=m.#e;this.#f=m.#f;this.#m=m.#m;this.#shader=m.#shader;this.s=m.s }
 	set shader(sh){ this.#shader=typeof sh=='function'?sh:$.Shader.DEFAULT }
@@ -676,9 +467,9 @@ class can{
 		arr[i+3] = this.#b; arr[i+4] = this.#d; arr[i+5] = this.#f
 	}
 	drawRect(x=0, y=0, w=1, h=1, ...values){
-		setv(this.t,this.#m); const j = this.#shader(values)
-		arr[j  ] = this.#a*w; arr[j+1] = this.#c*h; arr[j+2] = this.#e+x*this.#a+y*this.#c
-		arr[j+3] = this.#b*w; arr[j+4] = this.#d*h; arr[j+5] = this.#f+x*this.#b+y*this.#d
+		setv(this.t,this.#m); const i = this.#shader(values)
+		arr[i  ] = this.#a*w; arr[i+1] = this.#c*h; arr[i+2] = this.#e+x*this.#a+y*this.#c
+		arr[i+3] = this.#b*w; arr[i+4] = this.#d*h; arr[i+5] = this.#f+x*this.#b+y*this.#d
 	}
 	drawMat(a=1, b=0, c=0, d=1, e=0, f=0, ...values){
 		setv(this.t,this.#m); const i = this.#shader(values)
@@ -686,9 +477,53 @@ class can{
 		arr[i  ] = ta*a+tc*b; arr[i+1] = ta*c+tc*d; arr[i+2] = ta*e+tc*f+te
 		arr[i+3] = tb*a+td*b; arr[i+4] = tb*c+td*d; arr[i+5] = tb*e+td*f+tf
 	}
+	drawv(values){
+		setv(this.t,this.#m); const i = this.#shader(values)
+		arr[i  ] = this.#a; arr[i+1] = this.#c; arr[i+2] = this.#e
+		arr[i+3] = this.#b; arr[i+4] = this.#d; arr[i+5] = this.#f
+	}
+	drawRectv(x=0, y=0, w=1, h=1, values){
+		setv(this.t,this.#m); const i = this.#shader(values)
+		arr[i  ] = this.#a*w; arr[i+1] = this.#c*h; arr[i+2] = this.#e+x*this.#a+y*this.#c
+		arr[i+3] = this.#b*w; arr[i+4] = this.#d*h; arr[i+5] = this.#f+x*this.#b+y*this.#d
+	}
+	drawMatv(a=1, b=0, c=0, d=1, e=0, f=0, values){
+		setv(this.t,this.#m); const i = this.#shader(values)
+		const ta=this.#a,tb=this.#b,tc=this.#c,td=this.#d,te=this.#e,tf=this.#f
+		arr[i  ] = ta*a+tc*b; arr[i+1] = ta*c+tc*d; arr[i+2] = ta*e+tc*f+te
+		arr[i+3] = tb*a+td*b; arr[i+4] = tb*c+td*d; arr[i+5] = tb*e+td*f+tf
+	}
+	dup(){
+		if(!i) return
+		const s = sh.count
+		if(i+s>arr.length) grow()
+		for(let j=i-s;j<i;j++)iarr[j+s]=iarr[j]
+		arr[i  ] = this.#a; arr[i+1] = this.#c; arr[i+2] = this.#e
+		arr[i+3] = this.#b; arr[i+4] = this.#d; arr[i+5] = this.#f
+		i += s
+	}
+	dupRect(x=0, y=0, w=1, h=1, i){
+		if(!i) return
+		const s = sh.count
+		if(i+s>arr.length) grow()
+		for(let j=i-s;j<i;j++)iarr[j+s]=iarr[j]
+		arr[i  ] = this.#a*w; arr[i+1] = this.#c*h; arr[i+2] = this.#e+x*this.#a+y*this.#c
+		arr[i+3] = this.#b*w; arr[i+4] = this.#d*h; arr[i+5] = this.#f+x*this.#b+y*this.#d
+		i += s
+	}
+	dupMat(a=1, b=0, c=0, d=1, e=0, f=0, i){
+		if(!i) return
+		const s = sh.count
+		if(i+s>arr.length) grow()
+		for(let j=i-s;j<i;j++)iarr[j+s]=iarr[j]
+		const ta=this.#a,tb=this.#b,tc=this.#c,td=this.#d,te=this.#e,tf=this.#f
+		arr[i  ] = ta*a+tc*b; arr[i+1] = ta*c+tc*d; arr[i+2] = ta*e+tc*f+te
+		arr[i+3] = tb*a+td*b; arr[i+4] = tb*c+td*d; arr[i+5] = tb*e+td*f+tf
+		i += s
+	}
 	clear(r = 0, g = r, b = r, a = g){
 		if(typeof r=='object')a=r.w??0,b=r.z??0,g=r.y,r=r.x
-		if(i) draw()
+		i&&draw()
 		setv(this.t, this.#m)
 		gl.clearColor(r, g, b, a)
 		const q = this.t.stencil=this.t.stencil+1&7
@@ -696,7 +531,7 @@ class can{
 		gl.disable(2960); pmask &= -241
 	}
 	clearStencil(){
-		if(i) draw()
+		i&&draw()
 		setv(this.t, this.#m)
 		const q = this.t.stencil=this.t.stencil+1&7
 		if(!q) gl.stencilMask(255), gl.clear(1024)
@@ -721,16 +556,16 @@ function setv(t,m){
 	let d = pmask^m
 	if(ca!=t){
 		i&&draw()
-		if(!t.img) gl.bindFramebuffer(36160,null),gl.viewport(0,0,gl.canvas.width,gl.canvas.height)
+		if(!t.img) gl.bindFramebuffer(36160,null),gl.viewport(0,0,t.w,t.h)
 		else{
-			if(!ca.img) gl.bindFramebuffer(36160,fb)
-			if(t.tex!=fbTex||t.layer!=fbLayer) gl.framebufferTextureLayer(36160,36064,fbTex=t.tex,0,fbLayer=t.layer)
+			if(ca==ctx.t) gl.bindFramebuffer(36160,fb)
+			if(t.tex!=fbTex||t.layer!=fbLayer||t.mip!=fbMip) gl.framebufferTextureLayer(36160,36064,fbTex=t.tex,fbMip=t.mip,fbLayer=t.layer)
 			if(t.stencilBuf!=fbSte) gl.bindRenderbuffer(36161,fbSte=t.stencilBuf),gl.framebufferRenderbuffer(36160,36128,36161,fbSte)
-			const t2 = t.img.t; gl.viewport(0,0,t2.w,t2.h)
+			const t2 = t.img.t; gl.viewport(0,0,t2.w>>fbMip,t2.h>>fbMip)
 			if(t2.i>=0){
 				gl.activeTexture(33984 + t2.i); gl.bindTexture(35866, bound[t2.i] = null); t2.i = -1
 			}
-			if(ca.stencil!=s&&!(d&240)) d^=240
+			if(!ca||ca.stencil!=s) d|=240
 		}
 		ca=t
 	}
@@ -753,14 +588,17 @@ function setv(t,m){
 	}
 }
 function draw(b=shuniBind){
-	//if((ca?ca.img.t.f[3]:0)!=sh.outInt) return console.warn('Texture drawn to and shader output type must be of the same kind (integer/float)')
 	gl.bufferData(34962, iarr.subarray(0, i), 35040)
 	const {type,start:s,length:l}=shp
 	fd += i; i /= sh.count; fdc++; fs += i
 	gl.drawArraysInstanced(type, s, l, i)
 	i = 0; boundUsed = b
+	if(pendingFences.length){ fencetail ??= pendingFences[0]; for(const f of pendingFences){
+		f.sync = gl.fenceSync(37143,0)
+		fencehead = fencehead ? fencehead.next = f : f
+	} pendingFences.length = 0 }
 }
-let sh=null,ca=null,fbTex=null,fbSte=null,fbLayer=0,shfCount=0,shfMask=0;
+let sh=null,ca=null,fbTex=null,fbSte=null,fbLayer=0,fbMip=0,shfCount=0,shfMask=0
 const fb = gl.createFramebuffer()
 const buf = gl.createBuffer()
 gl.bindBuffer(34962, buf)
@@ -791,7 +629,7 @@ const treeIf = (s=0, e=maxTex,o=0) => {
 	return `if(u<${m+o}){${treeIf(s,m,o)}}else{${treeIf(m,e,o)}}`
 }
 const names = ['float','vec2','vec3','vec4','int','ivec2','ivec3','ivec4','uint','uvec2','uvec3','uvec4']
-T = $.Shader = (src, inputs, uniforms, output=4, defaults, uDefaults, frat=0.5) => {
+T = $.Shader = (src, inputs, defaults, uniforms, uDefaults, output=4, frat=0.5) => {
 	const fnParams = ['(function({'], fnBody = ['',''], shaderHead = ['#version 300 es\nprecision mediump float;precision highp int;layout(location=0)in vec4 _pos;out vec2 uv,xy;layout(location=1)in mat2x3 m;',''], shaderBody = ['void main(){gl_PointSize=1.0;uv=_pos.zw;gl_Position=vec4((xy=vec3(_pos.xy,1.)*m)*2.-1.,0.,1.);'], shaderHead2 = ['#version 300 es\nprecision mediump float;precision highp int;in vec2 uv,xy;uniform vec2 viewport;out '+(output==0?'highp vec4 color;':output==16||output==32?'uvec4 color;':'lowp vec4 color;'),'']
 	let j = 6, o = 0, fCount = 0, iCount = 0
 	const types = [3,3]
@@ -819,11 +657,11 @@ T = $.Shader = (src, inputs, uniforms, output=4, defaults, uDefaults, frat=0.5) 
 			fCount++
 			const n = `arg${id}raw`
 			shaderHead.push(`layout(location=${types.length+1})in int i${j};layout(location=${types.length+2})in vec4 i${j+1};centroid out vec4 ${n};`)
-			shaderBody.push(t!=4?`${n}=vec4(i${j+1}.xy+uv*i${j+1}.zw,i${j}&255,i${j}>>8);`:`if(i${j}<0){${n}=i${j+1};${n}.w=max(-15856.,${n}.w);}else{${n}=vec4(i${j+1}.xy+uv*i${j+1}.zw,i${j}&255,i${j}<256?-15872:(i${j}>>8<<4)-16384);}`)
-			shaderHead2.push(`centroid in vec4 ${n};${t==4?'lowp ':t==8?'u':'highp '}vec4 arg${id}(){`+(t==4?`if(${n}.w>-15872.)return ${n};return getCol(int(${n}.w)>>4&31,${n}.xyz);}`:t==8?`return uGetCol(int(${n}.w),${n}.xyz);}`:`return fGetCol(int(${n}.w),${n}.xyz);}`))
+			shaderBody.push(t!=4?`${n}=vec4(i${j+1}.xy+uv*i${j+1}.zw,i${j}>>8,i${j}&255);`:`if(i${j}==-1){${n}=i${j+1};${n}.w=max(-15856.,${n}.w);}else{${n}=vec4(i${j+1}.xy+uv*i${j+1}.zw,i${j}>>8,(i${j}&255)==0?-15872:((i${j}&255)<<4)-16384);}`)
+			shaderHead2.push(`centroid in vec4 ${n};${t==4?'lowp ':t==8?'u':'highp '}vec4 arg${id}(){`+(t==4?`if(${n}.w>-15872.)return ${n};return getColor(int(${n}.w)>>4&31,${n}.xyz);}`:t==8?`return uGetColor(int(${n}.w),${n}.xyz);}`:`return fGetColor(int(${n}.w),${n}.xyz);}`))
 			o|=(1<<(t>>2)+1)
 			types.push(17,4)
-			fnBody.push('iarr[j+'+j+']=a'+(j+1)+'<<8|a'+j+'.l&255')
+			fnBody.push('iarr[j+'+j+']=a'+(j+1)+'|a'+j+'.l<<8')
 			for(c=0;++c<3;) fnBody.push(A+(j+c)+']=a'+j+'.'+' xy'[c])
 			fnBody.push(`if(a${j+1}>=0)${A+(j+3)}]=a${j}.w,${A+(j+4)}]=a${j}.h;else ${A+(j+3)}]=a${j}.z,${A+(j+4)}]=a${j}.w`)
 			c=5
@@ -854,15 +692,15 @@ T = $.Shader = (src, inputs, uniforms, output=4, defaults, uDefaults, frat=0.5) 
 			fn2Body.push(`uniTex[${uniTex.length}]=a${j2}.t`)
 			uniTex.push(null)
 		}else if(t==4||t==8||t==12){
-			fn3Body.push(`gl.uniform1i(uniLocs[${j3++}],uniTex[${uniTex.length}]?img.auto(uniTex[${uniTex.length}]${t==8?',-1':',0'}):${t==8?maxTex:0})`)
-			uniTex.push(null)
+			fn3Body.push(`gl.uniform1i(uniLocs[${j3++}],(uniTex[${uniTex.length}]?img.auto(uniTex[${uniTex.length}]${t==8?',-1':',0'}):${t==8?maxTex:0})|uniTex[${uniTex.length+1}])`)
+			uniTex.push(null,0)
 			fCount++
 			const n = `uni${id}raw`
 			shaderHead.push(`uniform int u${j2};uniform vec4 u${j2+1};centroid out vec4 ${n};`)
-			shaderBody.push(t!=4?`${n}=vec4(u${j2+1}.xy+uv*u${j2+1}.zw,u${j2}&255,u${j2}>>8);`:`if(u${j2}<0){${n}=u${j2+1};${n}.w=max(-15856.,${n}.w);}else{${n}=vec4(u${j2+1}.xy+uv*u${j2+1}.zw,u${j2}&255,u${j2}<256?-15872:(u${j2}>>8<<4)-16384);}`)
-			shaderHead2.push(`centroid in vec4 ${n};${t==4?'lowp ':t==8?'u':'highp '}vec4 uni${id}(){`+(t==4?`if(${n}.w>-15872.)return ${n};return getCol(int(${n}.w)>>4&31,${n}.xyz);}`:t==8?`return uGetCol(int(${n}.w),${n}.xyz);}`:`return fGetCol(int(${n}.w),${n}.xyz);}`))
+			shaderBody.push(t!=4?`${n}=vec4(u${j2+1}.xy+uv*u${j2+1}.zw,u${j2}>>8,u${j2}&255);`:`if(u${j2}==-1){${n}=u${j2+1};${n}.w=max(-15856.,${n}.w);}else{${n}=vec4(u${j2+1}.xy+uv*u${j2+1}.zw,u${j2}>>8,(u${j2}&255)==0?-15872:((u${j2}&255)<<4)-16384);}`)
+			shaderHead2.push(`centroid in vec4 ${n};${t==4?'lowp ':t==8?'u':'highp '}vec4 uni${id}(){`+(t==4?`if(${n}.w>-15872.)return ${n};return getColor(int(${n}.w)>>4&31,${n}.xyz);}`:t==8?`return uGetColor(int(${n}.w),${n}.xyz);}`:`return fGetColor(int(${n}.w),${n}.xyz);}`))
 			o|=(1<<(t>>2)+1)
-			fn2Body.push(`uniTex[${uniTex.length-1}]=a${j2}.t;gl.uniform4f(uniLocs[${j3}],a${j2}.x,a${j2}.y,a${j2}.w,a${j2}.h)`)
+			fn2Body.push(`uniTex[${uniTex.length-2}]=a${j2}.t;uniTex[${uniTex.length-1}]=a${j2}.l<<8;gl.uniform4f(uniLocs[${j3}],a${j2}.x,a${j2}.y,a${j2}.w,a${j2}.h)`)
 		}else{
 			shaderHead2.push('uniform '+n+' uni'+id+';')
 			let args = `gl.uniform${c+(t<16?'f':t<32?'i':'ui')}(uniLocs[${j3}]`
@@ -880,9 +718,9 @@ T = $.Shader = (src, inputs, uniforms, output=4, defaults, uDefaults, frat=0.5) 
 	shaderHead2[1] =
 		(o&20?'uniform '+(o&2?'highp':'lowp')+' sampler2DArray GL_f['+fCount+'];':'')
 		+(o&8?'uniform highp usampler2DArray GL_i['+iCount+'];':'')
-		+(o&4?`lowp vec4 getCol(int u,vec3 p){${T=treeIf(0,fCount)}}`:'')
-		+(o&16?`highp vec4 fGetCol(int u,vec3 p){${T||treeIf(0,fCount)}}`:'')
-		+(o&8?`uvec4 uGetCol(int u,vec3 p){${g=i=>'return texture(GL_i['+i+'],p);',treeIf(0,maxTex-fCount,maxTex)}}`:'')
+		+(o&4?`lowp vec4 getColor(int u,vec3 p){${T=treeIf(0,fCount)}}`:'')
+		+(o&16?`highp vec4 fGetColor(int u,vec3 p){${T||treeIf(0,fCount)}}`:'')
+		+(o&8?`uvec4 uGetColor(int u,vec3 p){${g=i=>'return texture(GL_i['+i+'],p);',treeIf(0,maxTex-fCount,maxTex)}}`:'')
 	shaderHead2[1] +=
 		(o&4?`lowp vec4 getPixel(int u,ivec3 p,int l){${g=i=>'return texelFetch(GL_f['+i+'],p,l);',T=treeIf(0,fCount)}}`:'')
 		+(o&16?`highp vec4 fGetPixel(int u,ivec3 p,int l){${T||treeIf(0,fCount)}}`:'')
@@ -927,30 +765,47 @@ T = $.Shader = (src, inputs, uniforms, output=4, defaults, uDefaults, frat=0.5) 
 	return s
 }
 let fdc = 0, fs = 0, fd = 0
-T.DEFAULT = sh = T(`void main(){color=arg0()*arg1;}`, [$.COLOR, $.VEC4], void 0, void 0, [void 0, $.vec4.one])
-T.UINT = T(`void main(){color=arg0();}`, $.UCOLOR, void 0, $.UINT)
+T.DEFAULT = sh = T(`void main(){color=arg0()*arg1;}`, [$.COLOR, $.VEC4], [void 0, $.vec4.one])
+T.UINT = T(`void main(){color=arg0();}`, $.UCOLOR, void 0, void 0, void 0, $.UINT)
 T.NONE = T(`void main(){color=vec4(0,0,0,1);}`)
 gl.useProgram(sh.program)
 gl.bindVertexArray(sh.vao)
 $.flush = () => i&&draw()
-$.gl = gl
-$.ctx = new can(ca={tex:gl.canvas,img:null,layer:0,stencil:0,stencilBuf:null,w:0,h:0})
-$.loop = (render = null) => {
-	if('t'in $) return $.render = render, $
-	$.render = render
+const ctx = $.ctx = new can(ca={tex:gl.canvas,img:null,layer:0,stencil:0,mip:0,stencilBuf:null,w:0,h:0})
+$.setSize = (w = 0, h = 0) => {
+	ctx.t.w = gl.canvas.width = w
+	ctx.t.h = gl.canvas.height = h
+	if(ca==ctx.t) gl.viewport(0, 0, w, h)
+}
+let fencetail = null, fencehead = null
+const pendingFences = []
+$.wait=()=>{
+	let r,p=new Promise(a=>r=a)
+	if(i) p.sync=null,pendingFences.push(p)
+	else{
+		p.sync = gl.fenceSync(37143,0)
+		fencetail ??= p
+		fencehead = fencehead ? fencehead.next = p : p
+	}
+	p._r = r; p.done=false
+	return p
+}
+$.loop = (pf = null) => {
+	if('t'in $) return $
+	$.render ??= null
 	$.frameDrawCalls = 0
 	$.frameSprites = 0
 	$.frameData = 0
 	$.t = performance.now()/1000; $.dt = 0
-	$.ctxSupersample = 1
-	$.ctxFramerate = -1
-	$.pixelRatio = 1
+	$.ctxFramerate ??= -1
 	$.timeToFrame = 0
-	$.glLost = null
+	$.glLost ??= null
 	let nextF = 0
 	setInterval(function g(){
-		if($.ctxFramerate<0||!gl) return
-		if(gl.isContextLost?.()) return $.glLost?.(),$.glLost=null
+		while(fencetail&&gl.getSyncParameter(fencetail.sync,37140)==37145)gl.deleteSync(fencetail.sync),fencetail.done=true,fencetail._r(),fencetail=fencetail.next
+		if(!fencetail) fencehead = null
+		if($.ctxFramerate<0) return
+		if(gl.isContextLost?.()) return $.glLost?.(),$.glLost=fencetail=fencehead=null
 		let now = performance.now()/1000
 		if(now < nextF) return
 		dt = max(.01/$.ctxFramerate, -($.t-($.t=now)))
@@ -961,28 +816,17 @@ $.loop = (render = null) => {
 		timeToFrame = now-$.t
 	}, 0)
 	requestAnimationFrame(function f(){
-		if(gl.isContextLost?.()) return $.glLost?.(),$.glLost=null
 		requestAnimationFrame(f)
-		i&&draw()
-		pixelRatio = devicePixelRatio * $.ctxSupersample
-		gl.canvas.style.imageRendering = $.ctxSupersample > 1 ? 'auto' : 'pixelated'
-		gl.viewport(0, 0, ctx.t.w = gl.canvas.width = round(gl.canvas.offsetWidth*pixelRatio), ctx.t.h = gl.canvas.height = round(gl.canvas.offsetHeight*pixelRatio))
-		gl.bindFramebuffer(36160,null); ca=ctx.t
+		if(gl.isContextLost?.()) return $.glLost?.(),$.glLost=fencetail=fencehead=null
+		i&&draw(); pf?.()
 		if($.ctxFramerate>=0) return
+		gl.bindFramebuffer(36160,null); ca=ctx.t; gl.viewport(0,0,ca.w,ca.h)
 		dt = max(.001, min(-($.t-($.t=performance.now()/1000)), .5))
 		$.frameDrawCalls = fdc; $.frameSprites = fs; $.frameData = fd*4+fdc*24; fdc = fs = fd = 0
-		ctx.reset(); try{$.render?.(dt)}catch(e){Promise.reject(e)}; i&&draw()
+		ctx.reset(); try{$.render?.()}catch(e){Promise.reject(e)}; i&&draw()
 		timeToFrame = performance.now()/1000-$.t
 	})
 	return gl.canvas
 }
 return $}
-Gamma(globalThis).loop()
-document.head.insertAdjacentHTML('beforeend', `<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">`)
-glLost = () => {
-	document.body.textContent = 'WebGL2 context lost :('
-	document.body.style = 'color:white;background:#000;text-align:center;line-height:90vh;font-size:32px;font-family:monospace;'
-}
-if(!gl) throw glLost(), 'Please reload app'
-document.body.append(canvas)
-canvas.style = `position: fixed; inset: 0; width: 100%; height: 100%; touch-action: none; background: #000; user-select: none; -webkit-user-select: none;`
+$.Gamma.bitmapOpts = ibo}

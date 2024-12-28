@@ -1,30 +1,69 @@
-import { entityMap, map, cam, world, WorldType, WorldTypeStrings, bigintOffset, me, genLightmap, lightTint, lightTex, lightArr, setGamma, getTint, getLightValue, W2, H2, SCALE, toBlockExact, gridEventMap } from 'world'
+import { entityMap, map, cam, world, WorldType, WorldTypeStrings, bigintOffset, me, genLightmap, lightTint, lightArr, setGamma, getTint, getLightValue, W2, H2, SCALE, toBlockExact, gridEventMap, blockAtlas, prep, particles, _invAtlasHeight, _blockAnimations } from 'world'
 import { getblock, gotopos } from 'ant'
 import * as pointer from './pointer.js'
 import { drawLayer, options, _renderPhases, renderBoxes, renderF3, drawText, calcText, textShadeCol, _networkUsage, networkUsage, listen, _tickPhases, renderUI } from 'api'
-import { particles, blockAtlas, prep, BlockIDs } from 'definitions'
+import { BlockIDs } from 'definitions'
 import { VERSION } from '../server/version.js'
 import { performLightUpdates } from './lighting.js'
 
-const chunkShader = Shader(`void main(){
-	ivec2 ipos = ivec2(uv*1024.);
-	uvec2 a = uGetPixel(arg0, ivec3(ipos>>4u,arg2), 0).xy;
-	vec4 light = getPixel(uni2, ivec3(uGetPixel(arg1, ivec3(ipos>>4u,arg2), 0).x, 0, 0), 0);
-	if(a.y>=65535u){
+const chunkShader = Shader(`
+vec3 blend(vec4 col, ivec2 blockpos){
+	ivec3 q = ivec3(blockpos.x>>4|blockpos.y>>2&12,64,arg1);
+	vec2 bp = vec2(blockpos & 15)*.0625;
+	uint t = uGetPixel(arg0, q, 0).x; q.x += 16;
+	uvec2 th = uvec2(t, uGetPixel(arg0, q, 0).x);
+	ivec2 biome = ivec2(mix(mix(vec2(th&255u), vec2(th>>8u&255u), bp.x),
+	mix(vec2(th>>16u&255u), vec2(th>>24u&255u), bp.x), bp.y)+.5)>>2;
+	int x = (biome.y&3)*192+biome.x+16, y = biome.y>>2;
+	vec4 a = getPixel(uni0, ivec3(x,y,0), 0);
+	vec4 b = getPixel(uni0, ivec3(x+64,y,0), 0);
+	vec4 c = getPixel(uni0, ivec3(x+128,y,0), 0);
+	return vec3(dot(a,col),dot(b,col),dot(c,col));
+}
+void main(){
+	ivec2 ipos = ivec2(uv*1024.), ipos0 = ipos>>4u;
+	uint n = uGetPixel(arg0, ivec3(ipos0,arg1), 0).x;
+	vec4 light = getPixel(uni0, ivec3(n&15u, n>>4u&15u, 0), 0);
+	n >>= 8u; ipos &= 15;
+	if(n==0u){
 		color = vec4(0,0,0,light.w);
 	}else{
-		if(a.y>255u){
-			a.x += uni1.x%((a.y>>8u)+1u);
-			a.y &= 255u;
-			if(a.x>65535u){ a.y += a.x>>8u&65280u; a.x &= 65535u; }
+		ivec3 p = ivec3(int((n&255u)<<4u), int(n>>4u&4080u),int(n>>16u&63u));
+		p.xy |= ipos; p.xy >>= uni1;
+		color = getPixel(uni0, p, int(uni1));
+		uint b = n>>22u;
+		if(b!=0u){
+			if((b&2u)==0u) color.rgb = blend(color, ipos0);
+			else{
+				// Second layer blend
+				n++;
+				ivec3 p = ivec3(int((n&255u)<<4u), int(n>>4u&4080u),int(n>>16u&63u));
+				p.xy |= ipos; p.xy >>= uni1;
+				vec4 color2 = getPixel(uni0, p, int(uni1));
+				color2.rgb = blend(color2, ipos0);
+				color = color*(1.-color2.a) + color2;
+			}
 		}
-		ivec3 p = ivec3(int(a.x&255u)<<4|ipos.x&15, int(a.x>>8u)<<4|ipos.y&15,a.y);
-		p.xy >>= uni1.y;
-		color = getPixel(uni0, p, int(uni1.y));
 		color.xyz *= light.xyz;
 		color.a += light.w*(1.-color.a);
 	}
-}`, [UTEXTURE, UTEXTURE, UINT], [TEXTURE, UVEC3, TEXTURE], FIXED)
+}`, [UTEXTURE, UINT], _, [TEXTURE, UINT, FLOAT], _, FIXED)
+
+Shader.BLOCK = Shader(`
+vec3 blend(vec4 col){
+	ivec2 biome = ivec2(31,31);
+	int x = (arg2&192)*3+(arg2&63)+16, y = arg2>>8;
+	vec4 a = getPixel(uni0, ivec3(x,y,0), 0);
+	vec4 b = getPixel(uni0, ivec3(x+64,y,0), 0);
+	vec4 c = getPixel(uni0, ivec3(x+128,y,0), 0);
+	return vec3(dot(a,col),dot(b,col),dot(c,col));
+}
+void main(){
+	color = arg0();
+	if(arg2!=-1) color.rgb = blend(color);
+	color *= arg1;
+}`, [COLOR, VEC4, INT], [vec4.zero,vec4.one,-1], [TEXTURE, INT])
+
 const borderTex = Texture(8, 8, 1, REPEAT)
 let a = new Uint8Array(256)
 for(let i = 0; i < 64; i++){
@@ -45,8 +84,8 @@ drawLayer('none', 200, (ctx, w, h) => {
 	const hitboxes = renderBoxes + buttons.has(KEYS.LEFT_OF_1)
 	cam.transform(ctx)
 	ctx.shader = chunkShader
-	prep()
 	const mipmap = max(0, min(4, 4-round(log2(SCALE)+.05)))
+	prep(mipmap, world.animTick)
 	if(world.type == WorldType.overworld){
 		const time = world.tick % 24000, light = time < 1800 ? time / 1800 : time < 13800 ? 1 : time < 15600 ? (15600 - time) / 1800 : 0
 		genLightmap(light, block, night, day, light)
@@ -55,7 +94,7 @@ drawLayer('none', 200, (ctx, w, h) => {
 	}else if(world.type == WorldType.end){
 		genLightmap(-2, block, day, vec3.zero, 0, endBase, 0)
 	}else genLightmap(1, block, vec3.zero, day, 1, vec4.zero, 0)
-	chunkShader.uniforms(blockAtlas, vec3(world.animTick, mipmap, (t%1)*1e6), lightTex)
+	chunkShader.uniforms(blockAtlas, mipmap, _invAtlasHeight*.0625)
 	const sr = sin(cam.f), cr = cos(cam.f)
 	const limX = (abs(ctx.width*cr)+abs(ctx.height*sr)+(cam.nausea*.333*ctx.height))/2, limY = (abs(ctx.width*sr)+abs(ctx.height*cr)+(cam.nausea*.333*ctx.width))/2
 	const S = 64*SCALE
@@ -67,10 +106,14 @@ drawLayer('none', 200, (ctx, w, h) => {
 		if(x0+S <= -limX || y0+S <= -limY || x0 >= limX || y0 >= limY){ if(chunk.ctx) chunk.hide(); continue }
 		visibleChunks++
 		if(!chunk.ctx) chunk.draw()
-		if(chunk.changed&1) chunk.changed&=-2, chunk.ctx2.pasteData(chunk.light, 0, 0, chunk.layer, 64, 64, 1)
-		ctx.drawRect(x0, y0, S, S, chunk.ctx, chunk.ctx2, chunk.layer)
+		const b = chunk.updateBounds
+		if(b != 258111){
+			chunk.updateBounds = 258111
+			chunk.uploadData(b)
+		}
+		ctx.drawRect(x0, y0, S, S, chunk.ctx, chunk.layer)
 	}
-	ctx.shader = null
+	ctx.shader = Shader.BLOCK
 	const b = borderTex.sub(-t,-t,128>>mipmap,128>>mipmap)
 	for(const chunk of map.values()){
 		if(!chunk.ctx) continue
@@ -85,17 +128,22 @@ drawLayer('none', 200, (ctx, w, h) => {
 			const b = chunk[i]
 			const j = chunk.light[i]<<2
 			lightTint.x = lightArr[j]*.003921568627451; lightTint.y = lightArr[j|1]*.003921568627451; lightTint.z = lightArr[j|2]*.003921568627451; lightTint.w = 1
+			const bi = i>>3&6
+			const tl = chunk.biomes[bi], tr = chunk.biomes[bi+2]
+			const hl = chunk.biomes[bi+1], hr = chunk.biomes[bi+3]
+			const xf = (i&15)*.0625
+			const biome = floor(tl+(tr-tl)*xf+.5)>>2|floor(hl+(hr-hl)*xf+.5)>>2<<6
 			gotopos(chunk, i)
-			void(b==65535?chunk.tileData.get(i):BlockIDs[b]).render(l, lightTint)
+			void(b==65535?chunk.tileData.get(i):BlockIDs[b]).render(l, lightTint, biome)
 			l.resetTo(a)
 		}
 		if(chunk.flags&1) a.draw(b)
 		if(hitboxes){
 			if(hitboxes >= 2){
-				for(let i = .125; i < 1; i += .125)
-					a.drawRect(i - lineWidth*.5, 0, lineWidth, 64, chunkSublineCol)
-				for(let i = .125; i < 1; i += .125)
-					a.drawRect(0, i - lineWidth*.5, 64, lineWidth, chunkSublineCol)
+				for(let i = .25; i < 1; i += .25)
+					a.drawRect(i - lineWidth*.75, 0, lineWidth*1.5, 64, chunkSublineCol)
+				for(let i = .25; i < 1; i += .25)
+					a.drawRect(0, i - lineWidth*.75, 64, lineWidth*1.5, chunkSublineCol)
 			}
 			a.drawRect(0, 0, lineWidth*2, 1, chunkLineCol)
 			a.drawRect(0, 0, 1, lineWidth*2, chunkLineCol)
@@ -175,15 +223,14 @@ function toString(big, num, precision = 3){
 const f3LeftInfo = `\\+e[Game version]\\+f (:3 thx for playing)
 FPS: \\+a[Frames per second]\\+f (\\+a[time spent drawing frame]\\+f)
 Net: \\+a[Network usage]\\+f${performance.memory?', Mem: \\+a[Memory usage]\\+f':''}
-Draw: \\+a[GPU mem bandwidth]\\+f/\\+a[Sprite count]\\+f/\\+a[GL draw calls]\\+f
+Draw: \\+a[GPU upload bandwidth]\\+f/\\+a[Sprite count]\\+f/\\+a[GL draw calls]\\+f
 Ch: \\+a[Visible chunks]\\+f/\\+a[Cached chunks]\\+f, E: \\+a[Entities]\\+f, P: \\+a[Particles]\\+f
 XY: \\+3[Player feet position]\\+f
 ChXY: \\+3[Position w/in chunk]\\+f in \\+3[Chunk coords]\\+f
 ChXY: \\+a[chTileIndex]\\+f in \\+a[chKey]\\+f
-Facing: \\+c[\\4+L\\0+eft/\\4+R\\0+ight]\\+f \\+d[head direction in deg]\\+f (\\+d[in rad]\\+f`
+Facing: \\+c[\\4+L\\0+eft/\\4+R\\0+ight]\\+f \\+d[head direction in deg]\\+f (\\+d[in rad]\\+f)`
 const f3RightInfo = `Tick \\+d[dimension age]\\+f, Day \\+d[current day in MC days]\\+f, Time \\+d[time within MC day]\\+f
-Dimension: \\+e[current dimension ID]\\+f
-Biome: \\+d[Humidity]\\+f/\\+d[Temperature]\\+f
+Dim: \\+e[Current dimension ID]\\+f, Biome: \\+d[Temperature]\\+f/\\+d[Humidity]\\+f
 Looking at: \\+3[Coordinate of block under pointer]\\+f
 Light: \\+a[Light value]\\+f, sky=\\+a[sky light]\\+f, block=\\+a[block light]\\+f \\0+
 Block: \\+e[block under pointer]\\+f (\\+a[ID for that block]\\+f)
@@ -202,7 +249,7 @@ function f3Text(detail){
 	const mei = floor(me.x)&63|(floor(me.y)&63)<<6
 	const mek = (floor(me.x)>>>6)+(floor(me.y)>>>6)*0x4000000
 	if(detail < 2) return `\\27${VERSION}\\0f; \\+${(fps<20?'9':fps<50?'3':fps<235?'a':'d')+fps}\\+f fps; \\4+x: ${trueX}, y: ${trueY}\\0+; \\+6Day ${day} ${time}\\+f; ${(lookingAt.id?'':'\\+8')+lookingAt.className}\\+f`
-	return [`Paper MC ${VERSION} (Ctrl for f3 help)
+	return [`Paper MC ${VERSION} (Shift for f3 help)
 FPS: \\+${(fps<20?'9':fps<50?'3':fps<235?'a':'d')+fps}\\+f (${(timeToFrame*1000).toFixed(2).padStart(5,'\u2007')}ms)
 Net: ${Number.formatData(networkUsage)}/s${performance.memory ? ', Mem: '+Number.formatData(performance.memory.usedJSHeapSize) : ''}
 Draw: ${Number.formatData(frameData)}/${frameSprites}/${frameDrawCalls}
@@ -211,20 +258,19 @@ XY: \\4+${trueX} / ${trueY}\\0+
 ChXY: ${(mei&63).toString().padStart(2,'\u2007')} ${(mei>>6).toString().padStart(2,'\u2007')} in ${toString(bigintOffset.x>>6n,floor(me.x) >> 6, 0)} ${toString(bigintOffset.y>>6n,floor(me.y) >> 6, 0)}
 ChKey: ${mei} in ${mek}
 Facing: ${(me.f >= 0 ? 'R' : 'L') + (90 - abs(me.f / PI2 * 360)).toFixed(1).padStart(5, '\u2007')} (${me.f.toFixed(3)})`,`Tick ${world.tick}, Day ${day}, Time ${time}
-Dimension: ${WorldTypeStrings[world.type]}
-Biome: ${me.chunk ? round(me.chunk.biomes[mex] * (1 - mexi) + me.chunk.biomes[mex+2] * mexi) : 0}/${me.chunk ? round(me.chunk.biomes[mex+1] * (1 - mexi) + me.chunk.biomes[mex+3] * mexi) : 0}
+Dim: ${WorldTypeStrings[world.type]}, Biome: ${me.chunk ? round(me.chunk.biomes[mex] * (1 - mexi) + me.chunk.biomes[mex+2] * mexi) : 0}/${me.chunk ? round(me.chunk.biomes[mex+1] * (1 - mexi) + me.chunk.biomes[mex+3] * mexi) : 0}
 Looking at: \\4+${toString(bigintOffset.x, pointX, 0)} ${toString(bigintOffset.y, pointY, 0)}\\0+
 Light: 0x${light.toHex().slice(6)}, sky=${light>>4}, block=${light&15}
 Block: ${lookingAt.className+(lookingAt.savedata?' {...}':'')} (${lookingAt.id})
-Block.texture: 0x${lookingAt.texture>=0?`${lookingAt.texture.toHex().slice(2)}[${(lookingAt.texture>>>24)+1}]`+(lookingAt.render?'*':''):lookingAt.render?'na*':'na'}
-Item.texture: 0x${holding?.texture>=0?`${holding.texture.toHex().slice(2)}[${(holding.texture>>>24)+1}]`+(holding.render?'*':''):holding?.render?'na*':'na'}`]
+Block.texture: ${lookingAt.texture>0?`0x${lookingAt.texture.toHex().slice(2)}[${_blockAnimations.find(a=>a.id==lookingAt.texture)?.frames??1}]`+(lookingAt.render?'\\+3*\\+f':''):lookingAt.render?'\\+8na\\+3*\\+f':'\\+8na\\+f'}
+Item.texture: ${holding?.texture>0?`0x${holding.texture.toHex().slice(2)}[${_blockAnimations.find(a=>a.id==holding.texture)?.frames??1}]`+(holding.render?'\\+3*\\+f':''):holding?.render?'\\+8na\\+3*\\+f':'\\+8na\\+f'}`]
 }
 
 drawLayer('ui', 999, (ctx, w, h) => {
 	const f3 = min(renderF3+buttons.has(KEYS.LEFT_OF_1), 2)
 	if(!f3) return
 	ctx.translate(0, h)
-	let text = buttons.has(KEYS.CTRL)?f3<2?minif3Info:w<5?t%6<3?f3LeftInfo:['',f3RightInfo]:[f3LeftInfo,f3RightInfo]:f3Text(f3)
+	let text = buttons.has(KEYS.SHIFT)?f3<2?minif3Info:w<5?t%6<3?f3LeftInfo:['',f3RightInfo]:[f3LeftInfo,f3RightInfo]:f3Text(f3)
 	const tl = typeof text == 'object' ? text[0] ? calcText(text[0], Infinity, 15) : [] : text ? calcText(text, Infinity, 15) : []
 	const tr = typeof text == 'object' && text[1] ? calcText(text[1], Infinity, 15) : []
 	const l = max(tl.length, tr.length)

@@ -44,12 +44,12 @@ function raycastPointer(){
 	bx = floor(me.x)
 	by = floor(me.y + me.head)
 	bpx = NaN, bpy = NaN
-	let bppx = NaN, bppy = NaN
 	const reach = hypot(x, y)
 	let d = 0, px = me.x - bx, py = me.y + me.head - by
 	const dx = sin(me.f), dy = cos(me.f)
-	const item = me.inv[me.selected], interactFluid = item?.interactFluid ?? false
+	const item = me.inv[me.selected], blockingFlag = item?.interactFluid ? 1536 : 512
 	let ch = map.get((bx>>>6)+(by>>>6)*0x4000000)
+	let l = 0
 	a: if(!ch||(ch.flags&1)) bx = by = NaN
 	else while(d < reach){
 		const chx = bx>>>6, chy = by>>>6
@@ -58,8 +58,8 @@ function raycastPointer(){
 			if(!ch||(ch.flags&1)){ bx=by=bpx=bpy=NaN; break a }
 		}
 		const j = bx&63|by<<6&4032, id = ch[j]
-		const {solid, blockShape = DEFAULT_BLOCKSHAPE, flows} = id==65535?ch.tileData.get(j):BlockIDs[id]
-		if(solid || (interactFluid && flows === false)){
+		const {flags, blockShape = DEFAULT_BLOCKSHAPE} = id==65535?ch.tileData.get(j):BlockIDs[id]
+		if(flags&blockingFlag){
 			for(let i = 0; i < blockShape.length; i += 4){
 				const x0 = blockShape[i], x1 = blockShape[i+2], y0 = blockShape[i+1], y1 = blockShape[i+3]
 				if(dx > 0 && px <= x0){
@@ -78,28 +78,29 @@ function raycastPointer(){
 				}
 			}
 		}
-		bppx = bpx; bppy = bpy; bpx = bx; bpy = by
+		bpx = bx; bpy = by
 		if(dx > 0){
 			const iy = py + dy * (1 - px) / dx
-			if(iy >= 0 && iy <= 1){bx++; d += (1 - px) / dx; px = 0; py = iy; continue}
+			if(iy >= 0 && iy <= 1){bx++; l=255; d += (1 - px) / dx; px = 0; py = iy; continue}
 		}else if(dx < 0){
 			const iy = py + dy * -px / dx
-			if(iy >= 0 && iy <= 1){bx--; d += -px / dx; px = 1; py = iy; continue}
+			if(iy >= 0 && iy <= 1){bx--; l=1; d += -px / dx; px = 1; py = iy; continue}
 		}
 		if(dy > 0){
 			const ix = px + dx * (1 - py) / dy
-			if(ix >= 0 && ix <= 1){by++; d += (1 - py) / dy; py = 0; px = ix; continue}
+			if(ix >= 0 && ix <= 1){by++; l=65280; d += (1 - py) / dy; py = 0; px = ix; continue}
 		}else if(dy < 0){
 			const ix = px + dx * -py / dy
-			if(ix >= 0 && ix <= 1){by--; d += -py / dy; py = 1; px = ix; continue}
+			if(ix >= 0 && ix <= 1){by--; l=256; d += -py / dy; py = 1; px = ix; continue}
 		}
 	}
 	goto(bpx, bpy)
+	px -= bpx - bx, py -= bpy - by
+	const targetFlag = item?.interactFluid ? 1024 : 256
 	if(d >= reach){
-		const {targettable, solid} = peek()
-		if(targettable && !solid){
-			px -= bpx - bx; py -= bpy - by
-			bx = bpx; by = bpy; bpx = bppx; bpy = bppy
+		const {flags} = peek()
+		if(flags&targetFlag){
+			bx = bpx; by = bpy; bpx += l<<24>>24; bpy = l<<16>>24
 			goto(bpx, bpy)
 			if(bpx > bx) px = 1
 			else if(bpx < bx) px = 0
@@ -107,23 +108,24 @@ function raycastPointer(){
 			else if(bpy < by) py = 0
 			px -= bpx - bx; py -= bpy - by
 		}else{
-			px = ((me.x + x)%1+1)%1; py = ((me.y + me.head + y)%1+1)%1
+			px = (me.x + x)%1; py = (me.y + me.head + y)%1
+			px += px<0; py += py<0
 			bx = by = NaN
 		}
-	}else px -= bpx - bx, py -= bpy - by
-	let up,down,left,right; up=down=left=right=Blocks.air
-	if(bpx != bpx) return
+	}
+	if(bx == bx && !(getblock(bx, by).flags&targetFlag)) bx = by = NaN
+	if(bpx != bpx || !item) return
 	const b = peek()
-	if(b.targettable){ bpx = bpy = NaN; return }
-	else up = peekup(), down = peekdown(), left = peekleft(), right = peekright()
+	{
+		if(!(b.flags&4096)){ bpx = bpy = NaN; return }
+		const up = peekup(), left = peekleft(), down = peekdown(), right = peekright()
+		if(!(up.flags&targetFlag) && !(left.flags&targetFlag) && !(down.flags&targetFlag) && !(right.flags&targetFlag)){
+			bpx = bpy = NaN; return
+		}
+	}
 	blockPlacing = perms >= 2 && (bx != bx || !getblock(bx, by).interactible || (me.state&2)) ? item?.places?.(px, py, bx, by) : undefined
-	if(interactFluid ?
-		up.flows === false && down.flows === false && left.flows === false && right.flows === false
-		: !(up.targettable||up.solid) && !(down.targettable||down.solid) && !(left.targettable||left.solid) && !(right.targettable||right.solid)
-	){ bpx = bpy = NaN; return }
-	if(!b.replaceable || (interactFluid && b.flows === false)){ bpx = bpy = NaN; return }
 	let x0 = bpx - 32 >>> 6, y0 = bpy - 32 >>> 6, x1 = x0 + 1 & 0x3FFFFFF, y1 = y0 + 1 & 0x3FFFFFF
-	if(blockPlacing?.solid===true && !interactFluid) for(const ch of [map.get(x0+y0*0x4000000), map.get(x1+y0*0x4000000), map.get(x0+y1*0x4000000), map.get(x1+y1*0x4000000)])
+	if(blockPlacing?.flags&240) for(const ch of [map.get(x0+y0*0x4000000), map.get(x1+y0*0x4000000), map.get(x0+y1*0x4000000), map.get(x1+y1*0x4000000)])
 		if(ch) for(const e of ch.entities) if(e.y < bpy + 1 && e.y + e.height > bpy && e.x - e.width < bpx + 1 && e.x + e.width > bpx){
 			//Don't allow placing because there is an entity in the way
 			bpx = bpy = NaN; return
@@ -151,7 +153,7 @@ drawLayer('world', 201, (c, w, h) => {
 	toBlockExact(c, bx, by)
 	const block = getblock(bx, by)
 	const item = me.inv[me.selected]
-	if(renderUI && (block.hover?.(c, item)??true)){
+	if(renderUI && (typeof block.canTarget == 'boolean' ? block.canTarget : block.canTarget?.(c, item)??true)){
 		let {blockShape = DEFAULT_BLOCKSHAPE} = block
 		c.shader = Shader.NONE
 		c.mask = SET

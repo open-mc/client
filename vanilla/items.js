@@ -1,8 +1,9 @@
-import { Blocks, Items, Item, BlockTexture } from 'definitions'
+import { Blocks, Items, Item, BlockFlags } from 'definitions'
+import { BlockTexture } from 'world'
 import { itemify, slabifyItem } from './blockshapes.js'
 import { chestTop, commandBlockTexs, barrierTex } from './blocks.js'
 import itemsPng from './items.png'
-import { getblock, peekleft, peekright, peek, peekdown, down } from 'ant'
+import { getblock, peekleft, peekright, peek, peekdown, down, soliddown, solidleft, solidright } from 'ant'
 
 Items.oak_log = itemify(Blocks.oak_log, 'Oak log')
 Items.birch_log = itemify(Blocks.birch_log, 'Birch log')
@@ -25,6 +26,21 @@ Items.dark_oak_planks_slab = slabifyItem(Items.dark_oak_planks, Blocks.dark_oak_
 Items.acacia_planks_slab = slabifyItem(Items.acacia_planks, Blocks.acacia_planks)
 Items.jungle_planks_slab = slabifyItem(Items.jungle_planks, Blocks.jungle_planks)
 
+Items.tall_grass = class extends Item{
+	places(){ if(peekdown() == Blocks.grass) return Blocks.tall_grass }
+	static defaultName = 'Tall grass'
+	static texture = Blocks.tall_grass.texture
+}
+Items.cactus = class extends Item{
+	places(){ const d = peekdown(); if((d == Blocks.sand || d == Blocks.cactus) && !solidleft() && !solidright()) return Blocks.cactus }
+	static defaultName = 'Cactus'
+	static texture = Blocks.cactus.texture
+}
+Items.dead_bush = class extends Item{
+	places(){ if(peekdown() == Blocks.sand) return Blocks.dead_bush }
+	static defaultName = 'Dead bush'
+	static texture = Blocks.dead_bush.texture
+}
 
 Items.sand = itemify(Blocks.sand, 'Sand')
 Items.gravel = itemify(Blocks.gravel, 'Gravel')
@@ -44,7 +60,7 @@ Items.sugar_cane = class extends Item{
 	places(_, _2){
 		down()
 		const bl = peekleft(), br = peekright(), b = peek()
-		if(b == Blocks.sugar_cane | (((bl.flows === false & bl.fluidType === 'water') | (br.flows === false & br.fluidType === 'water')) & b.solid))
+		if(b == Blocks.sugar_cane | (((bl.source === true & bl.fluidType === 'water') | (br.source === true & br.fluidType === 'water')) & !!(b.flags&BlockFlags.SOLID_TOP)))
 			return Blocks.sugar_cane
 	}
 	static texture = BlockTexture(itemsPng, 1, 16)
@@ -270,7 +286,7 @@ Items.torch = class extends Item{
 	static defaultName = 'Torch'
 	static useTint = false
 	places(fx, fy){
-		const sd = peekdown().solid, sl = peekleft().solid, sr = peekright().solid
+		const sd = soliddown(), sl = solidleft(), sr = solidright()
 		let b = fx < .2 ? Blocks.torch_left : fx > .8 ? Blocks.torch_right : Blocks.torch
 		if(b == Blocks.torch_left && !sl) b = Blocks.torch
 		if(b == Blocks.torch_right && !sr) b = Blocks.torch

@@ -63,6 +63,7 @@ const categories = [
 		Items.chiseled_sandstone, Items.red_sandstone,
 		Items.cut_red_sandstone, Items.chiseled_red_sandstone,
 		Items.smooth_red_sandstone,
+		Items.tall_grass, Items.cactus, Items.dead_bush
 	),
 
 	Category('General', Items.iron,

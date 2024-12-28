@@ -1,7 +1,7 @@
 import { uiButtons, audioSet, lava, renderSlot, water, renderGenericTooltip } from './effects.js'
 import click from '/core/img/click.mp3'
-import { cam, world, mode } from 'world'
-import { Blocks, Block, Items, BlockTexture, toTex } from 'definitions'
+import { cam, world, mode, BlockTexture, toTex, BiomeTint } from 'world'
+import { Blocks, Block, Items, BlockFlags } from 'definitions'
 import { BlockShape, blockShaped, fluidify } from './blockshapes.js'
 import { closeInterface } from './interfaces.js'
 import { uiButton, drawLayer, drawText } from 'api'
@@ -12,22 +12,71 @@ import itemsPng from './items.png'
 import animatedPng from './animated.png'
 
 Blocks.air = class extends Block{
-	static solid = false
-	static replaceable = true
+	static flags = BlockFlags.REPLACEABLE
 	static opacity = 0
 	static minLight = 4
 }
 Blocks.grass = class extends Block{
 	static dirt = true
-	static texture = BlockTexture(blocksPng, 0, 0)
+	static texture = BlockTexture(blocksPng, 0, 0, _, _, BiomeTint.TINT_OVERLAY, false)
 	static breaktime = 1.5
 	static tool = 'shovel'
 	static placeSounds = audioSet('grass/place', 4)
 	static stepSounds = audioSet('grass/step', 6)
 }
+Blocks.tall_grass = class extends Block{
+	static texture = BlockTexture(blocksPng, 4, 1, _, _, BiomeTint.TINT)
+	static flags = BlockFlags.TARGETTABLE | BlockFlags.REPLACEABLE
+	static breaktime = 0
+	static opacity = 0
+	static placeSounds = Blocks.grass.placeSounds
+}
+
+class Wool extends Block{
+	static opacity = 1
+	static tool = 'shears'
+	static breaktime = 1.2
+	static stepSounds = audioSet('wool/place', 4)
+	static placeSounds = this.stepSounds
+}
+
+Blocks.white_wool = class extends Wool{ static texture = BlockTexture(blocksPng, 0, 14) }
+Blocks.light_grey_wool = class extends Wool{ static texture = BlockTexture(blocksPng, 1, 14) }
+Blocks.grey_wool = class extends Wool{ static texture = BlockTexture(blocksPng, 2, 14) }
+Blocks.black_wool = class extends Wool{ static texture = BlockTexture(blocksPng, 3, 14) }
+Blocks.red_wool = class extends Wool{ static texture = BlockTexture(blocksPng, 4, 14) }
+Blocks.orange_wool = class extends Wool{ static texture = BlockTexture(blocksPng, 5, 14) }
+Blocks.yellow_wool = class extends Wool{ static texture = BlockTexture(blocksPng, 6, 14) }
+Blocks.lime_wool = class extends Wool{ static texture = BlockTexture(blocksPng, 7, 14) }
+Blocks.green_wool = class extends Wool{ static texture = BlockTexture(blocksPng, 8, 14) }
+Blocks.cyan_wool = class extends Wool{ static texture = BlockTexture(blocksPng, 9, 14) }
+Blocks.light_blue_wool = class extends Wool{ static texture = BlockTexture(blocksPng, 10, 14) }
+Blocks.blue_wool = class extends Wool{ static texture = BlockTexture(blocksPng, 11, 14) }
+Blocks.purple_wool = class extends Wool{ static texture = BlockTexture(blocksPng, 12, 14) }
+Blocks.magenta_wool = class extends Wool{ static texture = BlockTexture(blocksPng, 13, 14) }
+Blocks.pink_wool = class extends Wool{ static texture = BlockTexture(blocksPng, 14, 14) }
+Blocks.brown_wool = class extends Wool{ static texture = BlockTexture(blocksPng, 15, 14) }
+
+Blocks.cactus = class extends Block{
+	static texture = BlockTexture(blocksPng, 6, 4)
+	static blockShape = [.0625, 0, .9375, 1]
+	static flags = BlockFlags.HARD_TOP | BlockFlags.SOLID_TOP | BlockFlags.TARGETTABLE | BlockFlags.FRAGILE
+	static opacity = 0
+	static breaktime = .5
+	static placeSounds = Wool.placeSounds
+}
+
+Blocks.dead_bush = class extends Block{
+	static texture = BlockTexture(blocksPng, 13, 4)
+	static flags = BlockFlags.TARGETTABLE | BlockFlags.FRAGILE
+	static opacity = 0
+	static breaktime = 0
+	static placeSounds = Blocks.grass.placeSounds
+}
+
 class Stone extends Block{
 	static tool = 'pick'
-	static texture = BlockTexture(blocksPng, 1, 0)
+	static texture = BlockTexture(blocksPng, 3, 0)
 	static placeSounds = audioSet('stone/place', 4)
 	static stepSounds = audioSet('stone/step', 6)
 	static breaktime = 7.5
@@ -151,12 +200,10 @@ const bucketSounds = {
 export class Water extends Block{
 	static opacity = 1
 	static minLight = 5
-	static solid = false
-	static replaceable = true
-	static climbable = true
+	static flags = BlockFlags.REPLACEABLE | BlockFlags.CLIMBABLE
 	static viscosity = 0.15
 	random(){
-		if(this.flows){
+		if(this.source === false){
 			const r = random()
 			if(r < .05)
 				sound(water.ambient[0], 1, 1)
@@ -173,13 +220,10 @@ void({
 	top: Blocks.waterTop,
 	flowing: Blocks.waterFlowing,
 	levels: [, Blocks.waterFlowing1, Blocks.waterFlowing2, Blocks.waterFlowing3, Blocks.waterFlowing4, Blocks.waterFlowing5, Blocks.waterFlowing6, Blocks.waterFlowing7]
-} = fluidify(Water, 'water', BlockTexture(animatedPng, 2, 0, 32), BlockTexture(animatedPng, 5, 0, 64)))
-
+} = fluidify(Water, 'water', BlockTexture(animatedPng, 2, 0, 32, 1, BiomeTint.TINT), BlockTexture(animatedPng, 5, 0, 64, 1, BiomeTint.TINT)))
 export class Lava extends Block{
 	static opacity = 0
-	static solid = false
-	static replaceable = true
-	static climbable = true
+	static flags = BlockFlags.REPLACEABLE | BlockFlags.CLIMBABLE
 	static viscosity = 0.5
 	static brightness = 15
 	random(){
@@ -198,7 +242,7 @@ void({
 	top: Blocks.lavaTop,
 	flowing: Blocks.lavaFlowing,
 	levels: [, Blocks.lavaFlowing1, Blocks.lavaFlowing2, Blocks.lavaFlowing3, Blocks.lavaFlowing4, Blocks.lavaFlowing5, Blocks.lavaFlowing6, Blocks.lavaFlowing7]
-} = fluidify(Lava, 'lava', BlockTexture(animatedPng, 3, 0, 38), BlockTexture(animatedPng, 4, 0, 32)))
+} = fluidify(Lava, 'lava', BlockTexture(animatedPng, 3, 0, 38, 2), BlockTexture(animatedPng, 4, 0, 32, 2)))
 
 Blocks.sandstone = class extends Stone{
 	static texture = BlockTexture(blocksPng, 1, 11)
@@ -240,6 +284,7 @@ Blocks.quartz_ore = class extends Blocks.netherrack{
 
 Blocks.tnt = class extends Block{
 	static breaktime = 0
+	static minLight = 9
 	static texture = BlockTexture(blocksPng, 8, 0)
 	static stepSounds = Blocks.grass.placeSounds
 	static placeSounds = Blocks.grass.placeSounds
@@ -306,31 +351,6 @@ Blocks.chest = class extends Block{
 	static tool = 'axe'
 }
 
-class Wool extends Block{
-	static opacity = 1
-	static tool = 'shears'
-	static breaktime = 1.2
-	static stepSounds = audioSet('wool/place', 4)
-	static placeSounds = this.stepSounds
-}
-
-Blocks.white_wool = class extends Wool{ static texture = BlockTexture(blocksPng, 0, 14) }
-Blocks.light_grey_wool = class extends Wool{ static texture = BlockTexture(blocksPng, 1, 14) }
-Blocks.grey_wool = class extends Wool{ static texture = BlockTexture(blocksPng, 2, 14) }
-Blocks.black_wool = class extends Wool{ static texture = BlockTexture(blocksPng, 3, 14) }
-Blocks.red_wool = class extends Wool{ static texture = BlockTexture(blocksPng, 4, 14) }
-Blocks.orange_wool = class extends Wool{ static texture = BlockTexture(blocksPng, 5, 14) }
-Blocks.yellow_wool = class extends Wool{ static texture = BlockTexture(blocksPng, 6, 14) }
-Blocks.lime_wool = class extends Wool{ static texture = BlockTexture(blocksPng, 7, 14) }
-Blocks.green_wool = class extends Wool{ static texture = BlockTexture(blocksPng, 8, 14) }
-Blocks.cyan_wool = class extends Wool{ static texture = BlockTexture(blocksPng, 9, 14) }
-Blocks.light_blue_wool = class extends Wool{ static texture = BlockTexture(blocksPng, 10, 14) }
-Blocks.blue_wool = class extends Wool{ static texture = BlockTexture(blocksPng, 11, 14) }
-Blocks.purple_wool = class extends Wool{ static texture = BlockTexture(blocksPng, 12, 14) }
-Blocks.magenta_wool = class extends Wool{ static texture = BlockTexture(blocksPng, 13, 14) }
-Blocks.pink_wool = class extends Wool{ static texture = BlockTexture(blocksPng, 14, 14) }
-Blocks.brown_wool = class extends Wool{ static texture = BlockTexture(blocksPng, 15, 14) }
-
 Blocks.dragon_egg = class extends Block{
 	static texture = BlockTexture(blocksPng, 15, 0)
 	static brightness = 1
@@ -359,8 +379,8 @@ import flintIgnite from './sound/fire/ignite.mp3'
 import portalEnter from './sound/portal/enter.mp3'
 
 Blocks.fire = class extends Block{
-	static solid = false
-	static replaceable = true
+	static flags = BlockFlags.REPLACEABLE | BlockFlags.TARGET_CAPTURE
+	static canTarget = false
 	static texture = BlockTexture(animatedPng, 1, 0, 32)
 	static placeSounds = [flintIgnite]
 	static opacity = 0
@@ -374,7 +394,7 @@ Blocks.fire = class extends Block{
 }
 let portalEffect = 0, inPortal = false
 Blocks.portal = class extends Block{
-	static solid = false
+	static flags = BlockFlags.TARGET_BLOCKING | BlockFlags.FRAGILE
 	static blockShape = [0.375, 0, 0.625, 1]
 	static texture = BlockTexture(animatedPng, 0, 0, 32)
 	static opacity = 0
@@ -410,15 +430,15 @@ void main(){
 	const mat2 PINQUARTER = ROT_MAT(PI/-4.);
 	const mat2 PIONE = ROT_MAT(PI);
 	vec2 pos = xy*uni2/1000.;
-	color = getCol(uni0, MULTIPLY(pos,PITHIRD,0.));
-	color += getCol(uni0, MULTIPLY(pos,PIHALF,.25))*.9;
-	color += getCol(uni0, MULTIPLY(pos,PINQUARTER,.5))*.5;
-	color += getCol(uni0, MULTIPLY(pos,PIONE,.75))*.4;
+	color = getColor(uni0, MULTIPLY(pos,PITHIRD,0.));
+	color += getColor(uni0, MULTIPLY(pos,PIHALF,.25))*.9;
+	color += getColor(uni0, MULTIPLY(pos,PINQUARTER,.5))*.5;
+	color += getColor(uni0, MULTIPLY(pos,PIONE,.75))*.4;
 	color *= arg0;
-}`, VEC4, [TEXTURE, FLOAT, VEC2], _, vec4.one)
+}`, VEC4, vec4.one, [TEXTURE, FLOAT, VEC2])
 let endShaderT = -1
 Blocks.end_portal = class extends Block{
-	static solid = false
+	static flags = BlockFlags.TARGET_BLOCKING
 	static blockShape = [0, 0, 1, 0.75]
 	static softness = 1
 	static texture = BlockTexture(blocksPng, 14, 0)
@@ -447,8 +467,7 @@ Blocks.filled_end_portal_frame = class extends Blocks.end_portal_frame{
 Blocks.sugar_cane = class extends Block{
 	static breaktime = 0
 	static opacity = 0
-	static solid = false
-	static targettable = true
+	static flags = BlockFlags.TARGETTABLE
 	static placeSounds = Blocks.grass.placeSounds
 	static texture = BlockTexture(blocksPng, 9, 4)
 }
@@ -460,9 +479,8 @@ Blocks.pumpkin_leaf2 = class extends Blocks.pumpkin_leaf{ }
 Blocks.pumpkin_leaf3 = class extends Blocks.pumpkin_leaf{ }
 
 class Sapling extends Block{
-	static solid = false
+	static flags = BlockFlags.TARGETTABLE
 	static opacity = 0
-	static targettable = true
 	static placeSounds = Blocks.grass.placeSounds
 }
 
@@ -621,7 +639,7 @@ const btnH = uiButtons.large.h
 Blocks.command_block = class extends Stone{
 	type = 0
 	commands = []
-	static texture = -1
+	static texture = 0
 	static opacity = 0
 	render(c, tint){
 		const a = floor(t*2)&3
@@ -686,32 +704,30 @@ Blocks.barrier = class extends Block{
 	render(c){
 		if(mode == 1 && me.inv[me.selected]?.constructor == Items.barrier) c.draw(toTex(barrierTex))
 	}
-	hover(c, itm){
+	canTarget(c, itm){
 		return mode == 1 && itm?.constructor == Items.barrier
 	}
 }
 
 const torchTex = BlockTexture(blocksPng, 0, 5)
 Blocks.torch = class extends Wood{
-	static solid = false
+	static flags = BlockFlags.TARGETTABLE | BlockFlags.FRAGILE
 	static opacity = 0
 	static brightness = 14
-	static targettable = true
-	static replaceable = true
 	static tool; static breaktime = 0
 	static blockShape = [7/16, 0, 9/16, 10/16]
 	static texture = torchTex
 }
 Blocks.torch_left = class extends Blocks.torch{
 	static blockShape = [0, 3/16, 5/16, 13/16]
-	static texture = -1
+	static texture = 0
 	render(c, tint){
 		c.drawMat(1, 0, 0.3, 1, -0.4375, 0.1875, toTex(torchTex), tint)
 	}
 }
 Blocks.torch_right = class extends Blocks.torch{
 	static blockShape = [11/16, 3/16, 1, 13/16]
-	static texture = -1
+	static texture = 0
 	render(c, tint){
 		c.drawMat(1, 0, -0.3, 1, 0.4375, 0.1875, toTex(torchTex), tint)
 	}

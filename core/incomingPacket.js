@@ -64,8 +64,8 @@ function chunkPacket(buf){
 			let i2 = i+4096
 			while(true){
 				if(i2 < 64){ if(ex[i] == top) ex[i] = chunk.y<<6; break }
-				const b = chunk[i2-=64], {solid} = b==65535?chunk.tileData.get(i2):BlockIDs[b]
-				if(solid){ ex[i] = (chunk.y<<6|i2>>6)+1; break }
+				const b = chunk[i2-=64], {flags} = b==65535?chunk.tileData.get(i2):BlockIDs[b]
+				if(flags&128){ ex[i] = (chunk.y<<6|i2>>6)+1; break }
 			}
 		}
 	}
@@ -86,8 +86,8 @@ function chunkPacket(buf){
 		if((ex[x]-chy-64|0)>=0) continue
 		let y = 64
 		while(--y>=0){
-			const b = chunk[y<<6|x], {solid} = b===65535?chunk.tileData.get(y<<6|x):BlockIDs[b]
-			if(solid) break
+			const b = chunk[y<<6|x], {flags} = b===65535?chunk.tileData.get(y<<6|x):BlockIDs[b]
+			if(flags&128) break
 		}
 		if(y<0) continue
 		ex[x] = chy+y+1|0

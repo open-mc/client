@@ -1,5 +1,6 @@
 import { map, world, me } from 'world'
 import { gotopos } from 'ant'
+import { BlockFlags } from 'definitions'
 
 export function moveEntity(e){
 	const ch = map.get((floor(e.x) >>> 6) + (floor(e.y) >>> 6) * 0x4000000) || null
@@ -32,8 +33,8 @@ export function fastCollision(e){
 			let j = i, c1 = c.flags&1?(yf=0,null):c
 			for(let x = 0; c1&&x<xw; x++,(++j&63)||(j-=64,c1=c1.right,(c1?.flags&1)&&x<xw&&(yf=0,c1=null))){
 				ex0 -= 1; ex1 -= 1
-				const id = c1[j], {solid, blockShape} = id==65535?c1.tileData.get(j):BlockIDs[id]
-				if(!solid) continue
+				const id = c1[j], {flags, blockShape} = id==65535?c1.tileData.get(j):BlockIDs[id]
+				if(!(flags&64)) continue
 				if(!blockShape){ yf = 0; break }
 				for(let i = 0; i < blockShape.length; i += 4){
 					if(ex0 >= blockShape[i+2] | ex1 <= blockShape[i]) continue
@@ -58,8 +59,8 @@ export function fastCollision(e){
 			let j = i, c1 = c.flags&1?(yf=1,null):c
 			for(let x = 0; c1&&x<xw; x++,(++j&63)||(j-=64,c1=c1.right,(c1?.flags&1)&&x<xw&&(yf=1,c1=null))){
 				ex0 -= 1; ex1 -= 1
-				const id = c1[j], {solid, blockShape} = id==65535?c1.tileData.get(j):BlockIDs[id]
-				if(!solid) continue
+				const id = c1[j], {flags, blockShape} = id==65535?c1.tileData.get(j):BlockIDs[id]
+				if(!(flags&128)) continue
 				if(!blockShape){ yf = 1; continue }
 				for(let i = 0; i < blockShape.length; i += 4){
 					if(ex0 >= blockShape[i+2] | ex1 <= blockShape[i]) continue
@@ -90,8 +91,8 @@ export function fastCollision(e){
 			let j = i, c1 = c.flags&1?(xf=0,null):c
 			for(let y = 0; c1&&y<yh; y++,(j+=64)>=4096&&(j&=63,c1=c1.up,(c1?.flags&1)&&y<yh&&(xf=0,c1=null))){
 				ey0 -= 1; ey1 -= 1
-				const id = c1[j], {solid, blockShape} = id==65535?c1.tileData.get(j):BlockIDs[id]
-				if(!solid) continue
+				const id = c1[j], {flags, blockShape} = id==65535?c1.tileData.get(j):BlockIDs[id]
+				if(!(flags&16)) continue
 				if(!blockShape){ xf = 0; if(1-ey0>climb) climb=1-ey0-climb>CLIMB?Infinity:1-ey0; continue }
 				for(let i = 0; i < blockShape.length; i += 4){
 					const c = blockShape[i+3] - ey0
@@ -109,8 +110,8 @@ export function fastCollision(e){
 					let j = i, c1 = c0
 					for(let x = xa; c1&&x<ex1; x++,(++j&63)||(j-=64,c1=c1.right)){
 						if(c1.flags&1) break a
-						const id = c1[j], {solid, blockShape} = id==65535?c1.tileData.get(j):BlockIDs[id]
-						if(!solid) continue
+						const id = c1[j], {flags, blockShape} = id==65535?c1.tileData.get(j):BlockIDs[id]
+						if(!(flags&64)) continue
 						if(!blockShape) break a
 						for(let i = 0; i < blockShape.length; i+=4){
 							if(blockShape[i]+x>=ex1 | blockShape[i+2]+x<=sx) continue
@@ -145,8 +146,8 @@ export function fastCollision(e){
 			let j = i, c1 = c.flags&1?(xf=1,null):c
 			for(let y = 0; c1&&y<yh; y++,(j+=64)>=4096&&(j&=63,c1=c1.up,(c1?.flags&1)&&y<yh&&(xf=1,c1=null))){
 				ey0 -= 1; ey1 -= 1
-				const id = c1[j], {solid, blockShape} = id==65535?c1.tileData.get(j):BlockIDs[id]
-				if(!solid) continue
+				const id = c1[j], {flags, blockShape} = id==65535?c1.tileData.get(j):BlockIDs[id]
+				if(!(flags&32)) continue
 				if(!blockShape){ xf = 1; if(1-ey0>climb) climb=1-ey0-climb>CLIMB?Infinity:1-ey0; continue }
 				for(let i = 0; i < blockShape.length; i += 4){
 					const c = blockShape[i+3] - ey0
@@ -164,8 +165,8 @@ export function fastCollision(e){
 					let j = i, c1 = c0
 					for(let x = xa; x < ex1; x++,(++j&63)||(j=j-1&4032,c1=c1.right)){
 						if(c1.flags&1) break a
-						const id = c1[j], {solid, blockShape} = id==65535?c1.tileData.get(j):BlockIDs[id]
-						if(!solid) continue
+						const id = c1[j], {flags, blockShape} = id==65535?c1.tileData.get(j):BlockIDs[id]
+						if(!(flags&64)) continue
 						if(!blockShape) break a
 						for(let i = 0; i < blockShape.length; i+=4){
 							if(blockShape[i]+x>=ex1 | blockShape[i+2]+x<=sx) continue
@@ -206,7 +207,7 @@ export function fastCollision(e){
 		b: for(let y = 0; c1&&y<yh; y++,(j+=64)>=4096&&(j&=63,c1=c1.up)){
 			gotopos(c1, j)
 			const id = c1[j], b = id==65535?c1.tileData.get(j):BlockIDs[id]
-			const {blockShape, viscosity, climbable, pushX = 0, pushY = 0} = b
+			const {blockShape, viscosity, flags, pushX = 0, pushY = 0} = b
 			let touchingBottom = 1 - (e.y - y - ys)
 			if(blockShape){
 				const bx0 = e.x - e.width - x + EPS, bx1 = e.x + e.width - x - EPS
@@ -222,7 +223,7 @@ export function fastCollision(e){
 			if(pushY){ if(pushY < 0){ if(pushY < py0) py0 = pushY }
 			else if(pushY > py1) py1 = pushY }
 			if(viscosity > v) v = viscosity
-			if(climbable & !c)
+			if((flags&BlockFlags.CLIMBABLE) && !c)
 				c = touchingBottom > (e.impactDx ? 0 : dy > 0 ? .125 : .375) * e.height
 			if(!b.touched) continue b
 			if(b.touched(e, x, c1.y<<6|j>>6)) break a

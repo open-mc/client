@@ -1,4 +1,5 @@
-import { Item, toTex, BlockTexture, editBlockTexture, awaitLoad } from 'definitions'
+import { Item, BlockFlags } from 'definitions'
+import { MapBlockTexture } from 'world'
 import { peekup, peekdown, peekright, peekleft } from 'ant'
 
 export const BlockShape = {}
@@ -13,21 +14,16 @@ BlockShape.HORIZONTAL_THIN = [0, 0.25, 1, 0.75]
 BlockShape.ONE_SHORT = [0, 0, 1, 15/16]
 BlockShape.TWO_SHORT = [0, 0, 1, 14/16]
 
-const trimTexture = Texture(16, 16, 1).drawable(0, true)
-trimTexture.blend = Blend.REPLACE
-const trimTex = (t, s) => {
-	const b = BlockTexture()
-	awaitLoad(t).then(t => {
-		trimTexture.clear()
-		trimTexture.mask = SET
-		for(let i = 0; i < s.length; i+=4)
-			trimTexture.drawRect(s[i], s[i+1], s[i+2]-s[i], s[i+3]-s[i+1])
-		trimTexture.mask = RGBA | IF_SET
-		trimTexture.draw(toTex(t))
-		editBlockTexture(b, trimTexture.texture)
-	})
-	return b
-}
+const trimTexture = Drawable(Texture(16, 16, 1), 0, 0, true)
+trimTexture
+const trimTex = (t, s) => MapBlockTexture(t, (ctx, tex) => {
+	ctx.mask = SET
+	ctx.blend = Blend.REPLACE
+	for(let i = 0; i < s.length; i+=4)
+		ctx.drawRect(s[i], s[i+1], s[i+2]-s[i], s[i+3]-s[i+1])
+	ctx.mask = RGBA | IF_SET
+	ctx.draw(tex)
+})
 
 const shapeKeys = new Map()
 	.set(BlockShape.SLAB, 'slabShape')
@@ -70,6 +66,7 @@ let fluidGeometry
 	}
 	fluidGeometry = Geometry(TRIANGLE_STRIP, arr)
 }
+const topGeometry = fluidGeometry.sub(210, 4)
 
 export const fluidify = (B, type, tex, flowingTex) => {
 	B.texture = tex
@@ -77,24 +74,23 @@ export const fluidify = (B, type, tex, flowingTex) => {
 	const filled = class extends B{
 		variant(){ return !peekup().fluidLevel ? top : undefined }
 		static fluidLevel = 8
-		static flows = false
+		static source = true
+		static flags = B.flags | BlockFlags.TARGET_FLUID
 	}
-	const top = class extends B{
+	const top = class extends filled{
 		variant(){ return peekup().fluidLevel ? filled : undefined }
 		static blockShape = BlockShape.TWO_SHORT
-		static texture = -1
-		static fluidLevel = 8
-		static flows = false
-		render(c, tint){
-			const tx = toTex(peekdown() == flowing ? flowingTex : tex)
-			tx.h *= .875
-			c.drawRect(0, 0, 1, .875, tx, tint)
+		static texture = 0
+		render(c, tint, biome){
+			c.geometry = topGeometry
+			this.draw(c, tint, biome, peekdown() == flowing ? flowingTex : tex)
+			c.geometry = null
 		}
 	}
 	const flowing = class extends B{
 		static texture = flowingTex
 		static fluidLevel = 8
-		static flows = true
+		static source = false
 		static pushY = -6
 	}
 	const level = class extends B{
@@ -102,21 +98,21 @@ export const fluidify = (B, type, tex, flowingTex) => {
 			const L = this.fluidLevel
 			return (peekright().fluidLevel??0) < L ? (peekleft().fluidLevel??0) < L ? 0 : 8 : (peekleft().fluidLevel??0) < L ? -8 : 0
 		}
-		static texture = -1
-		static flows = true
-		render(c, tint){
+		static texture = 0
+		static source = false
+		render(c, tint, biome){
 			let y1 = 0, y2 = 0
 			{
-				const {solid, fluidLevel=0} = peekright()
-				y2 = fluidLevel ? min(this.fluidLevel, fluidLevel) : (this.fluidLevel >> 1) + solid
+				const {flags, fluidLevel=0} = peekright()
+				y2 = fluidLevel ? min(this.fluidLevel, fluidLevel) : (this.fluidLevel >> 1) + ((flags&BlockFlags.SOLID_LEFT)!=0)
 			}
 			{
-				const {solid, fluidLevel=0} = peekleft()
-				y1 = fluidLevel ? min(this.fluidLevel, fluidLevel) : (this.fluidLevel >> 1) + solid
+				const {flags, fluidLevel=0} = peekleft()
+				y1 = fluidLevel ? min(this.fluidLevel, fluidLevel) : (this.fluidLevel >> 1) + ((flags&BlockFlags.SOLID_RIGHT)!=0)
 			}
 			y1 += y2*9
 			c.geometry = fluidGeometry.sub((y1>>1)*6+(y1<<1&2), 4)
-			c.draw(toTex(flowingTex), tint)
+			this.draw(c, tint, biome, flowingTex)
 			c.geometry = null
 		}
 	}

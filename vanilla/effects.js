@@ -1,11 +1,12 @@
-import { music, me, server, WorldType } from 'world'
+import { music, me, server, WorldType, toTex, setBiomeTintMap } from 'world'
 import { renderF3, drawText, calcText, drawLayer } from 'api'
-import { toTex } from 'definitions'
 import './sound/contents.cache'
 const src = loader(import.meta)
 export const audioSet = (path, count) => Array.from({length: count}, (_, i) => Wave(src`sound/${path+(i+1)}.mp3`))
 
 import btns from '/core/img/button.png'
+
+setBiomeTintMap(ImgData(src`./biome_tint.png`))
 
 export const uiButtons = {
 	large: btns.crop(124,20,200,20),

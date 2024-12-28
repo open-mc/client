@@ -1,4 +1,4 @@
-import './gamma.js'
+import './utils.js'
 import { playerControls } from './controls.js'
 import { DataWriter } from '/server/modules/dataproto.js'
 import { mePhysics, fastCollision } from './entity.js'

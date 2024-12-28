@@ -117,7 +117,7 @@ globalThis.parentPort = null
 			dat.cache = data
 			P?--P||ifr.contentWindow.postMessage(dat, '*', [dat.port,dat.dbport]):port._finish()
 		})
-		ifr.style.display = 'none'
+		ifr.style = 'width: 0;height: 0;border: none;visibility: hidden;position: fixed;inset: -1px'
 		const {port1, port2} = new MessageChannel()
 		const dat = {name: storage.name, skin: skin.buffer, port: this.port2, dbport: port2, config: null, cache: null}
 		let P = 3

@@ -1,8 +1,8 @@
 import { explode, AshParticle, BlastParticle, hurt } from './defs.js'
 import { audioSet, renderItem, renderItemCount, renderSlot } from './effects.js'
-import { Entities, Entity, Item, Blocks, BlockIDs, toTex, addParticle } from 'definitions'
+import { Entities, Entity, Item, Blocks, BlockIDs } from 'definitions'
 import { renderF3, renderUI, drawLayer, drawText, calcText } from 'api'
-import { cam, worldEvents, world, me, mode } from 'world'
+import { cam, worldEvents, world, me, mode, toTex, addParticle } from 'world'
 import { getblock, goto, peek } from 'ant'
 import { renderLeft, renderRight } from './creativeInventory.js'
 

@@ -1,9 +1,9 @@
 import { uiButtons, renderItem, renderItemCount, renderSlot, renderTooltip, resetSlot, slotI, audioSet } from './effects.js'
 import click from '/core/img/click.mp3'
 import { onkey, drawLayer, setPointerLock, renderUI, quit, packets, send, voice, drawText, calcText, tickPhase } from 'api'
-import { gridEvents, entityMap, pointer, cam, world, configLoaded, me, W2, H2, exposureMap, mode, WorldType } from 'world'
+import { gridEvents, entityMap, pointer, cam, world, configLoaded, me, W2, H2, exposureMap, mode, WorldType, addParticle } from 'world'
 import { getblock, peek, sound, goto } from 'ant'
-import { Item, BlockParticle, addParticle, blockBreak, ephemeralInterfaces } from 'definitions'
+import { Item, BlockParticle, Particle, ephemeralInterfaces } from 'definitions'
 import { AshParticle, BlastParticle, explode } from './defs.js'
 import blocksPng from './blocks.png'
 import icons from './icons.png'
@@ -373,7 +373,7 @@ gridEvents[2] = () => {
 	const p = b.breakSounds ?? b.placeSounds
 	if(p.length)
 		sound(p, 1, 0.8)
-	blockBreak(b)
+	Particle.blockBreak(b)
 }
 
 gridEvents[3] = (_, x, y) => {

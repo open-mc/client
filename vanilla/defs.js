@@ -24,7 +24,7 @@ export class BlastParticle extends Particle{
 		c.drawRect(-this.size/2, -this.size/2, this.size, this.size, explodeParticles[floor(15 - this.lifetime * 30)], this.tint)
 	}
 }
-const secondCanvas = Texture(8, 8).drawable()
+const ash = particlePng.sub(7/16,0,.0625,.0625)
 export class AshParticle extends Particle{
 	constructor(x, y){
 		const rx = random() * 4 - 2, ry = random() * 4 - 2
@@ -34,7 +34,7 @@ export class AshParticle extends Particle{
 		this.tint = vec4(a, a, a, 1)
 	}
 	render(c, tint){
-		c.drawRect(secondCanvas.texture, -this.size/2, -this.size/2, this.size, this.size, ashParticles[floor(this.lifetime / 10)], this.tint.times(tint))
+		c.drawRect(ash, -this.size/2, -this.size/2, this.size, this.size, ashParticles[floor(this.lifetime / 10)], this.tint.times(tint))
 		if(random() < dt*10) this.lifetime -= 10
 	}
 }

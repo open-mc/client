@@ -1,4 +1,5 @@
 import { musicdict } from './sounds.js'
+
 let _offx = 0, _offy = 0
 export let W2 = 0, H2 = 0, SCALE = 1
 export const _setDims = (a,b,c,d,e) => (_offx=a,_offy=b,W2=c,H2=d,SCALE=e)
@@ -35,7 +36,7 @@ export const cam = {
 	transform(c, scale = 1){
 		c.reset(scale/c.width,0,0,scale/c.height,_offx,_offy)
 		c.rotate(-this.f)
-		if(this.nausea > 0) c.skew(sin(t*3)/3*this.nausea, cos(t*3)/3*this.nausea)
+		if(this.nausea > 0) c.skew(sin(t*6)/3*this.nausea, cos(t*6)/3*this.nausea)
 	}
 }
 
@@ -110,7 +111,7 @@ export function getTint(x, y, a = 1){
 }
 
 export let lightTint = vec4(0)
-export const lightTex = Texture(256, 1, 1, _, Formats.RGBA), lightArr = new Uint8ClampedArray(1024)
+export const lightArr = new Uint8ClampedArray(1024)
 export function genLightmap(id, b1, s1, s2, sx, base = vec3.zero, shadowStrength = 1){
 	if(lastLm==(lastLm=id)) return
 	shadowStrength *= 255
@@ -122,7 +123,7 @@ export function genLightmap(id, b1, s1, s2, sx, base = vec3.zero, shadowStrength
 		lightArr[j+2] = (b1.z*a + sb*b + base.z)*255
 		lightArr[j+3] = (1-b)*shadowStrength
 	}
-	lightTex.pasteData(lightArr)
+	blockAtlas.pasteData(lightArr, 0, 0, 0, 16, 16, 1)
 }
 let lastLm = NaN
 export const powTable = new Float32Array(16)
@@ -135,3 +136,167 @@ export function setGamma(p){
 
 export const exposureMap = new Map()
 globalThis.exposureMap = exposureMap
+
+let bai = 49, bac = 256, bai1 = 0, bac1 = 256
+export { bai as _invalidTex }
+export let blockAtlas = Texture(4096, min(4096, bac/16), 1, _, _, 5)
+let blockAtlas2 = Texture(4096, min(4096, bac/16), 1, _, _, 5)
+
+export let _invAtlasHeight = 1/(blockAtlas.height>>4)
+blockAtlas.w = 0.00390625
+blockAtlas.h = _invAtlasHeight
+const loading = new Map()
+
+const draw1 = Drawable(Texture(16,16,1), 0, 0, true)
+
+const draw = Drawable(blockAtlas)
+draw.reset(1/256,0,0,_invAtlasHeight,0,0)
+draw.blend = Blend.REPLACE
+const sh = draw.shader = Shader(`
+ivec2 ipos;
+vec4 get(uint n){
+	ivec3 a = ivec3(int(n&255u)<<4u,int(n>>8u&255u)<<4u, n>>16u);
+	a.xy |= ipos; a.xy >>= uni1;
+	return getPixel(uni0, a, int(uni1));
+}
+void main(){
+	ipos = ivec2(uv*16.);
+	color = get(arg0);
+	if(arg2>0.) color = mix(color, get(arg1), arg2);
+}`, [UINT, UINT, FLOAT], _, [TEXTURE, UINT])
+
+export const BiomeTint = {
+	NONE: 0, TINT: 1, TINT_OVERLAY: 2
+}
+
+const animated = []
+export { animated as _blockAnimations }
+
+const expandAtlas = () => {
+	bac <<= 1
+	const ba2 = bac < 65536 ? Texture(4096, bac>>4, 1, _, _, 5) : Texture(4096, 4096, bac>>16, _, _, 5)
+	ba2.paste(blockAtlas)
+	blockAtlas = ba2; draw.texture = blockAtlas
+	_invAtlasHeight = 1/(blockAtlas.height>>4)
+	blockAtlas.w = 0.00390625
+	blockAtlas.h = _invAtlasHeight
+	draw.reset(1/256,0,0,_invAtlasHeight,0,0)
+	draw.blend = Blend.REPLACE
+	draw.shader = sh
+}
+
+export function BlockTexture(img=null, x=0, y=0, frames = 0, invSpeed = 1, blend = 0, vert = true){
+	frames |= 0
+	const c = 1 + (blend>1), i = bai; bai += c
+	if(i >= bac) expandAtlas()
+	let j = i|blend<<22
+	if(frames>1){
+		const id2 = bai1; bai1 += frames*(1+(blend>1))
+		while(id2 >= bac1){
+			bac1 <<= 1
+			const ba2 = bac1 < 65536 ? Texture(4096, bac1>>4, 1, _, _, 5) : Texture(4096, 4096, bac1>>16, _, _, 5)
+			ba2.paste(blockAtlas2); blockAtlas2 = ba2; toMipmap |= 2
+		}
+		animated.push({ frames, speed: 1/invSpeed, id: j, id2 })
+		if(!img.loaded) loading.set(j, img.then(img => _putImg(blockAtlas2, id2, frames, img, x, y, vert)))
+		else _putImg(blockAtlas2, id2, frames, img, x, y, vert)
+	}else{
+		if(!img.loaded) loading.set(j, img.then(img => _putImg(blockAtlas, j, c, img, x, y, vert)))
+		else _putImg(blockAtlas, j, c, img, x, y, vert)
+	}
+	return j
+}
+
+let l=0
+const tintData = new Uint8Array(49152)
+export function setBiomeTintMap(img){
+	const id = ++l
+	if(img.then) return img.then(i => id==l?setBiomeTintMap(i):undefined)
+	const {data} = img
+	for(let c=0;c<4;c++){
+		for(let y=0; y<64; y++) for(let base=y*768|c,base1=c<<8|y<<10,x=0; x<256; x+=4){
+			tintData[x+base] = data[x+base1]
+			tintData[x+base+256] = data[x+base1+1]
+			tintData[x+base+512] = data[x+base1+2]
+		}
+	}
+	blockAtlas.pasteData(tintData, 16, 0, 0, 768, 16, 1)
+}
+
+export function MapBlockTexture(b, cb){
+	const c = 1 + (b>>23&1), i = bai; bai += c
+	if(i >= bac) expandAtlas()
+	let j = i|b&12582912, id2 = i
+	const a = animated.find(a => a.id == b)
+	if(a){
+		id2 = bai1; bai1 += a.frames*(1+(blend>1))
+		while(id2 >= bac1){
+			bac1 <<= 1
+			const ba2 = bac1 < 65536 ? Texture(4096, bac1>>4, 1, _, _, 5) : Texture(4096, 4096, bac1>>16, _, _, 5)
+			ba2.paste(blockAtlas2); blockAtlas2 = ba2; toMipmap |= 2
+		}
+		animated.push({ frames: a.frames, speed: a.speed, id: j, id2 })
+	}
+	const ready = () => {
+		let bA = blockAtlas, id = b|0, frames = c
+		if(a){
+			bA = blockAtlas2; id = a.id2; frames *= a.frames
+			blockAtlas2.w = 0.00390586; blockAtlas2.h = 1/(blockAtlas2.height>>4)
+		}
+		let h = draw1.texture.height>>4
+		if(h>frames) draw1.texture = Texture(16, (h=frames)*TEX_SIZE, 1)
+		else draw1.clear()
+		h = 1/h
+		for(let y=0;y<frames;y++){
+			bA.x = (id&255)*0.00390586
+			bA.y = (id>>8&255)*_invAtlasHeight
+			bA.l = id>>16&63
+			draw1.reset(h, 0, 0, 1, 0, y*h)
+			cb(draw1, bA)
+		}
+		_putImg(a ? blockAtlas2 : blockAtlas, id2, frames, draw1.texture, 0, 0, true)
+	}
+	loading.get(b)?.then(ready) ?? ready()
+	return j
+}
+let toMipmap = 0
+function _putImg(bA, j, frames, img, x, y, vert){
+	if(vert) for(let ry=y,i=j|0;ry<y+frames;ry++,i++) bA.paste(img, (i&255)<<4, i>>4&4080, i>>16&63, x<<4, img.height-(ry<<4)-16, 0, 16, 16, 1)
+	else for(let rx=x,i=j|0;rx<x+frames;rx++,i++) bA.paste(img, (i&255)<<4, i>>4&4080, i>>16&63, rx<<4, img.height-(y<<4)-16, 0, 16, 16, 1)
+	toMipmap |= bA == blockAtlas ? 1 : 2
+	loading.delete(j)
+}
+
+export const toTex = i => {
+	if(!i) i = bai
+	blockAtlas.x = (i&255)*0.00390625
+	blockAtlas.y = (i>>8&255)*_invAtlasHeight
+	blockAtlas.l = i>>16&63
+	return blockAtlas
+}
+
+export function prep(mip = 0, tick = 0){
+	if(toMipmap){
+		if(toMipmap&1) blockAtlas.genMipmaps()
+		if(toMipmap&2) blockAtlas2.genMipmaps()
+		toMipmap = 0
+	}
+	blockAtlas.setMipmapRange(0, mip)
+	draw.shader.uniforms(blockAtlas2, draw.textureMipmap = mip)
+	let l = draw.textureLayer
+	for(let i = 0; i < animated.length; i++){
+		const { frames, speed, id, id2 } = animated[i]
+		if(l != (l = id>>16&63)) draw.textureLayer = l
+		const t = tick*speed, tf = floor(t), inId = (id2&4194303)+tf%frames, inId1 = (id2&4194303)+(tf+1)%frames
+		draw.drawRect(id&255,id>>8&255,1,1,inId,inId1,t-tf)
+		if(id>>23){
+			if(l != (l = id+1>>16&63)) draw.textureLayer = l
+			draw.drawRect(id+1&255,id+1>>8&255,1,1,inId+frames,inId1+frames,t-tf)
+		}
+	}
+}
+
+export function addParticle(p){
+	if(particles.size < options.maxParticles) particles.add(p)
+}
+export const particles = new Set()
