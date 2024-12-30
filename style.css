@@ -249,7 +249,8 @@ column{
 	display: flex; flex-direction: column;
 	gap: 4rem;
 	align-items: center;
-	position: absolute; /* Ignore parent padding */
+	margin-right: calc(0 - env(safe-area-inset-right));
+	margin-left: calc(0 - env(safe-area-inset-left));
 }
 #serverlist > row{
 	padding: 1rem;
