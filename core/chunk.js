@@ -84,7 +84,7 @@ export class Chunk extends Uint16Array{
 		for(let j=0;j<4096;j++){
 			if(this[j] == 65535) this[j] = buf.short()
 			const block = BlockIDs[this[j]]
-			if(block.brightness) _add(this, j)
+			if(block.light>>4&15) _add(this, j)
 			if(!block.savedata) continue
 			this[j] = 65535
 			const b = buf.read(block.savedatahistory[buf.flint()] || block.savedata, new block)
@@ -164,10 +164,9 @@ export class Chunk extends Uint16Array{
 				this.exposure[i&63] = i2
 			}
 		}
-		const {opacity:o2,brightness:b2} = b
-		const {opacity:o1,brightness:b1} = ob
-		if(o2>o1||b2<b1) _addDark(this, i)
-		if(o2<o1||b2>b1) _add(this, i)
+		const {light:l2} = b, {light:l1} = ob
+		if((l2&15)>(l1&15)||(l2>>4&15)<(l1>>4&15)) _addDark(this, i)
+		if((l2&15)<(l1&15)||(l2>>4&15)>(l1>>4&15)) _add(this, i)
 		if(!this.ctx) return
 		const j = this.rerenders.indexOf(i), r = b.render != undefined
 		if((j == -1) & r) this.rerenders.push(i)

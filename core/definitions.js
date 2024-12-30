@@ -87,6 +87,8 @@ export const BlockFlags = {
 	FRAGILE: 8192,
 	REPLACEABLE: 12288,
 }
+export const Brightness = n => n<<4&240, Opacity = n => n&15, MinLight = n => n<<8&3840
+Opacity.of = Opacity; Brightness.of = n => n>>4&15; MinLight.of = n => n>>8&15
 export class Block{
 	static placeSounds = []; static stepSounds = []
 	static breakSounds = null
@@ -95,9 +97,7 @@ export class Block{
 	static texture = 0
 	static viscosity = 0
 	static breaktime = 3
-	static opacity = 2
-	static brightness = 0
-	static minLight = 0
+	static light = Opacity(2)
 	punch(){
 		if(this.stepSounds.length)
 			sound(this.stepSounds, 0.1375, 0.5)

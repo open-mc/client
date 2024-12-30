@@ -229,16 +229,17 @@ XY: \\+3[Player feet position]\\+f
 ChXY: \\+3[Position w/in chunk]\\+f in \\+3[Chunk coords]\\+f
 ChXY: \\+a[chTileIndex]\\+f in \\+a[chKey]\\+f
 Facing: \\+c[\\4+L\\0+eft/\\4+R\\0+ight]\\+f \\+d[head direction in deg]\\+f (\\+d[in rad]\\+f)`
-const f3RightInfo = `Tick \\+d[dimension age]\\+f, Day \\+d[current day in MC days]\\+f, Time \\+d[time within MC day]\\+f
+const f3RightInfo = `Gamma w/ \\+e[Renderer (GL/Vulkan/WebGPU) version]\\+f
+Tick \\+d[dimension age]\\+f, Day \\+d[current MC day]\\+f, Time \\+d[and time]\\+f
 Dim: \\+e[Current dimension ID]\\+f, Biome: \\+d[Temperature]\\+f/\\+d[Humidity]\\+f
 Looking at: \\+3[Coordinate of block under pointer]\\+f
 Light: \\+a[Light value]\\+f, sky=\\+a[sky light]\\+f, block=\\+a[block light]\\+f \\0+
 Block: \\+e[block under pointer]\\+f (\\+a[ID for that block]\\+f)
 Block.texture: \\+a[Atlas tex ID of that block]\\+f[\\+d[Animation frames]\\+f]
 Item.texture: \\+a[Atlas tex ID of held item]\\+f[\\+d[Animation frames]\\+f]`
-const minif3Info = `\\27[Game version]\\0f; \\+a[FPS]\\+f; \\4+[Player position]\\0+; \\+6[MC day & time]\\+f; [Looking at block]`
+const minif3Info = `\\27[Game version]\\0f; \\+a[FPS]\\+f; \\4+[Player position]\\0+; \\+3[MC day & time]\\+f; [Looking at block]`
 
-
+const glVer = gl.getParameter(gl.VERSION) + (globalThis.netscape ? ' (Gecko)' : '')
 function f3Text(detail){
 	const trueX = toString(bigintOffset.x, me.x, detail<2?0:3), trueY = toString(bigintOffset.y, me.y, detail<2?0:3)
 	const day = floor((world.tick+6000)/24000), time = floor((world.tick/1000+6)%24).toString().padStart(2,'0')+':'+(floor((world.tick/250)%4)*15).toString().padStart(2,'0')
@@ -248,8 +249,8 @@ function f3Text(detail){
 	const pointX = floor(pointer.x + me.x)|0, pointY = floor(pointer.y + me.y + me.head)|0, light = getLightValue(pointX, pointY)
 	const mei = floor(me.x)&63|(floor(me.y)&63)<<6
 	const mek = (floor(me.x)>>>6)+(floor(me.y)>>>6)*0x4000000
-	if(detail < 2) return `\\27${VERSION}\\0f; \\+${(fps<20?'9':fps<50?'3':fps<235?'a':'d')+fps}\\+f fps; \\4+x: ${trueX}, y: ${trueY}\\0+; \\+6Day ${day} ${time}\\+f; ${(lookingAt.id?'':'\\+8')+lookingAt.className}\\+f`
-	return [`Paper MC ${VERSION} (Shift for f3 help)
+	if(detail < 2) return `\\27${VERSION}\\0f; \\+${(fps<20?'9':fps<50?'3':fps<235?'a':'d')+fps}\\+f fps; \\4+x: ${trueX}, y: ${trueY}\\0+; \\+3Day ${day} ${time}\\+f; ${(lookingAt.id?'':'\\+8')+lookingAt.className}\\+f`
+	return [`Paper MC ${VERSION} (\\4+SHIFT\\0+ = \\+ehelp\\+f)
 FPS: \\+${(fps<20?'9':fps<50?'3':fps<235?'a':'d')+fps}\\+f (${(timeToFrame*1000).toFixed(2).padStart(5,'\u2007')}ms)
 Net: ${Number.formatData(networkUsage)}/s${performance.memory ? ', Mem: '+Number.formatData(performance.memory.usedJSHeapSize) : ''}
 Draw: ${Number.formatData(frameData)}/${frameSprites}/${frameDrawCalls}
@@ -257,7 +258,8 @@ Ch: ${visibleChunks}/${map.size}, E: ${entityMap.size}, P: ${particles.size}
 XY: \\4+${trueX} / ${trueY}\\0+
 ChXY: ${(mei&63).toString().padStart(2,'\u2007')} ${(mei>>6).toString().padStart(2,'\u2007')} in ${toString(bigintOffset.x>>6n,floor(me.x) >> 6, 0)} ${toString(bigintOffset.y>>6n,floor(me.y) >> 6, 0)}
 ChKey: ${mei} in ${mek}
-Facing: ${(me.f >= 0 ? 'R' : 'L') + (90 - abs(me.f / PI2 * 360)).toFixed(1).padStart(5, '\u2007')} (${me.f.toFixed(3)})`,`Tick ${world.tick}, Day ${day}, Time ${time}
+Facing: ${(me.f >= 0 ? 'R' : 'L') + (90 - abs(me.f / PI2 * 360)).toFixed(1).padStart(5, '\u2007')} (${me.f.toFixed(3)})`,`\\+3Gamma\\+f w/ ${glVer}
+Tick ${world.tick}, Day ${day}, Time ${time}
 Dim: ${WorldTypeStrings[world.type]}, Biome: ${me.chunk ? round(me.chunk.biomes[mex] * (1 - mexi) + me.chunk.biomes[mex+2] * mexi) : 0}/${me.chunk ? round(me.chunk.biomes[mex+1] * (1 - mexi) + me.chunk.biomes[mex+3] * mexi) : 0}
 Looking at: \\4+${toString(bigintOffset.x, pointX, 0)} ${toString(bigintOffset.y, pointY, 0)}\\0+
 Light: 0x${light.toHex().slice(6)}, sky=${light>>4}, block=${light&15}
@@ -265,11 +267,12 @@ Block: ${lookingAt.className+(lookingAt.savedata?' {...}':'')} (${lookingAt.id})
 Block.texture: ${lookingAt.texture>0?`0x${lookingAt.texture.toHex().slice(2)}[${_blockAnimations.find(a=>a.id==lookingAt.texture)?.frames??1}]`+(lookingAt.render?'\\+3*\\+f':''):lookingAt.render?'\\+8na\\+3*\\+f':'\\+8na\\+f'}
 Item.texture: ${holding?.texture>0?`0x${holding.texture.toHex().slice(2)}[${_blockAnimations.find(a=>a.id==holding.texture)?.frames??1}]`+(holding.render?'\\+3*\\+f':''):holding?.render?'\\+8na\\+3*\\+f':'\\+8na\\+f'}`]
 }
-
+let dts = new Float32Array(256), dti = 0
 drawLayer('ui', 999, (ctx, w, h) => {
 	const f3 = min(renderF3+buttons.has(KEYS.LEFT_OF_1), 2)
 	if(!f3) return
-	ctx.translate(0, h)
+	const c = ctx.sub()
+	c.translate(0, h)
 	let text = buttons.has(KEYS.SHIFT)?f3<2?minif3Info:w<5?t%6<3?f3LeftInfo:['',f3RightInfo]:[f3LeftInfo,f3RightInfo]:f3Text(f3)
 	const tl = typeof text == 'object' ? text[0] ? calcText(text[0], Infinity, 15) : [] : text ? calcText(text, Infinity, 15) : []
 	const tr = typeof text == 'object' && text[1] ? calcText(text[1], Infinity, 15) : []
@@ -277,15 +280,27 @@ drawLayer('ui', 999, (ctx, w, h) => {
 	for(let i = 0; i < l; i++){
 		let lineA = null, lineB = null
 		let fontSize = min(1, (w-7)*.125/((i<tl.length?(lineA=tl[i]).width:0)+(i<tr.length?(lineB=tr[i]).width:0)))*8
-		ctx.translate(0, -fontSize-2)
+		c.translate(0, -fontSize-2)
 		if(lineA){
-			ctx.drawRect(1, -1, lineA.width*fontSize+2, fontSize+2, textShadeCol)
-			drawText(ctx, lineA, 2, 0, fontSize, 1)
+			c.drawRect(1, -1, lineA.width*fontSize+2, fontSize+2, textShadeCol)
+			drawText(c, lineA, 2, 0, fontSize, 1)
 		}
 		if(lineB){
 			const wid = lineB.width*fontSize
-			ctx.drawRect(w-1, -1, -wid-2, fontSize+2, textShadeCol)
-			drawText(ctx, lineB, w-wid-2, 0, fontSize, 1)
+			c.drawRect(w-1, -1, -wid-2, fontSize+2, textShadeCol)
+			drawText(c, lineB, w-wid-2, 0, fontSize, 1)
 		}
 	}
+	dts[dti] = max(log2(dt) + 6.75, .75) * .5; dti = dti+1&127
+	if(renderF3 == 2){
+		const c = ctx.sub()
+		
+		let dtj = dti
+		do{
+			const a = dts[dtj]
+			c.drawRect(0,0,1,a*8, vec4(a,2-a,0,1))
+			c.translate(1,0)
+		}while((dtj=dtj+1&127)!=dti)
+	}
+	
 })

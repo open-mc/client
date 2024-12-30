@@ -1,7 +1,7 @@
 import { uiButtons, audioSet, lava, renderSlot, water, renderGenericTooltip } from './effects.js'
 import click from '/core/img/click.mp3'
 import { cam, world, mode, BlockTexture, toTex, BiomeTint } from 'world'
-import { Blocks, Block, Items, BlockFlags } from 'definitions'
+import { Blocks, Block, Items, BlockFlags, Opacity, MinLight, Brightness } from 'definitions'
 import { BlockShape, blockShaped, fluidify } from './blockshapes.js'
 import { closeInterface } from './interfaces.js'
 import { uiButton, drawLayer, drawText } from 'api'
@@ -13,8 +13,7 @@ import animatedPng from './animated.png'
 
 Blocks.air = class extends Block{
 	static flags = BlockFlags.REPLACEABLE
-	static opacity = 0
-	static minLight = 4
+	static light = Opacity(0) | MinLight(4)
 }
 Blocks.grass = class extends Block{
 	static dirt = true
@@ -28,12 +27,12 @@ Blocks.tall_grass = class extends Block{
 	static texture = BlockTexture(blocksPng, 4, 1, _, _, BiomeTint.TINT)
 	static flags = BlockFlags.TARGETTABLE | BlockFlags.REPLACEABLE
 	static breaktime = 0
-	static opacity = 0
+	static light = Opacity(0)
 	static placeSounds = Blocks.grass.placeSounds
 }
 
 class Wool extends Block{
-	static opacity = 1
+	static light = Opacity(1)
 	static tool = 'shears'
 	static breaktime = 1.2
 	static stepSounds = audioSet('wool/place', 4)
@@ -61,7 +60,7 @@ Blocks.cactus = class extends Block{
 	static texture = BlockTexture(blocksPng, 6, 4)
 	static blockShape = [.0625, 0, .9375, 1]
 	static flags = BlockFlags.HARD_TOP | BlockFlags.SOLID_TOP | BlockFlags.TARGETTABLE | BlockFlags.FRAGILE
-	static opacity = 0
+	static light = Opacity(0)
 	static breaktime = .5
 	static placeSounds = Wool.placeSounds
 }
@@ -69,7 +68,7 @@ Blocks.cactus = class extends Block{
 Blocks.dead_bush = class extends Block{
 	static texture = BlockTexture(blocksPng, 13, 4)
 	static flags = BlockFlags.TARGETTABLE | BlockFlags.FRAGILE
-	static opacity = 0
+	static light = Opacity(0)
 	static breaktime = 0
 	static placeSounds = Blocks.grass.placeSounds
 }
@@ -88,14 +87,13 @@ Blocks.cobblestone = class extends Stone{
 Blocks.obsidian = class extends Stone{
 	static texture = BlockTexture(blocksPng, 5, 2)
 	static breaktime = 250
-	static opacity = 8
+	static light = Opacity(8)
 }
 
 Blocks.glowing_obsidian = class extends Blocks.obsidian{
 	static breaktime = 500
 	static texture = BlockTexture(blocksPng, 5, 4)
-	static opacity = 8
-	static brightness = 15
+	static light = Opacity(8) | Brightness(15)
 }
 Blocks.dirt = class extends Block{
 	static dirt = true
@@ -117,7 +115,7 @@ Blocks.bedrock = class extends Stone{
 	static texture = BlockTexture(blocksPng, 1, 1)
 	static breaktime = Infinity
 	static tool = 'pick'
-	static opacity = 15
+	static light = Opacity(15)
 }
 class Wood extends Block{
 	static placeSounds = audioSet('wood/place', 4)
@@ -182,7 +180,7 @@ Blocks.gravel = class extends Blocks.sand{
 	static texture = BlockTexture(blocksPng, 3, 1)
 }
 Blocks.glass = class extends Block{
-	static opacity = 0
+	static light = Opacity(0)
 	static breaktime = 0.6
 	static breakSounds = audioSet('glass/break', 3)
 	static texture = BlockTexture(blocksPng, 1, 3)
@@ -198,8 +196,7 @@ const bucketSounds = {
 }
 
 export class Water extends Block{
-	static opacity = 1
-	static minLight = 5
+	static light = Opacity(1) | MinLight(5)
 	static flags = BlockFlags.REPLACEABLE | BlockFlags.CLIMBABLE
 	static viscosity = 0.15
 	random(){
@@ -222,10 +219,9 @@ void({
 	levels: [, Blocks.waterFlowing1, Blocks.waterFlowing2, Blocks.waterFlowing3, Blocks.waterFlowing4, Blocks.waterFlowing5, Blocks.waterFlowing6, Blocks.waterFlowing7]
 } = fluidify(Water, 'water', BlockTexture(animatedPng, 2, 0, 32, 1, BiomeTint.TINT), BlockTexture(animatedPng, 5, 0, 64, 1, BiomeTint.TINT)))
 export class Lava extends Block{
-	static opacity = 0
+	static light = Opacity(0) | Brightness(15)
 	static flags = BlockFlags.REPLACEABLE | BlockFlags.CLIMBABLE
 	static viscosity = 0.5
-	static brightness = 15
 	random(){
 		const r = random()
 		if(r < .015)
@@ -256,7 +252,7 @@ Blocks.cut_red_sandstone = class extends Blocks.sandstone{}
 Blocks.chiseled_red_sandstone = class extends Blocks.sandstone{}
 Blocks.smooth_red_sandstone = class extends Blocks.sandstone{}
 Blocks.snow_block = class extends Block{
-	static opacity = 1
+	static light = Opacity(1)
 	static texture = BlockTexture(blocksPng, 2, 4)
 	static breaktime = 0.75
 }
@@ -284,7 +280,7 @@ Blocks.quartz_ore = class extends Blocks.netherrack{
 
 Blocks.tnt = class extends Block{
 	static breaktime = 0
-	static minLight = 9
+	static light = MinLight(9) | Opacity(2)
 	static texture = BlockTexture(blocksPng, 8, 0)
 	static stepSounds = Blocks.grass.placeSounds
 	static placeSounds = Blocks.grass.placeSounds
@@ -353,14 +349,14 @@ Blocks.chest = class extends Block{
 
 Blocks.dragon_egg = class extends Block{
 	static texture = BlockTexture(blocksPng, 15, 0)
-	static brightness = 1
+	static light = Brightness(1) | Opacity(2)
 }
 
 Blocks.ice = class Ice extends Block{
-	static opacity = 1
+	static light = Opacity(1)
 }
 Blocks.packed_ice = class extends Blocks.ice{
-	static opacity = 2
+	static light = Opacity(2)
 }
 
 
@@ -383,8 +379,7 @@ Blocks.fire = class extends Block{
 	static canTarget = false
 	static texture = BlockTexture(animatedPng, 1, 0, 32)
 	static placeSounds = [flintIgnite]
-	static opacity = 0
-	static brightness = 14
+	static light = Opacity(0) | Brightness(14)
 	random(){
 		sound(fireAmbient, random() + 1, random() * 0.7 + 0.3)
 	}
@@ -397,8 +392,7 @@ Blocks.portal = class extends Block{
 	static flags = BlockFlags.TARGET_BLOCKING | BlockFlags.FRAGILE
 	static blockShape = [0.375, 0, 0.625, 1]
 	static texture = BlockTexture(animatedPng, 0, 0, 32)
-	static opacity = 0
-	static brightness = 11
+	static light = Opacity(0) | Brightness(11)
 	random(){
 		sound(portalAmbient, 0.5, random() * 0.4 + 0.8)
 	}
@@ -442,8 +436,7 @@ Blocks.end_portal = class extends Block{
 	static blockShape = [0, 0, 1, 0.75]
 	static softness = 1
 	static texture = BlockTexture(blocksPng, 14, 0)
-	static opacity = 0
-	static brightness = 11
+	static light = Opacity(0) | Brightness(11)
 	render(c, tint){
 		if(endShaderT != (endShaderT=t))
 			endShader.uniforms(endPortalOverlay, t, vec2(c.width, c.height))
@@ -466,13 +459,13 @@ Blocks.filled_end_portal_frame = class extends Blocks.end_portal_frame{
 
 Blocks.sugar_cane = class extends Block{
 	static breaktime = 0
-	static opacity = 0
+	static light = Opacity(0)
 	static flags = BlockFlags.TARGETTABLE
 	static placeSounds = Blocks.grass.placeSounds
 	static texture = BlockTexture(blocksPng, 9, 4)
 }
 Blocks.pumpkin_leaf = class extends Block{
-	static opacity = 0
+	static light = Opacity(0)
 }
 Blocks.pumpkin_leaf1 = class extends Blocks.pumpkin_leaf{ }
 Blocks.pumpkin_leaf2 = class extends Blocks.pumpkin_leaf{ }
@@ -480,7 +473,7 @@ Blocks.pumpkin_leaf3 = class extends Blocks.pumpkin_leaf{ }
 
 class Sapling extends Block{
 	static flags = BlockFlags.TARGETTABLE
-	static opacity = 0
+	static light = Opacity(0)
 	static placeSounds = Blocks.grass.placeSounds
 }
 
@@ -509,7 +502,7 @@ Blocks.jungle_sapling = class extends Sapling{
 }
 
 class Leaves extends Block{
-	static opacity = 1
+	static light = Opacity(1)
 	static placeSounds = Blocks.grass.placeSounds
 	static stepSounds = Blocks.grass.stepSounds
 }
@@ -561,7 +554,7 @@ const furnaceTex = BlockTexture(blocksPng, 12, 2), furnaceLitTex = BlockTexture(
 Blocks.furnace = class extends Stone{
 	static interactible = true
 	static texture = furnaceTex
-	brightness = 0; texture = furnaceTex
+	light = Opacity(4); texture = furnaceTex
 	drawInterface(id, c, drawInv){
 		if(id != 0) return
 		const c2 = c.sub()
@@ -585,12 +578,12 @@ Blocks.furnace = class extends Stone{
 		this._fuelTime = buf.short()
 		const cap = buf.short()
 		if(cap) this._fuelCap = cap
-		if(!this.brightness&&this._fuelTime) this.brightness = 13, this.texture = furnaceLitTex, update(), redraw(this)
+		if(!Brightness.of(this.light)&&this._fuelTime) this.light |= Brightness(13), this.texture = furnaceLitTex, update(), redraw(this)
 	}
 	update(){
 		if(this.cookTime) this.cookTime--
 		if(this._fuelTime>-10){
-			if(--this._fuelTime<=-10) this.brightness = 0, this.texture = furnaceTex, redraw(this)
+			if(--this._fuelTime<=-10) this.light &= ~Brightness(13), this.texture = furnaceTex, redraw(this)
 			else return 0
 		}
 	}
@@ -621,13 +614,13 @@ Blocks.furnace = class extends Stone{
 		return o.copy(1)
 	}
 	parsed(){
-		if(this.fuelTime) return this.brightness = 13, this.texture = furnaceLitTex, 0
+		if(this.fuelTime) return this.light |= Brightness(13), this.texture = furnaceLitTex, 0
 	}
 }
 
 Blocks.glowstone = class extends Blocks.glass{
 	static breaktime = 0.45
-	static brightness = 15
+	static light = Opacity(2) | Brightness(14)
 	static texture = BlockTexture(blocksPng, 9, 6)
 }
 
@@ -640,7 +633,7 @@ Blocks.command_block = class extends Stone{
 	type = 0
 	commands = []
 	static texture = 0
-	static opacity = 0
+	static light = Opacity(0)
 	render(c, tint){
 		const a = floor(t*2)&3
 		const tex = commandBlockTexs[this.type]
@@ -652,8 +645,7 @@ Blocks.command_block = class extends Stone{
 	static tool = 'pick'
 	static interactible = true
 	drawInterface(id, c){
-		return
-		if(id != 0) return
+		/*if(id != 0) return
 		const buttonsY = -160
 		c.textAlign = 'center'
 		c.textBaseline = 'middle'
@@ -690,7 +682,7 @@ Blocks.command_block = class extends Stone{
 		c.strokeStyle = '#a0a0a0'
 		c.fillRect(-160, -120, 320, 240)
 		c.lineWidth = 1
-		c.strokeRect(-160, -120, 320, 240)
+		c.strokeRect(-160, -120, 320, 240)*/
 	}
 }
 
@@ -700,7 +692,7 @@ Blocks.barrier = class extends Block{
 	static breaktime = Infinity
 	static placeSounds = Stone.placeSounds
 	get particleTexture(){ return mode == 1 ? barrierTex : -1 }
-	static opacity = 0
+	static light = Opacity(0)
 	render(c){
 		if(mode == 1 && me.inv[me.selected]?.constructor == Items.barrier) c.draw(toTex(barrierTex))
 	}
@@ -712,8 +704,7 @@ Blocks.barrier = class extends Block{
 const torchTex = BlockTexture(blocksPng, 0, 5)
 Blocks.torch = class extends Wood{
 	static flags = BlockFlags.TARGETTABLE | BlockFlags.FRAGILE
-	static opacity = 0
-	static brightness = 14
+	static light = Opacity(0) | Brightness(14)
 	static tool; static breaktime = 0
 	static blockShape = [7/16, 0, 9/16, 10/16]
 	static texture = torchTex

@@ -1,4 +1,4 @@
-import { Item, BlockFlags } from 'definitions'
+import { Item, BlockFlags, Brightness } from 'definitions'
 import { MapBlockTexture } from 'world'
 import { peekup, peekdown, peekright, peekleft } from 'ant'
 
@@ -45,7 +45,7 @@ export const slabifyItem = (I, B) => class extends I{
 export const itemify = (B, n) => class extends Item{
 	static texture = B.texture
 	static defaultName = n
-	static useTint = B.brightness==0
+	static useTint = Brightness.of(B.light) == 0
 	places(){return B}
 }
 let fluidGeometry

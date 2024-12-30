@@ -36,7 +36,15 @@ drawLayer('none', 205, (ctx, w, h) => {
 		li = 0
 	}
 })
-
+const checkLight = (l,light,vs,vb) => {
+	const opacity = light&15, brightness = light>>4&15, minLight = light>>8&15
+	let b = l&15; l >>= 4
+	b = b>opacity?b-opacity:0
+	if(brightness>b) b=brightness
+	if(b < vb) return false
+	l = l>opacity+minLight?l-opacity:l<minLight?l:minLight
+	return l >= vs
+}
 export const newChunks = []
 export function performLightUpdates(shouldSkylight = true){
 	if(newChunks.length){
@@ -65,12 +73,28 @@ export function performLightUpdates(shouldSkylight = true){
 			}
 			let minLight = 0; v >>= 4
 			if(dark){
-				const b = ch[i], {opacity,brightness,minLight:mL} = b==65535?ch.tileData.get(i):BlockIDs[b]
+				const b = ch[i], {light} = b==65535?ch.tileData.get(i):BlockIDs[b]
+				const opacity = light&15, brightness = light>>4&15; minLight = light>>8&15
 				v1 = v1>opacity?v1-opacity:0
-				minLight = mL
 				if(brightness>v1) v1=brightness
-				v = v>opacity+mL?v-opacity:v<mL?v:mL
+				v = v>opacity+minLight?v-opacity:v<minLight?v:minLight
 				if(brightness) _add(ch, i)
+			}
+			if(i<4032){
+				const j = i+64, l = light[i+64]
+				if(l) if(v1>(l&15)||v>(l>>4)) _addDark(ch, j)
+				else{
+					const b = ch[j], {light:l1} = b==65535?ch.tileData.get(j):BlockIDs[b]
+					_add(ch, j)
+					if(dark&&checkLight(l,l1,v,v1)) continue
+				}
+			}else{
+				const j = i&63, c2 = ch.up
+				if(c2){ const l = c2.light[j]; if(l) if(v1>(l&15)||v>(l>>4)) _addDark(c2, j); else {
+					const b = c2[j], {l1} = b==65535?c2.tileData.get(j):BlockIDs[b]
+					_add(c2, j)
+					if(dark&&checkLight(l,l1,v,v1)) continue
+				} }
 			}
 			light[i] = 0
 			if(i>63){
@@ -85,14 +109,6 @@ export function performLightUpdates(shouldSkylight = true){
 			// Special case: if we are already completely dark, we literally cannot get darker, no point propagating darkness (at least not for skylight)
 			// This single line gives enormous performance boosts
 			if(!v) v = -1
-			if(i<4032){
-				const l = light[i+64]
-				if(l) if(v1>(l&15)||v>=(l>>4)) _addDark(ch, i+64)
-				else _add(ch, i+64)
-			}else{
-				const c2 = ch.up
-				if(c2){ const l = c2.light[i&63]; if(l) if(v1>(l&15)||v>=(l>>4)) _addDark(c2, i&63); else _add(c2, i&63) }
-			}
 			if(i&63){
 				const l = light[i-1]
 				if(l) if(v1>(l&15)||v>=(l>>4)) _addDark(ch, i-1)
@@ -121,7 +137,8 @@ export function performLightUpdates(shouldSkylight = true){
 			const ch = uptChunks[i>>>12], {light} = ch
 			let v = light[i&=4095]
 			if(debug) lightUpdates.push(ch.x<<6|i&63, ch.y<<6|i>>6)
-			const b = ch[i], {opacity,brightness,minLight} = b==65535?ch.tileData.get(i):BlockIDs[b]
+			const b = ch[i], {light:l} = b==65535?ch.tileData.get(i):BlockIDs[b]
+			const opacity = l&15, brightness = l>>4&15,minLight = l>>8&15
 			const v2 = v>>4; let v1 = v&15
 			v1 = (v1>opacity+1?v1-opacity-1:0)
 			if(brightness>v1) v1=brightness-1,light[i]=v&240|brightness
@@ -131,6 +148,14 @@ export function performLightUpdates(shouldSkylight = true){
 				const x0 = ub&63, x1 = ub>>6&63, y0 = ub>>12&63, y1 = ub>>18&63
 				ch.updateBounds = (x<x0?x:x0)|(x>x1?x:x1)<<6|(y<y0?y:y0)<<12|(y>y1?y:y1)<<18
 			}
+			const vb = v-16
+			if(i<4032){
+				const l = light[i+64], a = l&15, b = v&15, l2 = (a>b?a:b)|(l>vb?l:vb)&240
+				if(l2 != l) light[i+64] = l2, _add(ch, i+64)
+			}else{
+				const c2 = ch.up
+				if(c2){ const l = c2.light[i&63], a = l&15, b = v&15, l2 = (a>b?a:b)|(l>v?l:v)&240; if(l2 != l) c2.light[i&63] = l2, _add(c2, i&63) }
+			}
 			if(i>63){
 				const l = light[i-64], a = l&15, b = v&15, l2 = (a>b?a:b)|(l>v?l:v)&240
 				if(l2 != l) light[i-64] = l2, _add(ch, i-64)
@@ -139,13 +164,6 @@ export function performLightUpdates(shouldSkylight = true){
 				if(c2){ const l = c2.light[i|4032], a = l&15, b = v&15, l2 = (a>b?a:b)|(l>v?l:v)&240; if(l2 != l) c2.light[i|4032] = l2, _add(c2, i|4032) }
 			}
 			if((v>>4)>minLight) v -= 16
-			if(i<4032){
-				const l = light[i+64], a = l&15, b = v&15, l2 = (a>b?a:b)|(l>v?l:v)&240
-				if(l2 != l) light[i+64] = l2, _add(ch, i+64)
-			}else{
-				const c2 = ch.up
-				if(c2){ const l = c2.light[i&63], a = l&15, b = v&15, l2 = (a>b?a:b)|(l>v?l:v)&240; if(l2 != l) c2.light[i&63] = l2, _add(c2, i&63) }
-			}
 			if(i&63){
 				const l = light[i-1], a = l&15, b = v&15, l2 = (a>b?a:b)|(l>v?l:v)&240
 				if(l2 != l) light[i-1] = l2,_add(ch, i-1)
@@ -171,8 +189,8 @@ export function performLightUpdates(shouldSkylight = true){
 			for(const ch of newChunks){
 				const {down, light} = ch
 				if(down) for(let x = 0; x < 64; x++){
-					const b = ch[x], {opacity} = b==65535?ch.tileData.get(x):BlockIDs[b]
-					if(opacity||light[x]<240) _addDark(down, x|4032)
+					const b = ch[x], {light} = b==65535?ch.tileData.get(x):BlockIDs[b]
+					if((light&15)||light[x]<240) _addDark(down, x|4032)
 				}
 			}
 			newChunks.length = 0
