@@ -181,12 +181,6 @@ iframe{
 	height: 100%;
 	z-index: 0;
 }
-div > iframe{
-	position: absolute;
-	inset: var(--padding) calc(var(--padding) + env(safe-area-inset-right)) calc(var(--padding) + env(safe-area-inset-bottom)) calc(var(--padding) + env(safe-area-inset-left));
-	width: calc(100% - var(--padding)*2 - env(safe-area-inset-right) - env(safe-area-inset-left));
-	height: calc(100% - var(--padding)*2 - env(safe-area-inset-bottom));
-}
 
 
 hr{
@@ -255,6 +249,7 @@ column{
 	display: flex; flex-direction: column;
 	gap: 4rem;
 	align-items: center;
+	position: absolute; /* Ignore parent padding */
 }
 #serverlist > row{
 	padding: 1rem;
