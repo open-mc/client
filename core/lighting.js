@@ -19,7 +19,7 @@ export const _addDark = (ch, i=0) => {
 
 const lightUpdates = []
 let lui = [], li = 0
-drawLayer('none', 205, (ctx, w, h) => {
+drawLayer('none', 205, (ctx) => {
 	ctx.shader = null
 	while(lui[0]<t) li = lui.splice(0,2)[1]
 	let c = vec4((lui[0]-t)*.4)
@@ -85,15 +85,15 @@ export function performLightUpdates(shouldSkylight = true){
 				if(l) if(v1>(l&15)||v>(l>>4)) _addDark(ch, j)
 				else{
 					const b = ch[j], {light:l1} = b==65535?ch.tileData.get(j):BlockIDs[b]
+					if(dark&&checkLight(l,l1,v,v1)){ _add(ch, i); continue }
 					_add(ch, j)
-					if(dark&&checkLight(l,l1,v,v1)) continue
 				}
 			}else{
 				const j = i&63, c2 = ch.up
 				if(c2){ const l = c2.light[j]; if(l) if(v1>(l&15)||v>(l>>4)) _addDark(c2, j); else {
 					const b = c2[j], {l1} = b==65535?c2.tileData.get(j):BlockIDs[b]
+					if(dark&&checkLight(l,l1,v,v1)){ _add(ch, i); continue }
 					_add(c2, j)
-					if(dark&&checkLight(l,l1,v,v1)) continue
 				} }
 			}
 			light[i] = 0

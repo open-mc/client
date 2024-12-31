@@ -267,6 +267,11 @@ Block: ${lookingAt.className+(lookingAt.savedata?' {...}':'')} (${lookingAt.id})
 Block.texture: ${lookingAt.texture>0?`0x${lookingAt.texture.toHex().slice(2)}[${_blockAnimations.find(a=>a.id==lookingAt.texture)?.frames??1}]`+(lookingAt.render?'\\+3*\\+f':''):lookingAt.render?'\\+8na\\+3*\\+f':'\\+8na\\+f'}
 Item.texture: ${holding?.texture>0?`0x${holding.texture.toHex().slice(2)}[${_blockAnimations.find(a=>a.id==holding.texture)?.frames??1}]`+(holding.render?'\\+3*\\+f':''):holding?.render?'\\+8na\\+3*\\+f':'\\+8na\\+f'}`]
 }
+let didGc = false, r
+if(globalThis.FinalizationRegistry){
+	r = new FinalizationRegistry(() => {didGc = true; r.register({})})
+	r.register({})
+}
 let dts = new Float32Array(256), dti = 0
 drawLayer('ui', 999, (ctx, w, h) => {
 	const f3 = min(renderF3+buttons.has(KEYS.LEFT_OF_1), 2)
@@ -291,14 +296,17 @@ drawLayer('ui', 999, (ctx, w, h) => {
 			drawText(c, lineB, w-wid-2, 0, fontSize, 1)
 		}
 	}
-	dts[dti] = max(log2(dt) + 6.75, .75) * .5; dti = dti+1&127
+	const v = max(log2(dt) + 6.75, .75) * .5
+	dts[dti] = didGc ? -v : v; dti = dti+1&127
+	didGc = false
 	if(renderF3 == 2){
 		const c = ctx.sub()
 		
 		let dtj = dti
 		do{
 			const a = dts[dtj]
-			c.drawRect(0,0,1,a*8, vec4(a,2-a,0,1))
+			if(a<0) c.drawRect(0,0,1,a*-8, vec4(.5,0,1,1))
+			else c.drawRect(0,0,1,a*8, vec4(a,2-a,0,1))
 			c.translate(1,0)
 		}while((dtj=dtj+1&127)!=dti)
 	}

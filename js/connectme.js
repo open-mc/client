@@ -172,7 +172,7 @@ export async function play(n){
 		ws.onopen = () => (clearTimeout(timeout),ws.send(p),timeout = -1)
 	}
 	ws.onmessage = ({data}) => {
-		if(typeof data == 'string') return pendingConnection(texts.connection.authenticating())
+		if(typeof data == 'string') return pendingConnection(data)
 		gameIframe(pako.inflate(data, {to: 'string'}).split('\0'), n.url)
 		ws.onmessage = fwPacket
 	}

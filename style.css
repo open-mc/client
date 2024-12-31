@@ -242,15 +242,14 @@ column{
 	background: #0004;
 	--padding: 7rem;
 	width: 100%;
-	flex-grow: 10;
+	flex: 20;
 	min-height: 200px;
 	overflow-y: auto;
 	padding: var(--padding) calc(var(--padding) + env(safe-area-inset-right)) calc(var(--padding) + env(safe-area-inset-bottom)) calc(var(--padding) + env(safe-area-inset-left));
 	display: flex; flex-direction: column;
 	gap: 4rem;
 	align-items: center;
-	margin-right: calc(0 - env(safe-area-inset-right));
-	margin-left: calc(0 - env(safe-area-inset-left));
+	width: calc(100% + env(safe-area-inset-left) + env(safe-area-inset-right));
 }
 #serverlist > row{
 	padding: 1rem;

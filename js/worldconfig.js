@@ -3,7 +3,7 @@ import { encoder } from '../server/modules/dataproto.js'
 
 export const defaultConfig = {
 	name: "New world",
-	icon: "/img/end_portal.png",
+	icon: "/img/cactus.png",
 	banner: '',
 	motd: [ "Last played: Never" ],
 	world: {
