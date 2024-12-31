@@ -43,7 +43,7 @@ let blockPlacing = null
 function raycastPointer(){
 	bx = floor(me.x)
 	by = floor(me.y + me.head)
-	bpx = NaN, bpy = NaN
+	bpx = NaN, bpy = NaN; blockPlacing = null
 	const reach = hypot(x, y)
 	let d = 0, px = me.x - bx, py = me.y + me.head - by
 	const dx = sin(me.f), dy = cos(me.f)
