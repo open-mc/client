@@ -98,6 +98,7 @@ function chunkDeletePacket(data){
 		const cx = data.int() & 0x3FFFFFF, cy = data.int() & 0x3FFFFFF
 		const ky = cy*0x4000000
 		const chunk = map.get(ky+cx)
+		if(!chunk) continue
 		chunk.hide()
 		map.delete(ky+cx)
 		if(!--chunk.exposure.ref) exposureMap.delete(cx)
