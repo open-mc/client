@@ -50,9 +50,14 @@ export function performLightUpdates(shouldSkylight = true){
 	if(newChunks.length){
 		shouldSkylight = world.type!=WorldType.nether&&world.type!=WorldType.end
 		if(shouldSkylight) for(const ch of newChunks){
-			const {light} = ch
-			if(!ch.up) for(let x = 0; x < 64; x++) light[x&63|4032] = 240, _add(ch, x|4032)
+			const {down, light} = ch
+			if(down) for(let x = 0; x < 64; x++){
+				const b = ch[x], {light:l} = b==65535?ch.tileData.get(x):BlockIDs[b]
+				if((l&15)||light[x]<240) _addDark(down, x|4032)
+			}
+			if(!ch.up) for(let x = 4032; x < 4096; x++) light[x] = 240, _add(ch, x)
 		}
+		newChunks.length = 0
 	}
 	if(!(dI.length+lI.length)) return
 	const debug = renderBoxes == 2
@@ -184,17 +189,4 @@ export function performLightUpdates(shouldSkylight = true){
 	if(debug) console.info('Lighting update: %fms\nDark: %d, Light: %d', (performance.now()-a).toFixed(3), dark, light)
 	for(const c of uptChunks) c.lightI = -1
 	uptChunks.length = 0
-	if(newChunks.length){
-		if(shouldSkylight){
-			for(const ch of newChunks){
-				const {down, light} = ch
-				if(down) for(let x = 0; x < 64; x++){
-					const b = ch[x], {light:l} = b==65535?ch.tileData.get(x):BlockIDs[b]
-					if((l&15)||light[x]<240) _addDark(down, x|4032)
-				}
-			}
-			newChunks.length = 0
-			performLightUpdates(shouldSkylight)
-		}else newChunks.length = 0
-	}
 }

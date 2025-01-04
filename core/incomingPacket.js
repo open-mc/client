@@ -4,7 +4,7 @@ import { queue } from './sounds.js'
 import { moveEntity } from './entity.js'
 import { BlockIDs, EntityIDs, Classes, Entity } from 'definitions'
 import { packets } from 'api'
-import { _add, _addDark, newChunks } from './lighting.js'
+import { _add, newChunks } from './lighting.js'
 import { goto, place, getblock } from 'ant'
 
 function rubberPacket(data){
