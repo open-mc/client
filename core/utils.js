@@ -278,7 +278,7 @@ Gamma(undefined, globalThis).loop(() => {
 	globalThis.pixelRatio = px
 	if(ow!=(ow=round(w*px))|oh!=(oh=round(h*px))) setSize(ow, oh)
 	globalThis.canvas.style.transform = `scale(${1/px})`
-	globalThis.canvas.style.imageRendering = ctxSupersample > 1 ? 'smooth' : 'pixelated'
+	globalThis.canvas.style.imageRendering = ctxSupersample > 1 ? 'auto' : 'pixelated'
 })
 document.head.insertAdjacentHTML('beforeend', `<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">`)
 glLost = () => {
