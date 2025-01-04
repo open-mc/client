@@ -423,9 +423,13 @@ self.addEventListener('message', e => {
 		}else done(null)
 	}else if(e.data){
 		if(LOCAL) return
-		if(e.data == 2) caches.delete(''), cacheMeta.clear()
-		let l = fetch('/.gitversion').then(a => a.text(),()=>'{"error":"network"}')
-		cache.match('/.git').then(ver => l.then(latest => {
+		let l = fetch('/.gitversion').then(a => a.text(),()=>'{"error":"network"}'), p
+		if(e.data == 2){
+			cacheMeta.clear()
+			caches.delete('').then(() => caches.open('')).then(c => cache = c)
+			p = Promise.resolve(undefined)
+		}else p = cache.match('/.git')
+		p.then(ver => l.then(latest => {
 			const our = ver?ver.headers.get('commit'):'null'
 			if(latest[0] != '{' && our != latest) ready='', upt = update(latest, ver, our), e.source.postMessage(0)
 		}))
