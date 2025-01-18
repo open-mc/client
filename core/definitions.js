@@ -370,11 +370,11 @@ export class Particle{
 	}
 }
 
-drawLayer('world', 300, c => {
+drawLayer('world', 300, ctx => {
 	let tx = 0, ty = 0
 	for(const particle of particles){
-		c.translate(-(tx - (tx = ifloat(particle.x - cam.x))), -(ty - (ty = ifloat(particle.y - cam.y))))
-		particle.render(c, getTint(particle.x, particle.y))
+		ctx.translate(-(tx - (tx = ifloat(particle.x - cam.x))), -(ty - (ty = ifloat(particle.y - cam.y))))
+		particle.render(ctx, getTint(particle.x, particle.y))
 		particle.step()
 	}
 })

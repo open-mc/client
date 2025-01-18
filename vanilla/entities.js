@@ -355,9 +355,9 @@ Entities.end_crystal = class extends Entity{
 	static gy = 0
 }
 let flashTime = 0
-drawLayer('none', 50, c => {
+drawLayer('none', 50, ctx => {
 	if((flashTime-=dt) > 0)
-		c.draw(vec4(.25*(flashTime%.4<.2)))
+		ctx.draw(vec4(.25*(flashTime%.4<.2)))
 	else flashTime = 0
 })
 const quarterAlpha = vec4(.25), halfAlpha = vec4(.5), fullAlpha = vec4(1)

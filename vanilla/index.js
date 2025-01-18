@@ -45,8 +45,8 @@ tickPhase(-1000, now => {
 	const e = exposureMap.get(x>>>6), exp = e?e[x&63]-floor(me.y+me.head)<0:true
 	if(world.weather && now - lastRainPlay > 1.3) lastRainPlay = now+.35, me.sound(rainSound, exp?0.4:0.2)
 })
-drawLayer('none', -100, c => {
-	const w = c.width/pixelRatio, h = c.height/pixelRatio
+drawLayer('none', -100, ctx => {
+	const w = ctx.width/pixelRatio, h = ctx.height/pixelRatio
 	if(world.type == WorldType.overworld){
 		const rainyness = min(world.weather&&(1-world.weatherFade/40), 1, (world.weather&0x0FFFFFFF)/40)
 		const time = world.tick % 24000
@@ -55,37 +55,37 @@ drawLayer('none', -100, c => {
 		const wspan = w + 128 + pointer.REACH/2
 		const effx = ifloat(cam.x-me.x)*cam.z/4*pixelRatio, effy = ifloat(cam.y-me.y)*cam.z/4*pixelRatio
 		if(light < 1 && rainyness < 1){
-			c.draw(nightGradient)
+			ctx.draw(nightGradient)
 			const fac = ((time + 12600) % 24000 / 8400 - .5)
 			const xo = wspan * fac - 50 - pointer.REACH/4 - effx
 			const yo = h/2 - 30 - h/3 * sin(fac * PI) + effy
-			c.draw(stars.crop(-xo/2, -yo/2, w/2, h/2), vec4(1-rainyness))
+			ctx.draw(stars.crop(-xo/2, -yo/2, w/2, h/2), vec4(1-rainyness))
 		}
-		if(light && rainyness < 1) c.draw(dayGradient, vec4(light))
+		if(light && rainyness < 1) ctx.draw(dayGradient, vec4(light))
 		const a = min(light, rainyness)
 		if(world.weather > 0x10000000){
-			if(light) c.draw(rainGradient, vec4(light))
-			if(a) c.draw(rainNightGradient, vec4(a))
-		}else if(a) c.draw(rainGradient, vec4(a))
-		else if(rainyness >= 1) c.draw(vec4.zero)
+			if(light) ctx.draw(rainGradient, vec4(light))
+			if(a) ctx.draw(rainNightGradient, vec4(a))
+		}else if(a) ctx.draw(rainGradient, vec4(a))
+		else if(rainyness >= 1) ctx.draw(vec4.zero)
 
-		if(orangeness) c.draw(sunsetGradient, vec4(orangeness))
+		if(orangeness) ctx.draw(sunsetGradient, vec4(orangeness))
 
-		c.blend = Blend.ADD
+		ctx.blend = Blend.ADD
 		
-		c.scale(1/w, 1/h)
+		ctx.scale(1/w, 1/h)
 		if(time < 15600){
 			const progress = time / 15600
-			c.drawRect(wspan * progress - 128 - pointer.REACH/4 - effx, h/2 - 32 + h/3 * sin(progress * PI) - effy, 128, 128, sun, vec4(1-rainyness))
+			ctx.drawRect(wspan * progress - 128 - pointer.REACH/4 - effx, h/2 - 32 + h/3 * sin(progress * PI) - effy, 128, 128, sun, vec4(1-rainyness))
 		}else{
 			const progress = (time - 15600) / 8400
-			c.drawRect(wspan * progress - 128 - pointer.REACH/4 - effx, h/2 - 32 + h/3 * sin(progress * PI) - effy, 128, 128, moons[world.tick / 24000 & 7], vec4(1-rainyness))
+			ctx.drawRect(wspan * progress - 128 - pointer.REACH/4 - effx, h/2 - 32 + h/3 * sin(progress * PI) - effy, 128, 128, moons[world.tick / 24000 & 7], vec4(1-rainyness))
 		}
-		c.blend = 0
+		ctx.blend = 0
 	}else if(world.type == WorldType.nether){
-		c.clear(.11, .02, .02, 1)
+		ctx.clear(.11, .02, .02, 1)
 	}else if(world.type == WorldType.end){
-		c.draw(endSky.sub(0, 0, w/64, h/64), vec4(.25, .25, .25, 1))
+		ctx.draw(endSky.sub(0, 0, w/64, h/64), vec4(.25, .25, .25, 1))
 	}
 })
 
@@ -101,14 +101,14 @@ const cloudLayers = [
 	{y: 69420, h: 21, s: 8, a: 1},
 ]
 const cloudBlend = Blend(ONE, ADD, ONE_MINUS_SRC_ALPHA)
-drawLayer('world', 150, c => {
+drawLayer('world', 150, ctx => {
 	if(world.type != WorldType.overworld) return
-	c.blend = cloudBlend
+	ctx.blend = cloudBlend
 	for(const {y, h, s, a} of cloudLayers){
 		const x = (t * s - cam.x) % (s*h*384)
-		c.drawRect(-W2, (y - cam.y) * 0.7, W2 * 2, h, cloudMap.sup(.5+x/(W2*2), 0, 192/W2*h, 0), vec4(1-a*.75))
+		ctx.drawRect(-W2, (y - cam.y) * 0.7, W2 * 2, h, cloudMap.sup(.5+x/(W2*2), 0, 192/W2*h, 0), vec4(1-a*.75))
 	}
-	c.blend = 0
+	ctx.blend = 0
 	const rainyness = min(1-world.weatherFade/40, 1, (world.weather&0x0FFFFFFF)/40)
 	if(rainyness && cam.z > .125){
 		const col = vec4(rainyness/2)
@@ -121,7 +121,7 @@ drawLayer('world', 150, c => {
 			const off = ((x ^ x>>2 ^ x>>4 ^ x>>6) & 3)
 			let off2 = imul(x, 0x13F255A7) >> 16
 			off2 = ((off2 ^ off2 >> 2 ^ off2 >> 4 ^ off2 >> 6) & 3) << 2
-			c.drawRect(ifloat(x-cam.x), exp, 1, H2*2-exp, rain.sub(off/4,(rainOff+off2+exp+cam.y%16)/16,.25,(H2*2-exp)/16), col)
+			ctx.drawRect(ifloat(x-cam.x), exp, 1, H2*2-exp, rain.sub(off/4,(rainOff+off2+exp+cam.y%16)/16,.25,(H2*2-exp)/16), col)
 		}
 	}
 })
@@ -138,8 +138,8 @@ let respawnClicked = false
 let hotbarTooltipAlpha = 0, lastSelected = -1
 let proximityChatTooltip = 0
 configLoaded(CONFIG => proximityChatTooltip = CONFIG.proximity_chat ? 10 : 0)
-drawLayer('ui', 1000, (c, w, h) => {
-	const c2 = c.sub()
+drawLayer('ui', 1000, (ctx, w, h) => {
+	const c2 = ctx.sub()
 	if(renderUI){
 		const action = invAction
 		let hotBarLeft = w / 2 - hotbar.width/2
@@ -161,7 +161,7 @@ drawLayer('ui', 1000, (c, w, h) => {
 			c2.translate(1.25, 0)
 		}
 		if(mode < 1){
-			c2.resetTo(c)
+			c2.resetTo(ctx)
 			c2.translate(hotBarLeft, hotbar.height + 6)
 			const wiggle = me.health < 5 ? (t*24&2)-1 : 0
 			for(let h = 0; h < 20; h+=2){
@@ -171,7 +171,7 @@ drawLayer('ui', 1000, (c, w, h) => {
 				else if(me.health>h) c2.drawRect(x,y,9,9,halfHeart)
 			}
 		}
-		c2.resetTo(c)
+		c2.resetTo(ctx)
 		if(lastSelected != me.selected) lastSelected = me.selected, hotbarTooltipAlpha = 5
 		a: if(hotbarTooltipAlpha > 0){
 			hotbarTooltipAlpha -= dt*2
@@ -251,7 +251,7 @@ drawLayer('ui', 1000, (c, w, h) => {
 			else c3.translate(1.125,0)
 		}
 	}, w/2, h/2)
-	c2.resetTo(c)
+	c2.resetTo(ctx)
 	if(action == 1 && slotI > -1){
 		const int = slotI > 127 ? invInterface : me, id = slotI > 127 ? interfaceId : 0
 		const r = int.slotClicked(id, slotI&127, me.getItem(2, 0), me)
@@ -276,7 +276,7 @@ drawLayer('ui', 1000, (c, w, h) => {
 	c2.translate(x, y - .5)
 	renderItem(c2, me.inv[36])
 	renderItemCount(c2, me.inv[36])
-	c2.resetTo(c)
+	c2.resetTo(ctx)
 	if(!me.inv[36]) renderTooltip(c2, slotI > 127 ? me.items[slotI & 127] : slotI >= 0 ? me.inv[slotI] : null)
 })
 

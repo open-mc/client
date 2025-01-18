@@ -132,58 +132,58 @@ function raycastPointer(){
 		}
 }
 const invertBlend = Blend(ONE_MINUS_DST, ADD, ONE_MINUS_SRC)
-drawLayer('world', 400, c => {
+drawLayer('world', 400, ctx => {
 	if(!hasLock) return
 	if(cursor.mx||cursor.my) pointerMoved(cursor.mx, cursor.my), pointerOpacity = 1
 	if(gesture.dx||gesture.dy) pointerMoved(gesture.dx*W2, gesture.dy*H2, 4), pointerOpacity = 0
 	if(renderUI && me.health){
-		c.blend = invertBlend
+		ctx.blend = invertBlend
 		const v = me.linked ? pointerOpacity : 0.2
 		const pX = ifloat(x + me.x - cam.x), pY = ifloat(y + me.head + me.y - cam.y)
-		c.drawRect(pX - .3, pY - .03125, .6, .0625, vec4(v,v,v,0))
-		c.drawRect(pX - .03125, pY - .3, .0625, .26875, vec4(v,v,v,0))
-		c.drawRect(pX - .03125, pY + .03125, .0625, .26875, vec4(v,v,v,0))
-		c.blend = null
+		ctx.drawRect(pX - .3, pY - .03125, .6, .0625, vec4(v,v,v,0))
+		ctx.drawRect(pX - .03125, pY - .3, .0625, .26875, vec4(v,v,v,0))
+		ctx.drawRect(pX - .03125, pY + .03125, .0625, .26875, vec4(v,v,v,0))
+		ctx.blend = null
 	}
 	raycastPointer()
 })
 
-drawLayer('world', 201, (c, w, h) => {
+drawLayer('world', 201, ctx => {
 	if(bx != bx || by != by) return
-	toBlockExact(c, bx, by)
+	toBlockExact(ctx, bx, by)
 	const block = getblock(bx, by)
 	const item = me.inv[me.selected]
-	if(renderUI && (typeof block.canTarget == 'boolean' ? block.canTarget : block.canTarget?.(c, item)??true)){
+	if(renderUI && (typeof block.canTarget == 'boolean' ? block.canTarget : block.canTarget?.(ctx, item)??true)){
 		let {blockShape = DEFAULT_BLOCKSHAPE} = block
-		c.shader = Shader.NONE
-		c.mask = SET
+		ctx.shader = Shader.NONE
+		ctx.mask = SET
 		if(blockShape.length == 0) blockShape = DEFAULT_BLOCKSHAPE
 		for(let i = 0; i < blockShape.length; i += 4){
 			const x0 = blockShape[i], x1 = blockShape[i+2], y0 = blockShape[i+1], y1 = blockShape[i+3]
-			c.drawRect(x0, y0, x1-x0, y1-y0)
+			ctx.drawRect(x0, y0, x1-x0, y1-y0)
 			if(blockPlacing)
 			if(bpx > bx){
-				c.drawRect(x1, y0, 0.125, 0.0625)
-				c.drawRect(x1, y1 - 0.0625, 0.125, 0.0625)
+				ctx.drawRect(x1, y0, 0.125, 0.0625)
+				ctx.drawRect(x1, y1 - 0.0625, 0.125, 0.0625)
 			}else if(bpx < bx){
-				c.drawRect(x0 - 0.125, y0, 0.125, 0.0625)
-				c.drawRect(x0 - 0.125, y1 - 0.0625, 0.125, 0.0625)
+				ctx.drawRect(x0 - 0.125, y0, 0.125, 0.0625)
+				ctx.drawRect(x0 - 0.125, y1 - 0.0625, 0.125, 0.0625)
 			}else if(bpy > by){
-				c.drawRect(x0, y1, 0.0625, 0.125)
-				c.drawRect(x1 - 0.0625, y1, 0.0625, 0.125)
+				ctx.drawRect(x0, y1, 0.0625, 0.125)
+				ctx.drawRect(x1 - 0.0625, y1, 0.0625, 0.125)
 			}else if(bpy < by){
-				c.drawRect(x0, y0 - 0.125, 0.0625, 0.125)
-				c.drawRect(x1 - 0.0625, y0 - 0.125, 0.0625, 0.125)
+				ctx.drawRect(x0, y0 - 0.125, 0.0625, 0.125)
+				ctx.drawRect(x1 - 0.0625, y0 - 0.125, 0.0625, 0.125)
 			}
 		}
-		c.mask = UNSET
+		ctx.mask = UNSET
 		for(let i = 0; i < blockShape.length; i += 4){
 			const x0 = blockShape[i], x1 = blockShape[i+2], y0 = blockShape[i+1], y1 = blockShape[i+3]
-			c.drawRect(x0+.0625, y0+.0625, x1-x0-.125, y1-y0-.125)
+			ctx.drawRect(x0+.0625, y0+.0625, x1-x0-.125, y1-y0-.125)
 		}
-		c.mask = RGBA | IF_SET | UNSET
-		c.shader = null
-		c.drawRect(-0.5, -0.5, 2, 2, vec4(0, 0, 0, .5))
+		ctx.mask = RGBA | IF_SET | UNSET
+		ctx.shader = null
+		ctx.drawRect(-0.5, -0.5, 2, 2, vec4(0, 0, 0, .5))
 	}
 })
 let didHit = false

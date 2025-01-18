@@ -1,4 +1,4 @@
-import { entityMap, map, cam, world, WorldType, WorldTypeStrings, bigintOffset, me, genLightmap, lightTint, lightArr, setGamma, getTint, getLightValue, W2, H2, SCALE, toBlockExact, gridEventMap, blockAtlas, prep, particles, _invAtlasHeight, _blockAnimations } from 'world'
+import { entityMap, map, cam, world, WorldType, WorldTypeStrings, bigintOffset, me, genLightmap, lightTint, lightArr, setGamma, getTint, getLightValue, W2, H2, SCALE, toBlockExact, gridEventMap, blockAtlas, prep, particles, _invAtlasHeight, _blockAnimations, renderOptions } from 'world'
 import { getblock, gotopos } from 'ant'
 import * as pointer from './pointer.js'
 import { drawLayer, options, _renderPhases, renderBoxes, renderF3, drawText, calcText, textShadeCol, _networkUsage, networkUsage, listen, _tickPhases, renderUI } from 'api'
@@ -78,7 +78,7 @@ const day = vec3(.93), night = vec3(.28,.26,.35)
 const block = vec3(2, 1.8, 1.5), netherBase = vec3(.45,.39,.30), endBase = vec3(.35,.39,.34)
 listen('gamma', () => setGamma(options.gamma))
 drawLayer('none', 200, (ctx, w, h) => {
-	performLightUpdates()
+	if(renderOptions.lightUpdates) performLightUpdates()
 	const a = cam.z / 12
 	const chunkSublineCol = vec4(0, .53*a, a, a)
 	const hitboxes = renderBoxes + buttons.has(KEYS.LEFT_OF_1)
@@ -201,7 +201,7 @@ function renderEntity(ctx, entity, a=1){
 		ctx.drawRect(-entity.width, entity.height, entity.width*2, -.04, entityHitboxCol)
 	}
 }
-drawLayer('world', 350, (ctx, w, h) => {
+drawLayer('world', 350, ctx => {
 	for(const e of entityMap.values()) renderEntity(ctx.sub(), e)
 	if(!me.linked && !(me.health<=0) && renderUI)
 		renderEntity(ctx.sub(), me, .2)

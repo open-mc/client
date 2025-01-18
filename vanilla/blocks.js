@@ -407,12 +407,12 @@ Blocks.portal = class extends Block{
 import portalOverlay from './portal.png'
 import endPortalOverlay from './endportaloverlay.png'
 
-drawLayer('none', 400, c => {
+drawLayer('none', 400, ctx => {
 	if(!inPortal){ portalEffect = 0; if(!cam.nausea) return }
 	inPortal = false
 	cam.nausea += (min(1, portalEffect/2)-cam.nausea)*dt
 	if(!portalEffect && cam.nausea < 0.1) cam.nausea = max(0, cam.nausea-dt*.2)
-	if(cam.nausea) c.draw(portalOverlay.sub(0, (world.animTick%32)/32, 1, 1/32), vec4(cam.nausea))
+	if(cam.nausea) ctx.draw(portalOverlay.sub(0, (world.animTick%32)/32, 1, 1/32), vec4(cam.nausea))
 })
 const endShader = Shader(`
 #define PI 3.1415927

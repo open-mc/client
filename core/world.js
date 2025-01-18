@@ -134,6 +134,10 @@ export function setGamma(p){
 	lastLm = NaN
 }
 
+export const renderOptions = {
+	lightUpdates: true
+}
+
 export const exposureMap = new Map()
 globalThis.exposureMap = exposureMap
 
