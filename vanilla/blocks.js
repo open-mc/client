@@ -130,6 +130,14 @@ Blocks.dark_oak_log = class extends Wood{ static texture = BlockTexture(blocksPn
 Blocks.acacia_log = class extends Wood{ static texture = BlockTexture(blocksPng, 8, 13) }
 Blocks.jungle_log = class extends Wood{ static texture = BlockTexture(blocksPng, 10, 13) }
 
+Blocks.oak_log_back = class extends Blocks.oak_log{ static flags = BlockFlags.SOLID | BlockFlags.TARGET_CAPTURE }
+Blocks.birch_log_back = class extends Blocks.birch_log{ static flags = BlockFlags.SOLID | BlockFlags.TARGET_CAPTURE }
+Blocks.spruce_log_back = class extends Blocks.spruce_log{ static flags = BlockFlags.SOLID | BlockFlags.TARGET_CAPTURE }
+Blocks.dark_oak_log_back = class extends Blocks.dark_oak_log{ static flags = BlockFlags.SOLID | BlockFlags.TARGET_CAPTURE }
+Blocks.acacia_log_back = class extends Blocks.acacia_log{ static flags = BlockFlags.SOLID | BlockFlags.TARGET_CAPTURE }
+Blocks.jungle_log_back = class extends Blocks.jungle_log{ static flags = BlockFlags.SOLID | BlockFlags.TARGET_CAPTURE }
+
+
 class Planks extends Wood{
 	static breaktime = 3
 }
@@ -502,7 +510,7 @@ Blocks.jungle_sapling = class extends Sapling{
 }
 
 class Leaves extends Block{
-	static light = Opacity(1)
+	static light = Opacity(1) | MinLight(14)
 	static placeSounds = Blocks.grass.placeSounds
 	static stepSounds = Blocks.grass.stepSounds
 }
