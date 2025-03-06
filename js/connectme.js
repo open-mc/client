@@ -58,11 +58,11 @@ export function preconnect(ip, cb = Function.prototype){
 	let displayIp = ip; let n=null,u=''
 	if(ip[0] == '@') u = ip
 	else try{
-		try{u = new URL(ip)}catch{u=new URL('wss://'+ip)}
+		u = new URL(ip.startsWith('ws://') ? ip : 'wss://'+ip)
 		u.port || (u.port = 27277)
 		if(/(\.|^)localhost$|^127.0.0.1$|^\[::1\]$/.test(u.hostname)) u.hostname = 'local.blobk.at'
 		else u.protocol = 'wss:'
-		ip = ip.replace(/((?:[^./:;\\|{}[\]()@?#&^<>\s~`"']+\.)*[^./:;\\|{}[\]()@?#&^<>\s~`"']+)\.(\w+(?=:))/, (_,d,a)=>a == 'hash' | a == 'hash4' ? hashv4(d) : a == 'hash6' ? hashv6(d) : a == 'hash8' ? hashv8(d) : (a in TLD_MAP) ? d+'-mc.'+TLD_MAP[a] : d+'.'+a)
+		//ip = ip.replace(/((?:[^./:;\\|{}[\]()@?#&^<>\s~`"']+\.)*[^./:;\\|{}[\]()@?#&^<>\s~`"']+)\.(\w+(?=:))/, (_,d,a)=>a == 'hash' | a == 'hash4' ? hashv4(d) : a == 'hash6' ? hashv6(d) : a == 'hash8' ? hashv8(d) : (a in TLD_MAP) ? d+'-mc.'+TLD_MAP[a] : d+'.'+a)
 		ip=u+''; u.protocol=u.protocol=='wss:'?'https:':'http:'
 	}catch{}
 	(u?typeof u=='string'?LocalSocket.getOptions(u).then(obj => {
