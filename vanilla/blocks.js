@@ -204,7 +204,7 @@ const bucketSounds = {
 }
 
 export class Water extends Block{
-	static light = Opacity(1) | MinLight(5)
+	static light = Opacity(1) | MinLight(4)
 	static flags = BlockFlags.REPLACEABLE | BlockFlags.CLIMBABLE
 	static viscosity = 0.15
 	random(){
