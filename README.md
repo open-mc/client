@@ -5,7 +5,8 @@ git clone --recurse-submodules https://github.com/open-mc/client
 ```
 Run a HTTP server to make it available on http://localhost
 ```sh
-npx serve-repo client
+cd client
+npx serve-repo
 ```
 
 For multiplayer, get the server software over at https://github.com/open-mc/server
