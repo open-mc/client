@@ -67,7 +67,7 @@ export function performLightUpdates(){
 				const x0 = ub&63, x1 = ub>>6&63, y0 = ub>>12&63, y1 = ub>>18&63
 				ch.updateBounds = (x<x0?x:x0)|(x>x1?x:x1)<<6|(y<y0?y:y0)<<12|(y>y1?y:y1)<<18
 			}
-			let minLight = 0, ov = v; v >>= 4
+			let minLight = 15, ov = v; v >>= 4
 			if(dark){
 				const b = ch[i], {light} = b==65535?ch.tileData.get(i):BlockIDs[b]
 				const opacity = light&15, brightness = light>>4&15; minLight = light>>8&15

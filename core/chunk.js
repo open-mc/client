@@ -165,8 +165,8 @@ export class Chunk extends Uint16Array{
 			}
 		}
 		const {light:l2} = b, {light:l1} = ob
-		if((l2&15)>(l1&15)||(l2>>4&15)<(l1>>4&15)) _addDark(this, i)
-		if((l2&15)<(l1&15)||(l2>>4&15)>(l1>>4&15)) _add(this, i)
+		if((l2&15)>(l1&15)||(l2>>4&15)<(l1>>4&15)||(l2>>8&15)<(l1>>8&15)) _addDark(this, i)
+		if((l2&15)<(l1&15)||(l2>>4&15)>(l1>>4&15)||(l2>>8&15)>(l1>>8&15)) _add(this, i)
 		if(!this.ctx) return
 		const j = this.rerenders.indexOf(i), r = b.render != undefined
 		if((j == -1) & r) this.rerenders.push(i)
