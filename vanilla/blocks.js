@@ -275,6 +275,19 @@ Blocks.iron_ore = class extends Stone{
 	static breaktime = 15
 	static texture = BlockTexture(blocksPng, 1, 2)
 }
+Blocks.gold_ore = class extends Stone{
+	static breaktime = 15
+	static texture = BlockTexture(blocksPng, 0, 2)
+}
+Blocks.diamond_ore = class extends Stone{
+	static breaktime = 15
+	static texture = BlockTexture(blocksPng, 3, 2)
+}
+Blocks.lapis_ore = class extends Stone{
+	static breaktime = 15
+	static texture = BlockTexture(blocksPng, 0, 3)
+}
+
 Blocks.netherrack = class extends Block{
 	static breaktime = 2
 	static texture = BlockTexture(blocksPng, 7, 6)
