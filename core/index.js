@@ -383,13 +383,13 @@ function uptGamepads(){
 			}
 			i++
 		}
-		let x = d.axes[0], y = d.axes[1]
-		let l = hypot(x, y)
-		if(l > 1) x /= l, y /= l
+		let x = d.axes[0], y = -d.axes[1]
+		let l = 1/hypot(x, y)
+		if(l < 1) x *= l, y *= l
 		cursor.jlx = x; cursor.jly = y
-		x = d.axes[2], y = d.axes[3]
-		l = hypot(x, y)
-		if(l > 1) x /= l, y /= l
+		x = d.axes[2], y = -d.axes[3]
+		l = 1/hypot(x, y)
+		if(l < 1) x *= l, y *= l
 		cursor.jrx = x; cursor.jry = y
 	}
 }

@@ -20,7 +20,8 @@ export const defaultConfig = {
 			value: 1,
 			air_layers: ["bedrock", -2147483647, 4, "water", -1, "waterTop", 0, "air"],
 			ground_layers: ["bedrock", -2147483647, 4, "stone"],
-			biome: 'overworld'
+			biome: 'overworld',
+			features: ['overworld']
 		},
 		nether: {
 			shaper: 'nether',
@@ -29,7 +30,8 @@ export const defaultConfig = {
 			air_layers: ["air", 1024, "lava", 1407, "lavaTop", 1408, "air"],
 			air_layers_repeat: 2048,
 			ground_layers: ["netherrack"],
-			biome: 'nether'
+			biome: 'nether',
+			features: ['nether']
 		},
 		end: {
 			shaper: 'end',
@@ -37,7 +39,8 @@ export const defaultConfig = {
 			value: 2048,
 			air_layers: ["air"],
 			ground_layers: ["endstone"],
-			biome: 'end'
+			biome: 'end',
+			features: ['end']
 		},
 		void: {
 			shaper: 'uniform',

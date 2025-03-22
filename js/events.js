@@ -29,7 +29,7 @@ document.onmousemove = ({target}) => {
 		}
 	}
 }
-
+let dx1 = 0
 let odx = 0, ody = 0, dx = 0, dy = 0, opressed = false, opressed1 = false
 export const onFrame = []
 requestAnimationFrame(function checkInputs(){
@@ -37,15 +37,15 @@ requestAnimationFrame(function checkInputs(){
 	requestAnimationFrame(checkInputs)
 	if(!navigator.getGamepads) return
 	let pressed = false, pressed1 = false
-	let dx1 = 0
 	dx = dy = 0
+	let dx2 = 0
 	for(const d of navigator.getGamepads()){
 		if(d?.mapping != 'standard') continue
-		if(opressed && (d.buttons[0]==1||d.buttons[0].pressed)) pressed = opressed = true
-		else if(!opressed && (d.buttons[0]==1||d.buttons[0].pressed)) opressed = false
-		if(opressed1 && (d.buttons[1]==1||d.buttons[1].pressed)) pressed1 = opressed1 = true
-		else if(!opressed1 && (d.buttons[1]==1||d.buttons[1].pressed)) opressed1 = false
-		dx += d.axes[0], dy -= d.axes[1]; dx1 += d.axes[2]
+		if(!opressed && (d.buttons[0]==1||d.buttons[0].pressed)) pressed = opressed = true
+		else if(opressed && (d.buttons[0]==0||!d.buttons[0].pressed)) opressed = false
+		if(!opressed1 && (d.buttons[1]==1||d.buttons[1].pressed)) pressed1 = opressed1 = true
+		else if(opressed1 && (d.buttons[1]==0||!d.buttons[1].pressed)) opressed1 = false
+		dx += d.axes[0], dy -= d.axes[1]; dx1 += d.axes[2]*.02; dx2 += d.axes[2]
 	}
 	let d = Math.hypot(dx, dy)
 	if(d > 1) dx /= d, dy /= d
@@ -56,6 +56,7 @@ requestAnimationFrame(function checkInputs(){
 		e?.click?.()
 	}else if(pressed1 && ui && ui.esc && ui !== NONE) ui.esc()
 	const showingUI = ui && !(ui instanceof Comment)
+	if(Math.abs(dx2) < .1) dx1 = 0
 	a: if(showingUI){
 		const X = Math.abs(odx)<0.4?dx>=0.4?1:dx<=-0.4?-1:0:0
 		const Y = Math.abs(ody)<0.4?dy>=0.4?1:dy<=-0.4?-1:0:0
@@ -63,17 +64,20 @@ requestAnimationFrame(function checkInputs(){
 		if(mtarget) mtarget.classList.remove('hover'), mtarget = null
 		ui.rows ??= ui.querySelectorAll('row:not(row row), :not(row) > btn:not(.disabled)')
 		if(!ui.rows.length) break a
-		if(ui.rowI == undefined)
-			ui.rows[ui.rowI = Y>0?ui.rows.length-1:0].classList.add('hover')
+		if(ui.rowI == undefined){
+			const r = ui.rows[ui.rowI = Y>0?ui.rows.length-1:0]
+			if(r.classList.contains('controller-selectable')) r.classList.add('hover')
+		}
 		else if(Y){
 			const s = ui.rows[ui.rowI]
 			s.classList.remove('hover')
 			if(s.columnI!=undefined) s.columns[s.columnI].classList.remove('hover'),s.columnI=undefined
 			ui.rowI = (ui.rowI - Y + ui.rows.length) % ui.rows.length
-			ui.rows[ui.rowI].classList.add('hover')
+			const r = ui.rows[ui.rowI]
+			if(r.classList.contains('controller-selectable')) r.classList.add('hover')
 		}
 		const s = ui.rows[ui.rowI]
-		s.columns ??= s.nodeName === 'BTN' ? [s] : s.querySelectorAll('img,btn:not(.disabled),input,.selectable,.controller-selectable')
+		s.columns ??= s.nodeName === 'BTN' ? [s] : s.querySelectorAll('btn:not(.disabled),input,.selectable,.controller-selectable')
 		if(!s.columns.length) break a
 		if(s.columnI == undefined)
 			s.columns[s.columnI = X<0?s.columns.length-1:0].classList.add('hover')
@@ -90,8 +94,9 @@ requestAnimationFrame(function checkInputs(){
 		const n = s.columns[s.columnI]
 		if(n.parentElement?.nodeName != 'BTN') break a
 		const track = n.parentElement
-		track.value = Math.max(0, Math.min(1, track.value + dx1/50))
-		track.set(track.value)
+		const v = Math.max(0, Math.min(1, track.value + dx1))
+		track.set(v)
+		dx1 = v-track.value
 	}
 	odx = dx; dx = 0
 	ody = dy; dy = 0
