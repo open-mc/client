@@ -58,7 +58,7 @@ const serverList = UI('serverlist',
 	Row(
 		welcomeLabel = Label(),
 		Spacer.grow(1),
-		IconBtn('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA0AAAANCAYAAABy6+R8AAAAAXNSR0IArs4c6QAAAFhJREFUKFO9UlsKACAMyvsfelGwcEt6ENRfTpniUMQzM3MYADJlAI3oBCXieRdl0u4fNimrjLmT4Jc3TDkoGxSRw8v5PxF7P87kopUgF/3e09VF5E52t1cBeF9gAg+pOQwAAAAASUVORK5CYII', texts.serverlist.settings(), () => (click(),settings())).flex(0, 80),
+		IconBtn('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA0AAAANCAYAAABy6+R8AAAAAXNSR0IArs4c6QAAAFhJREFUKFO9UlsKACAMyvsfelGwcEt6ENRfTpniUMQzM3MYADJlAI3oBCXieRdl0u4fNimrjLmT4Jc3TDkoGxSRw8v5PxF7P87kopUgF/3e09VF5E52t1cBeF9gAg+pOQwAAAAASUVORK5CYII', texts.serverlist.settings(), () => settings()).flex(0, 80),
 		IconBtn('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA0AAAANAQMAAABIJXY/AAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAGUExURUdwTP///5+UokMAAAABdFJOUwBA5thmAAAALUlEQVQI12NgYGDg72CQv8EkqcBYwMHA8IPpL5BgYPpRwPjjBcvzh8wKN4FKALeRC0VbvhO6AAAAAElFTkSuQmCC', texts.serverlist.refresh(), serverlist).flex(0, 80),
 	).css({alignSelf: 'stretch', alignItems: 'center', paddingLeft: '11rem', flexWrap: 'wrap', pointerEvents: 'all'}),
 	list = Div('serverlist', addRow = Row(
@@ -67,9 +67,9 @@ const serverList = UI('serverlist',
 		IconBtn('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA0AAAANCAYAAABy6+R8AAAAAXNSR0IArs4c6QAAAFdJREFUKFOtUkEOACAIiv8/2mYbmzPUQ3VEQdCwimdmBgCqLEFvHEneQEWqR1Kun0lKtcPeSdFGXoDb5vRrkiLmnNKeWkzM/p6pOjTxMlNH/EOarMUfswEPpHgOzXREwwAAAABJRU5ErkJggg', texts.serverlist.import())
 	)).css({pointerEvents: 'none'})
 ).css({pointerEvents: 'none'})
-addRow.firstChild.on('click', () => {click(); addRow.replaceWith(input); input.focus()}).classList.add('selectable')
-addRow.children[1].on('click', ()=>{click();worldoptions()}).classList.add('selectable')
-addRow.lastChild.on('click', () => {click();i.accept = '.map';i.click();i.onchange = () => {
+addRow.firstChild.on('click', () => {addRow.replaceWith(input); input.focus()}).classList.add('selectable')
+addRow.children[1].on('click', ()=>{worldoptions()}).classList.add('selectable')
+addRow.lastChild.on('click', () => {i.accept = '.map';i.click();i.onchange = () => {
 	const s = i.files[0]?.stream().getReader(); if(!s) return
 	const id = '@' + Date.now()+Math.floor(Math.random()*1e16).toString(10).padStart(16,'0')
 	LocalSocket.setOptions(id, null, async db => {
