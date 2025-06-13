@@ -25,9 +25,9 @@ else if(c.startsWith('font/'))m[k]=E+"await%20new%20FontFace('font',"+encodeURI(
 else m[k]=E+R
 }m.vanilla=m[H+'vanilla/index.js'],m.ant=m[H+'core/ant.js'],m.core=m[H+'core/index.js'],m.world=m[H+'core/world.js'],m.api=m[H+'core/api.js'],m.definitions=m[H+'core/definitions.js']
 d=document.createElement('script');d.type='importmap';d.textContent=JSON.stringify({imports:m});document.head.append(d);m={__proto__:null}
-__import__.loadAll=async ()=>{__import__.loadAll=null;let i=0;while(i<f.length)f[i]=import(f[i++]);for(const n of f)await n;return F};import('core');onpointermove=onpointerup=onpointerout=null;
+__import__.loadAll=async ()=>{__import__.loadAll=null;let i=0;while(i<f.length)f[i]=import(f[i++]);for(const n of f)await n;return F};import('core');onpointermove=onpointerup=onpointerout=onwheel=ontouchmove=ontouchend=null;
 ${shimScript}
-});onpointermove=e=>parent.postMessage(e.clientY,'*');onpointerup=e=>parent.postMessage(-1-e.clientY,'*');onpointerout=e=>parent.postMessage(NaN,'*')</script></html>`
+});onpointermove=e=>parent.postMessage(4294967296+e.clientY,'*');onpointerup=e=>parent.postMessage(8589934592+e.clientY,'*');onpointerout=e=>parent.postMessage(NaN,'*');onwheel=e=>parent.postMessage(e.deltaY,'*');let lti=-1,lty=NaN;ontouchmove=e=>{for(let i=0;i<e.changedTouches.length;i++){const t=e.changedTouches[i];if(lti<0)lti=t.identifier;else if(t.identifier!=lti)continue;if(lty!=lty)lty=t.screenY;else parent.postMessage(lty-(lty=t.screenY),'*')}};ontouchend=e=>{for(let i=0;i<e.changedTouches.length;i++)if(e.changedTouches[i].identifier==lti)lti=-1,lty=NaN}</script></html>`
 iframe.sandbox = 'allow-scripts allow-pointer-lock allow-downloads'
 iframe.allow = 'cross-origin-isolated; autoplay; fullscreen'
 iframe.allowfullscreen = true
@@ -203,7 +203,7 @@ globalThis.parentPort = null
 const tra=[null]
 onmessage = ({data, source}) => {
 	if((source??0) !== iframe.contentWindow) return
-	if(iReady<2){ 
+	if(iReady<2){
 		if(!iReady) serverClicked(data)
 		else if(data === null){
 			iReady = 2

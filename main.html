@@ -9,6 +9,7 @@
 		<meta name="mobile-web-app-capable" content="yes">
 		<script>document.generateManifest=d=>{if(window.__TAURI__) return;d.display="fullscreen";d.icons=[{src:(d.start_url=location.origin,d.scope=location.origin)+"/img/icon.png",type:"image/png",sizes:"512x512"}];document.head.insertAdjacentHTML('beforeEnd', `<link rel="manifest" href="data:application/json;base64,${btoa(JSON.stringify(d))}"><meta name="mobile-web-app-title" content="${d.short_name}"><link rel="shortcut icon" href="/img/icon.png"><meta name="theme-color" content="${d.theme_color}">`);document.title=d.name;document.documentElement.style.backgroundColor=d.background_color};if(top!=window) location='//youtu.be/xvFZjo5PgG0';</script>
 		<script src="/core/img/_pako.js"></script>
+		<script src="/js/nacl.min.js"></script>
 	</head>
 	<body>
 		<div id="errors"></div>

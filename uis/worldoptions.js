@@ -30,7 +30,7 @@ const inputs = {
 				serverlist()
 			}
 		}, 1000)
-	}).css({color:'red'})
+	}).css({color: '#f33'})
 }
 
 const list = Div('optionlist',
@@ -46,13 +46,13 @@ let row1 = Row(Btn(texts.misc.menu_back(), ()=>(config = null, id='',serverlist(
 	preconnect(id, play)
 	config = null, id=''
 }, 'small'))
-let row2 = Row(Btn(texts.misc.discard(), () => (config = null, id='',ws ? pause() : serverlist()), 'small').css({color:'#f88'}), Btn(texts.misc.save(), () => {
+let row2 = Row(Btn(texts.misc.discard(), () => (config = null, id='',ws ? pause() : serverlist()), 'small').css({color:'#f33'}), Btn(texts.misc.save(), () => {
 	if(typeof id == 'object') id.setOptions(config)
 	else LocalSocket.setOptions(id, config)
 	config = null, id=''
 	ws ? pause() : serverlist()
 }, 'small'))
-const wO = UI('dirtbg',
+const wO = UI('',
 	Spacer.grow(1),
 	Label(wtexts()),
 	Spacer.grow(1), list,

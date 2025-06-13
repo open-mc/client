@@ -104,19 +104,19 @@ export function preconnect(ip, cb = Function.prototype){
 		Div('',
 			Row(
 				name = Label(displayIp),
-				Btn('...', () => {
+				Btn(Img('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAAAAXNSR0IArs4c6QAAAC5JREFUKFNjZCARMJKonmGwavj///9/kF8YGRnBTsTHJ6gA3YDB6mlSIo9kPwAA0g8YDeLxyj4AAAAASUVORK5CYII'), () => {
 					if(typeof u == 'string') worldoptions(u)
 					else window.open(ip.replace('ws', 'http'), '_blank','width=1024,height=768,left='+screenX+',top='+screenY)
-				},'tiny').css({lineHeight:'16rem'}),
-				Btn('^', () => {
+				},'tiny').css({lineHeight:'12rem'}),
+				Btn(Img('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAAAAXNSR0IArs4c6QAAAENJREFUKFNjZCARMGJT//////8gcUZGRgx5DAGYYphB6JpQNKArxqYJrgGXYnRNYA2EFCNrotzTyDYSFUqDVAO+1AIA8WwoDf9x2kwAAAAASUVORK5CYII'), () => {
 					const i = node.parentElement.children.indexOf(node)
 					if(!i) return
 					swapServers(servers[i-1], displayIp)
-				},'tiny').css({lineHeight:'24rem'}),
-				Btn(typeof u == 'string' ? 'E' : 'x', async () => {
+				},'tiny').css({lineHeight:'20rem'}),
+				Btn(typeof u == 'string' ? Img('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAAAAXNSR0IArs4c6QAAAEVJREFUKFNjZCARMGJTn7/d+T9IfKLnXgz5wawB5m5cYQDzD4ofcGlC9jyGp9E1oYcUdUIJX1yCbSDkYZgBIOdhdRI+GwAPjiQNGZncwgAAAABJRU5ErkJggg') : Img('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAwAAAAMCAYAAABWdVznAAAAAXNSR0IArs4c6QAAAFJJREFUKFNjZCARMILUX1NT+w+itW7dAvPRAbI8igZsmmCKYXJwE9ElkG1GNgjFCciakJ2F7FQMN6NrQvcXZRpIchJJnsamGOZprMFKcsSRkjoAMFFADWmU0NIAAAAASUVORK5CYII'), async () => {
 					if(typeof u == 'string') exportWorld(u, n?.name)
 					else if(node.parentElement) rmServer(displayIp)
-				},'tiny')
+				}, 'tiny')
 			),
 			motd = Label(texts.connection.connecting()).css({opacity: .5})
 		)

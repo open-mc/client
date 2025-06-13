@@ -24,7 +24,7 @@ try{const a=new ReadableStream();structuredClone(a,{transfer:[a]})}catch{safari 
 
 export function start(){
 	document.getElementById('loading')?.remove()
-	if(!('shownDefects' in storage) && safari) return void showUI(UI('dirtbg',
+	if(!('shownDefects' in storage) && safari) return void showUI(UI('',
 		Label('Notice about your current environment').css({fontSize: '12rem', maxWidth: 'calc(100% - 20px)', whiteSpace: 'pre-wrap', height: 'auto'}),
 		Spacer(25),
 		Label(texts.warnings.safari()).css({maxWidth: 'calc(100% - 20px)', opacity: '0.7', height: 'auto', whiteSpace: 'pre-wrap'}),

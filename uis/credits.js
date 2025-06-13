@@ -4,7 +4,7 @@ import { credit } from '../server/version.js'
 import { pause } from './pauseui.js'
 
 let div
-export const creditsUI = UI('dirtbg',
+export const creditsUI = UI('',
 	Spacer.grow(1),
 	div = Div('').css({whiteSpace: 'pre-wrap'}),
 	Div('spacing'),

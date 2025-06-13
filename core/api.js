@@ -310,6 +310,8 @@ listen('guiScale', v => {
 
 HTMLElement.prototype.attr = function(a, b=''){this.setAttribute(a, b); return this}
 HTMLElement.prototype.css = function(b){Object.assign(this.style, b); return this}
+HTMLElement.prototype.flex = function(g=0,b=NaN,s=0){this.style.flex = g+' '+s+' '+(b==b?b+'rem':'auto'); return this}
+HTMLElement.prototype.wh = function(w=0,h=0){w&&(this.style.width=w+'rem');h&&(this.style.height=h+'rem'); return this}
 HTMLElement.prototype.on = function(a, b, c){this.addEventListener(a, b, c); return this}
 Object.defineProperty(Node.prototype, 'text', Object.getOwnPropertyDescriptor(Node.prototype, 'textContent'))
 

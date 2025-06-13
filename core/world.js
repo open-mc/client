@@ -134,9 +134,11 @@ export function setGamma(p){
 	lastLm = NaN
 }
 
-export const renderOptions = {
-	lightUpdates: true
+export const renderer = globalThis.renderer = {
+	lightUpdates: true,
+	mipmapOffset: -0.05
 }
+export { renderer as renderOptions }
 
 export const exposureMap = new Map()
 globalThis.exposureMap = exposureMap
@@ -285,7 +287,7 @@ export function prep(mip = 0, tick = 0){
 		if(toMipmap&2) blockAtlas2.genMipmaps()
 		toMipmap = 0
 	}
-	blockAtlas.setMipmapRange(0, mip)
+	blockAtlas.setMipmapRange(mip, mip)
 	draw.shader.uniforms(blockAtlas2, draw.textureMipmap = mip)
 	let l = draw.textureLayer
 	for(let i = 0; i < animated.length; i++){
