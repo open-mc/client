@@ -17,7 +17,7 @@ export function foundMe(e){
 }
 export const map = globalThis.map = new Map()
 export const entityMap = globalThis.entityMap = new Map()
-export const server = {
+export const server = globalThis.server = {
 	title: '',
 	sub: '',
 	players: [],
