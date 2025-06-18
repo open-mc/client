@@ -164,6 +164,7 @@ drawLayer('none', 200, (ctx, w, h) => {
 		if(abs(ifloat(cam.y + 2147483648)) <= H2 + lineWidth2*.5)
 			ctx.drawRect(-W2,ifloat(-cam.y+2147483648-lineWidth2*.5),W2*2,lineWidth2, axisLineCol)
 	}
+	blockAtlas.setMipmapRange()
 })
 drawLayer('none', 300, ctx => {
 	for(const ev of gridEventMap.values()){
