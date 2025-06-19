@@ -123,7 +123,7 @@ export const ptrlock = () => {
 	if(fs instanceof Promise) fs = fs.catch(e=>null).then(() => el.requestPointerLock?.(ptrLockOpts))
 	else fs = el.requestPointerLock?.(ptrLockOpts)
 	if(fs) preventExit = true, fs.then(() => preventExit = false, () => null)
-	top.postMessage(hasLock = true, '*')
+	parent.postMessage(hasLock = true, '*')
 	paused = false
 }
 let preventExit = false
@@ -133,7 +133,7 @@ export const exitPtrlock = () => {
 }
 document.onpointerlockerror = e => {
 	if(!hasLock) return
-	top.postMessage(hasLock = false, '*'), document.fullscreenElement && document.exitFullscreen?.(), document.documentElement.style.cursor = 'pointer'
+	parent.postMessage(hasLock = false, '*'), document.fullscreenElement && document.exitFullscreen?.(), document.documentElement.style.cursor = 'pointer'
 	paused = true
 }
 document.onpointerlockchange = () => {
