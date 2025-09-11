@@ -17,7 +17,8 @@ onkeyup = e => {
 
 let mtarget = null
 document.onmousemove = ({target}) => {
-	while(target && target.nodeName!='BTN' && target.nodeName!='INPUT' && !target.classList.contains('selectable')) target=target.parentElement
+	if(!(target instanceof Element)) return
+	while(target && target.nodeName!='BTN' && target.nodeName!='BTN2' && target.nodeName!='INPUT' && !target.classList.contains('selectable')) target=target.parentElement
 	if(target != mtarget) mtarget?.classList.remove('hover'),(mtarget=target)?.classList.add('hover')
 	if(ui === NONE){
 		const v = ui.rowI!=undefined&&ui.rows[ui.rowI]
@@ -62,7 +63,7 @@ requestAnimationFrame(function checkInputs(){
 		const Y = Math.abs(ody)<0.4?dy>=0.4?1:dy<=-0.4?-1:0:0
 		if(!X&&!Y) break a
 		if(mtarget) mtarget.classList.remove('hover'), mtarget = null
-		ui.rows ??= ui.querySelectorAll('row:not(row row), :not(row) > btn:not(.disabled)')
+		ui.rows ??= ui.querySelectorAll('row:not(row row), :not(row) > btn:not(.disabled), :not(row) > btn2:not(.disabled)')
 		if(!ui.rows.length) break a
 		if(ui.rowI == undefined){
 			const r = ui.rows[ui.rowI = Y>0?ui.rows.length-1:0]
@@ -77,7 +78,7 @@ requestAnimationFrame(function checkInputs(){
 			if(r.classList.contains('controller-selectable')) r.classList.add('hover')
 		}
 		const s = ui.rows[ui.rowI]
-		s.columns ??= s.nodeName === 'BTN' ? [s] : s.querySelectorAll('btn:not(.disabled),input,.selectable,.controller-selectable')
+		s.columns ??= s.nodeName === 'BTN' ? [s] : s.querySelectorAll('btn:not(.disabled),btn2:not(.disabled),input,.selectable,.controller-selectable')
 		if(!s.columns.length) break a
 		if(s.columnI == undefined)
 			s.columns[s.columnI = X<0?s.columns.length-1:0].classList.add('hover')

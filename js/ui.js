@@ -21,6 +21,8 @@ export const ping = Sound('/core/img/ping.mp3')
 
 HTMLElement.prototype.attr = function(a, b=''){this.setAttribute(a, b); return this}
 HTMLElement.prototype.css = function(b){Object.assign(this.style, b); return this}
+HTMLElement.prototype.flex = function(g=0,b=NaN,s=0){this.style.flex = g+' '+s+' '+(b==b?b+'rem':'auto'); return this}
+HTMLElement.prototype.wh = function(w=0,h=0){w&&(this.style.width=w+'rem');h&&(this.style.height=h+'rem'); return this}
 HTMLElement.prototype.on = function(a, b, c){this.addEventListener(a, b, c); return this}
 Object.defineProperty(Node.prototype, 'text', Object.getOwnPropertyDescriptor(Node.prototype, 'textContent'))
 
@@ -133,12 +135,12 @@ addEventListener('pointerup', () => {
 	thumbx = -1
 })
 function _scale(c, change){
-	let el = document.createElement('btn')
+	let el = document.createElement('btn2')
 	el.className = c
 	el.style.position = 'relative'
 	let txt = document.createElement('span')
 	txt.style = 'z-index:1;position:relative;pointer-events:none'
-	let thumb = document.createElement('btn')
+	let thumb = document.createElement('btn2')
 	thumb.className = 'thumb'
 	el.append(txt)
 	el.append(thumb)
@@ -157,7 +159,7 @@ export const ScaleSmall = _scale.bind(undefined, 'disabled small scale')
 export const Scale = _scale.bind(undefined, 'disabled scale')
 
 export const Btn = (text, onclick, classes = '') => {
-	let btn = document.createElement('btn')
+	let btn = document.createElement('btn2')
 	if(classes) btn.className = classes
 	btn.append(text)
 	btn.onclick = e => {
@@ -187,6 +189,26 @@ export const UI = (cl, ...els) => {
 	for(const el of els) ui.append(el)
 	ui.show = showUI.bind(undefined, ui)
 	return ui
+}
+
+export const IconBtn = (el, t, onclick, classes = '') => {
+	const d = document.createElement('btn')
+	if(typeof el == 'string'){
+		const i = document.createElement('img')
+		i.src = el
+		i.classList.add('icon')
+		el = i
+	}
+	d.append(el,  t)
+	d.onclick = e => {
+		if(d.disabled) return
+		click()
+		e.stopPropagation()
+		onclick?.(d)
+	}
+	d.className = 'selectable '+classes
+	Object.setPrototypeOf(d, BtnPrototype)
+	return d
 }
 
 export const Spacer = (a) => {

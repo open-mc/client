@@ -3,7 +3,7 @@ import { UI, Input, Label, showUI, Spacer } from '../js/ui.js'
 import { serverlist } from './serverlist.js'
 
 let inp
-const loginEl = UI('dirtbg',
+const loginEl = UI('',
 	Label('This game is currently for testers only'),
 	Label('Join our discord to get an account key').css({textDecoration: 'underline', color: '#5ae', cursor: 'pointer'}).on('click', () => open('https://discord.gg/ufaHZXtnab')),
 	Spacer(10),

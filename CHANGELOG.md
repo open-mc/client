@@ -26,6 +26,14 @@ Todo: Hotlink vanilla assets as a partial workaround to license issue
 
 </details>
 
+## Alpha 12
+
+- Menu redesign
+
+Todo: More blocks and items
+
+Todo: Mobile controls
+
 ## Alpha 11
 
 - **Offline support**
@@ -33,10 +41,6 @@ Todo: Hotlink vanilla assets as a partial workaround to license issue
 - Lots and lots of internal changes
 - World export/import
 - Terrain generation overhaul
-
-Todo: More blocks and items
-
-Todo: Mobile controls
 
 ## Alpha 10 (current version)
 

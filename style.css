@@ -1,6 +1,6 @@
 @font-face {
-	font-family: mc;
-	src: url('/core/img/font.woff') format('woff');
+	font-family: ubuntu;
+	src: url('/img/Ubuntu-R.ttf');
 	font-weight: normal;
 	font-style: normal;
 }
@@ -20,13 +20,13 @@ body{
 	user-select: none;
 	-webkit-user-select: none;
 	-webkit-user-drag: none;
-	font-family: mc, Arial;
-	font-size: 8rem;
+	font-family: ubuntu, Arial;
+	font-size: 10rem;
 	color: white;
 	animation: spin 1s infinite;
-	image-rendering: pixelated;
 	--tc: #3f3f3f;
 	text-shadow: 1rem 1rem var(--tc);
+	background: #000;
 }
 *{
 	margin:0;box-sizing:border-box;
@@ -35,6 +35,7 @@ body{
 	overscroll-behavior: none; touch-action: manipulation;
 	scrollbar-width: none;
 }
+img, canvas{ image-rendering: pixelated }
 input, textarea{
 	font: inherit;
 	border: unset;
@@ -58,7 +59,7 @@ in{
 	height: 20rem;
 	overflow: hidden;
 }
-in.tall{ height: 9em; }
+in.tall{ height: 6em; }
 in div, in input, in textarea{
 	position: absolute;
 	top: 0; height: calc(100% + 1rem);
@@ -110,38 +111,52 @@ span{
 	overflow: visible;
 	flex-shrink: 0;
 }
-btn{
+btn2{
 	display: block;
 	text-align: center;
 	height: 20rem;
 	width: 200rem;
-	line-height: 20rem;
-	background: url('/core/img/button.png') right center/324rem no-repeat;
+	line-height: 16rem;
+	background: #777;
+	outline: 1rem black solid;
+	outline-offset: -1rem;
 	cursor: pointer;
 	flex-shrink: 0;
+	border: 2rem solid;
+	border-color: #fff8 #0008 #0008 #fff8;
 }
-btn.small{
+btn2 > img{
+	height: 12rem;
+	margin: 2rem;
+	width: auto;
+	filter: drop-shadow(1rem 1rem #3f3f3f);
+}
+btn2.small{
 	width: 96rem;
-	background: url('/core/img/button.png') -28rem center/324rem;
 }
-btn.tiny{
+btn2.tiny{
 	width: 20rem;
-	background: url('/core/img/button.png') -8rem center/324rem;
 }
-btn.thumb{
+btn2.thumb{
 	width: 8rem;
-	background: url('/core/img/button.png') left center/324rem;
 	position: absolute;
 	--value: 0;
 	top: 0;
 	left: calc(var(--value) * (100% - 8rem));
 }
-btn.highlighted, btn.hover{
-	background-position-y: 100% !important;
+btn2.highlighted, btn2.hover{
+	background: #79d;
 }
-btn.disabled{
-	background-position-y: 0 !important;
+btn2.disabled{
 	cursor: unset;
+	border: none;
+	background: #222;
+}
+img.icon{
+	min-width: 13rem;
+	height: 13rem;
+	position: relative;
+	filter: drop-shadow(1rem 1rem #3f3f3f);
 }
 .selectable.hover{
 	color: white !important;
@@ -164,7 +179,7 @@ btn.disabled{
 .c14{ color: #5ff; --tc: #153f3f; text-shadow: 1rem 1rem var(--tc); }
 .c15{ color: #fff; --tc: #3f3f3f; text-shadow: 1rem 1rem var(--tc); }
 
-.s1, .s3 { text-shadow: .5rem 0, 1rem 0, 1rem 1rem var(--tc), 1.5rem 1rem var(--tc), 2rem 1rem var(--tc); letter-spacing: 1rem; }
+.s1, .s3 { text-shadow: .75rem 0, 1rem 1rem var(--tc), 1.75rem 1rem var(--tc); letter-spacing: 1rem; }
 .s2, .s3, .s6, .s7, .s10, .s11, .s14, .s15{ font-style: italic; }
 .s4, .s5, .s6, .s7 { text-decoration: underline 1rem }
 .s8, .s9, .s10, .s11 { text-decoration: line-through 1rem }
@@ -202,8 +217,6 @@ hr{
 	/* No BGR antialiasing on windows 10 (it looks really ugly) */
 	filter: invert(0);
 }
-#ui.noshade{ background-color: #0000 }
-#ui.dirtbg{ background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACABAMAAAAxEHz4AAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAAVUExURToqHRwTDS8iFyYbEioqKiIiIiQcFSLntIgAAAEDSURBVGje7ZnREcMgDENZgRWyQlfoCl2h+49Q3It6iuIOgE7+AYx5/Ohsk4yx7DjtcVrnm8t4H+MIwAJQkwrkgFo/l8EHIO/P0wLwAEALEAuvWTQcw3EBeABKFK9lXW7QxIKRhRWADwCbtVGHu+RR87rodkkAFgAkCRXMJOuajEs2CmB7AMQDZzUWGqBzFV8AHgAO0IcGRNX5A/ABqJNHCEwP814APgB9eGpB6YrJL6EEYAXoCgnAeggfKC5CCmB7QFdtsK5HBl/CD5IvPAALgDoV8s8GqysACwCL6b1Mmwokle4DVQAeAA3iJlKbDP2JEYAfQB+d1UAcZHrwVpkC2BnwAd8UZn0UizqoAAAAAElFTkSuQmCC) 0 0/64px }
 
 .menu{
 	display: flex;
@@ -223,6 +236,17 @@ column{
 	flex-direction: column;
 	align-items: stretch;
 }
+
+btn{
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 1rem 3rem;
+	background: #fff2;
+	height: 25rem;
+	gap: 4rem;
+}
+
 @keyframes fade{
 	0%{opacity: 1;}
 	100%{opacity: 0;}
@@ -232,7 +256,8 @@ column{
 	height: 11rem; width: 35rem;
 	position: absolute;
 	bottom: 5rem; left: 5rem;
-	filter: drop-shadow(0 0 3px black)
+	filter: drop-shadow(0 0 3px black);
+	z-index: 999;
 }
 
 [hidden]{display: none !important}
@@ -270,7 +295,7 @@ column{
 #serverlist > row{
 	pointer-events: none;
 }
-#serverlist > row btn{ pointer-events: all; position: relative; z-index: 1; }
+#serverlist > row btn2{ pointer-events: all; position: relative; z-index: 1; }
 #serverlist > row:after{
 	content: "";
 	position: absolute;
@@ -278,17 +303,18 @@ column{
 	pointer-events: all;
 }
 #serverlist > row:last-child{ height: 30rem; padding: 0; flex: 1; pointer-events: all; }
-#serverlist > row:last-child > div{
+#serverlist > row:last-child > btn{
 	text-align: center;
 	height: 30rem;
 	line-height: 30rem;
+	flex: 1;
 }
-#serverlist > row.hover, #serverlist > row > .hover{
+btn.hover, row.hover{
 	outline: 1rem #fff8 solid;
 	outline-offset: -1rem;
 	cursor: pointer;
 }
-#serverlist img{
+#serverlist > row > img{
 	min-width: 48rem; height: 48rem; margin: 2rem; max-width: 96rem;
 	position: relative;
 }
@@ -301,26 +327,27 @@ img:after{
 	#orientationdiv{display: flex !important}
 }
 
-.serverlist > row{ padding: 8rem }
+.serverlist > row{ padding: var(--p); padding-top: 0 !important; gap: var(--p) !important; }
+#ui.serverlist{ --p: 8rem; padding-top: var(--p) !important; }
 
 @media (max-height: 600px){
-	#serverlist img{
+	#serverlist > row > img{
 		min-width: 40rem; height: 40rem;
 	}
 	#serverlist > row{ height: 46rem }
 	#serverlist{ --padding: 5rem }
-	.serverlist > row{ padding: 4rem }
-	in.tall{ height: 7em; }
+	#ui.serverlist{ --p: 4rem }
+	in.tall{ height: 5em; }
 }
 @media (max-height: 380px){
-	#serverlist img{
+	#serverlist > row > img{
 		min-width: 32rem; height: 32rem;
 	}
 	#serverlist > row{ height: 38rem }
 	#serverlist{ --padding: 3rem }
-	.serverlist > row{ padding: 2rem }
+	#ui.serverlist{ --p: 2rem }
 	#serverlist > row > div > span{ transform: translateY(-6rem) }
-	in.tall{ height: 5em; }
+	in.tall{ height: 4em; }
 }
 @media (max-height: 336px) {
 	body{
@@ -351,7 +378,7 @@ img:after{
 	flex-direction: column;
 	white-space: pre-wrap;
 	width: 75%;
-	height: 0; font-size: 4rem; line-height: 5rem;
+	height: 0; font-size: 6rem; line-height: 5rem;
 	pointer-events: none;
 	touch-action: none;
 }

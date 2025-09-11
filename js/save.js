@@ -1,5 +1,5 @@
 export const storage = globalThis.localStorage
-Object.defineProperty(globalThis, 'localStorage', {get(){window.close(); top.location.href = '//youtu.be/xvFZjo5PgG0'}})
+Object.defineProperty(globalThis, 'localStorage', {get(){return sessionStorage}})
 
 export const options = {}
 const defaults = {

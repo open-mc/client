@@ -30,7 +30,6 @@ const pauseui = UI('menu',
 		).css({display: 'flex', right: '2rem', opacity: 0.3, fontSize: '8rem', cursor: 'pointer'})
 	).css(pointerDivCss)
 ).css({pointerEvents: 'none', gap: 0}).on('pointerover', () => (resumeBtn.style.pointerEvents = 'all', resumeBtn.classList.remove('highlighted')))
-pauseui.esc = () => showUI(null)
 resumeBtn.style.pointerEvents = 'all'
 resumeBtn.on('pointerover', e => (e.stopPropagation(),resumeBtn.style.pointerEvents = 'none',resumeBtn.classList.add('highlighted')))
 export function pause(){
